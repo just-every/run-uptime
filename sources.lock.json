@@ -2555,6 +2555,10 @@
       "sha256": "461edf0df24c49280dacd75f542761e7a3d7a4a8a88c19f66db8c795ad01e263",
       "executable": false
     },
+    "migrations/0089_business_retired.sql": {
+      "sha256": "f4191e16de2873d86af749cfa2f80d09be6870d211be21249ef2d6640eddebc3",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "61ba56de0f6cefb040131c53bde043bc4aa6b4edf6bdba50bc682eee244e45c3",
       "executable": false
@@ -5015,6 +5019,10 @@
       "sha256": "a062355a9898261b68e40b35336311c87cfe2859c0d7bda2bd469e33102104ea",
       "executable": false
     },
+    "src/base/modules/business-settings/retire.ts": {
+      "sha256": "a317be553c3df11a5515b1bf7ef69a5f4c73936816633dfd4c2ff6380a293bcd",
+      "executable": false
+    },
     "src/base/modules/business-settings/role-domain.d.mts": {
       "sha256": "4e318e9b1b6fccb9eb7c17e7dbcbd1c3e0d51267dd9de3fbdf0531f48980f091",
       "executable": false
@@ -5029,6 +5037,10 @@
     },
     "src/base/modules/business-settings/schema/0002_business_people.sql": {
       "sha256": "51aa39622d866b987d71b6e37c9a8300e7f24c54a55611edaab669ed051b01cd",
+      "executable": false
+    },
+    "src/base/modules/business-settings/schema/0003_business_retired.sql": {
+      "sha256": "1bfc79bfe6432e03a4eba9843ab10fae6a501e7ac5b9fd98caf42054c9f36c0c",
       "executable": false
     },
     "src/base/modules/business-settings/store.ts": {
@@ -9549,6 +9561,10 @@
     },
     "tests/retention-cleanup-proof.mjs": {
       "sha256": "64926e407891f60b1bf93e68e7f6747559de6358d1175dd37f2f90de9b3c8f18",
+      "executable": false
+    },
+    "tests/roster-erasure.mjs": {
+      "sha256": "a611f6f053ff992e02061bfc4e2780f01d83a6371d57f8fdfa0fa3dff1cab2f1",
       "executable": false
     },
     "tests/scratch-installation.mjs": {
