@@ -2664,7 +2664,7 @@
       "executable": false
     },
     "public/assets/failure-snapshot-view.js": {
-      "sha256": "f5056b388653b8b1913132efd11e02c1c4797ac054573a1281da29283e3ac270",
+      "sha256": "2b638b31d4978c9db38d5a615d75ef05079cfd50532771588b32e04352ea1326",
       "executable": false
     },
     "public/assets/report-schedule-controls.js": {
@@ -2712,7 +2712,7 @@
       "executable": false
     },
     "public/catalog-dialogs.js": {
-      "sha256": "1b250dbac4a490462ec6ae91f75357db967007013f22a36241983be496eca34e",
+      "sha256": "de0693c6a653b39582d37c998ab9c5a3dd86deb9b3b58f29dd31d54706b08a6a",
       "executable": false
     },
     "public/catalog.css": {
@@ -2896,11 +2896,11 @@
       "executable": false
     },
     "public/monitor-folds.js": {
-      "sha256": "e22bee585d12bea9e7bc618a62ef6e00c82b9b230fdca048a54a2c81d8c51d29",
+      "sha256": "bc1ba922e5b4682fb326103e2d12ee653ef43710f7a048f3d7938a431d7af957",
       "executable": false
     },
     "public/monitor-incidents.js": {
-      "sha256": "45126ee2dcfa5a6f7efcd79c0b63b4e4d0d498c82285bc0a79e70cf331f26b09",
+      "sha256": "8594efa8463292c5f40d41db483b1046d1720fc32786b0c70399350a55ec04a2",
       "executable": false
     },
     "public/monitor-links.js": {
@@ -2916,15 +2916,15 @@
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "5e8050c42ba11c75e05e28ae8d2d48ddaa653144d158ac65a33c5c2739c7b307",
+      "sha256": "cddec2b1cffa3be4f667e811d4728eba521ed5aa5896cb503716e10f85cb61db",
       "executable": false
     },
     "public/monitor-reads.js": {
-      "sha256": "e2c525223c123fdef8b67f6d66fe853e3de56cdd6516eb9d101526b1e5c39f7d",
+      "sha256": "5058aca4dd68e2417a24725e336d29951fedb428f3219043d41baaaa0935d52c",
       "executable": false
     },
     "public/monitor-recent-checks.js": {
-      "sha256": "db4ce4b14aa6b18b492d070c143de6e162f22f8e18566d0a8ba8903d067403db",
+      "sha256": "e4e16cb1129d90ef72d659d07e381d2a2c34dc1ca8603d50b61f9138ee8b55b3",
       "executable": false
     },
     "public/monitor-report.js": {
@@ -2940,7 +2940,7 @@
       "executable": false
     },
     "public/monitor-rules.js": {
-      "sha256": "e85807279d384191454da0a1ccd5df92b83260fe4de7781cd49078c4d4f5c22e",
+      "sha256": "8eb77f50233a5ae9d89fee7cef9e79300fff88c6515af684f4de0ca77ce60c2b",
       "executable": false
     },
     "public/monitor-status-line.js": {
@@ -9244,7 +9244,7 @@
       "executable": false
     },
     "tests/import-paste-browser-support.mjs": {
-      "sha256": "ba0ed0158451e7f660745a33788aa8839230bd36ee33c9702fa817feb9c3c11b",
+      "sha256": "1ddefdf8421d234eefc358bd6e9ebd22bdacdc31caa63ae12439eab0d0ead6ac",
       "executable": false
     },
     "tests/incident-combined-support.mjs": {
@@ -9396,7 +9396,7 @@
       "executable": false
     },
     "tests/operator-browser.mjs": {
-      "sha256": "0739c6c62bbd1ce11d317670e591690333f9fdd9e522a5aae3d3c45b2addc6b4",
+      "sha256": "87ee73b32563e367c9f2b5b6970a675d732541c678edcb5dd966061dff2a2d4f",
       "executable": false
     },
     "tests/operator-security.mjs": {
@@ -9453,6 +9453,10 @@
     },
     "tests/ping-routing.mjs": {
       "sha256": "0bfbcb22fe22df0eddd3fadcd95757da36893d90dd56b17ca993e1ae748f98b6",
+      "executable": false
+    },
+    "tests/plain-monitor-text-support.mjs": {
+      "sha256": "eabd1253190eabf52a1cf07b3e6b58cb94ef66f608c3769df387b12513e742f3",
       "executable": false
     },
     "tests/playwright-custody-support.mjs": {

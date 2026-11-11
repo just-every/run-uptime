@@ -2,7 +2,6 @@ import {patch} from './dom-patch.js';
 import {locationNamer} from './monitor-rules.js';
 import {failureOf} from './monitor-status.js';
 import {historyMarkup} from './monitor-recent-checks.js';
-import {incidentMarkup} from './monitor-incidents.js';
 import {buildTimeline,checkResultSummary} from './monitor-timeline.js';
 import {followLink,openFold,settleLink} from './monitor-links.js';
 // The reads a monitor's page makes on each refresh, beside the console's own overview: incidents, history and revisions, who
@@ -30,14 +29,13 @@ export function loadPage(page){
  const readers={
   incidents:()=>read(page,'incidents',()=>api(`/api/monitors/${key}/incidents`),list=>{
    seen.incidents=list;seen.since=list.find(i=>i.endedAt===null)?.startedAt;
-   const host=area.querySelector('#monitor-incidents');if(host)patch(host,incidentMarkup(list,page.name));
    // The Incidents fold opens itself while an incident is open (U21 D7), once for each incident, and stays closed once closed.
    const open=list.find(i=>i.endedAt===null);
    if(open&&page.ui.incident!==open.key){page.ui.incident=open.key;openFold(page,'incidents')}
   },()=>readFailure(area.querySelector('#monitor-incidents'),'incident history',readers.incidents)),
   history:()=>read(page,'history',()=>Promise.all([api(`/api/monitors/${key}/history`),api(`/api/monitors/${key}/revisions`)]),([slots,revisions])=>{
    const now=Number.isSafeInteger(page.data.now)?page.data.now:Date.now(),timeline=buildTimeline({slots,now,monitor:page.m,revisions});
-   seen.timeline=timeline;seen.revisions=revisions;
+   seen.timeline=timeline;seen.slots=slots;seen.revisions=revisions;
    const host=area.querySelector('#raw-history');if(host)patch(host,historyMarkup(timeline,page.m,runners));
    const failed=slots.filter(s=>!s.manual&&checkResultSummary(s).state==='failed').sort((a,b)=>b.due_at-a.due_at)[0];
    seen.failure=failed?failureOf(failed,locationNamer(failed.definition,runners)):null;

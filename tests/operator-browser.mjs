@@ -1,3 +1,4 @@
+import {assertPlainMonitorText,provePlainMonitorEvidence} from './plain-monitor-text-support.mjs';
 import {provePasteImport} from './import-paste-browser-support.mjs';
 import {browserSignIn,testAuthBindings} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
@@ -45,10 +46,15 @@ async function bulkAddDoor(page){
  await page.locator('main h1').click();await tabTo(page,door);await page.keyboard.press('Enter');
  assert.equal(await door.getAttribute('aria-pressed'),'true','the pressed button is the open panel');
  const panel=page.locator('.way-panel[data-way=paste]');await panel.waitFor();
- await panel.getByLabel('URLs or CSV',{exact:true}).fill('https://93.184.216.34/operator-batch');
+ await panel.getByLabel('URLs or CSV',{exact:true}).fill('https://93.184.216.34/operator-batch\nhttps://93.184.216.34/operator-batch-two');
  await panel.getByRole('button',{name:'Preview',exact:true}).click();await panel.getByRole('heading',{name:'Review the plan',exact:true}).waitFor();
- assert.match(await panel.locator('.catalog-preview > p').first().textContent(),/^1 create\b/,'Bulk add previews the pasted URL');
- if(page.viewportSize().width===1440)await provePasteImport(page,origin);
+ assert.match(await panel.locator('.catalog-preview > p').first().textContent(),/^2 create\b/,'Bulk add previews the pasted URL');
+ if(page.viewportSize().width===1440){
+  await assertPlainMonitorText(panel.locator('.catalog-preview'));
+  const overview=await (await page.request.get(origin+'/api/overview')).json();
+  for(const location of overview.runner.runners.filter(r=>!r.revokedAt&&r.lastContactAt!==null).slice(0,3))assert.ok((await panel.locator('.catalog-preview').innerText()).includes(location.networkLabel),'preview names the selected place');
+  await provePasteImport(page,origin);
+ }
  await door.click();await panel.waitFor({state:'hidden'});
  assert.equal(await door.getAttribute('aria-pressed'),'false','pressing the open button closes its panel');
 }
@@ -206,7 +212,8 @@ try{
    const summary=page.locator('#raw-history details[open] summary').first();await summary.focus();const summaryId=await summary.getAttribute('id');
    await nextPoll(page);assert.equal(await page.evaluate(()=>document.activeElement?.id),summaryId,'history keyboard focus survives polling');
    assert.ok(await page.locator('#raw-history details[open]').count()>0,'expanded immutable evidence survives polling');
-   await editJourney(page,monitor,width);
+   const revised=await provePlainMonitorEvidence(page,origin,monitor);
+   await editJourney(page,revised,width);
    await tabTo(page,page.getByRole('button',{name:'Pause',exact:true}));await page.keyboard.press('Enter');await page.locator('#monitor-state').filter({hasText:'Paused'}).waitFor();
    await page.getByRole('button',{name:'Resume',exact:true}).click();await page.locator('details#maintenance > summary').click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).click();await page.locator('#status-card').getByRole('button',{name:'End now',exact:true}).click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).waitFor();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
    if(width===1440||width===390)await ruleEditJourney(page,width);

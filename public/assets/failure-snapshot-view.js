@@ -39,7 +39,8 @@ export function renderSnapshots(target,items,name=probe=>probe){
   const protocol=['TCP','TLS','DNS','UDP','PING','MAIL'].includes(s.method),flow=Boolean(s.artifacts||row.flow),details=node('details',undefined,target);details.className='failure-snapshot';
   node('summary',`${protocol?`${s.method} failure`:flow?'Browser flow failure':`HTTP ${s.status??'unavailable'}`} · ${name(row.probe)} · ${new Date(row.captured_at).toLocaleString()}`,details);
   paragraph(details,`Revision ${row.revision} · attempt ${row.attempt+1} · ${s.durationMs} ms`);
-  const reference=paragraph(details,`Immutable reference: observation ${row.observation_id} · slot ${row.slot_id}`);reference.style.overflowWrap='anywhere';
+  const raw=node('details',undefined,details);node('summary','Raw data',raw);
+  const reference=paragraph(raw,`Immutable reference: observation ${row.observation_id} · slot ${row.slot_id}`);reference.style.overflowWrap='anywhere';
   paragraph(details,`${s.method} ${s.url}`).style.overflowWrap='anywhere';
   paragraph(details,`Expires ${new Date(row.expires_at).toLocaleString()}. Diagnostic context; monitoring evidence and verdict are unchanged.`);
   if(row.healthyPeers?.length)table(details,'Healthy locations in the same check',['Location','Healthy evidence'],row.healthyPeers.map(peer=>[name(peer.probe),`${peer.outcome} · ${peer.durationMs} ms · ${peer.checks.map(check=>check.reason).join('; ')}`]));

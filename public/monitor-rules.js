@@ -27,7 +27,7 @@ export function checkedFrom(definition,runners=[]){
 // A probe (local-a) as the location it runs from: the runner's current name, else the name it had when assigned. A revision
 // from before assignments ran every probe on this computer's own location.
 export function locationNamer(definition,runners=[]){
- return probe=>{const assignment=definition?.assignments?.[probe];return runners.find(r=>assignment?r.runnerId===assignment.runnerId:r.builtIn)?.networkLabel??assignment?.networkLabel??probe};
+ return probe=>{const assignment=definition?.assignments?.[probe];return runners.find(r=>assignment?r.runnerId===assignment.runnerId:r.builtIn)?.networkLabel??assignment?.networkLabel??'Unavailable location'};
 }
 const hostOf=url=>{try{return new URL(url).hostname.replace(/^www\./,'')}catch{return url}};
 // How an outage is agreed for this revision (src/domain/policy.mjs): two locations, or one while the external check its checks
@@ -38,4 +38,12 @@ export function agreementRule(m,runners=[]){
  const host=m.externalCheck?.url?hostOf(m.externalCheck.url):'',networks=new Set(Object.values(d.assignments).map(a=>a.networkLabel));
  if(networks.size<2)return host?`Fails from ${checkedFrom(d,runners)[0]} while ${host} still loads there`:`Fails from ${checkedFrom(d,runners)[0]}`;
  return host?`Fails from 2 locations, or from 1 while ${host} still loads there`:'Fails from 2 locations';
+}
+// A measured status and the immutable rule it was checked against, shared by incident and attempt evidence.
+export function checkReason(check,observation,definition){
+ return check.assertion==='status'&&Number.isInteger(observation?.status)&&definition?.assertions?.status!==undefined
+  ?`Got ${observation.status}; expected ${statusText(definition.assertions.status)}`:check.reason;
+}
+export function checkLabel(check,definition){
+ return httpType(definition)?httpRules(definition).find(rule=>rule.assertion===check.assertion)?.label??check.assertion.replaceAll(/[-_]/g,' '):check.assertion.replaceAll(/[-_]/g,' ');
 }

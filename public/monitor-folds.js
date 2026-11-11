@@ -1,7 +1,7 @@
 import {escape,humaneDuration} from './console-format.js';
 import {moreInfo,dayClock} from './monitor-status.js';
 import {openSlow} from './monitor-status-line.js';
-import {responseTime} from './monitor-rules.js';
+import {responseTime,httpRules,httpType,checkedFrom} from './monitor-rules.js';
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
 import {alertRoutePanel,bindAlertRoutePanel} from './assets/alert-route.js';
 import {reportPanel,mountReportPanel} from './monitor-report.js';
@@ -13,7 +13,10 @@ import {bindHeartbeatKey} from './heartbeat-key.js';
 import {cleanupDebtPanel,mountCleanupDebt} from './cleanup-debt.js';
 import {followedServicePanel,bindFollowedPanel} from './followed-service.js';
 import {isFlow,flowPanel,bindFlowProfile} from './flow-panel.js';
-import {isProtocol} from './protocol-panel.js';
+import {isProtocol,protocolExpectations} from './protocol-panel.js';
+import {mailSummary} from './mail-panel.js';
+import {transactionSummary} from './transaction-panel.js';
+import {flowSummary} from './flow-panel.js';
 // The rest of a monitor's page, folded into one card (U15): each fold is a <details> with its title and a one-line summary.
 // Its panel mounts on the fold's first open, through the panel's own bind function, and stays mounted while the page is;
 // a fold the page keeps current from its own reads (Incidents, Full check details) is always there. Each fold's id is the
@@ -30,15 +33,16 @@ function coverageWindows(m,{since,now}){
  return window('Last 24 hours',m.availability?.last24h)+window('Last 7 days',m.availability?.last7d);
 }
 const reportsCoverage=(m,seen,data)=>`<div class="report-coverage"><div class="coverage-windows">${coverageWindows(m,{since:seen.start,now:data.now})}</div><div class="coverage-foot">${coverageLegend}${moreInfo('Uptime counts only observed time.',escape(COVERAGE_RULE)+' Passing is the share of observed time when every configured check passed. Percentages are rounded to two decimals, passing down and failing and Unknown up, and never to 0% or 100% unless exact. Manual runs and retries do not add observed time.','coverage-note','About coverage')}</div></div>`;
-// Full check details: the engine's own reason and the saved check as JSON; a private network grant and a certificate trust
-// exception say what they mean here (the header shows each as a chip). A monitor edited in a file erases from here, and a
-// refused erase says why under its button (the console's notice is at the top of the page, out of view down here).
-function details(m,ui){
+// Saved criteria in readable rows. The original settings and engine explanation remain available for support in Raw data.
+function details(m,ui,data){
  const d=m.definition,trust=d.tlsTrust?.mode==='fingerprint'?'a pinned leaf fingerprint':d.tlsTrust?.mode==='ca'?'an owner-supplied CA':'certificate errors ignored';
- const json=JSON.stringify(d.type==='mail'?d.mail:d.type==='api'?d.api:isProtocol(d)?{[d.type]:d[d.type],assertions:d.assertions}:d.assertions,null,2);
- return (d.network==='private'?`<p class="details-note" id="details-private">Private network · runner-local grant <code>${escape(d.privateGrantRef)}</code>. Each connection requires its current host, address and port permission.</p>`:'')
+ const raw=d.type==='mail'?d.mail:d.type==='api'?d.api:isProtocol(d)?{[d.type]:d[d.type],assertions:d.assertions}:d.assertions;
+ const rows=httpType(d)?[['Request method',d.method??'GET'],...httpRules(d).map(rule=>[rule.label,rule.value])]:isProtocol(d)?protocolExpectations(d):[];
+ const criteria=d.type==='mail'?mailSummary(d):d.type==='api'?transactionSummary(d):isFlow(d)?flowSummary(d):`<dl class="ui-dl">${rows.map(([label,value])=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>`;
+ const where=checkedFrom(d,data.runner.runners).join(', ')||'Unavailable location';
+ return (d.network==='private'?`<p class="details-note" id="details-private">Private network. Each connection requires its current host, address and port permission.</p>`:'')
   +(d.tlsTrust?`<p class="details-note" id="details-trust">Certificate trust exception: ${trust}. Initial HTTPS origin only; a private runner applies this setting. Full certificate results remain visible on TLS certificate monitors.</p>`:'')
-  +`<p class="engine-status">${escape(m.state.reason)}</p><pre>${escape(json)}</pre>`
+  +`<dl class="ui-dl"><div><dt>State</dt><dd>${escape(d.enabled?m.state.state:'Paused')}</dd></div><div><dt>Check from</dt><dd>${escape(where)}</dd></div><div><dt>Check every</dt><dd>${escape(humaneDuration(d.intervalMs))}</dd></div></dl>${criteria}<details class="check-raw-data"><summary>Raw data</summary><p class="engine-status">${escape(m.state.reason)}</p><pre>${escape(JSON.stringify({...raw,...(d.privateGrantRef?{privateGrantRef:d.privateGrantRef}:{})},null,2))}</pre></details>`
   +(isFlow(d)||d.type==='heartbeat'?`<p class="details-erase"><button type="button" class="ui-link danger" id="erase-monitor" data-action="erase-monitor">Erase monitor…</button></p><p class="edit-error" role="alert" id="edit-error-erase">${escape(ui.errors.erase??'')}</p>`:'');
 }
 // "Today", "Yesterday" or "Mon, Oct 20".
@@ -73,7 +77,7 @@ export function foldsFor(m,data,seen,ui){
  if(['http','keyword','flow'].includes(d.type))list.push({id:'snapshots',title:'Failure snapshots',same:true,body:()=>snapshotPanel(m),mount:(area,{api})=>mountSnapshots(area,m,api,data.runner.runners)});
  if(d.type!=='heartbeat')list.push({id:'slow',title:'Slow-response notices',same:true,body:()=>slowPolicyPanel(m),mount:(area,o)=>bindSlowPolicyPanel(area,m,o)});
  list.push({id:'maintenance',title:'Planned maintenance',same:true,body:()=>maintenancePanel(m),mount:(area,o)=>bindMaintenancePanel(area,m,o)});
- list.push({id:'details',title:'Full check details',always:true,body:()=>details(m,ui)});
+ list.push({id:'details',title:'Full check details',always:true,body:()=>details(m,ui,data)});
  return list.map(fold=>({...fold,summary:summaries[fold.id]?.(seen,now,m)??''}));
 }
 export const FOLD_IDS=['heartbeat','flow','followed','cleanup','alerts','incidents','reports','snapshots','slow','maintenance','details'];
