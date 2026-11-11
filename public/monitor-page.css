@@ -341,3 +341,12 @@
   .monitor-page .edit-field > input { min-height: 44px; }
   .monitor-page .more-info > summary { width: 44px; height: 44px; min-height: 44px; }
 }
+
+.heartbeat-checkin { display: grid; gap: 12px; margin: 16px 0; }
+.heartbeat-checkin > h2, .heartbeat-checkin p { margin: 0; }
+.heartbeat-checkin [hidden] { display: none; }
+.heartbeat-checkin #heartbeat-checkin-secret:not([hidden]) { display: grid; gap: 12px; min-width: 0; }
+.heartbeat-checkin label { display: grid; gap: 8px; min-width: 0; }
+.heartbeat-checkin input { width: 100%; min-width: 0; }
+.heartbeat-checkin pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 14px 16px; border-radius: var(--radius-panel); background: var(--code-bg); color: var(--code-ink); font-size: 14px; }
+.heartbeat-checkin button { justify-self: start; }
