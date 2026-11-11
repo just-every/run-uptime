@@ -1,0 +1,11 @@
+{
+  "repository": "just-every/run-uptime",
+  "run_id": 43023373965,
+  "head": "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1",
+  "command": "gh run rerun 43023373965 --repo just-every/run-uptime --failed",
+  "exit": 0,
+  "requested_at": "2026-11-11T13:04:09.362131+00:00",
+  "task_github_invocations": 10,
+  "remaining_budget": 0,
+  "rerun_conclusion": "not read; API budget exhausted"
+}

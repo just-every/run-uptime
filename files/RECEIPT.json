@@ -73,9 +73,50 @@
   "full_publication_scan": "fleet Mac lander owns; unavailable in cloud",
   "product_push": "final exact head pushed successfully",
   "pr_url": null,
-  "ci": "pending exact-SHA branch Verify",
+  "ci": {
+    "id": 43023373965,
+    "status": "completed",
+    "conclusion": "failure",
+    "head_sha": "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43023373965",
+    "run_attempt": 1,
+    "task_github_invocations": 7
+  },
   "product_pushes": [
     "0c6fe8ad20d5accb03ff815abe2028b72f3cc7b8",
     "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1"
-  ]
+  ],
+  "evidence_first_publication": {
+    "ref": "refs/heads/evidence/main-uptime-readme-walkthrough-1-c1",
+    "head": "1ff862c3bb20d7e9d7428606f0fe8d147ac6bb97",
+    "status": "published while CI pending"
+  },
+  "cleanup": {
+    "aborted_diagnostic_state": "removed",
+    "unselected_private_screenshots": "removed",
+    "product_clone": "remove after final evidence publication and manifest readback; no unpushed work remains"
+  },
+  "ci_rerun": {
+    "repository": "just-every/run-uptime",
+    "run_id": 43023373965,
+    "head": "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1",
+    "command": "gh run rerun 43023373965 --repo just-every/run-uptime --failed",
+    "exit": 0,
+    "requested_at": "2026-11-11T13:04:09.362131+00:00",
+    "task_github_invocations": 10,
+    "remaining_budget": 0,
+    "rerun_conclusion": "not read; API budget exhausted"
+  },
+  "terminal_custody": "PUSHED",
+  "ready_claim": false,
+  "pending": [
+    "Successful exact-SHA Verify after the accepted failed-job rerun has not been observed; the ten-invocation GitHub budget is exhausted."
+  ],
+  "github_budget": {
+    "used": 10,
+    "limit": 10,
+    "original_status_file_interval_seconds": 212.315,
+    "initial_cadence_error_recorded": true,
+    "final_candidate_polling": "one monotonic watcher, 300 seconds between request starts"
+  }
 }

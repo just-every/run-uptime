@@ -1,0 +1,27 @@
+shards (push-5)	Run this shard	2026-11-11T12:49:14.7820623Z > node tests/notification-fallback.mjs
+shards (push-5)	Run this shard	2026-11-11T12:51:54.8971227Z > node tests/mail-journey.mjs
+shards (push-5)	Run this shard	2026-11-11T12:53:41.8971645Z PASS MAIL-001 owner configuration, signed native protocols, per-step incidents, receiver confirmation and synthetic-only removal
+shards (push-5)	Run this shard	2026-11-11T12:53:41.9631199Z > node tests/agent-erasure.mjs
+shards (push-5)	Run this shard	2026-11-11T12:53:52.9244481Z PASS agent-door custody names no erased person after operator erasure; the other person's agent records are intact.
+shards (push-5)	Run this shard	2026-11-11T12:53:52.9878948Z > node tests/udp-monitors.mjs
+shards (push-5)	Run this shard	2026-11-11T12:54:39.0522101Z UDP-001 PASS: signed scheduled match/mismatch/timeout/recovery, immutable facts, destination rejection, one-packet/rate/size caps, cancellation, portable settings and revoked authority.
+shards (push-5)	Run this shard	2026-11-11T12:54:39.1098790Z > node tests/operator-security.mjs
+shards (push-5)	Run this shard	2026-11-11T12:55:04.9225563Z Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5574488Z node:internal/modules/run_main:123
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5576029Z     triggerUncaughtException(
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5577830Z     ^
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5577992Z 
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5578230Z locator.waitFor: Timeout 30000ms exceeded.
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5578648Z Call log:
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5579379Z   - waiting for locator('#security-controls').getByText('Passkey enrolled.', { exact: true }) to be visible
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5579812Z 
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5580396Z     at proveSecurityControls (/home/runner/work/run-uptime/run-uptime/tests/security-controls-browser-support.mjs:45:162)
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5581893Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/operator-security.mjs:58:2 {
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5582482Z   log: [
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5583117Z     "  - waiting for locator('#security-controls').getByText('Passkey enrolled.', { exact: true }) to be visible"
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5584285Z   ],
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5584505Z   name: 'TimeoutError'
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5584756Z }
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5584888Z 
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5585005Z Node.js v22.20.0
+shards (push-5)	Run this shard	2026-11-11T12:55:36.5958426Z ##[error]Process completed with exit code 1.

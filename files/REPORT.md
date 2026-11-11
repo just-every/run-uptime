@@ -15,7 +15,7 @@ The command prints the active practice target through rer's managed runtime, so 
 
 ## Triage
 
-The first requested read of Verify 43014289681 found attempt 2 still in progress. A subsequent REST read after the 300-second interval found completed/failure on the exact original SHA. The push-5 failed-job archive (130515856198) was read once; its failure is the security journey's credential summary click after Worker restart, security-controls-browser-support.mjs:106. The push-7 failed-log archive (130515856082) was read once and returned no failed steps. This was not a README or renamed-form-label assertion.
+The first requested read of Verify 43014289681 found attempt 2 still in progress. A subsequent REST read found completed/failure on the exact original SHA. The original two status file completions were 212.3 seconds apart, shorter than the requested 300-second cadence; this was an initial polling error. The final-candidate watcher uses a monotonic five-minute cadence and a fixed API-call budget. The push-5 failed-job archive (130515856198) was read once; its failure is the security journey's credential summary click after Worker restart, security-controls-browser-support.mjs:106. The push-7 failed-log archive (130515856082) was read once and returned no failed steps. This was not a README or renamed-form-label assertion.
 
 A file-based local reproduction on Node 22.20.0 returned the same timeout. Browser network diagnostics found HTTP 429 for the cold browser's public modules. The persisted per-client asset bucket was exhausted by this rapid test's earlier loads, so the key panel could not initialize. No production limiter defect or deliberate label mismatch was found.
 
@@ -35,7 +35,7 @@ An intermediate merge head 0c6fe8ad20d5accb03ff815abe2028b72f3cc7b8 was pushed s
 - Final operator-security journey: exit 0. Native owner/member TOTP, recovery, passkey, key scope/revocation, stopped definition job after restart, authority refusal, factor removal and existing 1440 axe/reflow assertions all pass.
 - Browser proof: the same post-restart People screen captured at 1440 and 390; synthetic accounts and revoked-key metadata only. The test assertions run at 1440. No real browser profile or session was copied.
 - Contract generator check, source-lock check, managed spec check and git diff whitespace check: exit 0.
-- Final command-journey: exit 0 on the final merged candidate. Exact-SHA CI is recorded in the final receipt when complete.
+- Final command-journey: exit 0 on the final merged candidate. Exact-SHA Verify attempt 1 failed; the one authorized failed-job rerun was accepted, with its outcome pending when the API budget was exhausted.
 
 The earlier command journey passed before main advanced, including practice-target healthy/failing/healthy controls, native setup, monitor creation/hydration, teardown, rerun preservation, conflict refusal, reset, archive import/export and retained receipts. It is repeated on the final merged candidate because main changed relevant UI inputs.
 
@@ -50,3 +50,13 @@ Selected CI journey scripts before/after: 47/47. Added registrations: 0. No test
 PLAN.md records the complete plan; investigation-notes.md records diagnostics and the superseded local experiment. Actual public run reads, selected failed-job diagnostics, check logs, screenshot files, identity inspections and product/evidence receipts form the explicitly selected packet. Evidence is published only under evidence/main-uptime-readme-walkthrough-1-c1. Product checkout/index/ref are unchanged by evidence publication.
 
 The cloud cannot run the Mac publication scan. The fleet owns that scan and landing; nothing here claims publication acceptance, landing, provider acceptance or production operation. No push to main, PR creation or cross-repository write was performed. Final CI status and any remaining blockers are recorded in RECEIPT.json and the terminal return.
+
+## Final CI and handoff
+
+Verify 43023373965 ran on the exact final head 06dccf2ce2a48aedabd482aee468fa22e6f4e8b1. Attempt 1 completed failure. Its only failed shard is push-5 (job 130532491267); the aggregate verify job failed with it. The failed shard archive was read once. This time the timeout is earlier in the security journey, waiting for “Passkey enrolled.” at tests/security-controls-browser-support.mjs:45:162, rather than the original post-restart key row. The full final local security journey passed, including both passkey enrollment and the persisted restart. No assertion is weakened to cover the CI timeout.
+
+The command `gh run rerun 43023373965 --repo just-every/run-uptime --failed` returned exit 0. That is the single authorized failed-job rerun for this candidate. Ten GitHub invocations are now spent: four original-run status/archive reads; three exact-head discovery/status reads; one completed-run job lookup; one failed-shard archive read; and one rerun request. No further provider read is made to bypass that budget. The rerun conclusion has not been observed.
+
+Terminal custody is PUSHED, not READY. The remaining prerequisite is a successful exact-SHA Verify after the accepted rerun; the lane must read that result. If it fails again, inspect the passkey-enrollment wait before making any change. This work makes no DONE or acceptance claim. The earlier asset-window failure was resolved by retaining main’s newer test whole; the later CI failure is a distinct security-browser wait.
+
+The final evidence packet includes the actual failed-run job list, selected failed-shard diagnostics and accepted rerun receipt. After publishing and reading back the final evidence manifest, the successful pushed clone is removed as required. Evidence custody does not assert product acceptance or landing.

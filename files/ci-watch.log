@@ -1,3 +1,7 @@
 CI waiting 300 seconds before exact-SHA discovery
 CI {"id": 43023373965, "status": "in_progress", "conclusion": null, "head_sha": "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1", "html_url": "https://github.com/just-every/run-uptime/actions/runs/43023373965", "run_attempt": 1, "task_github_invocations": 5}
 CI waiting seconds=299 before next allowed REST read
+CI {"id": 43023373965, "status": "in_progress", "conclusion": null, "head_sha": "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1", "html_url": "https://github.com/just-every/run-uptime/actions/runs/43023373965", "run_attempt": 1, "task_github_invocations": 6}
+CI waiting seconds=299 before next allowed REST read
+CI {"id": 43023373965, "status": "completed", "conclusion": "failure", "head_sha": "06dccf2ce2a48aedabd482aee468fa22e6f4e8b1", "html_url": "https://github.com/just-every/run-uptime/actions/runs/43023373965", "run_attempt": 1, "task_github_invocations": 7}
+CI_TERMINAL failure
