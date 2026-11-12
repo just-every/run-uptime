@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "45ad90a7a6de1ce669f1a9e204915ae843891714d99d4d6d3a0068ceb776a576",
+      "sha256": "6a1b230e1e0885e8ebfdfd79d2ca757ec4ed09e9c1c81f546bafbe36be599872",
       "executable": false
     },
     "DEMO.md": {
@@ -9644,7 +9644,7 @@
       "executable": false
     },
     "tests/service-catalog-auth0-support.mjs": {
-      "sha256": "0afbfb2b3080cad66f2dd792d3caf277277acd0c2758a8c2cfc94c7cc66dcbc4",
+      "sha256": "9148c53c84315e32a6d4c15d57de41918cf8fff36d0927ee9f91e0ebb4eafd29",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {

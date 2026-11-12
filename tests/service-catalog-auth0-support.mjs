@@ -37,10 +37,10 @@ async function auth0Edge(directory){
  });
  server.listen(0,'127.0.0.1');await once(server,'listening');
  const port=server.address().port,original=https.request,resolve4=Resolver.prototype.resolve4,resolve6=Resolver.prototype.resolve6;
- Resolver.prototype.resolve4=async function(host){if(host===HOST){lookups.push(host);if(state.mode==='private')return ['127.0.0.1'];return ['93.184.216.37']}return resolve4.call(this,host)};
- Resolver.prototype.resolve6=async function(host){if(host===HOST)return [];return resolve6.call(this,host)};
+ Resolver.prototype.resolve4=async function(host){lookups.push(host);if(host===HOST){if(state.mode==='private')return ['127.0.0.1'];return ['93.184.216.37']}return resolve4.call(this,host)};
+ Resolver.prototype.resolve6=async function(host){lookups.push(host);if(host===HOST)return [];return resolve6.call(this,host)};
  https.request=function(options,...args){
-  if(options?.hostname!=='93.184.216.37')return original.call(this,options,...args);
+  assert.equal(options?.hostname,'93.184.216.37','only the admitted official source reaches a provider socket');
   assert.equal(options.rejectUnauthorized,true);assert.equal(options.servername,HOST);assert.equal(options.headers.host,HOST);
   return original.call(this,{...options,hostname:'127.0.0.1',port,ca:tls.cert},...args);
  };
@@ -146,11 +146,14 @@ export async function proveAuth0Egress(){
   assert.equal((await request('/api/service-catalog/checks',{...input,tenantDomain:CHANGED,review:review.review,consent:true})).status,409);
   const beforeChanged=edge.requests.length,changedReview=await ok('/api/service-catalog/checks',{...input,tenantDomain:CHANGED});assert.equal(edge.requests.length,beforeChanged);
   edge.state.mode='ambiguous';const changed=await ok('/api/service-catalog/checks',{...input,tenantDomain:CHANGED,review:changedReview.review,consent:true});await verifyRefusal(await complete(changed.id),'shape');
+  assert.deepEqual([...new Set(edge.lookups)],[HOST],'the tenant and redirect hosts are never looked up');
   const records=edge.requests;
   assert.ok(records.length>=8);assert.equal(records.filter(record=>new URL('https://'+HOST+record.path).searchParams.get('domain')===CHANGED).length,1);
   for(const record of records){
    const url=new URL('https://'+record.host+record.path);assert.equal(record.host,HOST);assert.equal(record.servername,HOST);assert.equal(record.method,'GET');assert.equal(url.pathname,'/rss');
    assert.deepEqual([...url.searchParams.keys()],['domain']);assert.ok([TENANT,CHANGED].includes(url.searchParams.get('domain')));assert.equal(record.body,'');
+   assert.ok(Object.keys(record.headers).every(name=>['host','user-agent','accept','accept-encoding','connection'].includes(name)),'no owner-supplied or credential headers reach the provider');
+   assert.equal(record.headers['accept-encoding'],'identity');
    assert.equal(record.headers.authorization,undefined);assert.equal(record.headers.cookie,undefined);assert.equal(record.headers.referer,undefined);
    for(const value of [g.first.key,g.bindings.SESSION_SECRET,g.cookie,ownerCookie])assert.ok(!JSON.stringify(record).includes(value),'runner and owner authority never reach Auth0');
   }
