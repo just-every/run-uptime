@@ -1,0 +1,30 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:3807) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+CATALOG_READER_MEMORY oversize 32 MiB document, reader bound 1 MiB: the edge had queued 1.1 MiB when the runner closed it; runner process peak RSS delta 0.9 MiB (process.memoryUsage.rss() every 5 ms across the scheduled check, minus the RSS just before it; 42 samples)
+DEPENDENCY_ERASURE application and provider receipts=1; live/archive/restore acknowledgments=0; person anonymization, dangling-restore refusal and monitor/service/group unlink passed
+# Subtest: Discover a site, review and adopt monitoring, follow its dependency, and retain source custody
+not ok 1 - Discover a site, review and adopt monitoring, follow its dependency, and retain source custody
+  ---
+  duration_ms: 250608.825063
+  type: 'test'
+  location: '/workspace/run-uptime/tests/discovery-jobs.mjs:56:1'
+  failureType: 'testCodeFailure'
+  error: 'queryCname ENOTIMP run-uptime.com'
+  code: 'ENOTIMP'
+  stack: |-
+    QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17)
+    QueryReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 250816.397554

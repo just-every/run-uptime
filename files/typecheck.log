@@ -1,0 +1,4 @@
+
+> @uptime/uptime-console@0.5.9 typecheck /workspace/run-uptime
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
+

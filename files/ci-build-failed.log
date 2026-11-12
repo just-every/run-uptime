@@ -1,0 +1,8 @@
+build	Run node src/base/contract-docs.mjs check	﻿2026-11-12T18:09:12.0113398Z ##[group]Run node src/base/contract-docs.mjs check
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:09:12.0113558Z [36;1mnode src/base/contract-docs.mjs check[0m
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:09:12.0130574Z shell: /usr/bin/bash -e {0}
+[CI environment metadata omitted from public packet]
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:09:12.0131138Z ##[endgroup]
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:09:12.0845947Z Contract prose: 0 errors, 0 warnings.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:09:12.1368926Z ACCEPTANCE.md: generated content differs; run contract-docs write.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:09:12.1457236Z ##[error]Process completed with exit code 1.

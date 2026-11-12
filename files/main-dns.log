@@ -1,0 +1,18 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:5540) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+node:internal/dns/promises:294
+    this.reject(new DNSException(err, this.bindingName, this.hostname));
+                ^
+
+Error: queryCname ENOTIMP run-uptime.com
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17) {
+  errno: undefined,
+  code: 'ENOTIMP',
+  syscall: 'queryCname',
+  hostname: 'run-uptime.com'
+}
+
+Node.js v22.20.0

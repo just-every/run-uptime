@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "tag": "sd-uptime-c-f168",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-c-f168",
+  "head": "85980bece32b579723fa2b3598381595857124b6",
+  "base": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+  "createdAt": "2026-11-12T18:09:26.575275+00:00",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0,
+      "log": "build.log"
+    },
+    {
+      "command": "node /tmp/uptime-auth0-probe.mjs",
+      "exit": 0,
+      "head": "85980bece32b579723fa2b3598381595857124b6",
+      "proof": "tests/service-catalog-auth0-support.mjs#proveAuth0Egress",
+      "log": "auth0-exact.log"
+    },
+    {
+      "command": "node tests/discovery-jobs.mjs",
+      "exit": 1,
+      "head": "179f338e401a977148802ae1e1e0ee85df64ac1d",
+      "log": "discovery.log",
+      "failure": "queryCname ENOTIMP run-uptime.com",
+      "classification": "unchanged public DNS helper; environment failure also reproduced on main"
+    },
+    {
+      "command": "node /tmp/uptime-main-dns-probe.mjs",
+      "exit": 1,
+      "head": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+      "proof": "tests/discovery-public-dns-support.mjs#provePublicDnsDiscovery",
+      "log": "main-dns.log",
+      "failure": "queryCname ENOTIMP run-uptime.com"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "pnpm exec rer check --profile first-party",
+      "exit": 0,
+      "log": "first-party.log"
+    },
+    {
+      "command": "pnpm run spec:check",
+      "exit": 0,
+      "log": "spec-check.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0,
+      "log": "views-write.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "log": "views-check.log",
+      "generatedViewsRestored": true
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock then check",
+      "exit": 0,
+      "log": "source-lock-check.log"
+    },
+    {
+      "command": "node /tmp/uptime-auth0-browser.mjs",
+      "exit": 0,
+      "log": "browser.log",
+      "widths": [
+        1440,
+        390
+      ],
+      "scope": "catalog source notice only; display code and notice equal final candidate"
+    }
+  ],
+  "countsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "countsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "journeysBefore": 47,
+  "journeysAfter": 47,
+  "candidatePushed": true,
+  "productPushLog": "product-push.log",
+  "statusRowsUnchanged": true,
+  "generatedViewsCommitted": false,
+  "publicationScan": {
+    "status": "guarded-lander-duty",
+    "complete": null,
+    "historyScanned": null,
+    "findings": null
+  },
+  "ci": {
+    "runId": 43276758886,
+    "event": "push",
+    "status": "completed",
+    "conclusion": "failure",
+    "exactSha": "85980bece32b579723fa2b3598381595857124b6",
+    "failedBuildJob": 131387218263,
+    "failedAggregateJob": 131387571378,
+    "failure": "ACCEPTANCE.md: generated content differs; run contract-docs write.",
+    "disposition": "permitted generated-view freshness exception; dependent runtime shards skipped",
+    "apiCallsUsed": 6,
+    "reruns": 0,
+    "dispatches": 0
+  },
+  "artifacts": [
+    {
+      "file": "auth0-exact.log",
+      "sha256": "e32fc7614b545cf4ae12a947f70112ce9e96c51066e0ed487e04574c24f91a57"
+    },
+    {
+      "file": "discovery.log",
+      "sha256": "caa6afc12a619470b308a75a303efc8d3b2aa24b47f96002b498ac93238fa0a6"
+    },
+    {
+      "file": "main-dns.log",
+      "sha256": "c78458964f1354c3987010cd0a4a99370ec7fa16655a1dc838127e91250434f6"
+    },
+    {
+      "file": "build.log",
+      "sha256": "a761a31b2939584a34803051e95314e9b19a2d378e7dff553878995e1663ebdd"
+    },
+    {
+      "file": "typecheck.log",
+      "sha256": "11e83c6db547d55dd6febdccc583183a33c672ef6812ce686ef9190ea1e30f9c"
+    },
+    {
+      "file": "first-party.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "spec-check.log",
+      "sha256": "845bc120d7ca415afdde9298f33cbca64d223f35db4c80d7358aeb3e355ecfc4"
+    },
+    {
+      "file": "views-write.log",
+      "sha256": "df91012bf66fb476e9cd1a30c002829398beb55f869e07cc7be477197fa5a276"
+    },
+    {
+      "file": "views-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "file": "source-lock-check.log",
+      "sha256": "794a13d8c7f7acf1d5551e8fa93f7817d7a01547e1765e69f447f79108390d7b"
+    },
+    {
+      "file": "browser.log",
+      "sha256": "f171ee23ef586e193baabf337b810aa4ad4029a008091b2a4606d838a35febeb"
+    }
+  ],
+  "remoteProductRef": {
+    "ref": "refs/heads/cloud/sd-uptime-c-f168",
+    "head": "85980bece32b579723fa2b3598381595857124b6",
+    "verified": true
+  },
+  "localRegressionLimitation": {
+    "error": "queryCname ENOTIMP run-uptime.com",
+    "reproducedOnMain": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+    "helper": "tests/discovery-public-dns-support.mjs#provePublicDnsDiscovery",
+    "mainExit": 1,
+    "scope": "unchanged public DNS helper; no source or test weakening"
+  },
+  "claim": {
+    "id": "DEPENDENCY-002",
+    "status": "PARTIAL",
+    "newlyClosedAcceptancePoints": [],
+    "releasedSlice": "RL-101 reviewed tenant-domain admission, bounded transport and unusable-source refusal"
+  },
+  "verifyReproduction": {
+    "head": "85980bece32b579723fa2b3598381595857124b6",
+    "job": 131387218263,
+    "command": "node src/base/contract-docs.mjs check",
+    "test": "generated ACCEPTANCE.md freshness",
+    "exit": 1,
+    "failure": "ACCEPTANCE.md: generated content differs; run contract-docs write."
+  }
+}
