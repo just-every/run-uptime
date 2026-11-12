@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {relaySnapshotGuard} from './agent-relay-state-support.mjs';
+import {emailSignIn} from './auth-test-support.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {prepareIncident} from './agent-conformance/incident.mjs';
 import {nativeHttp} from './agent-conformance/http.mjs';
@@ -19,6 +20,11 @@ const facts=answer=>answer.decision?.classes.map(({class:cls,facts})=>({class:cl
 // native mention reconciliation remains authoritative outside this fixture.
 export async function proveCommentEditing({c,native,db,providerRequests,reviewer}) {
  const wire=providerRequests.length,tool='uptime.incidents.note',owner=await native('/api/access/self');
+ await completeSecondFactor(c.origin,c.person.cookie);
+ const reviewerRecord=(await native('/api/access/members')).find(person=>person.id===reviewer.id);
+ // Earlier native role changes revoke old sessions. Use a fresh real sign-in
+ // for the named reviewer rather than borrowing their superseded cookie.
+ reviewer={...reviewer,cookie:await emailSignIn(c.origin,{bindings:{OWNER_EMAIL:reviewerRecord.email}})};
  const http=nativeHttp({request:fetch,origin:c.origin,cookie:c.person.cookie});
  const {incident}=await prepareIncident(http),other=await prepareIncident(http);
  const path='/api/incidents/'+incident.id;
@@ -26,7 +32,12 @@ export async function proveCommentEditing({c,native,db,providerRequests,reviewer
  const checkRelay=relaySnapshotGuard(c.business);
  const snapshot=async()=>{
   const tables=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf*' ORDER BY name").all()).results,state={};
-  for(const {name} of tables)state[name]=(await db.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`).all()).results.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  // Batch read-only snapshots to keep the integrated journey bounded while
+  // comparing every durable table, including unrelated credential custody.
+  for(let start=0;start<tables.length;start+=50){
+   const selected=tables.slice(start,start+50),rows=await db.batch(selected.map(({name})=>db.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`)));
+   selected.forEach(({name},index)=>{state[name]=rows[index].results.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))});
+  }
   checkRelay(state);
   return Object.fromEntries(Object.entries(state).filter(([name])=>!bookkeeping.has(name)&&name!=='agent_door_relay'));
  };
@@ -95,12 +106,14 @@ export async function proveCommentEditing({c,native,db,providerRequests,reviewer
   assert.deepEqual(replay.result.structuredContent,answer.result.structuredContent);assert.deepEqual(facts(replay),standard);
   assert.deepEqual(await snapshot(),after,'exact-key replay creates no second edit or history revision');
   await refused({...args,idempotency_key:randomUUID()},'revision_conflict',{version});
+  await refused({...args,expected_revision:comment.version+1,idempotency_key:randomUUID()},'revision_conflict',{version});
+  await refused({...args,text:'synthetic-uptime-conflicting'},'idempotency_conflict',{version});
   await refused({...args,id:other.incident.id,idempotency_key:randomUUID()},'not_found',{version});
   for(const malformed of [{...args,action:undefined},{...args,text:undefined},{...args,comment_id:undefined},{...args,action:'delete'}])await refused({...malformed,idempotency_key:randomUUID()},'invalid_arguments',{version});
   const current={...args,version:comment.version+1,expected_revision:comment.version+1,idempotency_key:randomUUID()};
   await refused({...current,action:'delete',text:undefined},'policy_blocked',{version});
   const noScope=await accessToken(c,{scope:'uptime:read'});await refused(args,'insufficient_scope',{version,token:noScope});
-  await native(path+'/comments/'+comment.id,{version:comment.version+1},'DELETE');
+  await native(path+'/comments/'+comment.id+'?version='+(comment.version+1),undefined,'DELETE');
   await refused({...current,idempotency_key:randomUUID()},'not_found',{version});
   await refused(args,'not_found',{version});
   console.log('PROBE SURFACE-004 comment-edit-'+version+'-'+(held?'held':'autonomous')+': standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved');
@@ -118,8 +131,10 @@ export async function proveCommentEditing({c,native,db,providerRequests,reviewer
  assert.equal(wrong.status,403);await wrong.body?.cancel();assert.deepEqual(await snapshot(),before);
  const approved=await c.personRequest(approvalPath+'/approve',{method:'POST',headers:{Cookie:reviewer.cookie},body:JSON.stringify(decision)});
  assert.equal(approved.status,200);assert.equal((await approved.json()).approval.state,'executed');
+ await c.adopt(autonomousPolicy());
  const after=await edited(comment,args,before,owner.id,c.agentId,[reviewer.id]);
  assert.deepEqual((await c.tool(tool,args)).result.structuredContent,{incidentId:incident.id,id:comment.id,version:comment.version+1,deleted:false});assert.deepEqual(await snapshot(),after);
+ await c.adopt(approvalPolicy);
  const staleComment=await create(),staleArgs=argsFor(staleComment),stalePending=await c.tool(tool,staleArgs);
  await native(path+'/comments/'+staleComment.id,{text:'synthetic-uptime-newer',version:staleComment.version,mentions:[]},'PATCH');
  const newer=await snapshot(),stalePath='/agents/api/approvals/'+stalePending.result._meta['com.runeditrun/approval'].id,{approval:staleApproval}=await c.personJson(stalePath);
@@ -128,11 +143,11 @@ export async function proveCommentEditing({c,native,db,providerRequests,reviewer
  await c.adopt(autonomousPolicy());
  // Sponsor authority is native, including author restrictions and current scope
  // on replay. An agent cannot borrow a human reviewer's permissions.
+ const memberHttp=nativeHttp({request:fetch,origin:c.origin,cookie:reviewer.cookie}),owned=await memberHttp.json(path+'/comments',{text:'synthetic-uptime-responder',mentions:[]});
  await completeSecondFactor(c.origin,c.person.cookie);await native('/api/access/members/'+reviewer.id,{role:'responder',scopes:[]});
  const memberRecord=(await native('/api/access/members')).find(person=>person.id===reviewer.id),memberAgent='synthetic-uptime-'+randomUUID();
  const token=await accessToken(c,{sub:reviewer.sub,email:memberRecord.email,act:{sub:memberAgent,name:'Synthetic responder',specialist:'monitoring-operator'}}),options={token,track:false};
  await refused(argsFor(staleComment),'native_permission_required',options);
- const memberHttp=nativeHttp({request:fetch,origin:c.origin,cookie:reviewer.cookie}),owned=await memberHttp.json(path+'/comments',{text:'synthetic-uptime-responder',mentions:[]});
  const ownArgs=argsFor({...owned,text:'synthetic-uptime-responder'}),ownBefore=await snapshot(),ownEdit=await c.tool(tool,ownArgs,options);assert.equal(ownEdit.result?.isError,false);
  await edited({...owned,text:'synthetic-uptime-responder'},ownArgs,ownBefore,reviewer.id,memberAgent);
  await completeSecondFactor(c.origin,c.person.cookie);await native('/api/access/members/'+reviewer.id,{role:'responder',scopes:[{kind:'service',value:'synthetic-uptime-outside'}]});
