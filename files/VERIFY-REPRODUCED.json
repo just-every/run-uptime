@@ -1,0 +1,29 @@
+[
+  {
+    "head": "e92916f3cd06008fd35faba36a78c2bcfd8d2245",
+    "job": 131405552324,
+    "shard": "push-3",
+    "command": "node tests/failure-page-journey.mjs",
+    "shardCommand": "node .github/scripts/verify-ci.mjs push-3",
+    "test": "owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access",
+    "exit": 1,
+    "failure": "Unexpected non-whitespace character after JSON at position 2419 (line 2 column 1)",
+    "log": "repro-failure-page.log",
+    "environment": "CI=true; same Verify run identity and failed source build; system Chromium; temporary paths shortened after a local Unix socket path-length launch failure"
+  },
+  {
+    "head": "e92916f3cd06008fd35faba36a78c2bcfd8d2245",
+    "job": 131405552484,
+    "shard": "push-4",
+    "command": "node tests/public-paths.mjs",
+    "shardCommand": "node .github/scripts/verify-ci.mjs push-4",
+    "test": "undeclared/private GET /api/archive-transfer/private",
+    "exit": 1,
+    "failure": "AssertionError: undeclared/private GET /api/archive-transfer/private; 404 !== 401",
+    "log": "repro-public-paths.log",
+    "environment": "CI=true; same Verify run identity and failed source build; system Chromium",
+    "fullShardExit": 1,
+    "fullShardFailure": "AssertionError: undeclared/private GET /api/archive-transfer/private; 404 !== 401",
+    "fullShardLog": "repro-push4.log"
+  }
+]

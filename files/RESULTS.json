@@ -1,0 +1,221 @@
+{
+  "branch": "cloud/sd-uptime-c-f169",
+  "candidateRunSite": "not run; guarded landing duty",
+  "checks": [
+    {
+      "check": "build",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "timeout",
+        "300",
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "build"
+      ],
+      "completedAt": "2026-11-12T19:35:47.107925+00:00",
+      "elapsedSeconds": 8.023,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-build.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    },
+    {
+      "check": "mechanical",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "bash",
+        "-euc",
+        "node src/base/contract-docs.mjs write; node src/base/contract-docs.mjs check; git checkout origin/main -- ACCEPTANCE.md docs/CLAIMS.md; node scripts/edition-authoring/cli.mjs lock >/tmp/uptime-final-lock.json; node scripts/edition-authoring/cli.mjs check >/tmp/uptime-final-lock-check.json"
+      ],
+      "completedAt": "2026-11-12T19:35:48.447106+00:00",
+      "elapsedSeconds": 1.283,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-mechanical.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    },
+    {
+      "check": "typecheck",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "pnpm",
+        "run",
+        "typecheck"
+      ],
+      "completedAt": "2026-11-12T19:35:57.171883+00:00",
+      "elapsedSeconds": 8.662,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-typecheck.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    },
+    {
+      "check": "first-party",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "check",
+        "--profile",
+        "first-party"
+      ],
+      "completedAt": "2026-11-12T19:35:58.399901+00:00",
+      "elapsedSeconds": 1.17,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-first-party.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    },
+    {
+      "check": "public-paths",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "timeout",
+        "300",
+        "node",
+        "tests/public-paths.mjs"
+      ],
+      "completedAt": "2026-11-12T19:38:18.851127+00:00",
+      "elapsedSeconds": 61.343,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-public-paths.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    },
+    {
+      "check": "failure-page",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "timeout",
+        "300",
+        "node",
+        "tests/failure-page-journey.mjs"
+      ],
+      "completedAt": "2026-11-12T19:38:49.186453+00:00",
+      "elapsedSeconds": 30.276,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-failure-page.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    },
+    {
+      "check": "command-journey",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "timeout",
+        "1200",
+        "node",
+        "tests/command-journey.mjs"
+      ],
+      "completedAt": "2026-11-12T19:42:12.141986+00:00",
+      "elapsedSeconds": 294.53,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-command.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    },
+    {
+      "check": "archive-roundtrip",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "timeout",
+        "1200",
+        "node",
+        "tests/archive-roundtrip.mjs"
+      ],
+      "completedAt": "2026-11-12T19:43:06.690419+00:00",
+      "elapsedSeconds": 257.447,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-archive.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    },
+    {
+      "check": "catalog",
+      "cleanAfter": true,
+      "cleanBefore": true,
+      "command": [
+        "timeout",
+        "300",
+        "node",
+        "tests/catalog.mjs"
+      ],
+      "completedAt": "2026-11-12T19:43:35.426641+00:00",
+      "elapsedSeconds": 28.673,
+      "exit": 0,
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "log": "uptime-final-catalog.log",
+      "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+    }
+  ],
+  "ci": {
+    "conclusion": null,
+    "event": "push",
+    "head_sha": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43292021628",
+    "id": 43292021628,
+    "name": "Verify",
+    "observedAt": "2026-11-12T19:37:32.198313+00:00",
+    "status": "in_progress"
+  },
+  "claimedStatus": {
+    "ARCHIVE-002": "PARTIAL"
+  },
+  "closedAcceptancePoints": [],
+  "countsAfter": {
+    "done": 37,
+    "missing": 20,
+    "partial": 58
+  },
+  "countsBefore": {
+    "done": 37,
+    "missing": 20,
+    "partial": 58
+  },
+  "fullMonitoringScaleQualified": false,
+  "githubApiCallsUsed": 9,
+  "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+  "journeyTasksAfter": 47,
+  "journeyTasksBefore": 47,
+  "localTransportDiagnostic": {
+    "candidate": "ECONNRESET at oversized-upload refusal under pinned Node 22",
+    "command": "node tests/definitions-import.mjs",
+    "mainHead": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+    "mainResult": "ECONNRESET also occurred in unmodified main journey on the same VM",
+    "productRepair": "none; assertions and shared runtime helpers preserved"
+  },
+  "pr": null,
+  "previousCandidateVerify": {
+    "archiveShard": "success",
+    "conclusion": "failure",
+    "head": "e92916f3cd06008fd35faba36a78c2bcfd8d2245",
+    "repairedJobs": [
+      131405552324,
+      131405552484
+    ],
+    "runId": 43281879311
+  },
+  "publicationScan": "not run; guarded lander duty",
+  "remaining": [
+    "completely bounded-memory snapshot capture and graph projection beyond the explicit encoded-payload bound",
+    "500 monitors with 90 days of 30-second three-location history and full-scale export and restore",
+    "f62b range integration through its current landing owner",
+    "OPS-001 integration and qualification at required scale",
+    "hosted storage, cadence, archive size and geographic qualification",
+    "uip-owned console bound and selection controls and requalification"
+  ],
+  "repairRounds": 1,
+  "repository": "just-every/run-uptime",
+  "tag": "sd-uptime-c-f169",
+  "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
+}

@@ -1,0 +1,61 @@
+HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: scratch command failed: tion on this computer
+Starting the private runner
+Claiming the first owner
+First owner claimed
+Opening your application
+Your application is running locally
+(node:35902) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Runner poll failed; watching independently for loss of contact.
+Your application is running locally failed. Inspect the private redacted capture log.
+Run the same command with --json for details.
+setup: failed (exit 1)
+
+
+1 !== 0
+
+    at Object.run (file:///workspace/run-uptime/tests/scratch-installation.mjs:64:30)
+    at async file:///workspace/run-uptime/tests/command-journey.mjs:186:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

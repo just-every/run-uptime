@@ -1,0 +1,31 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PROBE STARTUP-001 acceptance-1 MAIL_API_KEY: missing and whitespace-bearing rer key -> health and authenticated native claim 503, named value-free responses and captured diagnostics, every durable table unchanged, zero outbound requests
+PROBE STARTUP-001 acceptance-2 MAIL_API_KEY: corrected synthetic key and restart with identical persistence -> health 200 and authenticated idle claim 200, no mail or target work
+STARTUP_RER_MAIL_KEY_PASS {"cases":[{"kind":"missing","refused":[{"path":"/health","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"},{"path":"/api/runner/claim","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"}],"tablesCompared":225,"healthAfter":200,"claimAfter":200,"task":null,"outboundRequests":0},{"kind":"malformed","refused":[{"path":"/health","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"},{"path":"/api/runner/claim","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"}],"tablesCompared":225,"healthAfter":200,"claimAfter":200,"task":null,"outboundRequests":0}],"capturedDiagnostics":["[mf:info] Ready on http://127.0.0.1:42169","[mf:info] POST / 303 See Other (20ms)","[mf:info] POST / 200 OK (9ms)","[mf:info] POST / 200 OK (9ms)","[mf:info] Ready on http://127.0.0.1:36579","[mf:info] POST / 503 Service Unavailable (4ms)","[mf:info] POST / 503 Service Unavailable (1ms)","[mf:info] Ready on http://127.0.0.1:46809","[mf:info] POST / 200 OK (43ms)","[mf:info] POST / 200 OK (12ms)","[mf:info] Ready on http://127.0.0.1:35963","[mf:info] POST / 503 Service Unavailable (3ms)","[mf:info] POST / 503 Service Unavailable (0ms)","[mf:info] Ready on http://127.0.0.1:46633","[mf:info] POST / 200 OK (16ms)","[mf:info] POST / 200 OK (12ms)"],"outboundRequests":0}
+PROBE STARTUP-001 acceptance-1 MAIL_RELAY_URL missing: health and authenticated native claim -> 503 naming MAIL_RELAY_URL, value-free responses and diagnostics, zero outbound, all 225 durable tables unchanged
+PROBE STARTUP-001 acceptance-1 MAIL_RELAY_URL malformed: health and authenticated native claim -> 503 naming MAIL_RELAY_URL, value-free responses and diagnostics, zero outbound, all 225 durable tables unchanged
+PROBE STARTUP-001 acceptance-2 MAIL_RELAY_URL: valid HTTPS relay and same persistence restart -> health 200, wrong runner key 401, authenticated idle claim 200, zero outbound and preserved product custody
+PUBLIC_SURFACE {"requested":"https://run-uptime.com/","finalOrigin":"https://run-uptime.com","finalPath":"/","status":200,"redirects":0,"contentType":"text/html"}
+PUBLIC_SURFACE {"requested":"https://run-uptime.com/run","finalOrigin":"https://run-uptime.com","finalPath":"/run","status":200,"redirects":0,"contentType":"text/html"}
+PUBLIC_SURFACES_PASS {"marketing":[{"requested":"https://run-uptime.com/","finalOrigin":"https://run-uptime.com","finalPath":"/","status":200,"redirects":0,"contentType":"text/html","title":"Uptime — Sleep through the night","heading":"Sleep through the night ."},{"requested":"https://run-uptime.com/run","finalOrigin":"https://run-uptime.com","finalPath":"/run","status":200,"redirects":0,"contentType":"text/html","title":"Run Uptime","heading":"Run Uptime."}],"app":[{"requested":"https://uptime.example.test/","finalOrigin":"https://uptime.example.test","finalPath":"/","status":200,"title":"Finish setup · Uptime","heading":"Uptime","redirects":[]},{"requested":"https://uptime.example.test/docs","finalOrigin":"https://uptime.example.test","finalPath":"/docs","status":200,"title":"Docs · Uptime","heading":"Docs","redirects":[]},{"requested":"https://uptime.example.test/setup","finalOrigin":"https://uptime.example.test","status":303,"location":"/login?returnTo=%2Fsetup"},{"requested":"https://uptime.example.test/app","finalOrigin":"https://uptime.example.test","status":303,"location":"/login"},{"requested":"https://uptime.example.test/app/monitor","finalOrigin":"https://uptime.example.test","status":303,"location":"/login"}]}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: undeclared/private GET /api/archive-transfer/private
+
+404 !== 401
+
+    at file:///workspace/uptime-verify-repro/tests/public-paths.mjs:86:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 404,
+  expected: 401,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

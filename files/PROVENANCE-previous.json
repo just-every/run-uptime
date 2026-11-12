@@ -1,0 +1,43 @@
+{
+  "branch": "cloud/sd-uptime-c-f169",
+  "candidateRunSite": "guarded landing duty; not run on the product branch",
+  "commits": [
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "e92916f3cd06008fd35faba36a78c2bcfd8d2245",
+      "message": "Preserve large archive rows and complete erasure journals across resume"
+    },
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "a7288b7e958d4d84109e028c8792acbae121a56c",
+      "message": "Include newly tracked archive modules in source lock [skip ci]"
+    },
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "2a13fb51be92bcdedeaa1b2282b9a33263ee1180",
+      "message": "Add chunk manifests and durable archive transfer resume [skip ci]"
+    }
+  ],
+  "contractDiff": "",
+  "fullHistory": true,
+  "head": "e92916f3cd06008fd35faba36a78c2bcfd8d2245",
+  "node": "v22.20.0",
+  "pr": null,
+  "publicationScan": "guarded lander duty; not run in cloud",
+  "remoteRefs": {
+    "refs/heads/cloud/sd-uptime-c-f169": "e92916f3cd06008fd35faba36a78c2bcfd8d2245",
+    "refs/heads/main": "88c586f6fabdaed6768ddc8072af2340310a7ace"
+  },
+  "repository": "just-every/run-uptime",
+  "tree": "dd315ecbc8c5a43414a3411749e481e2d3889c2b",
+  "worktreeClean": true
+}

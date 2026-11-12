@@ -1,0 +1,207 @@
+> node tests/control-runtime.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:23442) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+RESTART-001 passed: repeated additive setup, exact persisted evidence/session/outbox continuity, single delivery per assigned probe, expired acceptance rejection, real scheduled recovery after process interruption, and an incident confirmed and recovered across a steadily lagging vantage.
+SCHEDULE-001 cadence revision passed: owner interval edit, next due readback, early refusal, signed scheduled and manual passes, immutable fixed selections and assignments, and delayed claims without catch-up checks.
+STATE-001 passed: two signed assigned runners, mixed-vantage Degraded, confirmed failure, manual-pass isolation, absent-probe Unknown, first complete scheduled Recovering and one recovery after the second complete scheduled pass with immutable evidence.
+PROBE STATE-001 expired-passing-coverage: two saved passing deadlines crossed with no runner invocation -> target and both regions Unknown, Incomplete coverage, denominator 2, original observation identities, exactly two target requests
+PROBE STATE-001 stale-restart: restarted emitted Worker on the same D1 and isolated clock -> identical owner history and durable records, zero new target requests and no trigger or recovery
+PROBE STATE-001 resumed-due-coverage: both signed production runners resumed -> Healthy Complete coverage, two new target checks, unchanged old history, no fabricated trigger or recovery; early polls execute no work
+RECOVERY-001 passed: separate empty D1 restore, forged revision/raw-body rejection, paused imported definitions, inactive imported outbox and no automatic execution/replay.
+CONTROL-001 passed: emitted Start/Hono Worker, real D1 migrations/native sessions, scoped signed runner, scheduled failure/recovery and manual evidence, rename lifecycle, notification authority isolation, archive/session revocation.
+> node tests/notify-delivery.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:29849) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+MAIL_EDGE {"status":202,"received":1,"invalid":0}
+MAIL_EDGE {"status":202,"received":2,"invalid":0}
+MAIL_EDGE {"status":202,"received":3,"invalid":0}
+MAIL_EDGE {"status":202,"received":4,"invalid":0}
+MAIL_EDGE {"status":500,"received":5,"invalid":0}
+MAIL_EDGE {"status":400,"received":6,"invalid":0}
+MAIL_EDGE {"status":429,"received":7,"invalid":0}
+TIMEOUT {"kind":"email","observedStallMs":15050.224437000004}
+TIMEOUT {"kind":"webhook","observedStallMs":3541.3031469999987,"transportElapsedMs":3501.145344000004}
+TIMEOUT {"kind":"slack","observedStallMs":3667.153280999999,"transportElapsedMs":3500.4313239999974}
+IN_PROGRESS_RESTART {"kind":"webhook","beforeRestart":"sending","afterWorkerRestart":"sending","finalState":"uncertain","code":"claim_expired","attempts":1,"providerSubmissions":1}
+Notification acceptance passed: emitted Worker/D1, production private runner, real synthetic probes, independent receivers and restart-safe delivery history.
+> node tests/network-mixed-dns.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:31414) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS mixed DNS: allowed sockets and requests observed; both mixed orderings connect and send zero, retain runner_error, Unknown coverage and no incident
+> node tests/agent-rate-overrun.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PROBE BASE-AGENT-011 acceptance-1 autonomous 2026-07-28: authenticated paused rename -> one revision; 599 authenticated tools list requests -> ceiling 600; current-revision fresh-key rename and identical retry -> HTTP 429 rate_limited, Retry-After 37, 225 durable tables unchanged, no provider traffic
+PROBE BASE-AGENT-011 acceptance-1 autonomous 2025-11-25: authenticated paused rename -> one revision; 599 authenticated tools list requests -> ceiling 600; current-revision fresh-key rename and identical retry -> HTTP 429 rate_limited, Retry-After 37, 225 durable tables unchanged, no provider traffic
+PROBE BASE-AGENT-011 acceptance-1 held 2026-07-28: authenticated paused rename -> one revision; 599 authenticated tools list requests -> ceiling 600; current-revision fresh-key rename and identical retry -> HTTP 429 rate_limited, Retry-After 37, 225 durable tables unchanged, no provider traffic
+PROBE BASE-AGENT-011 acceptance-1 held 2025-11-25: authenticated paused rename -> one revision; 599 authenticated tools list requests -> ceiling 600; current-revision fresh-key rename and identical retry -> HTTP 429 rate_limited, Retry-After 37, 225 durable tables unchanged, no provider traffic
+> node tests/resilience/watches.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:31791) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+PROBE OPS-001 stale-coverage: owner overview after assigned runner loss -> Stale contact and Unknown target, Incomplete coverage, original denominator and observation identity; zero new target requests
+PROBE OPS-001 persisted-restart: same D1 and clock, restarted Worker -> identical stale contact and signed history, no trigger, recovery or replacement traffic
+PROBE OPS-001 resumed-due-runner: production runner signed due result -> Fresh contact and Healthy Complete coverage, exactly one new check, retained original history, no alert events
+PROBE STARTUP-001 acceptance-1 UPTIME_CONTROL_ORIGIN missing: private-runner command -> nonzero, named value-free diagnostic, zero traffic, unchanged database and empty custody
+PROBE STARTUP-001 acceptance-2 UPTIME_CONTROL_ORIGIN missing: corrected command in the same directory -> authenticated enrollment 200, idle claim 200, clean exit 0, no target work
+PROBE STARTUP-001 acceptance-1 UPTIME_CONTROL_ORIGIN malformed: private-runner command -> nonzero, named value-free diagnostic, zero traffic, unchanged database and empty custody
+PROBE STARTUP-001 acceptance-2 UPTIME_CONTROL_ORIGIN malformed: corrected command in the same directory -> authenticated enrollment 200, idle claim 200, clean exit 0, no target work
+PROBE STARTUP-001 acceptance-1 UPTIME_RUNNER_KEY missing: private-runner command -> nonzero, named value-free diagnostic, zero traffic, unchanged database and empty custody
+PROBE STARTUP-001 acceptance-2 UPTIME_RUNNER_KEY missing: corrected command in the same directory -> authenticated enrollment 200, idle claim 200, clean exit 0, no target work
+PROBE STARTUP-001 acceptance-1 UPTIME_RUNNER_KEY malformed: private-runner command -> nonzero, named value-free diagnostic, zero traffic, unchanged database and empty custody
+PROBE STARTUP-001 acceptance-2 UPTIME_RUNNER_KEY malformed: corrected command in the same directory -> authenticated enrollment 200, idle claim 200, clean exit 0, no target work
+Resilience watch: fresh authenticated contact confirmed; stopping Worker
+Runner discovery poll failed (local error); polling again.
+Runner notification operation failed (local error); the next poll retries it.
+Resilience watch: Worker stopped; waiting for independent notices
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Resilience watch: accepted retry and repeat confirmed; restarting persisted Worker
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Resilience watch: persisted Worker ready; waiting for recovery notice
+Resilience watch: accepted recovery confirmed
+Resilience watch: joining runner and disposing resumed Worker
+Resilience watch: runner settled; disposing resumed Worker
+Resilience watch: closing fixture and notice receiver
+Resilience watch: all owned resources closed
+# Subtest: Recover monitoring across runner and Worker crashes without replaying uncertain sends
+ok 1 - Recover monitoring across runner and Worker crashes without replaying uncertain sends
+  ---
+  duration_ms: 54759.958409
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54764.467948
+> node tests/public-paths.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PROBE STARTUP-001 acceptance-1 MAIL_API_KEY: missing and whitespace-bearing rer key -> health and authenticated native claim 503, named value-free responses and captured diagnostics, every durable table unchanged, zero outbound requests
+PROBE STARTUP-001 acceptance-2 MAIL_API_KEY: corrected synthetic key and restart with identical persistence -> health 200 and authenticated idle claim 200, no mail or target work
+STARTUP_RER_MAIL_KEY_PASS {"cases":[{"kind":"missing","refused":[{"path":"/health","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"},{"path":"/api/runner/claim","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"}],"tablesCompared":225,"healthAfter":200,"claimAfter":200,"task":null,"outboundRequests":0},{"kind":"malformed","refused":[{"path":"/health","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"},{"path":"/api/runner/claim","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"}],"tablesCompared":225,"healthAfter":200,"claimAfter":200,"task":null,"outboundRequests":0}],"capturedDiagnostics":["[mf:info] Ready on http://127.0.0.1:34995","[mf:info] POST / 303 See Other (18ms)","[mf:info] POST / 200 OK (13ms)","[mf:info] POST / 200 OK (13ms)","[mf:info] Ready on http://127.0.0.1:35255","[mf:info] POST / 503 Service Unavailable (4ms)","[mf:info] POST / 503 Service Unavailable (1ms)","[mf:info] Ready on http://127.0.0.1:37593","[mf:info] POST / 200 OK (20ms)","[mf:info] POST / 200 OK (16ms)","[mf:info] Ready on http://127.0.0.1:45357","[mf:info] POST / 503 Service Unavailable (3ms)","[mf:info] POST / 503 Service Unavailable (1ms)","[mf:info] Ready on http://127.0.0.1:44051","[mf:info] POST / 200 OK (25ms)","[mf:info] POST / 200 OK (22ms)"],"outboundRequests":0}
+PROBE STARTUP-001 acceptance-1 MAIL_RELAY_URL missing: health and authenticated native claim -> 503 naming MAIL_RELAY_URL, value-free responses and diagnostics, zero outbound, all 225 durable tables unchanged
+PROBE STARTUP-001 acceptance-1 MAIL_RELAY_URL malformed: health and authenticated native claim -> 503 naming MAIL_RELAY_URL, value-free responses and diagnostics, zero outbound, all 225 durable tables unchanged
+PROBE STARTUP-001 acceptance-2 MAIL_RELAY_URL: valid HTTPS relay and same persistence restart -> health 200, wrong runner key 401, authenticated idle claim 200, zero outbound and preserved product custody
+PUBLIC_SURFACE {"requested":"https://run-uptime.com/","finalOrigin":"https://run-uptime.com","finalPath":"/","status":200,"redirects":0,"contentType":"text/html"}
+PUBLIC_SURFACE {"requested":"https://run-uptime.com/run","finalOrigin":"https://run-uptime.com","finalPath":"/run","status":200,"redirects":0,"contentType":"text/html"}
+PUBLIC_SURFACES_PASS {"marketing":[{"requested":"https://run-uptime.com/","finalOrigin":"https://run-uptime.com","finalPath":"/","status":200,"redirects":0,"contentType":"text/html","title":"Uptime — Sleep through the night","heading":"Sleep through the night ."},{"requested":"https://run-uptime.com/run","finalOrigin":"https://run-uptime.com","finalPath":"/run","status":200,"redirects":0,"contentType":"text/html","title":"Run Uptime","heading":"Run Uptime."}],"app":[{"requested":"https://uptime.example.test/","finalOrigin":"https://uptime.example.test","finalPath":"/","status":200,"title":"Finish setup · Uptime","heading":"Uptime","redirects":[]},{"requested":"https://uptime.example.test/docs","finalOrigin":"https://uptime.example.test","finalPath":"/docs","status":200,"title":"Docs · Uptime","heading":"Docs","redirects":[]},{"requested":"https://uptime.example.test/setup","finalOrigin":"https://uptime.example.test","status":303,"location":"/login?returnTo=%2Fsetup"},{"requested":"https://uptime.example.test/app","finalOrigin":"https://uptime.example.test","status":303,"location":"/login"},{"requested":"https://uptime.example.test/app/monitor","finalOrigin":"https://uptime.example.test","status":303,"location":"/login"}]}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: undeclared/private GET /api/archive-transfer/private
+
+404 !== 401
+
+    at file:///workspace/uptime-verify-repro/tests/public-paths.mjs:86:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 404,
+  expected: 401,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

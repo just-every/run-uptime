@@ -1,0 +1,76 @@
+{
+  "branch": "cloud/sd-uptime-c-f169",
+  "candidateRunSite": "guarded landing duty; not run on product branch",
+  "commits": [
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+      "message": "Merge current main with archive transfer checks"
+    },
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "2955e521327313bbf1b894540a4d503db11511fe",
+      "message": "Preserve private transfer denial and artifact archive checks"
+    },
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "d3b2ea3b7733c05cdf142b0e1ace7fd52b69fbef",
+      "message": "Merge remote-tracking branch 'origin/main' into cloud/sd-uptime-c-f169"
+    },
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "df7d9c75c13ca67d88fbb5677b8187a92f640627",
+      "message": "Preserve read-only compatibility and resume refusals [skip ci]"
+    },
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "e92916f3cd06008fd35faba36a78c2bcfd8d2245",
+      "message": "Preserve large archive rows and complete erasure journals across resume"
+    },
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "a7288b7e958d4d84109e028c8792acbae121a56c",
+      "message": "Include newly tracked archive modules in source lock [skip ci]"
+    },
+    {
+      "author": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committer": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "head": "2a13fb51be92bcdedeaa1b2282b9a33263ee1180",
+      "message": "Add chunk manifests and durable archive transfer resume [skip ci]"
+    }
+  ],
+  "contractDiff": "",
+  "fullHistory": true,
+  "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+  "node": "v22.20.0",
+  "pr": null,
+  "publicationScan": "guarded lander duty; not run in cloud",
+  "referenceMain": "a716f79fc169e2f2a744fd700c4f583d1a0a89ae",
+  "remoteRefs": {
+    "refs/heads/cloud/sd-uptime-c-f169": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+    "refs/heads/main": "a716f79fc169e2f2a744fd700c4f583d1a0a89ae"
+  },
+  "repository": "just-every/run-uptime",
+  "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f",
+  "worktreeClean": true
+}
