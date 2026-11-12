@@ -1,0 +1,19 @@
+3da4c79633ac6703928e540a92689a14457b81c2 Merge current main into documentation and key usage candidate
+b195ca95cfdf274c3e74745e6698e85d1042af99 Keep import and erasure verification in place and preserve early member actions
+0b5bf7da1c7512800392f91bccbc1eb3208811e0 Align setup and monitor documentation with the shipped console
+
+README.md                                   | 15 ++++--
+ docs/definitions.md                         | 10 ++--
+ docs/monitors.md                            | 51 +++++++++-----------
+ public/assets/key-usage.js                  | 16 +++++++
+ public/assets/security-controls.js          | 12 +++--
+ public/definitions.js                       |  6 ++-
+ public/notification-dialogs.js              |  9 ++--
+ public/notifications.css                    |  5 ++
+ sources.lock.json                           | 30 +++++++-----
+ src/editor/monitor/api.mjs                  | 11 ++++-
+ src/editor/monitor/erase.mjs                | 14 ++----
+ tests/monitor-stepup-support.mjs            | 73 +++++++++++++++++++++++++++++
+ tests/operator-security.mjs                 |  2 +
+ tests/security-controls-browser-support.mjs | 10 +++-
+ 14 files changed, 192 insertions(+), 72 deletions(-)

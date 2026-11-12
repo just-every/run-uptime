@@ -1,0 +1,12 @@
+{
+  "call": 6,
+  "at": "2026-11-12T12:36:13.499360+00:00",
+  "args": [
+    "api",
+    "repos/just-every/run-uptime/actions/runs/43217811037",
+    "--jq",
+    "{status,conclusion,head_sha,html_url}"
+  ],
+  "exit": 1,
+  "output": "{\n  \"message\": \"Bad credentials\",\n  \"documentation_url\": \"https://docs.github.com/rest\",\n  \"status\": \"401\"\n}gh: Bad credentials (HTTP 401)\n"
+}

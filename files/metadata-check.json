@@ -1,0 +1,35 @@
+{
+  "at": "2026-11-12T12:25:46.292328+00:00",
+  "ok": true,
+  "base": "3da4c79633ac6703928e540a92689a14457b81c2",
+  "before_version": "0.5.7",
+  "after_version": "0.5.8",
+  "metadata_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "rer_pin_before": "0.2.108",
+  "rer_pin_after": "0.2.108",
+  "dependencies_unchanged": true,
+  "pnpm_lock_unchanged": true,
+  "package_lock_present": false,
+  "product_and_tests_changed": false,
+  "clause_status_changes": [],
+  "counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "source_lock_check_ok": true
+}

@@ -1,0 +1,1 @@
+EVIDENCE_DIAGNOSTIC command=git ls-remote --refs https://github.com/just-every/run-uptime.git refs/heads/evidence/sd-uptime-release-0-5-8 exit=0 HTTP=unknown (not supplied by Git)

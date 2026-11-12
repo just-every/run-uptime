@@ -1,0 +1,12 @@
+{
+  "call": 1,
+  "at": "2026-11-12T12:21:22.003158+00:00",
+  "args": [
+    "api",
+    "repos/just-every/run-uptime/actions/runs?head_sha=3da4c79633ac6703928e540a92689a14457b81c2&per_page=100",
+    "--jq",
+    ".workflow_runs | map({id,name,status,conclusion,head_sha,html_url})"
+  ],
+  "exit": 0,
+  "output": "[{\"conclusion\":\"skipped\",\"head_sha\":\"3da4c79633ac6703928e540a92689a14457b81c2\",\"html_url\":\"https://github.com/just-every/run-uptime/actions/runs/43184740984\",\"id\":43184740984,\"name\":\"Run demo\",\"status\":\"completed\"},{\"conclusion\":\"success\",\"head_sha\":\"3da4c79633ac6703928e540a92689a14457b81c2\",\"html_url\":\"https://github.com/just-every/run-uptime/actions/runs/43184741006\",\"id\":43184741006,\"name\":\"Verify\",\"status\":\"completed\"},{\"conclusion\":\"success\",\"head_sha\":\"3da4c79633ac6703928e540a92689a14457b81c2\",\"html_url\":\"https://github.com/just-every/run-uptime/actions/runs/43184740903\",\"id\":43184740903,\"name\":\"Run site\",\"status\":\"completed\"},{\"conclusion\":\"success\",\"head_sha\":\"3da4c79633ac6703928e540a92689a14457b81c2\",\"html_url\":\"https://github.com/just-every/run-uptime/actions/runs/43184741031\",\"id\":43184741031,\"name\":\"Push on main\",\"status\":\"completed\"},{\"conclusion\":\"success\",\"head_sha\":\"3da4c79633ac6703928e540a92689a14457b81c2\",\"html_url\":\"https://github.com/just-every/run-uptime/actions/runs/43181283312\",\"id\":43181283312,\"name\":\"Verify\",\"status\":\"completed\"}]\n"
+}

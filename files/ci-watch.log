@@ -1,0 +1,11 @@
+2026-11-12T12:31:12.141016+00:00 {"conclusion":null,"head_sha":"ed5429192d18503c4c8caa8d797d82ffdcc78f54","html_url":"https://github.com/just-every/run-uptime/actions/runs/43217811037","status":"in_progress"}
+ 
+2026-11-12T12:36:13.505058+00:00 {
+  "message": "Bad credentials",
+  "documentation_url": "https://docs.github.com/rest",
+  "status": "401"
+}gh: Bad credentials (HTTP 401)
+ 
+CI_LOOKUP_FAILED exit=1
+2026-11-12T12:41:15.187208+00:00 {"conclusion":null,"head_sha":"ed5429192d18503c4c8caa8d797d82ffdcc78f54","html_url":"https://github.com/just-every/run-uptime/actions/runs/43217811037","status":"in_progress"}
+ 

@@ -1,0 +1,7 @@
+{
+  "path": "/home/agent/rer-consolidation/work/push-rescue/cloud_sd-uptime-release-0-5-8-20261112T123856Z-ed5429192d18.bundle",
+  "head": "ed5429192d18503c4c8caa8d797d82ffdcc78f54",
+  "sha256": "cdb4f9620865669cbf70529c25c922a1f72080fb240bafff3f620ced4e4ebe5b",
+  "verified": true,
+  "verification_output": "The bundle contains these 13 refs:\ned5429192d18503c4c8caa8d797d82ffdcc78f54 refs/heads/cloud/sd-uptime-release-0-5-8\n3da4c79633ac6703928e540a92689a14457b81c2 refs/heads/main\n3da4c79633ac6703928e540a92689a14457b81c2 refs/remotes/origin/HEAD\n3da4c79633ac6703928e540a92689a14457b81c2 refs/remotes/origin/main\n33a161215a6086f059101620ccd5ac69956775ac refs/tags/v0.5.0\n52b42ef0f578b8dbedb996f520c1eea0e2ca5a4b refs/tags/v0.5.1\n3f1eb06e8c655c3a95ca7f17087d7043f85e74e6 refs/tags/v0.5.2\nea899e97a438ba741a718d62356d136b27daa8c6 refs/tags/v0.5.3\ndd17dab9f4f4d60daf803451114b6693fad0b06e refs/tags/v0.5.4\n6d63eb445a5c3ae47d896dcb3842c3c2ff29ab69 refs/tags/v0.5.5\nf4e31a2998ca4cfcf6246713e460e0c6ec023819 refs/tags/v0.5.6\n88959316ab47c342db0ac6ec636958321624d7ed refs/tags/v0.5.7\ned5429192d18503c4c8caa8d797d82ffdcc78f54 HEAD\nThe bundle records a complete history.\nThe bundle uses this hash algorithm: sha1\n/home/agent/rer-consolidation/work/push-rescue/cloud_sd-uptime-release-0-5-8-20261112T123856Z-ed5429192d18.bundle is okay\n"
+}

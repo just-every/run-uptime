@@ -1,0 +1,12 @@
+{
+  "call": 5,
+  "at": "2026-11-12T12:31:12.135204+00:00",
+  "args": [
+    "api",
+    "repos/just-every/run-uptime/actions/runs/43217811037",
+    "--jq",
+    "{status,conclusion,head_sha,html_url}"
+  ],
+  "exit": 0,
+  "output": "{\"conclusion\":null,\"head_sha\":\"ed5429192d18503c4c8caa8d797d82ffdcc78f54\",\"html_url\":\"https://github.com/just-every/run-uptime/actions/runs/43217811037\",\"status\":\"in_progress\"}\n"
+}

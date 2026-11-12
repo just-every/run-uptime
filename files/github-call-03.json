@@ -1,0 +1,12 @@
+{
+  "call": 3,
+  "at": "2026-11-12T12:21:23.681183+00:00",
+  "args": [
+    "api",
+    "repos/just-every/run-uptime/releases?per_page=10",
+    "--jq",
+    "map({tag_name,name,draft,published_at,html_url})"
+  ],
+  "exit": 0,
+  "output": "[{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.5.7\",\"name\":\"Uptime 0.5.7\",\"published_at\":\"2026-11-12T06:17:12Z\",\"tag_name\":\"v0.5.7\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.5.6\",\"name\":\"Uptime 0.5.6\",\"published_at\":\"2026-11-11T18:44:41Z\",\"tag_name\":\"v0.5.6\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.5.5\",\"name\":\"Uptime 0.5.5\",\"published_at\":\"2026-11-11T13:02:13Z\",\"tag_name\":\"v0.5.5\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.5.4\",\"name\":\"Uptime 0.5.4\",\"published_at\":\"2026-11-11T03:29:18Z\",\"tag_name\":\"v0.5.4\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.5.3\",\"name\":\"Uptime 0.5.3\",\"published_at\":\"2026-11-11T01:16:56Z\",\"tag_name\":\"v0.5.3\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.5.2\",\"name\":\"Uptime 0.5.2\",\"published_at\":\"2026-11-10T15:13:45Z\",\"tag_name\":\"v0.5.2\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.5.1\",\"name\":\"Uptime 0.5.1\",\"published_at\":\"2026-11-10T10:22:24Z\",\"tag_name\":\"v0.5.1\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.5.0\",\"name\":\"Uptime 0.5.0\",\"published_at\":\"2026-11-01T17:37:52Z\",\"tag_name\":\"v0.5.0\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.4.3\",\"name\":\"Uptime 0.4.3\",\"published_at\":\"2026-10-20T11:46:23Z\",\"tag_name\":\"v0.4.3\"},{\"draft\":false,\"html_url\":\"https://github.com/just-every/run-uptime/releases/tag/v0.4.2\",\"name\":\"Uptime 0.4.2\",\"published_at\":\"2026-10-19T23:34:15Z\",\"tag_name\":\"v0.4.2\"}]\n"
+}
