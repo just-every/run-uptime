@@ -7,6 +7,9 @@ import {testAuthBindings,keyHeader} from './auth-test-support.mjs';
 import {filesIn,publicRuntime,prefill,limited,steadyMinute} from './public-paths-support.mjs';
 import {provePublicSurfaces} from './public-surfaces-support.mjs';
 import {proveRerRelayUrlStartup} from './startup-rer-relay-url-support.mjs';
+import {proveRerMailKeyStartup} from './startup-rer-mail-key-support.mjs';
+
+await proveRerMailKeyStartup();
 
 const seed=JSON.parse(await readFile('seed.json','utf8')),declarations=seed.deploy.publicPaths,limits=seed.limits.publicRequestsPerMinutePerIp;
 const matches=(path,local=false)=>declarations.find(item=>(local||item.environment!=='local')&&(item.match==='prefix'?path.startsWith(item.path):path===item.path)&&(!item.withinDirectory||(!/[\\]|%(?:2f|5c|25)/i.test(path)&&path.split('/').includes(item.withinDirectory))));
