@@ -1,0 +1,4 @@
+Replay scope reviewed: 6 product/doc/test files plus regenerated source lock.
+All six product/doc/test files byte-match the prior round; main newer files are retained.
+No credential-shaped additions detected by focused diff inspection. This is not the complete Base publication scan. The Mac lander must run its publication scan.
+Protected contract documents byte-match origin/main. No acceptance point, status, gap or evidence changed.

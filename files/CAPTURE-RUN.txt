@@ -1,0 +1,23 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+BROWSER_PROOF new-key width=1440 secrets=masked
+BROWSER_PROOF new-key width=390 secrets=masked
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#security-controls').locator('[data-credential-id="62489126-8452-49c6-8b69-169e48c59aa9"]') to be visible[22m
+
+    at Module.proveSecurityControls (/home/agent/rer-consolidation/work/main-uptime-docs-truth-1-c1/packet/instrumented-security-controls.mjs:99:80)
+    at async file:///tmp/uptime-proof.mjs:24:5 {
+  log: [
+    `  - waiting for locator('#security-controls').locator('[data-credential-id="62489126-8452-49c6-8b69-169e48c59aa9"]') to be visible`
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.19.0

@@ -1,0 +1,91 @@
+{
+  "base": "a715d2188b5d38cc563465292bc8c461b93c6528",
+  "prior": "fc2a2720b3e11dc4ca01c94221c41b89af0c9d87",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit": 0
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run typecheck (Node 22.20.0)",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node /tmp/uptime-touched-test.mjs (unchanged proveSecurityControls at 1440)",
+      "exit": 0,
+      "runtime": "Node 24.19.0; ordinary .mjs entry point"
+    }
+  ],
+  "counts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "clauses": 115,
+      "publicDoorJourneyCommands": 47
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "clauses": 115,
+      "publicDoorJourneyCommands": 47
+    },
+    "newRegistrations": 0
+  },
+  "protected_documents": {
+    "CONTRACT.md": {
+      "sha256": "879a0aeaeb48188b88efb518206a1f298c527772c4a86c077c9dbe88437eb849",
+      "equals_origin_main": true
+    },
+    "ACCEPTANCE.md": {
+      "sha256": "a8f018cf89045b9f4e69050fe0f97fd81afad012d8dc00db45fe3510e061982b",
+      "equals_origin_main": true
+    },
+    "docs/CLAIMS.md": {
+      "sha256": "adb3ad37ab113c2061ed4365767d2c347281a807acfa51eb712305959ad02b54",
+      "equals_origin_main": true
+    }
+  },
+  "screenshots": [
+    {
+      "path": "new-key-1440.png",
+      "sha256": "3c21f903c582646418c3557073661f37592eda51aca623085903ea51060ea79d",
+      "issued_secret_masked": true
+    },
+    {
+      "path": "new-key-390.png",
+      "sha256": "931edd64c755bd074950203ab244cce2c9027563e8652ee5d702de8ad9a48321",
+      "issued_secret_masked": true
+    }
+  ],
+  "runtime_notes": [
+    "Browser capture completed at 1440 and 390; screenshot instrumentation run later timed out waiting for credential row after page reload.",
+    "Subsequent unchanged-journey launches stalled in D1 startup; stopped owned processes only. Diagnosis ongoing.",
+    "Typecheck was also run successfully under repository-pinned Node 22.20.0.",
+    "Unchanged proveSecurityControls passed when launched from an ordinary .mjs file; no product or test repair was needed for the evaluation-mode launch stall."
+  ],
+  "checked_product_head": "0b5bf7da1c7512800392f91bccbc1eb3208811e0",
+  "product_files_unchanged_since_local_checks": true,
+  "protected_documents_checks_at_head": true
+}

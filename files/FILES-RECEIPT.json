@@ -1,0 +1,67 @@
+[
+  {
+    "path": "PLAN.md",
+    "bytes": 1356,
+    "sha256": "02c6d4d87d7fd32e685967eb6cccc224b702cb0b080169cbbb3064a63a524a5d"
+  },
+  {
+    "path": "LOCAL-RECEIPT.json",
+    "bytes": 2845,
+    "sha256": "449b520664136354d31f567e549b09a6dad54cbeeb5f123491d6d8319b901cf8"
+  },
+  {
+    "path": "PRODUCT-RECEIPT.json",
+    "bytes": 385,
+    "sha256": "0478ab3b82147503b5f4d8cd6b180182fe0bb36aa81a4297cec2a4f54738aeb6"
+  },
+  {
+    "path": "PRODUCT-PUSH.txt",
+    "bytes": 863,
+    "sha256": "b42288dedcffdf8938a568a2fe8824bb7db29f3a4ec77c12697f146c95f45963"
+  },
+  {
+    "path": "PRODUCT-DIFF.patch",
+    "bytes": 46580,
+    "sha256": "f177bed151bec702f6b9527fcda77a3d1b187bc600aca72877220812948c4449"
+  },
+  {
+    "path": "DIFF-REVIEW.txt",
+    "bytes": 437,
+    "sha256": "e3c138fa1857521fecd1067eb0dd31b898418275d61921702c5fc45788b4f4cc"
+  },
+  {
+    "path": "TOUCHED-TEST.txt",
+    "bytes": 613,
+    "sha256": "65d0e1e3d08f60876dc3e312434eb251b1fe132b593d5a6b41b71ca9aebbeb78"
+  },
+  {
+    "path": "TYPECHECK.txt",
+    "bytes": 137,
+    "sha256": "e339247fabf3c61deb5e35cc76f9c0c120589e95da269b2248a88b78a755e1df"
+  },
+  {
+    "path": "CONTRACT-CHECK.txt",
+    "bytes": 70,
+    "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+  },
+  {
+    "path": "CAPTURE-RUN.txt",
+    "bytes": 1044,
+    "sha256": "349515a7669586191d50498878030bd69195c006113a34f9a38fe6d6d2da4fbe"
+  },
+  {
+    "path": "COMMIT-INSPECTION.txt",
+    "bytes": 126,
+    "sha256": "236dd59e2e55b59db68e6e2c0a1c16044aae5a841fde473ce02d00eadbe28c96"
+  },
+  {
+    "path": "new-key-1440.png",
+    "bytes": 150504,
+    "sha256": "3c21f903c582646418c3557073661f37592eda51aca623085903ea51060ea79d"
+  },
+  {
+    "path": "new-key-390.png",
+    "bytes": 152291,
+    "sha256": "931edd64c755bd074950203ab244cce2c9027563e8652ee5d702de8ad9a48321"
+  }
+]

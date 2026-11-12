@@ -1,0 +1,5 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+ACCESS-003/READAPI-001 Settings 1440 PASS: owner/member TOTP, recovery once, CDP passkey, stale policy/key step-up, hash-only restricted monitoring/CI issuance, usage and immediate revocation, live member refusal, factor removal, axe/reflow. Existing-document member proof; initial narrowed-role shell entry remains held.

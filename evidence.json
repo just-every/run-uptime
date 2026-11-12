@@ -1,0 +1,142 @@
+{
+  "files": [
+    {
+      "blob": "8fd96670034e608ed10fed0208bd1cec82a3a7b0",
+      "bytes": 10312,
+      "path": "BUILD.txt",
+      "sha256": "a08156cdd0c4fba4d2e4161710a2489f746647e7c6970cbb5c3bed7f9bd1e588"
+    },
+    {
+      "blob": "b488a69a34e0545007d0d5d929a42636f3dcc6d3",
+      "bytes": 1044,
+      "path": "CAPTURE-RUN.txt",
+      "sha256": "349515a7669586191d50498878030bd69195c006113a34f9a38fe6d6d2da4fbe"
+    },
+    {
+      "blob": "1cb2800cc5c33f474aa7a72855c35c4f31e99f11",
+      "bytes": 333,
+      "path": "CI-DISCOVERY.json",
+      "sha256": "7a745756d928cfe5e526dcbabdf02ff8db00cb536af31a71b4557a9ffc350c77"
+    },
+    {
+      "blob": "e765a16d16323b42e151e8ac5939377b9fa4405f",
+      "bytes": 278,
+      "path": "CI-POLL-2.json",
+      "sha256": "93890256b7d4a150b4993dbb636e5ffe392e94aeb33599b15b7fa0b5a2bb34c0"
+    },
+    {
+      "blob": "f46361f734dac1917c0ae2ae0e93ce819dc2a0fe",
+      "bytes": 278,
+      "path": "CI-POLL-3.json",
+      "sha256": "fa34c91f20631b424d7bbaecabcf30aff6c590acf5f1e373e46c8bfdb944a9fb"
+    },
+    {
+      "blob": "711bf5ba30cd0d9dbbf15b52e00ce63e28c79a9d",
+      "bytes": 278,
+      "path": "CI-POLL-4.json",
+      "sha256": "71fb5c669f0b90f934faf331cb9056687718cd14ccfdc0cc87dc005ac27509c7"
+    },
+    {
+      "blob": "711bf5ba30cd0d9dbbf15b52e00ce63e28c79a9d",
+      "bytes": 278,
+      "path": "CI-RECEIPT.json",
+      "sha256": "71fb5c669f0b90f934faf331cb9056687718cd14ccfdc0cc87dc005ac27509c7"
+    },
+    {
+      "blob": "e07d5fa0407d7a7041323c202417b2bba35efbe9",
+      "bytes": 126,
+      "path": "COMMIT-INSPECTION.txt",
+      "sha256": "236dd59e2e55b59db68e6e2c0a1c16044aae5a841fde473ce02d00eadbe28c96"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "CONTRACT-CHECK.txt",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "09b3096d8becc36dd08ee7c8842267e88e95b264",
+      "bytes": 437,
+      "path": "DIFF-REVIEW.txt",
+      "sha256": "e3c138fa1857521fecd1067eb0dd31b898418275d61921702c5fc45788b4f4cc"
+    },
+    {
+      "blob": "b7539fb920d5409117f5b60bf7b6d638c983adb8",
+      "bytes": 1833,
+      "path": "FILES-RECEIPT.json",
+      "sha256": "050f766cfc94682a7969cc7eb6cab16fe142fe96c9f077be834d655d31f69ff4"
+    },
+    {
+      "blob": "092ac5df08fd2d9b932f0287a8b5f707a6f7836c",
+      "bytes": 2845,
+      "path": "LOCAL-RECEIPT.json",
+      "sha256": "449b520664136354d31f567e549b09a6dad54cbeeb5f123491d6d8319b901cf8"
+    },
+    {
+      "blob": "6eb22438987cd0c82875dbde4e6fc587bb6dcd40",
+      "bytes": 1356,
+      "path": "PLAN.md",
+      "sha256": "02c6d4d87d7fd32e685967eb6cccc224b702cb0b080169cbbb3064a63a524a5d"
+    },
+    {
+      "blob": "7a67e7bd5445663da6ccb0184962cb6b1a86f3a2",
+      "bytes": 46580,
+      "path": "PRODUCT-DIFF.patch",
+      "sha256": "f177bed151bec702f6b9527fcda77a3d1b187bc600aca72877220812948c4449"
+    },
+    {
+      "blob": "fec7d92aab86418ed31811b8ff9d3ebadf419591",
+      "bytes": 863,
+      "path": "PRODUCT-PUSH.txt",
+      "sha256": "b42288dedcffdf8938a568a2fe8824bb7db29f3a4ec77c12697f146c95f45963"
+    },
+    {
+      "blob": "e405445610d15fcf587a77af8bca31e0a2a725b4",
+      "bytes": 385,
+      "path": "PRODUCT-RECEIPT.json",
+      "sha256": "0478ab3b82147503b5f4d8cd6b180182fe0bb36aa81a4297cec2a4f54738aeb6"
+    },
+    {
+      "blob": "94ad9a1f910bff3da265421eb4ddbe4d27b4e2b1",
+      "bytes": 5012,
+      "path": "REPORT.md",
+      "sha256": "abb932b576300330a85f14e692dc3fb50d258de08b0e2d7a444ffdddb6ce52c0"
+    },
+    {
+      "blob": "80b712fdd55ea374ab6b07f2be5c3a2eb50e4b81",
+      "bytes": 415894,
+      "path": "SOURCE-CHECK.json",
+      "sha256": "c4da0947f0849352244b90aa09fc714410b097d008d09e2cdeb557ae43794246"
+    },
+    {
+      "blob": "f13d0fe5c61c23c9fdc14e31067848d8f16e2caf",
+      "bytes": 613,
+      "path": "TOUCHED-TEST.txt",
+      "sha256": "65d0e1e3d08f60876dc3e312434eb251b1fe132b593d5a6b41b71ca9aebbeb78"
+    },
+    {
+      "blob": "9a869c3c5e75513d30d174c8dc60bda931e034ef",
+      "bytes": 137,
+      "path": "TYPECHECK.txt",
+      "sha256": "e339247fabf3c61deb5e35cc76f9c0c120589e95da269b2248a88b78a755e1df"
+    },
+    {
+      "blob": "507a6337ffc19a2b41e66de08010e01258a1e316",
+      "bytes": 150504,
+      "path": "new-key-1440.png",
+      "sha256": "3c21f903c582646418c3557073661f37592eda51aca623085903ea51060ea79d"
+    },
+    {
+      "blob": "7ebb0eac83a3f5e25ea1300266c555afcd68ec8f",
+      "bytes": 152291,
+      "path": "new-key-390.png",
+      "sha256": "931edd64c755bd074950203ab244cce2c9027563e8652ee5d702de8ad9a48321"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-docs-truth-1-c1",
+  "product_head": "0b5bf7da1c7512800392f91bccbc1eb3208811e0",
+  "ref": "refs/heads/evidence/main-uptime-docs-truth-1-c1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-docs-truth-1-c1"
+}

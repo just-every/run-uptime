@@ -1,0 +1,310 @@
+diff --git a/README.md b/README.md
+index af8b416..f05d349 100644
+--- a/README.md
++++ b/README.md
+@@ -36,10 +36,15 @@
+ Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.3.0. This release record is v0.4.0. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
+ 
+ ```sh
+-npx -y @runeditrun/rer dev just-every/run-uptime
++curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
+ ```
+ 
+-That one line installs `rer`, clones Uptime and starts it. Without Node, `curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime` does the same. To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then these from the checkout instead:
++That one line installs `rer`, clones Uptime and starts it; Node does not need to be installed first. If you already have Node, use this alternative:
++
++```sh
++npx -y @runeditrun/rer dev just-every/run-uptime
++```
++To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then these from the checkout instead:
+ 
+ ```sh
+ rer setup
+@@ -174,7 +179,7 @@ Use `rer export --output exports/uptime.rer` after stopping dev. The new 0600 fi
+ 
+ ## Keep monitors as a reviewed file, or move from UptimeRobot
+ 
+-Open **Definitions** in the console to preview an `uptime.monitors.json` definition file, or saved UptimeRobot v3 `GET /monitors` pages, before anything changes. The preview lists each entry as create, unchanged, change, refused or unsupported, with every difference from the source spelled out, and ends with a plan digest. Every import runs through the owner's import door, the same pipeline Business uses, and apply writes exactly that reviewed plan: new monitors arrive paused, changes become new revisions that keep each monitor's on/off and maintenance state, and nothing enables a monitor, issues a heartbeat token, sends a notification or touches a destination. Each apply is a batch you can undo; undo leaves a monitor edited or enabled since alone and says so, and never removes history. Request headers, bodies and passwords in a file are withheld before it uploads and are never stored. **Export current definitions** writes the same file back. With dev stopped, `node scripts/definitions.mjs preview|apply|export|batches|undo` runs the same engine locally. An UptimeRobot log export is only counted as history. See [Definition files](docs/definitions.md) and [Moving from UptimeRobot](docs/moving-from-uptimerobot.md); no real UptimeRobot export has been tested.
++Open **Settings › Backup and files** in the console to preview an `uptime.monitors.json` definition file, or saved UptimeRobot v3 `GET /monitors` pages, before anything changes. The preview lists each entry as create, unchanged, change, refused or unsupported, with every difference from the source spelled out, and ends with a plan digest. Every import runs through the owner's import door, the same pipeline Business uses, and apply writes exactly that reviewed plan: new monitors arrive paused, changes become new revisions that keep each monitor's on/off and maintenance state, and nothing enables a monitor, issues a heartbeat token, sends a notification or touches a destination. Each apply is a batch you can undo; undo leaves a monitor edited or enabled since alone and says so, and never removes history. Request headers, bodies and passwords in a file are withheld before it uploads and are never stored. **Export monitors** writes the same file back. With dev stopped, `node scripts/definitions.mjs preview|apply|export|batches|undo` runs the same engine locally. An UptimeRobot log export is only counted as history. See [Definition files](docs/definitions.md) and [Moving from UptimeRobot](docs/moving-from-uptimerobot.md); no real UptimeRobot export has been tested.
+ 
+ ## Get told when a check fails
+ 
+@@ -194,9 +199,9 @@ Email, signed JSON, and Slack routing is installation-wide. Uptime does not prov
+ 
+ ## Monitoring behavior
+ 
+-Uptime stores immutable scheduled evidence for HTTP(S), keyword and incoming heartbeat monitors. A scheduled check never starts sooner than one interval after the monitor's previous scheduled check started, by the Worker's own clock. Missing or expired evidence is **Unknown**. A successful past response does not promise current availability. Manual checks do not confirm or recover incidents. Public HTTP(S) checks validate every DNS answer and redirect hop. Private runners pin the socket while retaining Host and TLS identity; hosted checks use Cloudflare’s public Internet transport. Request secrets stay in protected runner-local files.
++Uptime stores immutable scheduled evidence for its [supported monitor kinds](docs/monitors.md), including HTTP(S), scheduled jobs and ICMP ping. A scheduled check never starts sooner than one interval after the monitor's previous scheduled check started, by the Worker's own clock. Missing or expired evidence is **Unknown**. A successful past response does not promise current availability. Manual checks do not confirm or recover incidents. Public HTTP(S) checks validate every DNS answer and redirect hop. Private runners pin the socket while retaining Host and TLS identity; hosted checks use Cloudflare’s public Internet transport. Request secrets stay in protected runner-local files.
+ 
+-HTTP monitors support status, body text, header, JSON, and latency assertions. In **Additional checks (JSON)**, use `{"json":{"path":"$.status.indicator","equals":"none"},"latencyMs":1500}` to require that value and a response within 1,500 ms. `status.indicator` without `$.` works too; `json` is one object, not an array. Keyword monitors require a body text assertion. Heartbeats use owner-issued, revision-scoped tokens and increasing sequences; receipt ingestion alone cannot change target health. Create heartbeats through [definition files](docs/definitions.md), keep a private runner running, authorize it and resume them, then choose **Issue heartbeat key** on the monitor's page as described in [Monitors](docs/monitors.md#incoming-heartbeat). Browser checks, DNS, ping, TCP and domain-expiry checks are outside the supported public feature set.
++HTTP monitors support status, body text, header, JSON, and latency assertions. Use **Add rule › JSON value**, with `$.status.indicator` in **JSON value at** and `none` in **equals**, to require that JSON value. **Responds within** adds a latency budget in seconds. Keyword monitors require a body text assertion. Heartbeats use owner-issued, revision-scoped authority: a one-time check-in URL or a header token with increasing sequences. Receipt ingestion alone cannot change target health. Create one through **New monitor › Fill in the form yourself**, choose **Scheduled job (heartbeat)** under **What to check**, then **Save monitor**. Save the one-time **Check-in URL** from **Connect your job** privately in your job. Keep a private runner running. [Imported definitions](docs/definitions.md) arrive paused; open the monitor and choose **Resume** before connecting the job. [Monitors](docs/monitors.md#incoming-heartbeat) explains both check-in methods. **ICMP ping** is also offered in the editor; it needs a private Linux/macOS Node runner with native ping permission, targets safe public addresses, and reports unavailable execution as Unknown. Cloudflare Workers cannot run ICMP.
+ 
+ Restores require empty product data. A local CLI restore requires setup on the receiving checkout first, so its owner and private settings are in place before import. Imported definitions are paused, leases interrupted, destinations disabled, and alerts quarantined. Destination type, name, enabled setting, and available email address travel with delivery history for destinations that remain in the source data; webhook and Slack URLs, signing keys, and credentials remain with the installation. Re-enter webhook and Slack URLs, plus any email address unavailable in the archive, then deliberately enable destinations and resume monitoring before execution. Imported incidents never send notifications. Archive hashes check integrity, not trustworthy provenance.
+ 
+diff --git a/docs/definitions.md b/docs/definitions.md
+index 67fb002..2fb371f 100644
+--- a/docs/definitions.md
++++ b/docs/definitions.md
+@@ -44,7 +44,9 @@ The default name is `uptime.monitors.json`. New exports use version 8; versions
+ }
+ ```
+ 
+-Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword`, `heartbeat`, `tcp`, `udp`, `dns`, `tls` or `domain`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, at most one day), `tcp` (`host`, `port`, `readBanner`, `bannerIncludes`), `dns` (`name`, `recordType`, `resolvers`, `expect`, `approved`), `tls` (`host`, `port`, `warnDays`, `owner`), `domain` (`name`, `warnDays`, `owner`), `enabled` and `maintenanceUntil`. A TCP, DNS, TLS or domain monitor takes its address from these settings and no `url` or `method`; its only assertion is `latencyMs`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
++To create a heartbeat directly, open **Monitors › New monitor › Fill in the form yourself**, choose **Scheduled job (heartbeat)** and **Save monitor**. The new monitor shows **Connect your job** with its one-time **Check-in URL**. File-created heartbeats arrive paused; choose **Resume** before connecting the job. See [Incoming heartbeat](/docs/monitors#incoming-heartbeat). **ICMP ping** is also offered in the editor and in definitions; it requires a private Linux/macOS Node runner with native ping permission and safe public targets. Cloudflare Workers cannot run it; unavailable execution stays Unknown. See [ICMP ping](/docs/monitors#icmp-ping).
++
++Each entry uses the same fields as the monitor editor, and the same validation checks them: `name`, `type` (`http`, `keyword`, `heartbeat`, `tcp`, `udp`, `ping`, `dns`, `tls` or `domain`), `url`, `method`, `assertions`, `intervalMs`, `timeoutMs`, `retries`, `probes`, `failureQuorum`, `confirmSlots`, `recoverSlots`, `freshnessMs`, `heartbeat` (`maxAgeMs`, up to 31 days, and `graceMs`, zero to 24 hours), `tcp` (`host`, `port`, `readBanner`, `bannerIncludes`), `dns` (`name`, `recordType`, `resolvers`, `expect`, `approved`), `tls` (`host`, `port`, `warnDays`, `owner`), `domain` (`name`, `warnDays`, `owner`), `enabled` and `maintenanceUntil`. A TCP, DNS, TLS or domain monitor takes its address from these settings and no `url` or `method`; its only assertion is `latencyMs`. A header assertion takes only `name` and `equals`, and a JSON assertion only `path` and `equals`. Fields you leave out take the editor's defaults. Monitors are matched to your installation by name.
+ 
+ Private HTTP/keyword, TCP and browser-flow entries use `"network":"private"` and a non-secret `"privateGrantRef":"warehouse-local"`. The reference grants no access by itself: assign an enrolled private-capable Node runner and provision its protected monitor-bound local grant before resuming the paused import. Browser entries also carry their reviewed `flow` steps and outcomes. Grant files, runner identity and credentials never travel in the definition. See [Private network grants](/docs/runner#private-network-grants).
+ 
+@@ -72,17 +74,17 @@ The preview ends with a plan digest, the plan's fingerprint. **Apply** sends tha
+ 
+ A new revision's first check is due no sooner than the shorter of its old and new intervals after the monitor's previous check started, so an applied change never makes checks run closer together than either cadence.
+ 
+-For a newly created heartbeat, continue with [Incoming heartbeat](/docs/monitors#incoming-heartbeat): authorize its runner and resume it, issue a token for its active revision, then configure your job to send receipts. The HTTP editor is not the heartbeat editor; change heartbeat settings through Definitions.
++For a file-created heartbeat, continue with [Incoming heartbeat](/docs/monitors#incoming-heartbeat): choose **Resume**, create a check-in URL or issue a header key for its active revision, then configure your job to send receipts. **Edit** opens the same monitor editor with **Scheduled job (heartbeat)** selected; **Heartbeat › Job schedule and runs** offers additional schedule settings.
+ 
+ ## Undo
+ 
+-Each apply is recorded as a batch, "Approved by" the owner with its time and fingerprint, in the same list as Business imports. **Undo this batch** releases the monitors it created, which stay paused with their history, and restores the monitors it changed to their earlier settings, as a new revision. A restored heartbeat keeps its token. A monitor edited or enabled after the import is left alone, and the batch says so ("Edited since; left as is" or "Enabled since; left running"); undo never overrides an edit. The batch reads as undone, with its time. Batches applied before the import door keep their earlier undo, which works the same way. Undo never removes checks, results or incidents. To remove a monitor completely, erase it from its page.
++Each apply is recorded as a batch, "Approved by" the owner with its time and fingerprint, in the same list as Business imports. **Undo** releases the monitors it created, which stay paused with their history, and restores the monitors it changed to their earlier settings, as a new revision. A restored heartbeat keeps its token. A monitor edited or enabled after the import is left alone, and the batch says so ("Edited since; left as is" or "Enabled since; left running"); undo never overrides an edit. The batch reads as undone, with its time. Batches applied before the import door keep their earlier undo, which works the same way. Undo never removes checks, results or incidents. To remove a monitor completely, erase it from its page.
+ 
+ Batches travel in a private archive as history, the import door's included: each with its approval time, the owner who approved it, its source, fingerprint, counts and undo time, and per monitor the revision it wrote, as recorded when the apply wrote it (an undo adds revisions of its own between imports). The door's uploads, plans and grants stay in this installation. In the installation that restores the archive the batches are marked as coming from an archive and cannot be undone there.
+ 
+ ## Export
+ 
+-**Export current definitions** downloads your monitors as this file. Previewing that file against the same installation shows every entry as unchanged.
++**Export monitors** downloads your monitors as this file. Previewing that file against the same installation shows every entry as unchanged.
+ 
+ ## From the command line
+ 
+diff --git a/docs/monitors.md b/docs/monitors.md
+index a0253f8..9dd6112 100644
+--- a/docs/monitors.md
++++ b/docs/monitors.md
+@@ -12,19 +12,21 @@ An HTTP(S) monitor requests a URL and tests the response against rules you set.
+ - a value in a JSON response, and
+ - latency.
+ 
+-A monitor that sets no status rule expects 200. **Expected HTTP status** accepts `200`, `200, 201`, `2xx`, or `200-299`. In definition files, `status` is a number or an array such as `[200, 201, "3xx"]`. A response must satisfy every configured assertion, even when its status is accepted.
++A monitor that sets no status rule expects 200. **Status** under **Up when** accepts `200`, `200, 201`, `2xx`, or `200-299`. In definition files, `status` is a number or an array such as `[200, 201, "3xx"]`. A response must satisfy every configured assertion, even when its status is accepted.
+ 
+-Use **Body must not contain** for error text such as `temporarily unavailable`. **Body regular expression** supports bounded RE2 expressions and optional `i`, `m` and `s` flags. Backreferences and lookaround are refused. Saved definitions use `bodyExcludes` and `bodyRegex: {"pattern":"ready", "flags":"i"}`. Body and header values are never retained as raw response content.
++Under **Add rule**, use **Page must not contain** for error text such as `temporarily unavailable`. **Pattern** supports bounded RE2 expressions and optional `i`, `m` and `s` flags. Backreferences and lookaround are refused. Saved definitions use `bodyExcludes` and `bodyRegex: {"pattern":"ready", "flags":"i"}`. Body and header values are never retained as raw response content.
+ 
+ ### JSON values and latency
+ 
+-In the HTTP form's **Additional checks (JSON)** field, enter:
++In the HTTP form, open **Add rule**, choose **JSON value**, enter `$.status.indicator` in **JSON value at** and `none` in **equals**. Add **Responds within** and enter `1.5` in **Responds within (seconds)** to require a response within 1,500 ms.
++
++The equivalent definition-file assertions are:
+ 
+ ```json
+ {"json":{"path":"$.status.indicator","equals":"none"},"latencyMs":1500}
+ ```
+ 
+-This requires the response's `status.indicator` value to equal `"none"` and its response time to be at most 1,500 ms. Both `$.status.indicator` and `status.indicator` are accepted. `json` is a single object with `path` and `equals`, not an array; either the JSON check or `latencyMs` may be omitted. JSONPath also selects nested arrays, for example `$.items[0].ready`, wildcard children and filtered selections. Every selected value must equal the scalar; no selection fails. Unsupported path features are refused on save. Keep the expected HTTP status, body and header checks in their separate fields.
++This requires the response's `status.indicator` value to equal `"none"` and its response time to be at most 1,500 ms. Both `$.status.indicator` and `status.indicator` are accepted. `json` is a single object with `path` and `equals`, not an array; either the JSON check or `latencyMs` may be omitted. JSONPath also selects nested arrays, wildcard children and filtered selections. Every selected value must equal the scalar; no selection fails. Unsupported path features are refused on save. Keep status, page text and header checks in their separate rules.
+ 
+ ### Keyword
+ 
+@@ -56,30 +58,21 @@ A domain monitor reads the registration's expiry date from the registry's RDAP s
+ 
+ ### Where each check runs
+ 
+-The Cloudflare Worker runs HTTP(S), keyword, TCP, TLS, DNS and domain checks at an interval of at least one minute. A Worker cannot open sockets to Cloudflare's own addresses, so a TCP or TLS check of a site hosted on Cloudflare, or an authoritative DNS query to a Cloudflare name server, is Unknown there and says so; a private runner can check it. The Worker reads a certificate from a TLS 1.2 handshake, so a server that accepts only TLS 1.3 is also Unknown at the Worker. A private runner runs every type. ICMP ping is not offered.
++The Cloudflare Worker runs HTTP(S), keyword, TCP, TLS, DNS and domain checks at an interval of at least one minute. A Worker cannot open sockets to Cloudflare's own addresses, so a TCP or TLS check of a site hosted on Cloudflare, or an authoritative DNS query to a Cloudflare name server, is Unknown there and says so; a private runner can check it. The Worker reads a certificate from a TLS 1.2 handshake, so a server that accepts only TLS 1.3 is also Unknown at the Worker. Private runners run the other monitor kinds when their required tools and permissions are available. Heartbeats and [ICMP ping](#icmp-ping) require a private runner; Cloudflare Workers cannot run them.
+ 
+ ### Incoming heartbeat
+ 
+-A heartbeat monitor waits for your own job to call Uptime. It suits cron jobs, backups and workers that should check in on a schedule. Creation and configuration use **Settings › Backup and files**; the New monitor HTTP form does not create heartbeats.
++A heartbeat monitor waits for your own job to call Uptime. It suits cron jobs, backups and workers that should check in on a schedule.
+ 
+-1. Open **Settings › Backup and files**, choose **Paste it instead**, paste a file like the one below, choose **Preview**, review it, then **Apply**. The heartbeat arrives paused. `maxAgeMs` is how old the last receipt may be; `intervalMs` is how often the runner evaluates it. Maximum age is at most one day.
+-2. Keep the [private runner](/docs/runner) running. Dev starts one automatically; a hosted installation needs its separately supervised runner. From the deployment checkout, set `UPTIME_CONTROL_ORIGIN` to its exact hosted HTTPS origin and run `node scripts/runner-start.mjs --environment production` (replace `production` with your environment). Open the new monitor and choose **Authorize & resume** to use its assigned runner. Imported definitions select installation-local runners; runner authority and heartbeat keys never come from the file.
+-3. After resuming, choose **Issue heartbeat key** on the monitor's page. Review **Issue a new heartbeat key?** and choose **Issue key**. The **Heartbeat key** dialog shows the endpoint and a curl command with the new key once. Save the key in your job's secret settings before closing the dialog. Issuing another key creates a new revision, retires the old token and resets its receipt and sequence.
+-4. From your job, send exactly `{}` as JSON to the receipt path on your Uptime origin, with `Authorization: Bearer <token>` and an `X-Heartbeat-Sequence` header. Start at 1 and persist a strictly increasing positive integer across job restarts; do not restart at 1 on each run.
++1. Open **Monitors › New monitor › Fill in the form yourself**. Under **What to check**, choose **Scheduled job (heartbeat)**. Enter a **Monitor name**, **Expected interval (seconds)** (30 seconds to 31 days) and **Grace period (seconds)** (zero to 24 hours), then choose **Save monitor**.
++2. Keep the [private runner](/docs/runner) running. Dev starts one automatically; a hosted installation needs its separately supervised runner. New form-created monitors start enabled. If you instead create one through [definition files](/docs/definitions), it arrives paused: open it and choose **Resume**. Imported definitions select installation-local runners; runner authority and heartbeat keys never come from the file.
++3. The new monitor's **Connect your job** panel shows a one-time **Check-in URL** and **Copy command**. Save the URL privately and add the command after your job succeeds. Anyone holding this replay-unprotected URL can send repeated check-ins. After leaving the page, choose **Create or replace check-in URL…** to issue another; the previous URL and key stop working immediately. See [Job heartbeat instructions](/docs/heartbeat-jobs) for schedules, run history and scheduler wrappers.
+ 
+-```json
+-{
+-  "format": "uptime.monitors",
+-  "version": 2,
+-  "monitors": [{
+-    "name": "Backup job",
+-    "type": "heartbeat",
+-    "heartbeat": { "maxAgeMs": 300000 },
+-    "intervalMs": 60000,
+-    "probes": ["local-a"]
+-  }]
+-}
+-```
++### Sequence-protected header alternative
++
++For a job that persists increasing sequence numbers, choose **Issue heartbeat key** on the monitor's page. Review **Issue a new heartbeat key?** and choose **Issue key**. The **Heartbeat key** dialog shows the endpoint and a curl command with the new key once. Save it in your job's secret settings before closing. Issuing another key creates a new revision, retires the old URL and token, and resets its receipt and sequence.
++
++Send exactly `{}` as JSON to the receipt path on your Uptime origin, with `Authorization: Bearer <token>` and an `X-Heartbeat-Sequence` header. Start at 1 and persist a strictly increasing positive integer across job restarts; do not restart at 1 on each run.
+ 
+ Use the endpoint from the dialog for `HEARTBEAT_RECEIPT_URL` and its key for `HEARTBEAT_TOKEN`, both in your job's private settings. Keep the key out of URLs, definition files, screenshots and logs; the command shown in the dialog is also private. Only an owner can issue a key. With those job settings loaded, and `HEARTBEAT_SEQUENCE` set to the next persisted number (starting at 1):
+ 
+@@ -91,7 +84,7 @@ curl --fail --silent --show-error -X POST "$HEARTBEAT_RECEIPT_URL" \
+   -d '{}'
+ ```
+ 
+-A successful call returns `received: true` and the server's receipt time. It records receipt only. The assigned runner must claim and complete a scheduled check using the receipt snapshot taken at claim time. A call received after that claim is considered on a later check. Wait for a completed scheduled result, with fresh receipt evidence for every selected probe and the recovery threshold met, before expecting Healthy. Fresh runner contact and HTTP 200 from receipt ingestion alone do not establish heartbeat health.
++A successful header-authenticated call returns `received: true` and the server's receipt time. It records receipt only. The assigned runner must claim and complete a scheduled check using the receipt snapshot taken at claim time. A call received after that claim is considered on a later check. Wait for a completed scheduled result, with fresh receipt evidence for every selected probe and the recovery threshold met, before expecting Healthy. Fresh runner contact and HTTP 200 from receipt ingestion alone do not establish heartbeat health.
+ 
+ Each monitor accepts up to 60 calls per one-minute window. A window starts with the first call after the previous window has ended and lasts 60 seconds; further calls in a full window get HTTP 429. Replayed sequences and paused or foreign-revision tokens are refused. Ordinary saves, including pause/resume and maintenance changes, retire the token: issue a replacement after the final change and update your job. Applying a Definitions change that keeps the heartbeat type preserves its token and sequence. Restored archives have no heartbeat authority; resume, issue a new key and repoint the job.
+ 
+@@ -128,13 +121,13 @@ Registration, enabled state, sampling, exclusions and all beacon aggregates stay
+ 
+ Each monitor has a schedule and a few knobs that decide when a bad check becomes an incident.
+ 
+-- **Interval** is how often the check is due. A slot is one due check. A check never starts sooner than one interval after the monitor's previous scheduled check started, at each of its vantages and by the Worker's own clock, so a late check moves later due times back by its delay instead of letting two checks run closer together. The Worker's clock is the one that counts: a runner whose own clock is off by seconds reports its times in the Worker's clock and still has its results accepted. Because each due time slides to the previous start plus one interval, real cadence is a little slower than the interval you set: the delay between a check becoming due and starting (the runner polls every second) adds to every check, measured at about 0.4 s at a 60 second interval and about 0.26 s at the 5 second minimum, which runs about 5.3 seconds apart. Slots missed while no runner was working are counted rather than caught up. A vantage whose runner falls behind (a busy or stalled machine) does not catch up either: it skips the checks it missed and takes only the newest, so its own checks stay at least one interval apart, and each check it skipped shows its part as missing evidence (coverage incomplete), never as a pass or a failure. A skipped check neither confirms nor breaks confirmation or recovery: the monitor's state passes through it, so an incident both vantages see is confirmed, and recovers, however steadily one of them lags. A vantage that takes no newer check at all (its runner is down) leaves its part as missing evidence that does break them.
++- **Check every (minutes)** sets how often the check is due. A slot is one due check. A check never starts sooner than one interval after the monitor's previous scheduled check started, at each of its vantages and by the Worker's own clock, so a late check moves later due times back by its delay instead of letting two checks run closer together. The Worker's clock is the one that counts: a runner whose own clock is off by seconds reports its times in the Worker's clock and still has its results accepted. Because each due time slides to the previous start plus one interval, real cadence is a little slower than the interval you set: the delay between a check becoming due and starting (the runner polls every second) adds to every check, measured at about 0.4 s at a 60 second interval and about 0.26 s at the 5 second minimum, which runs about 5.3 seconds apart. Slots missed while no runner was working are counted rather than caught up. A vantage whose runner falls behind (a busy or stalled machine) does not catch up either: it skips the checks it missed and takes only the newest, so its own checks stay at least one interval apart, and each check it skipped shows its part as missing evidence (coverage incomplete), never as a pass or a failure. A skipped check neither confirms nor breaks confirmation or recovery: the monitor's state passes through it, so an incident both vantages see is confirmed, and recovers, however steadily one of them lags. A vantage that takes no newer check at all (its runner is down) leaves its part as missing evidence that does break them.
+ - **Edits** save a new revision of the monitor, and so does enabling a paused monitor. After an edit that changes the interval, the first check is due the shorter of the old and new intervals after the previous check started (so an edit never delays a check by a whole new longer interval, and never makes two checks run closer than either cadence), or straight away if that is already past. A runner restart, a pause or a URL edit never makes two scheduled checks start closer than one interval. Use **Run now** when you want an immediate result; a manual check is excluded from this floor, does not move the schedule and never confirms or recovers an incident.
+-- **Retries** are extra attempts inside a slot. A retry never erases an earlier failure and never counts as another slot.
+-- **Confirmation** is how many consecutive scheduled slots must fail before the monitor is Failing.
+-- **Recovery** is how many consecutive fresh, passing scheduled slots are needed before it recovers.
++- **Extra attempts after a failure** (under **Advanced**) sets extra attempts inside a slot. A retry never erases an earlier failure and never counts as another slot.
++- **Failed checks in a row** sets how many consecutive scheduled slots must fail before the monitor is Failing.
++- **Back up after passing checks** sets how many consecutive fresh, passing scheduled slots are needed before it recovers.
+ - **Failure agreement** requires two independent network labels, or one failing vantage whose external check (canary) passed in the same slot. A monitor on one network uses the External check URL in Settings (default `https://example.org/`): a change there reaches every such monitor's next check, without saving the monitor. A monitor can have its own URL instead, under **Advanced** in its form. Checks on the same network count once.
+-- **Freshness** is how long a result stays usable before it counts as expired.
++- **Unknown after (minutes)** (under **Advanced**) sets how long a result stays usable before it counts as expired.
+ 
+ Because of confirmation and recovery, one blip does not wake you, and one lucky pass does not close an incident.
+ 
+diff --git a/public/assets/key-usage.js b/public/assets/key-usage.js
+new file mode 100644
+index 0000000..1fe026e
+--- /dev/null
++++ b/public/assets/key-usage.js
+@@ -0,0 +1,16 @@
++// Usage instructions contain placeholders only; the issued key stays in the
++// existing shown-once field and is cleared with that panel.
++export function keyUsage(ci){
++ const help=document.createElement('div');help.dataset.keyUsage='';
++ const address=document.createElement('p'),url=document.createElement('code');
++ address.append('Read API address: ');url.textContent=new URL('/api/v1',location.origin).href;url.dataset.readApiAddress='';address.append(url);
++ const authorization=document.createElement('code');authorization.textContent='Authorization: Bearer <YOUR_KEY>';authorization.dataset.authorizationExample='';
++ const example=document.createElement('p');example.append(authorization);
++ const paragraph=document.createElement('p'),guide=document.createElement('a');guide.href='/docs/read-api';guide.textContent='Read API guide';paragraph.append(guide);
++ help.append(address,example,paragraph);
++ if(ci){
++  const scope=document.createElement('p'),definitions=document.createElement('a');
++  scope.append('This CI key authorizes definition operations, not monitoring reads. ');definitions.href='/docs/definitions#ci-credentials';definitions.textContent='CI credential instructions';scope.append(definitions);help.append(scope);
++ }
++ return help;
++}
+diff --git a/public/assets/security-controls.js b/public/assets/security-controls.js
+index 2354a3a..eae9f2d 100644
+--- a/public/assets/security-controls.js
++++ b/public/assets/security-controls.js
+@@ -1,3 +1,4 @@
++import {keyUsage} from './key-usage.js';
+ import {authenticatorEnrollment} from './authenticator-enrollment.js';
+ const reasons={
+  invalid_factor_response:"That code didn't match. Use the newest code from your app.",
+@@ -79,7 +80,7 @@ export function securityControls(host,transport){
+  const outcome=(text,block='nearest')=>{status.textContent=text;status.scrollIntoView({block})};
+  const error=problem=>{outcome(problem.readable?problem.message:'This action could not finish. Try again.')};
+  const run=async action=>{if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
+- const shownOnce=(title,value)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,done);once.scrollIntoView({block:'nearest'});done.focus()};
++ const shownOnce=(title,value,help)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,...(help?[help]:[]),done);once.scrollIntoView({block:'nearest'});done.focus()};
+  const showCodes=result=>{if(result.recoveryCodes)shownOnce('Save these ten recovery codes once',result.recoveryCodes)};
+  const continueEnrollment=async result=>{if(!pendingAction)return;if(result.recoveryCodes){once.querySelector('button').onclick=()=>{once.replaceChildren();void run(verified)}}else await verified()};
+  async function factorState(){
+@@ -123,7 +124,7 @@ export function securityControls(host,transport){
+  const scopeLabel=scopes=>scopes.includes('monitoring:read')?'Monitoring read':scopes.includes('definitions:apply')?'CI preview and apply':'CI preview';
+  const fields=()=>{const ci=keyForm.elements.scope.value!=='monitoring:read';if(ci)keyForm.elements.mode.value='selection';keyForm.elements.mode.disabled=ci;const selected=keyForm.elements.mode.value==='selection';host.querySelector('[data-monitor-selection]').hidden=ci||!selected;host.querySelector('[data-tag-selection]').hidden=!ci||!selected;host.querySelector('[data-ci-environment]').hidden=!ci};
+  keyForm.elements.scope.onchange=fields;keyForm.elements.mode.onchange=fields;fields();
+- keyForm.onsubmit=event=>{event.preventDefault();const v=keyForm.elements;const ci=v.scope.value!=='monitoring:read',input={name:v.name.value,scopes:ci?v.scope.value==='ci-apply'?['definitions:preview','definitions:apply']:['definitions:preview']:['monitoring:read'],expiresAt:new Date(v.expiry.value).getTime(),resources:{mode:v.mode.value,monitorIds:ci||v.mode.value==='workspace'?[]:Array.from(keyForm.querySelectorAll('[name=monitorIds]:checked'),o=>o.value),tags:v.mode.value==='workspace'?[]:ci?lines(v.tags.value):[]},...(ci?{environment:v.environment.value}:{})};void run(()=>fresh(async()=>{const result=await api('/api/credentials','POST',input);shownOnce('Copy this key once',result.token);status.textContent='Key created. The token cannot be read again.';await keyList()}))};
++ keyForm.onsubmit=event=>{event.preventDefault();const v=keyForm.elements;const ci=v.scope.value!=='monitoring:read',input={name:v.name.value,scopes:ci?v.scope.value==='ci-apply'?['definitions:preview','definitions:apply']:['definitions:preview']:['monitoring:read'],expiresAt:new Date(v.expiry.value).getTime(),resources:{mode:v.mode.value,monitorIds:ci||v.mode.value==='workspace'?[]:Array.from(keyForm.querySelectorAll('[name=monitorIds]:checked'),o=>o.value),tags:v.mode.value==='workspace'?[]:ci?lines(v.tags.value):[]},...(ci?{environment:v.environment.value}:{})};void run(()=>fresh(async()=>{const result=await api('/api/credentials','POST',input);shownOnce('Copy this key once',result.token,keyUsage(ci));status.textContent='Key created. The token cannot be read again.';await keyList()}))};
+  async function keyList(){
+   const list=host.querySelector('[data-key-list]');
+   try{if(!owner){list.textContent='Only the owner manages keys.';return}const keys=await api('/api/credentials');if(!host.isConnected)return;list.replaceChildren();
+diff --git a/sources.lock.json b/sources.lock.json
+index 46ce01b..98a14c4 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -592,7 +592,7 @@
+       "executable": false
+     },
+     "docs/definitions.md": {
+-      "sha256": "1a15de343a80385d229d760d1d5332c7ad2fc1c0c3de0788c09921edbf206907",
++      "sha256": "3e5692df1b211747f9550a1f1a0f59b5e8418b8c29ebaaac6787288992d5bb13",
+       "executable": false
+     },
+     "docs/deploy.md": {
+@@ -2108,7 +2108,7 @@
+       "executable": false
+     },
+     "docs/monitors.md": {
+-      "sha256": "5ca37a52726b5befc3cd3111e6efcc31f9d1b84897ccef0694e028ddea1338fc",
++      "sha256": "20967dcb1c158c187a5829943427985eb5e01f43cdac2afe5daa58c3216bf372",
+       "executable": false
+     },
+     "docs/moving-from-uptimerobot.md": {
+@@ -2671,6 +2671,10 @@
+       "sha256": "cf0510886267875973663d4f065a0dd3700911afec606b350c3902ff6f539dae",
+       "executable": false
+     },
++    "public/assets/key-usage.js": {
++      "sha256": "563ed714584f2251211bc1fd802451c0a2ba65a46409c80c5fab99205545f9a1",
++      "executable": false
++    },
+     "public/assets/report-schedule-controls.js": {
+       "sha256": "d9898770226fa84dc06dab3451fa16718b7db742865415caea2e731916fbe11e",
+       "executable": false
+@@ -2684,7 +2688,7 @@
+       "executable": false
+     },
+     "public/assets/security-controls.js": {
+-      "sha256": "f7d43a994ec315dc1ecea2f240c48b1a90ec9529c0cd0c976e4dfef301526d5b",
++      "sha256": "ca4d0c45963f03aaffa49275ce84620fb730de77c06d6a4747f5c95142714973",
+       "executable": false
+     },
+     "public/assets/setup.js": {
+@@ -3080,7 +3084,7 @@
+       "executable": false
+     },
+     "README.md": {
+-      "sha256": "7cb5fc83462cc8ca607588518bbd87e8c1170f34971ba14a3190cfe233c93523",
++      "sha256": "f6c3b7fdc3390d37e26b41fed7290e396f12fb4143db461689396915aabcb5b4",
+       "executable": false
+     },
+     "RELEASE.json": {
+@@ -9604,7 +9608,7 @@
+       "executable": false
+     },
+     "tests/security-controls-browser-support.mjs": {
+-      "sha256": "01220fb1778516c17e97913612edcb5d8c9a0e30ef06929f015c11e6ba477247",
++      "sha256": "ddcca3a6453f516187392a957ea5e3e6e65d70880b6a90e38450f39373cc0909",
+       "executable": false
+     },
+     "tests/service-catalog-fixture.mjs": {
+diff --git a/tests/security-controls-browser-support.mjs b/tests/security-controls-browser-support.mjs
+index 40ff0af..528ed83 100644
+--- a/tests/security-controls-browser-support.mjs
++++ b/tests/security-controls-browser-support.mjs
+@@ -78,10 +78,16 @@ export async function proveSecurityControls(){
+    await DB.prepare('UPDATE uptime_mfa_proofs SET verified_at=?').bind(Date.now()-300001).run();
+    const direct=await call('/api/credentials',{name:'synthetic-uptime-605',scopes:['monitoring:read'],expiresAt:Date.now()+3600000,resources:{mode:'workspace',monitorIds:[],tags:[]}},{cookie});assert.equal(direct.status,403);assert.equal((await direct.json()).error,reason);
+    await form.getByRole('button',{name:'Create key',exact:true}).click();await panel.getByText(guidance,{exact:true}).waitFor();await verify.getByLabel('Authenticator or recovery code',{exact:true}).fill(owner.recovery.shift());await verify.getByRole('button',{name:'Verify code',exact:true}).click();await panel.getByText('Copy this key once',{exact:true}).waitFor();
+-   const token=await panel.locator('[data-secret-once] pre').textContent();await panel.getByRole('button',{name:'I saved this',exact:true}).click();
++   const token=await panel.locator('[data-secret-once] pre').textContent();
++   const usage=panel.locator('[data-key-usage]'),address=await usage.locator('[data-read-api-address]').textContent(),example=await usage.locator('[data-authorization-example]').textContent();
++   assert.equal(new URL(address).origin,origin);assert.ok(!example.includes(token),'the authorization example keeps the issued key out of reusable instructions');
++   assert.equal((await fetch(address+'/monitors/'+monitor.id,{headers:{authorization:example.replace(/^Authorization: /,'').replace(/<[^>]+>/,token)}})).status,200,'the displayed API address and header can read the selected monitor');
++   const guide=usage.locator('a[href="/docs/read-api"]');assert.equal(await guide.isVisible(),true);const guidePage=await context.newPage();await guidePage.goto(new URL(await guide.getAttribute('href'),origin).href);assert.equal(new URL(guidePage.url()).pathname,await guide.getAttribute('href'));assert.equal(await guidePage.locator('main').isVisible(),true);await guidePage.close();
++   await panel.getByRole('button',{name:'I saved this',exact:true}).click();assert.equal(await usage.count(),0);
++
+    assert.equal((await fetch(origin+'/api/v1/monitors/'+monitor.id,{headers:{authorization:'Bearer '+token}})).status,200);
+    let keys=await(await call('/api/credentials',undefined,{cookie})).json(),key=keys.find(k=>k.name==='synthetic-uptime-604');assert.ok(key.lastUsedAt);assert.deepEqual([...key.resources.monitorIds].sort(),[monitor.id,second.id].sort());const otherResponse=await call('/api/monitors',{name:'synthetic-uptime-610',url:'https://example.org/',enabled:false},{cookie});assert.equal(otherResponse.status,201);assert.equal((await fetch(origin+'/api/v1/monitors/'+(await otherResponse.json()).id,{headers:{authorization:'Bearer '+token}})).status,404);const keyText=await panel.locator('[data-credential-id="'+key.id+'"]').textContent();assert.ok(!keyText.includes('monitoring:read')&&!keyText.includes(monitor.id));await panel.locator('[data-credential-id="'+key.id+'"] summary').click();await shot('G3','monitoring-key');assert.ok(!JSON.stringify(keys).includes(token));assert.ok(!await panel.textContent().then(text=>text.includes(token)));
+-   await form.getByLabel('Name',{exact:true}).fill('synthetic-uptime-606');await form.getByLabel('Key scope',{exact:true}).selectOption('ci-apply');await form.getByLabel('Tags (one per line)',{exact:true}).fill('synthetic-uptime-603');await form.getByLabel('CI environment',{exact:true}).fill('synthetic-uptime-607');await form.getByRole('button',{name:'Create key',exact:true}).click();await panel.getByText('Copy this key once',{exact:true}).waitFor();const ciToken=await panel.locator('[data-secret-once] pre').textContent();await panel.getByRole('button',{name:'I saved this',exact:true}).click();assert.ok(!JSON.stringify(await(await call('/api/credentials',undefined,{cookie})).json()).includes(ciToken));
++   await form.getByLabel('Name',{exact:true}).fill('synthetic-uptime-606');await form.getByLabel('Key scope',{exact:true}).selectOption('ci-apply');await form.getByLabel('Tags (one per line)',{exact:true}).fill('synthetic-uptime-603');await form.getByLabel('CI environment',{exact:true}).fill('synthetic-uptime-607');await form.getByRole('button',{name:'Create key',exact:true}).click();await panel.getByText('Copy this key once',{exact:true}).waitFor();const ciToken=await panel.locator('[data-secret-once] pre').textContent();assert.equal(await panel.locator('[data-key-usage] a[href="/docs/read-api"]').isVisible(),true);assert.equal(await panel.locator('[data-key-usage] a[href$="#ci-credentials"]').isVisible(),true);await panel.getByRole('button',{name:'I saved this',exact:true}).click();assert.ok(!JSON.stringify(await(await call('/api/credentials',undefined,{cookie})).json()).includes(ciToken));
+    await page.reload();await panel.locator(`[data-credential-id="${key.id}"]`).waitFor();const row=panel.locator(`[data-credential-id="${key.id}"]`);await row.locator('summary').click();assert.match(await row.textContent(),/Last use/);assert.ok(!(await row.textContent()).includes('Never'));
+    await DB.prepare('UPDATE uptime_mfa_proofs SET verified_at=?').bind(Date.now()-300001).run();const staleRevoke=await fetch(origin+'/api/credentials/'+key.id,{method:'DELETE',headers:{origin,cookie}});assert.equal(staleRevoke.status,403);assert.equal((await staleRevoke.json()).error,reason);
+    await row.getByRole('button',{name:'Revoke key',exact:true}).click();await panel.getByText(guidance,{exact:true}).waitFor();await verify.getByLabel('Authenticator or recovery code',{exact:true}).fill(owner.recovery.shift());await verify.getByRole('button',{name:'Verify code',exact:true}).click();await panel.getByText('Key revoked. Further operations are refused.',{exact:true}).waitFor();assert.equal((await fetch(origin+'/api/v1/monitors/'+monitor.id,{headers:{authorization:'Bearer '+token}})).status,401);assert.match(await panel.locator(`[data-credential-id="${key.id}"]`).textContent(),/Revoked/);
