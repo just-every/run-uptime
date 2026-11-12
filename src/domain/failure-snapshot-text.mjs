@@ -22,12 +22,16 @@ export function redactFailureText(text,secrets=[],allowEmail=false,limit=text.le
  for(const strip of [false,true]){
   const {value,map}=decoded(text,strip),add=(start,end)=>{if(start<end&&map[start]&&map[end-1])ranges.push([map[start][0],map[end-1][1]])};
   for(const secret of secrets){if(!secret)continue;let at=0;while((at=value.indexOf(secret,at))>=0){add(at,at+secret.length);at+=secret.length}}
+  // Recognisable provider keys are secrets even without a labelled assignment.
+  for(const match of value.matchAll(/\b(?:[srp]k_(?:live|test)_[a-zA-Z0-9]{16,}|gh[pousr]_[a-zA-Z0-9_]{10,}|github_pat_[a-zA-Z0-9_]+|AKIA[A-Z0-9]{16}|sk-[a-zA-Z0-9_-]{12,}|eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)\b/g))add(match.index,match.index+match[0].length);
+  for(const match of value.matchAll(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?(?:-----END [^-]*PRIVATE KEY-----|$)/gi))add(match.index,match.index+match[0].length);
+  for(const match of value.matchAll(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/gi))add(match.index+match[1].length,match.index+match[0].length-1);
   for(const match of value.matchAll(/\b(?:Bearer|Basic)\s+[^\s"'<>;,]+/gi))add(match.index,match.index+match[0].length);
   for(const match of value.matchAll(/(\b(?:set-cookie|cookie)\b["']?\s*[:=]\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n<>]*)/gi))add(match.index+match[1].length,match.index+match[0].length);
-  for(const match of value.matchAll(/(\b(?:set-cookie|cookie|authorization|proxy-authorization|(?:x[-_])?api[-_]?(?:key|token)|access[-_]?token|refresh[-_]?token|token|password|passwd|secret|client[-_]?secret)\b["']?\s*[:=]\s*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s<,;}&]+)/gi))add(match.index+match[1].length,match.index+match[0].length);
+  for(const match of value.matchAll(/(\b(?:set-cookie|cookie|authorization|proxy-authorization|(?:x[-_])?api[-_]?(?:key|token)|access[-_]?(?:key|token)|refresh[-_]?token|token|password|passwd|secret|client[-_]?secret)\b["']?\s*[:=]\s*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s<,;}&]+)/gi))add(match.index+match[1].length,match.index+match[0].length);
   for(const match of value.matchAll(/(<(?:password|secret|token|api[-_]?key)>)[\s\S]*?(?=<\/)/gi))add(match.index+match[1].length,match.index+match[0].length);
   if(!allowEmail)for(const match of value.matchAll(/[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9-]+(?:\.[A-Z0-9-]+)+/gi))add(match.index,match.index+match[0].length);
-  for(const match of value.matchAll(/(?<!\d)(?:\d[ -]?){12,18}\d(?![ -]?\d)/g))if(card(match[0]))add(match.index,match.index+match[0].length);
+  for(const match of value.matchAll(/(?<![a-zA-Z0-9])(?:\d[ -]?){12,18}\d(?![ -]?\d|[a-zA-Z0-9])/g))if(card(match[0]))add(match.index,match.index+match[0].length);
  }
  const merged=[];for(const range of ranges.sort((a,b)=>a[0]-b[0]||a[1]-b[1])){const last=merged.at(-1);if(last&&range[0]<=last[1])last[1]=Math.max(last[1],range[1]);else merged.push(range)}
  let result=text.slice(0,limit);for(const [start,end] of merged.reverse())if(start<limit)result=result.slice(0,start)+REDACTED+result.slice(Math.min(end,limit));return result;

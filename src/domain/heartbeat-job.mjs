@@ -1,3 +1,4 @@
+import {redactFailureText} from './failure-snapshot-text.mjs';
 import {validateHeartbeatCron,nextHeartbeatOccurrence} from './heartbeat-cron.mjs';
 // Shared by the signed Node runner, live admission and inactive archive validation.
 export const HEARTBEAT_OUTPUT_BYTES=1024;
@@ -12,15 +13,9 @@ export function heartbeatSettings(input={}){
 }
 export function redactHeartbeatOutput(value,masks=[]){
  if(typeof value!=='string')throw Error('Failure output must be text');
- let text=value.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g,'').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,'');
- for(const mask of masks)text=text.split(mask).join('[redacted]');
- text=text.replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?(?:-----END [^-]*PRIVATE KEY-----|$)/gi,'[redacted]')
- .replace(/\b(?:Bearer|Basic)\s+[^\s"'<>]+/gi,'[redacted]')
- .replace(/((?:["']?)(?:authorization|password|passwd|secret|token|api[_-]?key|access[_-]?key|cookie|set-cookie)(?:["']?)\s*[:=]\s*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;]+)/gi,'$1[redacted]')
- .replace(/\b(?:gh[pousr]_[a-zA-Z0-9_]{10,}|github_pat_[a-zA-Z0-9_]+|AKIA[A-Z0-9]{16}|sk-[a-zA-Z0-9_-]{12,}|eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)\b/g,'[redacted]')
- .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,'[redacted]')
- .replace(/\b(?:\d[ -]?){13,19}\b/g,'[redacted]')
- .replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/gi,'$1[redacted]@');
+ const clean=value.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g,'').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,'');
+ // Apply the same secret patterns as failure snapshots before bounding stored output.
+ const text=redactFailureText(clean,masks);
  const encoder=new TextEncoder();let result='',size=0;
  for(const c of text){const bytes=encoder.encode(c).length;if(size+bytes>HEARTBEAT_OUTPUT_BYTES)break;result+=c;size+=bytes}
  return result;
