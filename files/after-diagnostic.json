@@ -1,0 +1,405 @@
+{
+  "phase": "cycle",
+  "task": {
+    "snapshotPolicy": {
+      "version": 0,
+      "retentionDays": 90,
+      "masks": [],
+      "safeValues": {
+        "requestHeaders": [],
+        "responseHeaders": [],
+        "email": false
+      },
+      "screenshot": false
+    },
+    "id": "f08768df-7fef-4207-b6e5-046a29742662:1:1794504679553",
+    "monitorId": "f08768df-7fef-4207-b6e5-046a29742662",
+    "revision": 1,
+    "dueAt": 1794504679553,
+    "definition": {
+      "name": "Verified public HTTPS redirects",
+      "type": "http",
+      "network": "public",
+      "url": "https://redirect.sanity.test/entry",
+      "method": "GET",
+      "probes": [
+        "local-a"
+      ],
+      "assignments": {
+        "local-a": {
+          "runnerId": "self-9994be11-3195-46c6-a80f-bb6b5105d910",
+          "networkLabel": "Maple Lake",
+          "canaryUrl": "https://canary.redirect.sanity.test/canary"
+        }
+      },
+      "assertions": {
+        "status": 200,
+        "bodyIncludes": "synthetic-uptime-164"
+      },
+      "intervalMs": 5000,
+      "timeoutMs": 3000,
+      "retries": 0,
+      "failureQuorum": 1,
+      "confirmSlots": 1,
+      "recoverSlots": 1,
+      "freshnessMs": 180000,
+      "enabled": true,
+      "maintenanceUntil": 0,
+      "externalCheck": "own"
+    },
+    "probes": [
+      "local-a"
+    ],
+    "acceptUntil": 1794504710342
+  },
+  "observation": {
+    "id": "35b8b97c-044d-4935-9db9-7872fc5b9102",
+    "probe": "local-a",
+    "startedAt": 1794504680402,
+    "completedAt": 1794504680450,
+    "durationMs": 48,
+    "runnerVersion": "uptime-node/0.1.0",
+    "outcome": "target_failure",
+    "checks": [
+      {
+        "assertion": "redirect",
+        "pass": false,
+        "reason": "Probe redirect check failed"
+      }
+    ],
+    "attempt": 0,
+    "canary": {
+      "id": "16960db0-33ed-4e3b-b72d-91e7716808a6",
+      "probe": "local-a",
+      "startedAt": 1794504680390,
+      "completedAt": 1794504680401,
+      "durationMs": 11,
+      "runnerVersion": "uptime-node/0.1.0",
+      "outcome": "pass",
+      "status": 200,
+      "bytes": 0,
+      "checks": [
+        {
+          "assertion": "status",
+          "pass": true,
+          "reason": "HTTP status matches expected status or range"
+        }
+      ],
+      "attempt": 0
+    },
+    "failureSnapshot": {
+      "version": 1,
+      "method": "GET",
+      "url": "https://redirect.sanity.test/cycle-a",
+      "redirects": [
+        "https://redirect.sanity.test/entry",
+        "https://redirect.sanity.test/cycle-a",
+        "https://redirect.sanity.test/cycle-b",
+        "https://redirect.sanity.test/cycle-a",
+        "https://redirect.sanity.test/cycle-b",
+        "https://redirect.sanity.test/cycle-a"
+      ],
+      "requestHeaders": {
+        "accept": "[redacted]",
+        "accept-encoding": "[redacted]",
+        "host": "[redacted]",
+        "user-agent": "[redacted]"
+      },
+      "responseHeaders": {
+        "connection": "[redacted]",
+        "date": "[redacted]",
+        "location": "[redacted]",
+        "transfer-encoding": "[redacted]"
+      },
+      "status": null,
+      "durationMs": 48,
+      "body": "",
+      "bodyTruncated": false,
+      "safeValues": {
+        "requestHeaders": [],
+        "responseHeaders": [],
+        "email": false
+      },
+      "policyVersion": 0,
+      "phases": {
+        "dnsMs": 1,
+        "connectMs": 1,
+        "tlsMs": 2,
+        "ttfbMs": 5,
+        "totalMs": 48
+      }
+    }
+  },
+  "completionStatus": 200,
+  "received": [
+    {
+      "at": 1794504680390,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/entry",
+      "status": 302,
+      "location": "/cycle-a"
+    },
+    {
+      "at": 1794504680394,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-a",
+      "status": 302,
+      "location": "/cycle-b"
+    },
+    {
+      "at": 1794504680402,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-b",
+      "status": 302,
+      "location": "/cycle-a"
+    },
+    {
+      "at": 1794504680407,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-a",
+      "status": 302,
+      "location": "/cycle-b"
+    },
+    {
+      "at": 1794504680412,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-b",
+      "status": 302,
+      "location": "/cycle-a"
+    },
+    {
+      "at": 1794504680418,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-a",
+      "status": 302,
+      "location": "/cycle-b"
+    }
+  ],
+  "connections": 6,
+  "completions": [
+    {
+      "body": {
+        "slotId": "f08768df-7fef-4207-b6e5-046a29742662:1:1794504673855",
+        "attempts": [
+          {
+            "id": "3448afd4-a5b3-49ff-b4e8-983ef7b565b3",
+            "probe": "local-a",
+            "startedAt": 1794504674553,
+            "completedAt": 1794504674579,
+            "durationMs": 26,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 20,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              },
+              {
+                "assertion": "body",
+                "pass": true,
+                "reason": "Body contains required text"
+              }
+            ],
+            "attempt": 0,
+            "canary": {
+              "id": "0d56292c-3d9e-4bb7-9a96-e6ef994dadd6",
+              "probe": "local-a",
+              "startedAt": 1794504674534,
+              "completedAt": 1794504674552,
+              "durationMs": 18,
+              "runnerVersion": "uptime-node/0.1.0",
+              "outcome": "pass",
+              "status": 200,
+              "bytes": 0,
+              "checks": [
+                {
+                  "assertion": "status",
+                  "pass": true,
+                  "reason": "HTTP status matches expected status or range"
+                }
+              ],
+              "attempt": 0
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "response": {
+        "accepted": true,
+        "state": {
+          "state": "Healthy",
+          "targetState": "Healthy",
+          "underlyingState": "Healthy",
+          "evidenceState": "Healthy",
+          "coverageState": "Complete",
+          "candidate": "Healthy",
+          "regions": [
+            {
+              "probe": "local-a",
+              "networkLabel": "Maple Lake",
+              "canaryPassed": true,
+              "terminal": true,
+              "state": "Healthy",
+              "observationId": "3448afd4-a5b3-49ff-b4e8-983ef7b565b3",
+              "observedAt": 1794504674579
+            }
+          ],
+          "denominator": 1,
+          "fails": 0,
+          "unknown": 0,
+          "failingVantages": 0,
+          "failureStreak": 0,
+          "recoveryStreak": 1,
+          "notificationOpen": false,
+          "maintenance": false,
+          "reason": "0/1 selected probes failed; 0 unknown; coverage complete. 0 independent failing vantages; passing external check present; scheduled-slot confirmation 0/1; recovery 1/1.",
+          "evaluatedAt": 1794504674577,
+          "incidentKey": null,
+          "incidentRevision": null
+        }
+      }
+    },
+    {
+      "body": {
+        "slotId": "f08768df-7fef-4207-b6e5-046a29742662:1:1794504679553",
+        "attempts": [
+          {
+            "id": "35b8b97c-044d-4935-9db9-7872fc5b9102",
+            "probe": "local-a",
+            "startedAt": 1794504680402,
+            "completedAt": 1794504680450,
+            "durationMs": 48,
+            "runnerVersion": "uptime-node/0.1.0",
+            "failureSnapshot": {
+              "version": 1,
+              "method": "GET",
+              "url": "https://redirect.sanity.test/cycle-a",
+              "redirects": [
+                "https://redirect.sanity.test/entry",
+                "https://redirect.sanity.test/cycle-a",
+                "https://redirect.sanity.test/cycle-b",
+                "https://redirect.sanity.test/cycle-a",
+                "https://redirect.sanity.test/cycle-b",
+                "https://redirect.sanity.test/cycle-a"
+              ],
+              "requestHeaders": {
+                "accept": "[redacted]",
+                "accept-encoding": "[redacted]",
+                "host": "[redacted]",
+                "user-agent": "[redacted]"
+              },
+              "responseHeaders": {
+                "connection": "[redacted]",
+                "date": "[redacted]",
+                "location": "[redacted]",
+                "transfer-encoding": "[redacted]"
+              },
+              "status": null,
+              "durationMs": 48,
+              "body": "",
+              "bodyTruncated": false,
+              "safeValues": {
+                "requestHeaders": [],
+                "responseHeaders": [],
+                "email": false
+              },
+              "policyVersion": 0,
+              "phases": {
+                "dnsMs": 1,
+                "connectMs": 1,
+                "tlsMs": 2,
+                "ttfbMs": 5,
+                "totalMs": 48
+              }
+            },
+            "outcome": "target_failure",
+            "checks": [
+              {
+                "assertion": "redirect",
+                "pass": false,
+                "reason": "Probe redirect check failed"
+              }
+            ],
+            "attempt": 0,
+            "canary": {
+              "id": "16960db0-33ed-4e3b-b72d-91e7716808a6",
+              "probe": "local-a",
+              "startedAt": 1794504680390,
+              "completedAt": 1794504680401,
+              "durationMs": 11,
+              "runnerVersion": "uptime-node/0.1.0",
+              "outcome": "pass",
+              "status": 200,
+              "bytes": 0,
+              "checks": [
+                {
+                  "assertion": "status",
+                  "pass": true,
+                  "reason": "HTTP status matches expected status or range"
+                }
+              ],
+              "attempt": 0
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "response": {
+        "accepted": true,
+        "state": {
+          "state": "Failing",
+          "targetState": "Failing",
+          "underlyingState": "Failing",
+          "evidenceState": "Failing",
+          "coverageState": "Complete",
+          "candidate": "Failing",
+          "regions": [
+            {
+              "probe": "local-a",
+              "networkLabel": "Maple Lake",
+              "canaryPassed": true,
+              "terminal": true,
+              "state": "Failing",
+              "observationId": "35b8b97c-044d-4935-9db9-7872fc5b9102",
+              "observedAt": 1794504680450
+            }
+          ],
+          "denominator": 1,
+          "fails": 1,
+          "unknown": 0,
+          "failingVantages": 1,
+          "failureStreak": 1,
+          "recoveryStreak": 0,
+          "confirmedFailure": true,
+          "notificationOpen": true,
+          "maintenance": false,
+          "reason": "Maple Lake: Probe redirect check failed. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.",
+          "evaluatedAt": 1794504680447,
+          "incidentKey": "incident:f08768df-7fef-4207-b6e5-046a29742662:1:1794504679553",
+          "incidentRevision": 1
+        }
+      }
+    }
+  ],
+  "traffic": {
+    "connections": 8,
+    "handshakes": 8,
+    "requests": 8,
+    "canaries": 2
+  }
+}

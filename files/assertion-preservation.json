@@ -1,0 +1,8 @@
+{
+  "allAssertionLinesIdentical": true,
+  "assertionLinesSha256": "240c535c8c4926e7b81daf60c655906f914740143c1f78b2c1c43d6aeb84dfd8",
+  "receiverProcessingMsBeforeEvent": 50,
+  "receiverProcessingMsAfterEvent": 50,
+  "savedDeadlineMs": 3000,
+  "newPermanentTests": 0
+}

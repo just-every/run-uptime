@@ -1,0 +1,63 @@
+commit d201128f7bdf90979efd0127eaaaa58224e072e0
+Author:     Run Edit Run fleet <fleet@runeditrun.com>
+AuthorDate: Thu Nov 12 17:36:21 2026 +0000
+Commit:     Run Edit Run fleet <fleet@runeditrun.com>
+CommitDate: Thu Nov 12 17:36:21 2026 +0000
+
+    Restore statusless redirect snapshots on the rebased head
+    
+    Clear the intermediate hop status before capturing a redirect refusal. Keep the existing receiver timestamp proof inside a uniform processing interval without changing its assertions or deadline.
+
+diff --git a/runners/src/probes.mjs b/runners/src/probes.mjs
+index f9d3f15..cc93480 100644
+--- a/runners/src/probes.mjs
++++ b/runners/src/probes.mjs
+@@ -59,6 +59,8 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
+     const runnerError=['custody','runner','network','dns','credential','grant'].includes(category),completedAt=Date.now();
+     if(!statusOnly&&!runnerError&&isDependencyStatus(def))return evidence({outcome:'runner_error',checks:[dependencyMissingCheck(def)]},completedAt);
+     capture.phases.totalMs=completedAt-startedAt;
++    // Redirect refusal has no HTTP result; the captured status belongs to the last hop.
++    if(category==='redirect')capture.status=null;
+     let diagnostics;
+     if(snapshotPolicy&&!statusOnly&&['timeout','connection','transport','unresolved','dns','tls'].includes(category))diagnostics=await collectNetworkDiagnostics({category,phases:capture.phases,pin:capture.pin,privateNetwork:def.network==='private',signal:artifactSignal()});
+     const failureSnapshot=snapshotPolicy&&!statusOnly&&!['custody','runner','network','credential','grant'].includes(category)?tryCaptureFailureSnapshot({...capture,method:capture.method??def.method,url:capture.url??def.url,durationMs:completedAt-startedAt,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version,diagnostics,...(snapshotPolicy.screenshot?{screenshot:{unavailable:'capture_failed'}}:{})}):undefined;
+diff --git a/sources.lock.json b/sources.lock.json
+index 6cadb0f..a35e246 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -3516,7 +3516,7 @@
+       "executable": false
+     },
+     "runners/src/probes.mjs": {
+-      "sha256": "29601c7dcf2d3795bad38d03977948a943c93544257e197b74dbbae2479612df",
++      "sha256": "0df4512cf5b5704ae3ce62037b253e0e806d06b587b8795814a13319b717cbd7",
+       "executable": false
+     },
+     "runners/src/protocol-diagnostics.mjs": {
+@@ -9384,7 +9384,7 @@
+       "executable": false
+     },
+     "tests/network-redirect-cycle-support.mjs": {
+-      "sha256": "4f020c1fc3c4df3a804b51223efef8fbeb04c5cc91117a1c9cc74f655abd686a",
++      "sha256": "1873d075397b263e22cf92dd3e202da2e5b8415411850b301d55539365f772f6",
+       "executable": false
+     },
+     "tests/network-tls-hostname-routing.mjs": {
+diff --git a/tests/network-redirect-cycle-support.mjs b/tests/network-redirect-cycle-support.mjs
+index 45a453c..de72ccc 100644
+--- a/tests/network-redirect-cycle-support.mjs
++++ b/tests/network-redirect-cycle-support.mjs
+@@ -36,9 +36,12 @@ export async function proveNetworkRedirectCycle(){
+  let worker,db,control,target,canary,active,bridgeError,origin,cookie='',mode='short';
+  try{
+   const certs=await certificates(directory);
+-  target=https.createServer(certs.server,(req,res)=>{
++  target=https.createServer(certs.server,async(req,res)=>{
++   // Keep receiver processing inside the exchange despite midpoint clock-calibration uncertainty.
++   await sleep(50);
+    const location=mode==='cycle'?(req.url==='/cycle-a'?'/cycle-b':'/cycle-a'):req.url==='/entry'?'/healthy':undefined;
+    requests.push({at:Date.now(),host:req.headers.host,sni:req.socket.servername,method:req.method,path:req.url,status:location?302:200,...(location?{location}:{})});
++   await sleep(50);
+    res.writeHead(location?302:200,location?{location}:{});res.end(location?'':'synthetic-uptime-164');
+   });
+   target.on('connection',socket=>{connections.push(Date.now());open.add(socket);socket.once('close',()=>open.delete(socket))});

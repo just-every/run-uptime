@@ -1,0 +1,86 @@
+{
+  "at": "2026-11-12T17:37:09.803972+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-f164-snapshot-fix-2",
+  "head": "d201128f7bdf90979efd0127eaaaa58224e072e0",
+  "main": "860e069a6e277a7f41bc8a34bc0934e005b01274",
+  "rebasedHead": "1b1cb59f6a6eb7a5fecc390ef1fa5b7b92e9e079",
+  "productPush": "success",
+  "productPushAttempts": 1,
+  "pr": null,
+  "localChecks": {
+    "build": 0,
+    "typecheck": 0,
+    "contractWrite": 0,
+    "contractCheck": 0,
+    "sourceLock": 0,
+    "sourceLockCheck": 0,
+    "tlsAuthFinal": 0,
+    "validatorPositive": 1,
+    "validatorNegative": 8
+  },
+  "before": {
+    "completionHttpStatus": 400,
+    "cycleSnapshotStatus": 302
+  },
+  "sameFinalFixtureWithoutReset": {
+    "completionHttpStatus": 400,
+    "cycleSnapshotStatus": 302
+  },
+  "after": {
+    "completionHttpStatus": 200,
+    "cycleSnapshotStatus": null,
+    "phases": [
+      {
+        "phase": "short",
+        "requests": 2,
+        "connections": 2,
+        "handshakes": 2,
+        "outcome": "pass",
+        "durationMs": 234
+      },
+      {
+        "phase": "cycle",
+        "requests": 6,
+        "connections": 6,
+        "handshakes": 6,
+        "outcome": "target_failure",
+        "durationMs": 650
+      },
+      {
+        "phase": "restored",
+        "requests": 2,
+        "connections": 2,
+        "handshakes": 2,
+        "outcome": "pass",
+        "durationMs": 226
+      }
+    ],
+    "quietWindows": 2,
+    "quietWindowMs": 3000,
+    "incidentCount": 1
+  },
+  "contractCountsBeforeAndAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clauseChanges": [],
+  "network001": "PARTIAL",
+  "assertionsChanged": false,
+  "productionValidatorChanged": false,
+  "sourceLockChangedEntries": [
+    "runners/src/probes.mjs",
+    "tests/network-redirect-cycle-support.mjs"
+  ],
+  "exactShaVerifyRunId": 43271226325,
+  "exactShaVerifyUrl": "https://github.com/just-every/run-uptime/actions/runs/43271226325",
+  "exactShaVerifyStatus": "completed",
+  "exactShaVerifyConclusion": "success",
+  "terminalProductState": "READY",
+  "remoteProductHead": "d201128f7bdf90979efd0127eaaaa58224e072e0",
+  "blockers": [],
+  "completedAt": "2026-11-12T17:52:50Z",
+  "githubCallsUsed": 5
+}

@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+import {resolve} from 'node:path';
+const [repo,packet]=process.argv.slice(2);
+const {validateEvidence}=await import(pathToFileURL(resolve(repo,'src/domain/evidence.server.ts')));
+const after=JSON.parse(await readFile(resolve(packet,'after-receipt.json'),'utf8'));
+const before=JSON.parse(await readFile(resolve(packet,'before-receipt.json'),'utf8'));
+const observation=after.wire.find(row=>row.phase==='cycle').observation;
+const definition=after.definition;
+const slot=after.history.find(row=>row.observations.some(o=>o.id===observation.id));
+assert.ok(slot);
+const check=value=>validateEvidence(value,definition,slot.due_at,value.completedAt);
+check(observation);
+const results=[{case:'actual signed redirect observation with null snapshot status',result:'accepted'}];
+function refused(name,mutate){
+ const changed=structuredClone(observation);mutate(changed);
+ assert.throws(()=>check(changed));results.push({case:name,result:'refused'});
+}
+assert.throws(()=>check(before.completions.at(-1).body.attempts[0]),/Invalid failure snapshot evidence/);
+results.push({case:'actual pre-repair signed observation retaining HTTP 302',result:'refused'});
+refused('snapshot retains an intermediate redirect HTTP 302',o=>o.failureSnapshot.status=302);
+refused('snapshot duration differs from signed observation',o=>o.failureSnapshot.durationMs++);
+refused('snapshot has an undeclared field',o=>o.failureSnapshot.unexpected=true);
+refused('snapshot declares an unsupported version',o=>o.failureSnapshot.version=2);
+refused('snapshot body exceeds its bound',o=>o.failureSnapshot.body='x'.repeat(16385));
+refused('successful observation carries a failure snapshot',o=>o.outcome='pass');
+refused('redirect observation fabricates an HTTP response status',o=>o.status=302);
+const receipt={at:new Date().toISOString(),validator:'src/domain/evidence.server.ts#validateEvidence',productionValidatorModified:false,cases:results};
+await writeFile(resolve(packet,'validator-receipt.json'),JSON.stringify(receipt,null,2)+'\n');
+console.log(JSON.stringify(receipt,null,2));

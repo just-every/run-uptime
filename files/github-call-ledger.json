@@ -1,0 +1,33 @@
+[
+  {
+    "call": 1,
+    "purpose": "previous failed job log",
+    "run_id": 43263744653,
+    "job_id": 131342122033,
+    "command": "gh run view 43263744653 --repo just-every/run-uptime --job 131342122033 --log-failed"
+  },
+  {
+    "call": 2,
+    "at": "2026-11-12T17:37:08.405103+00:00",
+    "purpose": "discover exact-SHA Verify",
+    "command": "gh api repos/just-every/run-uptime/actions/runs?head_sha=d201128f7bdf90979efd0127eaaaa58224e072e0&per_page=100"
+  },
+  {
+    "call": 3,
+    "at": "2026-11-12T17:42:09.408076+00:00",
+    "purpose": "poll exact-SHA Verify",
+    "command": "gh api repos/just-every/run-uptime/actions/runs/43271226325"
+  },
+  {
+    "call": 4,
+    "at": "2026-11-12T17:47:10.408653+00:00",
+    "purpose": "poll exact-SHA Verify",
+    "command": "gh api repos/just-every/run-uptime/actions/runs/43271226325"
+  },
+  {
+    "call": 5,
+    "at": "2026-11-12T17:52:11.408154+00:00",
+    "purpose": "poll exact-SHA Verify",
+    "command": "gh api repos/just-every/run-uptime/actions/runs/43271226325"
+  }
+]

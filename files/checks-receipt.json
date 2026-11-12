@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-12T17:37:09.803972+00:00",
+  "buildExit": 0,
+  "typecheckExit": 0,
+  "finalTypecheckExit": 0,
+  "contractWriteExit": 0,
+  "contractCheckExit": 0,
+  "generatedViewsRestoredFrom": "origin/main",
+  "contractChanged": false,
+  "sourceLockExit": 0,
+  "sourceLockCheckExit": 0,
+  "changedLockEntries": [
+    "runners/src/probes.mjs",
+    "tests/network-redirect-cycle-support.mjs"
+  ],
+  "temporaryValidatorHarnessCorrection": "Use the retained slot due_at, rather than observation startedAt, so its earlier canary remains inside the real acceptance window."
+}

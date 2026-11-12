@@ -1,0 +1,30 @@
+shards (push-8)	Run this shard	2026-11-12T17:05:19.2411010Z > node tests/tls-auth.mjs
+shards (push-8)	Run this shard	2026-11-12T17:05:19.9581515Z (node:5906) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-8)	Run this shard	2026-11-12T17:05:19.9581991Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-8)	Run this shard	2026-11-12T17:06:14.4928003Z PASS keyword owner creation, scheduled signed HTTPS status and text failures, immutable history and recovery
+shards (push-8)	Run this shard	2026-11-12T17:06:19.0705348Z PROBE NETWORK-001 acceptance-1 matching: owner-created unchanged public HTTPS monitor -> signed pass, Healthy, one TLS connection, one HTTP request, fixed coverage and retained history
+shards (push-8)	Run this shard	2026-11-12T17:06:24.3597252Z PROBE NETWORK-001 acceptance-1 wrong-name: owner-created unchanged public HTTPS monitor -> signed target_failure, Failing, one TLS connection, zero HTTP request, fixed coverage and retained history
+shards (push-8)	Run this shard	2026-11-12T17:06:29.5582005Z PROBE NETWORK-001 acceptance-1 restored: owner-created unchanged public HTTPS monitor -> signed pass, Healthy, one TLS connection, one HTTP request, fixed coverage and retained history
+shards (push-8)	Run this shard	2026-11-12T17:06:33.7106819Z PROBE NETWORK-001 acceptance-1 short: unchanged owner-created public HTTPS monitor -> signed pass, status,body, Healthy; 2 TLS connections and 2 ordered requests, duration 12ms below saved 3000ms deadline
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9160585Z node:internal/modules/run_main:123
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9161295Z     triggerUncaughtException(
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9162854Z     ^
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9163161Z 
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9163922Z AssertionError [ERR_ASSERTION]: signed runner failed (3052 private diagnostic bytes); last completion status 400, error Invalid failure snapshot evidence
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9164637Z 
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9164861Z 1 !== 0
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9165122Z 
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9166598Z     at runner (file:///home/runner/work/run-uptime/run-uptime/tests/network-redirect-cycle-support.mjs:76:411)
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9167091Z     at async due (file:///home/runner/work/run-uptime/run-uptime/tests/network-redirect-cycle-support.mjs:93:4)
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9167765Z     at async proveNetworkRedirectCycle (file:///home/runner/work/run-uptime/run-uptime/tests/network-redirect-cycle-support.mjs:136:45)
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9168504Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/tls-auth.mjs:11:1 {
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9168894Z   generatedMessage: false,
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9169120Z   code: 'ERR_ASSERTION',
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9169323Z   actual: 1,
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9169499Z   expected: 0,
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9169686Z   operator: 'strictEqual',
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9169887Z   diff: 'simple'
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9170066Z }
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9170158Z 
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9170236Z Node.js v22.20.0
+shards (push-8)	Run this shard	2026-11-12T17:06:38.9515391Z ##[error]Process completed with exit code 1.

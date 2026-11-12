@@ -1,0 +1,11 @@
+file:///workspace/run-uptime/src/domain/evidence.server.ts:210
+      JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes + (o.fixtures ? 12000 : 0) : definition.type === 'pagespeed' ? 4000 + PAGESPEED_LIMITS.evidenceBytes : isProtocol(definition.type)||['api','mail'].includes(definition.type) ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
+                                                                                                                                                                                                                                                                                                                                                                                                                                                         ^
+
+Error: Invalid observation evidence
+    at validateEvidence (file:///workspace/run-uptime/src/domain/evidence.server.ts:210:442)
+    at validateEvidence (file:///workspace/run-uptime/src/domain/evidence.server.ts:217:5)
+    at check (file:///tmp/validate-redirect-snapshot.mjs:11:20)
+    at file:///tmp/validate-redirect-snapshot.mjs:12:1
+
+Node.js v22.20.0

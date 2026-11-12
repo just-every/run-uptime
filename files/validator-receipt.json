@@ -1,0 +1,43 @@
+{
+  "at": "2026-11-12T17:35:10.083Z",
+  "validator": "src/domain/evidence.server.ts#validateEvidence",
+  "productionValidatorModified": false,
+  "cases": [
+    {
+      "case": "actual signed redirect observation with null snapshot status",
+      "result": "accepted"
+    },
+    {
+      "case": "actual pre-repair signed observation retaining HTTP 302",
+      "result": "refused"
+    },
+    {
+      "case": "snapshot retains an intermediate redirect HTTP 302",
+      "result": "refused"
+    },
+    {
+      "case": "snapshot duration differs from signed observation",
+      "result": "refused"
+    },
+    {
+      "case": "snapshot has an undeclared field",
+      "result": "refused"
+    },
+    {
+      "case": "snapshot declares an unsupported version",
+      "result": "refused"
+    },
+    {
+      "case": "snapshot body exceeds its bound",
+      "result": "refused"
+    },
+    {
+      "case": "successful observation carries a failure snapshot",
+      "result": "refused"
+    },
+    {
+      "case": "redirect observation fabricates an HTTP response status",
+      "result": "refused"
+    }
+  ]
+}

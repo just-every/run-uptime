@@ -1,0 +1,6 @@
+2026-11-12T17:22:43Z
+
+> @uptime/uptime-console@0.5.8 typecheck /workspace/run-uptime
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
+
+exit=0
