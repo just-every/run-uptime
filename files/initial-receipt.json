@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "tag": "sd-uptime-c-f169-pc1",
+  "repository": "just-every/run-uptime",
+  "startingHead": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+  "priorVerify": 43292021628,
+  "priorShardJob": 131440964097,
+  "priorShardConclusion": "cancelled",
+  "priorShardStarted": "2026-11-12T19:38:12Z",
+  "priorShardCompleted": "2026-11-12T19:58:28Z",
+  "priorLogs": "gh run view returned success with zero bytes for requested job log outputs",
+  "apiCallsSoFar": 5,
+  "countsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "statusRows": 115,
+  "typecheck": {
+    "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+    "command": "pnpm run typecheck",
+    "exit": 0
+  }
+}

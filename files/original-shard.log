@@ -1,0 +1,281 @@
+> node tests/contact-schedules.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:2125) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# Subtest: contact schedules survive restart, stop on recovery/ack, and never replay uncertain attempts
+ok 1 - contact schedules survive restart, stop on recovery/ack, and never replay uncertain attempts
+  ---
+  duration_ms: 125583.426312
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 125588.907696
+> node tests/incident-work.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:2387) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-501: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+Incident mention recovery PASS: committed responder comment, reservation interruption, persisted Worker restarts, bounded Cron sweep, API and CLI outcomes, competing dispatch, current authority, erasure and no reserved-send replay.
+FOLLOWUP-001 service incident correlation PASS: shared owner link within confirmation window, unrelated/late isolation, grouped actor acknowledgment without evidence changes, one-child recovery; API/CLI next-due kind and time.
+FOLLOWUP-001 dependency incident correlation PASS: shared owner link within confirmation window, unrelated/late isolation, grouped actor acknowledgment without evidence changes, one-child recovery; API/CLI next-due kind and time.
+FOLLOWUP-001 group incident correlation PASS: shared owner link within confirmation window, unrelated/late isolation, grouped actor acknowledgment without evidence changes, one-child recovery; API/CLI next-due kind and time.
+FOLLOWUP-001 combined PASS: correlated dependency/group, policy-selected acknowledgment, restart before deadline and due reminder, lost-response uncertainty without replay, exact next kinds/times, one-child recovery, resolution and inactive escalation restore.
+INCIDENT-001/002/003/005 / FOLLOWUP-001 / READAPI-001/003 PASS scoped responder/editor/admin collaboration, live member/key refusal, single-attempt mentions, optimistic edits, category filters, distinct human and machine resolution, restart, archive and erasure through real Worker routes.
+> node tests/private-network.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PRIVATE-001 PASS: authenticated runner grants; real HTTP failure/recovery, TCP and isolated browser; private/public/metadata/neighbor/port/expiry/identity/redirect fences; local authority excluded from portable definitions and archives; runner revocation.
+> node tests/agent-door.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:4672) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PROBE SURFACE-005 acceptance-5-first-call: first MCP monitor rename before policy -> policy_unset, canonical installation setup_url, no success or pending execution, no provider traffic; 222 durable tables unchanged, only agent identity admission and refusal audit added
+PASS SURFACE-005 first-call refusal and unchanged native state; the identical authorized rename completes once policy is adopted
+PROBE BASE-AGENT-012 acceptance-4-stale-autonomous-2026-07-28: owner name edit and independent revision read; MCP current version with stale expected_revision and fresh explicit key -> revision_conflict current_revision=2 in metadata and error text, no receipts or traffic; all 225 durable tables retain exact rows except one admission and one refusal audit with relay and sequences
+PROBE BASE-AGENT-012 acceptance-4-current-autonomous-2026-07-28: matching native expected revision -> autonomous, exactly one paused name edit and one immutable revision, no approval wait or traffic
+PROBE BASE-AGENT-012 acceptance-4-stale-autonomous-2025-11-25: owner name edit and independent revision read; MCP current version with stale expected_revision and fresh explicit key -> revision_conflict current_revision=2 in metadata and error text, no receipts or traffic; all 225 durable tables retain exact rows except one admission and one refusal audit with relay and sequences
+PROBE BASE-AGENT-012 acceptance-4-current-autonomous-2025-11-25: matching native expected revision -> autonomous, exactly one paused name edit and one immutable revision, no approval wait or traffic
+PROBE BASE-AGENT-012 acceptance-4-stale-held-2026-07-28: owner name edit and independent revision read; MCP current version with stale expected_revision and fresh explicit key -> revision_conflict current_revision=2 in metadata and error text, no receipts or traffic; all 225 durable tables retain exact rows except one admission and one refusal audit with relay and sequences
+PROBE BASE-AGENT-012 acceptance-4-current-held-2026-07-28: matching native expected revision -> review, exactly one paused name edit and one immutable revision, no approval wait or traffic
+PROBE BASE-AGENT-012 acceptance-4-stale-held-2025-11-25: owner name edit and independent revision read; MCP current version with stale expected_revision and fresh explicit key -> revision_conflict current_revision=2 in metadata and error text, no receipts or traffic; all 225 durable tables retain exact rows except one admission and one refusal audit with relay and sequences
+PROBE BASE-AGENT-012 acceptance-4-current-held-2025-11-25: matching native expected revision -> review, exactly one paused name edit and one immutable revision, no approval wait or traffic
+PASS BASE-AGENT-012 independently observed current revision in stale expected-revision refusals under both policies and both MCP versions
+PROBE BASE-AGENT-008 acceptance-3-form-2026-07-28: agent-only MCP form accept with exact key and returned state -> original pending approval, no receipt or native effect; all 225 durable tables match except one admission counter, replay audit and sequence; zero runner or provider traffic
+PROBE BASE-AGENT-008 acceptance-3-person-2026-07-28: named sponsor native approval of exact saved revision -> one pause, person approver and agent preparer receipt
+PROBE BASE-AGENT-008 acceptance-3-form-2025-11-25: agent-only MCP form accept with exact key and returned state -> original pending approval, no receipt or native effect; all 225 durable tables match except one admission counter, replay audit and sequence; zero runner or provider traffic
+PROBE BASE-AGENT-008 acceptance-3-person-2025-11-25: named sponsor native approval of exact saved revision -> one pause, person approver and agent preparer receipt
+PROBE BASE-AGENT-008 acceptance-3-autonomous-2026-07-28: ordinary MCP pause -> one revision without an approval requirement
+PROBE BASE-AGENT-008 acceptance-3-autonomous-2025-11-25: ordinary MCP pause -> one revision without an approval requirement
+PASS BASE-AGENT-008 synchronous form accept cannot approve; native person approval, ordinary autonomous pause and effect-free replay in both protocol versions
+PROBE BASE-AGENT-007 acceptance-5-rejected-2026-07-28: named native person rejects saved pause revision; identical arguments and key with fresh RPC ids -> approval_rejected twice, no execution receipt or second approval, enabled original revision; all 225 durable tables match enumerated decision and audit deltas; zero runner or provider traffic
+PROBE BASE-AGENT-007 acceptance-5-controls-2026-07-28: distinct genuine held approval and autonomous calls -> each pauses its own enabled monitor exactly once; original rejected monitor stays enabled; zero runner or provider traffic
+PROBE BASE-AGENT-007 acceptance-5-rejected-2025-11-25: named native person rejects saved pause revision; identical arguments and key with fresh RPC ids -> approval_rejected twice, no execution receipt or second approval, enabled original revision; all 225 durable tables match enumerated decision and audit deltas; zero runner or provider traffic
+PROBE BASE-AGENT-007 acceptance-5-controls-2025-11-25: distinct genuine held approval and autonomous calls -> each pauses its own enabled monitor exactly once; original rejected monitor stays enabled; zero runner or provider traffic
+PASS BASE-AGENT-007 synchronous pause rejection, complete durable preservation and independent actionable controls in both supported protocols
+PROBE SURFACE-004 role-widen: MCP native member update -> access measure=1 direction=widens; operator audit correlated
+PROBE SURFACE-004 role-narrow: MCP native member update -> access measure=1 direction=narrows; operator audit correlated
+PROBE SURFACE-004 service-broaden: MCP native member update -> access measure=1 direction=widens; operator audit correlated
+PROBE SURFACE-004 service-narrow: MCP native member update -> access measure=1 direction=narrows; operator audit correlated
+PROBE SURFACE-004 team-broaden: MCP native member update -> access measure=1 direction=widens; operator audit correlated
+PROBE SURFACE-004 team-narrow: MCP native member update -> access measure=1 direction=narrows; operator audit correlated
+PROBE SURFACE-004 workspace-broaden: MCP native member update -> access measure=1 direction=widens; operator audit correlated
+PROBE SURFACE-004 workspace-narrow: MCP native member update -> access measure=1 direction=narrows; operator audit correlated
+PROBE SURFACE-004 direction-policy: MCP widening held without writes; unnamed approval refused; narrowing autonomous; named native approval executes once
+PROBE SURFACE-004 current-version: native assignment changed during held MCP widening -> revision_conflict and no overwrite
+PASS SURFACE-004 native member role and service and team scope facts, current versions, native proof and direction-selective policy
+PROBE BASE-AGENT-001 acceptance-6 autonomous 2026-07-28 declared: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart autonomous 2026-07-28 declared: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, autonomous
+PROBE BASE-AGENT-001 acceptance-6 autonomous 2026-07-28 streamed: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart autonomous 2026-07-28 streamed: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, autonomous
+PROBE BASE-AGENT-001 acceptance-6 autonomous 2025-11-25 declared: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart autonomous 2025-11-25 declared: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, autonomous
+PROBE BASE-AGENT-001 acceptance-6 autonomous 2025-11-25 streamed: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart autonomous 2025-11-25 streamed: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, autonomous
+PROBE BASE-AGENT-001 acceptance-6 held 2026-07-28 declared: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart held 2026-07-28 declared: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, review
+PROBE BASE-AGENT-001 acceptance-6 held 2026-07-28 streamed: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart held 2026-07-28 streamed: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, review
+PROBE BASE-AGENT-001 acceptance-6 held 2025-11-25 declared: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart held 2025-11-25 declared: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, review
+PROBE BASE-AGENT-001 acceptance-6 held 2025-11-25 streamed: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart held 2025-11-25 streamed: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, review
+PASS BASE-AGENT-001 oversized native mutation has no effect under both policies, both protocol versions and declared or streamed body crossings
+PASS BASE-AGENT-009.uptime.complete-artifact-map (10 tables, every column)
+PROBE BASE-AGENT-006 acceptance-3-autonomous-2026-07-28: fresh MCP pause controls and class, live, internal and confirmation claims -> unchanged live measure=1 and native service, rule and target; one pause revision and exact-key replay without another effect; zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-autonomous-2025-11-25: fresh MCP pause controls and class, live, internal and confirmation claims -> unchanged live measure=1 and native service, rule and target; one pause revision and exact-key replay without another effect; zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-held-2026-07-28: fresh MCP pause controls and class, live, internal and confirmation claims -> unchanged live measure=1 and native service, rule and target; native pending approval with modern input_required, unchanged durable native state and saved approval until named person approves; one pause revision and exact-key replay without another effect; zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-held-2025-11-25: fresh MCP pause controls and class, live, internal and confirmation claims -> unchanged live measure=1 and native service, rule and target; native pending approval with modern input_required, unchanged durable native state and saved approval until named person approves; one pause revision and exact-key replay without another effect; zero runner or provider traffic
+PASS BASE-AGENT-006 fresh synchronous pause argument claims under both policies and protocol versions; other tools, record text and lifecycle families remain unqualified
+PROBE BASE-AGENT-006 acceptance-3-record-name-autonomous-2026-07-28: MCP reads exact clean and standard, paused, internal and confirmation names, then fresh ordinary pause -> live measure 1 and native service, unchanged rule and target; one target revision, effect-free exact-key replay, every unrelated durable record preserved and zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-record-name-autonomous-2025-11-25: MCP reads exact clean and standard, paused, internal and confirmation names, then fresh ordinary pause -> live measure 1 and native service, unchanged rule and target; one target revision, effect-free exact-key replay, every unrelated durable record preserved and zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-record-name-held-2026-07-28: MCP reads exact clean and standard, paused, internal and confirmation names, then fresh ordinary pause -> live measure 1 and native service, unchanged rule and target; canonical pending approval and saved arguments and summary unchanged until actual sponsor approval; one target revision, effect-free exact-key replay, every unrelated durable record preserved and zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-record-name-held-2025-11-25: MCP reads exact clean and standard, paused, internal and confirmation names, then fresh ordinary pause -> live measure 1 and native service, unchanged rule and target; canonical pending approval and saved arguments and summary unchanged until actual sponsor approval; one target revision, effect-free exact-key replay, every unrelated durable record preserved and zero runner or provider traffic
+PASS BASE-AGENT-006 saved monitor-name record claims; other record-text cells and tools remain unqualified
+PROBE BASE-AGENT-005 acceptance-4-allowed-autonomous-2026-07-28: MCP native member grant -> missing proof refused, valid native proof grant access
+PROBE BASE-AGENT-005 acceptance-4-self-autonomous-2026-07-28: owner-sponsored MCP self-grant with fresh explicit key and native proof -> self_escalation, no success or pending work, zero provider traffic; all 225 durable tables preserve exact rows except one admission count and one refusal audit with its sequence
+PROBE BASE-AGENT-005 acceptance-4-allowed-autonomous-2025-11-25: MCP native member grant -> missing proof refused, valid native proof grant access
+PROBE BASE-AGENT-005 acceptance-4-self-autonomous-2025-11-25: owner-sponsored MCP self-grant with fresh explicit key and native proof -> self_escalation, no success or pending work, zero provider traffic; all 225 durable tables preserve exact rows except one admission count and one refusal audit with its sequence
+PROBE BASE-AGENT-005 acceptance-4-allowed-held-2026-07-28: MCP native member grant -> missing proof refused, valid native proof and signed-in sponsor approval grant access
+PROBE BASE-AGENT-005 acceptance-4-self-held-2026-07-28: owner-sponsored MCP self-grant with fresh explicit key and native proof -> self_escalation, no success or pending work, zero provider traffic; all 225 durable tables preserve exact rows except one admission count and one refusal audit with its sequence
+PROBE BASE-AGENT-005 acceptance-4-allowed-held-2025-11-25: MCP native member grant -> missing proof refused, valid native proof and signed-in sponsor approval grant access
+PROBE BASE-AGENT-005 acceptance-4-self-held-2025-11-25: owner-sponsored MCP self-grant with fresh explicit key and native proof -> self_escalation, no success or pending work, zero provider traffic; all 225 durable tables preserve exact rows except one admission count and one refusal audit with its sequence
+PASS BASE-AGENT-005 synchronous self-grant refusal and complete durable-state preservation under both policies and both MCP versions
+AGENT-SURFACE-DISCOVERY passed: both native protocol eras, exact current contract registry/classes/clauses, all declared unauthorized invocations preserve complete durable state.
+PROBE BASE-AGENT-009 acceptance-6-autonomous: private MCP monitor read then native owner revoke -> complete historical audit and identity unchanged, inventory revoked, same unexpired bearer tools list 401; 224 durable tables compared, only intended revoked flag changed, no provider or mail effects
+PROBE BASE-AGENT-009 acceptance-6-held: private MCP monitor read then native owner revoke -> complete historical audit and identity unchanged, inventory revoked, same unexpired bearer tools list 401; 224 durable tables compared, only intended revoked flag changed, no provider or mail effects
+PASS BASE-AGENT-005.uptime.evidence-self-escalation
+PASS BASE-AGENT-subset.uptime.core-declaration-and-refusals
+PROBE SURFACE-002 paused-name: MCP update under live-blocked policy -> standard, one native revision, exact-key replay and stale refusal
+PROBE SURFACE-002 running-name-blocked: equivalent MCP name edit -> live with native monitor target, policy_blocked and unchanged native records
+PROBE SURFACE-002 running-name-approved: MCP update -> held with native target and reviewed name; named native approval commits exactly once
+PASS SURFACE-002 ordinary paused and running name edits, native targets, policy refusal, person approval, replay and revision fences
+PROBE SURFACE-002 acceptance-5-name-autonomous-2026-07-28: owner-sponsored MCP name edit with live and access blocked -> standard measure 1, destination target, missing proof refused, one name effect, no review, no approval, exact-key replay unchanged; all durable tables and provider traffic checked
+PROBE SURFACE-002 acceptance-5-name-autonomous-2025-11-25: owner-sponsored MCP name edit with live and access blocked -> standard measure 1, destination target, missing proof refused, one name effect, no review, no approval, exact-key replay unchanged; all durable tables and provider traffic checked
+PROBE SURFACE-002 acceptance-5-name-held-2026-07-28: owner-sponsored MCP name edit with live and access blocked -> standard measure 1, destination target, missing proof refused, one name effect, one attributed standard review, no approval, exact-key replay unchanged; all durable tables and provider traffic checked
+Debugger listening on ws://127.0.0.1:9229/e1634a5a-0452-4032-87dd-66aee89f87ab
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger attached.
+Debugger ending on ws://127.0.0.1:9229/e1634a5a-0452-4032-87dd-66aee89f87ab
+For help, see: https://nodejs.org/en/docs/inspector
+PROBE SURFACE-002 acceptance-5-name-held-2025-11-25: owner-sponsored MCP name edit with live and access blocked -> standard measure 1, destination target, missing proof refused, one name effect, one attributed standard review, no approval, exact-key replay unchanged; all durable tables and provider traffic checked
+PROBE SURFACE-002 acceptance-5-enabled-fence: native name-save command interleaved with owner PATCH -> transaction refuses, complete concurrent state preserved
+PROBE SURFACE-002 acceptance-5-credential-fence: native name-save command interleaved with owner PATCH -> transaction refuses, complete concurrent state preserved
+PASS SURFACE-002 saved destination name effects and complete durable preservation
+PROBE SURFACE-002 create-paused 2026-07-28 autonomous: MCP -> standard, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-enabled 2026-07-28 autonomous: MCP -> live, external, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-default 2026-07-28 autonomous: MCP -> live, external, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-paused 2026-07-28 held: MCP -> standard, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-enabled 2026-07-28 held: MCP -> live, external, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-default 2026-07-28 held: MCP -> live, external, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-live-blocked 2026-07-28: paused succeeds; enabled and omitted-enabled refuse with live and external; native invalid input refuses; all other durable records unchanged
+PROBE SURFACE-002 create-paused 2025-11-25 autonomous: MCP -> standard, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-enabled 2025-11-25 autonomous: MCP -> live, external, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-default 2025-11-25 autonomous: MCP -> live, external, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-paused 2025-11-25 held: MCP -> standard, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-enabled 2025-11-25 held: MCP -> live, external, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-default 2025-11-25 held: MCP -> live, external, exactly one immutable native first revision, attributed admission, replay unchanged, zero runner or provider work
+PROBE SURFACE-002 create-live-blocked 2025-11-25: paused succeeds; enabled and omitted-enabled refuse with live and external; native invalid input refuses; all other durable records unchanged
+PASS SURFACE-002 ordinary paused creation through both MCP versions and policies; no runner polled, exact native effects and zero provider traffic
+PASS BASE-AGENT-012.uptime.replay-current-admission
+PASS BASE-AGENT-009.uptime.native-target-and-approver
+PASS BASE-AGENT-012.uptime.native-continuation-identity
+PASS BASE-AGENT-007.uptime.standard-only-named-approval: held read, local URL, expiry, sponsor refusal, reviewer revision, single execution and linked receipt
+PASS BASE-AGENT-008.uptime.native-independent-reviewer
+PASS BASE-AGENT-011.uptime.pause-pending-execution
+PROBE SURFACE-004 comment-delete-2026-07-28-autonomous: MCP explicit saved comment and version -> standard + destructive measure 1, incident target, one tombstone, no text or edit history, replay unchanged; stale and mismatched references refuse
+PROBE SURFACE-004 comment-delete-2026-07-28-held: MCP explicit saved comment and version -> standard + destructive measure 1, incident target, one tombstone, no text or edit history, replay unchanged; stale and mismatched references refuse
+PROBE SURFACE-004 comment-delete-2025-11-25-autonomous: MCP explicit saved comment and version -> standard + destructive measure 1, incident target, one tombstone, no text or edit history, replay unchanged; stale and mismatched references refuse
+PROBE SURFACE-004 comment-delete-2025-11-25-held: MCP explicit saved comment and version -> standard + destructive measure 1, incident target, one tombstone, no text or edit history, replay unchanged; stale and mismatched references refuse
+PROBE SURFACE-004 native-authority: responder own deletion -> allowed; foreign author, out-of-scope replay and read-only replay -> refused unchanged; administrator deletion -> allowed
+PROBE SURFACE-004 approval-version: named native approval after owner edit -> revision_conflict, newer text and history unchanged
+Debugger attached.
+Debugger ending on ws://127.0.0.1:9229/e1634a5a-0452-4032-87dd-66aee89f87ab
+For help, see: https://nodejs.org/en/docs/inspector
+PROBE SURFACE-004 comment-edit-2026-07-28-autonomous: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2026-07-28-held: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2025-11-25-autonomous: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2025-11-25-held: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-authority: genuine named approval -> one edit; newer native edit -> stale approval refused; responder own edit and administrator foreign edit -> allowed; foreign author and narrowed replay -> refused unchanged; zero provider traffic
+PROBE SURFACE-003 1 test: owner-saved single mailbox and signed MCP -> external measure=1 counterparty=known; approval holds with no job, native approval queues one current-credential job, exact-key replay adds none
+PROBE SURFACE-003 1 drill: owner-saved single mailbox and signed MCP -> external measure=1 counterparty=known; approval holds with no job, native approval queues one current-credential job, exact-key replay adds none
+PROBE SURFACE-003 5 test: owner-saved single mailbox and signed MCP -> external measure=1 counterparty=known; approval holds with no job, native approval queues one current-credential job, exact-key replay adds none; internal and zero-cost claims ignored
+PROBE SURFACE-003 5 drill: owner-saved single mailbox and signed MCP -> external measure=1 counterparty=known; approval holds with no job, native approval queues one current-credential job, exact-key replay adds none; internal and zero-cost claims ignored
+PASS SURFACE-003 saved email destination facts, native approval and misleading-claim resistance (queue admission only)
+PASS BASE-AGENT-012.uptime.notification-continuation-identity (native transport admission; provider delivery unclaimed)
+PASS BASE-AGENT-012.uptime.worker-only-continuation-admission
+PASS BASE-AGENT-012.uptime.current-native-read-replay
+PASS BASE-AGENT-012.uptime.deleted-target-current-admission
+PROBE SURFACE-006 4: MCP manual API fixture -> below boundary external; 2 + 1 = 3 live held without slots; changed debt identities refuse old approval; fresh approval and replay queue exactly one manual slot; scheduled health unchanged
+PROBE SURFACE-006 4-multicleanup autonomous 2026-07-28: saved two-cleanup API with one signed open debt -> 1 + 2 = 3, named live approval with no slot, native person approval queues exactly one undispatched slot, replay has no effect; live-blocked refuses; zero-open counterpart stays external under selective and blocked policies; unrelated durable state and all traffic unchanged
+PROBE SURFACE-006 4-multicleanup autonomous 2025-11-25: saved two-cleanup API with one signed open debt -> 1 + 2 = 3, named live approval with no slot, native person approval queues exactly one undispatched slot, replay has no effect; live-blocked refuses; zero-open counterpart stays external under selective and blocked policies; unrelated durable state and all traffic unchanged
+PROBE SURFACE-006 4-multicleanup held 2026-07-28: saved two-cleanup API with one signed open debt -> 1 + 2 = 3, named live approval with no slot, native person approval queues exactly one undispatched slot, replay has no effect; live-blocked refuses; zero-open counterpart stays external under selective and blocked policies; unrelated durable state and all traffic unchanged
+PROBE SURFACE-006 4-multicleanup held 2025-11-25: saved two-cleanup API with one signed open debt -> 1 + 2 = 3, named live approval with no slot, native person approval queues exactly one undispatched slot, replay has no effect; live-blocked refuses; zero-open counterpart stays external under selective and blocked policies; unrelated durable state and all traffic unchanged
+PASS SURFACE-006 independent multi-cleanup boundary through native owner, signed production runner, both policies and both MCP protocols
+PASS BASE-AGENT-009.uptime.signed-relay: 200; foreign/unauthorized 401; foreign Business/stopped 404; held Business effect refused; native owner and signed Pause survive
+PASS Uptime agent native signed identity, both MCP eras, no-effect reads, current scopes, revision, one-effect replay, held approval, Pause and read-key fences
+> node tests/alert-routes.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:5129) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+ROUTING-001 team API/CLI consent, scope/rotation/role fences, sample filters, real queue exclusion and quiet admission exercised
+ROUTING-001 actual outage, custom Slow and dependency queues/deliveries inside and outside route quiet; all Slow filter dimensions exclude
+MONITOR-001 named route API/CLI: zero-write review, owner/fresh-factor refusal, atomic race/stale refusal, confirmed fake-mail recipient only for assigned monitor, history-preserving undo, edited-route refusal and erasure/local-only authority.
+# Subtest: owned routes preview inheritance, deliver matched triggers/recoveries and retain auditable changes
+ok 1 - owned routes preview inheritance, deliver matched triggers/recoveries and retain auditable changes
+  ---
+  duration_ms: 32240.554434
+  type: 'test'
+  ...
+ROUTING-001 console journey: two teams, production business hours and staging quiet routes, preserved edits, real outages per team, rotation, check and drill
+# Subtest: owner configures two teams and production and staging routes in the console, then checks and drills them
+ok 2 - owner configures two teams and production and staging routes in the console, then checks and drills them
+  ---
+  duration_ms: 10441.255567
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42686.4894
+> node tests/archive-roundtrip.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:5299) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS selected archive: exact requested graph from signed scheduled checks, complete revisions and history, shared journals, inactive repeated restore, integrity, owner and fresh-factor authority, zero-write invalid and bound refusals
+Debugger listening on ws://127.0.0.1:9229/13c81826-6d80-43ca-8a3f-5d177e960783
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger attached.
+Debugger ending on ws://127.0.0.1:9229/13c81826-6d80-43ca-8a3f-5d177e960783
+For help, see: https://nodejs.org/en/docs/inspector
+ARCHIVE_LOCAL_RESUME_RECEIPT {"schema":1,"exportPhaseAtCrash":"building","exportPartsAtCrash":0,"importPhaseAtCrash":"staging","importPartsAtCrash":0,"changedFileExit":1,"exportExit":0,"importExit":0,"restoredMonitors":120,"restoredObservations":1,"inactive":true,"changedFileNoWrite":true,"foreignProductExit":1,"foreignProductNoWrite":true}
+PASS local archive interrupted-process resume: fsynced owner and installation checkpoints, original-file binding, no-write changed-file refusal and inactive completion
+ARCHIVE_TRANSFER_RECEIPT {"schema":1,"population":"test-only synthetic archive load with real catalog creation and frozen service report","monitors":120,"selectedLegacy":105,"selectedChunk":119,"syntheticRevisionRows":10001,"payloadBytes":7323872,"chunks":71,"fragments":3,"serviceSnapshotBytes":198023,"journalDigests":10008,"journalChunks":7,"originalCounts":{"migrations":3,"monitors":120,"revisions":10121,"slots":2,"observations":1,"outbox":2,"scheduled_reports":1,"incident_work":0,"incident_comments":0,"incident_comment_history":0,"incident_timeline":0,"incident_settings":0,"incident_mentions":0,"source_history_batches":0,"source_history_rows":0,"source_history_cutovers":0,"notification_destinations":3,"notification_jobs":5,"integration_deliveries":3,"notification_delivery_attempts":3,"integration_attempts":3,"integration_resolutions":1,"integration_replays":1,"archive_history":0,"uptime_erasure_receipts":0,"uptime_audit":130,"failure_snapshots":0,"heartbeat_runs":0,"definition_batches":1,"auxiliary_attempts":0,"definition_batch_entries":119,"cleanup_debt":0,"followed_services":0,"dependency_acks":0,"discovery_sources":0,"discovery_source_runs":0,"discovery_decisions":0},"restoredCounts":{"migrations":3,"monitors":120,"revisions":10241,"slots":2,"observations":1,"outbox":2,"scheduled_reports":1,"incident_work":0,"incident_comments":0,"incident_comment_history":0,"incident_timeline":0,"incident_settings":0,"incident_mentions":0,"source_history_batches":0,"source_history_rows":0,"source_history_cutovers":0,"notification_destinations":3,"notification_jobs":5,"integration_deliveries":3,"notification_delivery_attempts":3,"integration_attempts":3,"integration_resolutions":1,"integration_replays":1,"archive_history":132,"uptime_erasure_receipts":0,"uptime_audit":136,"failure_snapshots":0,"heartbeat_runs":0,"definition_batches":1,"auxiliary_attempts":1,"definition_batch_entries":119,"cleanup_debt":0,"followed_services":0,"dependency_acks":0,"discovery_sources":0,"discovery_source_runs":0,"discovery_decisions":0},"restoreAuditReceipts":["archive_restore","access_archive_restore","access_archive_restore"],"independentDigests":true,"corruptAndForeignNoWrite":true,"invalidReferenceAndFragmentNoWrite":true,"laterErasureNoWrite":true,"fullMonitoringScaleQualified":false}
+PASS native chunk archive: 120 monitors, 105 selected, synthetic revision load, independent digests, interrupted export and restore, complete counts, immutable history and no-write corrupt, foreign and erased-resume refusals
+PASS archive move, corrupt/nonempty refusal, exact history, separate receiving owners and inactive repeated restore
+> node tests/webhook-custom.mjs
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:5709) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+MIGRATE-001 contacts: read 10 = review 2 + refused 8; seats 5 = login 2 + notify-only 3, all refused; no destination, member, confirmation or send created.
+# Subtest: reviewed custom webhooks preserve receiver formats, exact signed bytes, local secrets and inactive portable history
+ok 1 - reviewed custom webhooks preserve receiver formats, exact signed bytes, local secrets and inactive portable history
+  ---
+  duration_ms: 15790.623734
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15794.70347

@@ -1,0 +1,64 @@
+{
+  "files": [
+    {
+      "blob": "f077d42da49d80e186011fde15d5b58933ca5d89",
+      "bytes": 12234,
+      "path": "REPORT.md",
+      "sha256": "e663739fd6bbe0abd24a729096d6c8b904d9a67210c0d95cb88b722753bbc3b8"
+    },
+    {
+      "blob": "2d75f663caf5c8aac3d61301632185c541ba5cf7",
+      "bytes": 1095,
+      "path": "TEST-ENVIRONMENT.md",
+      "sha256": "eb77f471c294b691aee767c5b262ea10254fd596f6ee368bfeb12ab49853f473"
+    },
+    {
+      "blob": "2b515cd542e5cfc2bcabd7ee2e684a69fc999700",
+      "bytes": 3690,
+      "path": "candidate-archive.log",
+      "sha256": "64316061aec1d9ea6f9643b49e93f872a09c3df0e2b723189e3c1a12132444a1"
+    },
+    {
+      "blob": "f0ca3ba17e750d2c70b338f85d46b21953eab608",
+      "bytes": 6579,
+      "path": "candidate-receipt.json",
+      "sha256": "c765f00b8842c179231d73a61564827541e0fd70771ece43c0d563601a808ebf"
+    },
+    {
+      "blob": "db0751fd72bf46253548f228275714aa5c13838e",
+      "bytes": 572,
+      "path": "exact-sha-runs.json",
+      "sha256": "fbdd888f4d48ebd657fb11acb405087e0c80fd52d59d310724f69fc7d4e4a41f"
+    },
+    {
+      "blob": "6361ee64bc21268d36d28c52a82e4dbb27058f43",
+      "bytes": 695,
+      "path": "initial-receipt.json",
+      "sha256": "f9ed8cd071871c753745747fcaa618bb8c98781397ee9e0227f29f1875a3947b"
+    },
+    {
+      "blob": "fca34ccd1d347c2fd5d79637e0d9407a9fc697a0",
+      "bytes": 4077,
+      "path": "original-runtime-receipt.json",
+      "sha256": "671365452ed945f85bd11a8fff07b645a9a523b1bb45e8e9d28db8f9c97a45ca"
+    },
+    {
+      "blob": "8546272c1c34a9f278d4065957c27f24cd816854",
+      "bytes": 42643,
+      "path": "original-shard.log",
+      "sha256": "8b8f3fec81421483e18c21414857b37cc8722d40483585995a3fa184f68dfcef"
+    },
+    {
+      "blob": "9724fe75d6069d9ae26834a423cedd5084fa67c8",
+      "bytes": 731,
+      "path": "product-push.log",
+      "sha256": "04d7c1a90ba70c5e62609b3be576dc3ccf229a9716359d88d2d6bc943abc1c44"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-c-f169-pc1",
+  "product_head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+  "ref": "refs/heads/evidence/sd-uptime-c-f169-pc1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-c-f169-pc1"
+}
