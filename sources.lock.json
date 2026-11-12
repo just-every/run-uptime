@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "879a0aeaeb48188b88efb518206a1f298c527772c4a86c077c9dbe88437eb849",
+      "sha256": "cc3dfb9c708d7bed1b4d498a0b1cd2f3d29b6603ca2fc91608aa3712f6d47ee7",
       "executable": false
     },
     "DEMO.md": {
@@ -9540,7 +9540,7 @@
       "executable": false
     },
     "tests/public-paths.mjs": {
-      "sha256": "d7f9a53da1ca089a83d3978455fc92d16f89efc7b22956a683b4c97e4278ee3c",
+      "sha256": "e1a4a891dc30a7e28661bd6c59c54031387074add208437eaee7e03fa11ae265",
       "executable": false
     },
     "tests/public-surfaces-support.mjs": {
@@ -9669,6 +9669,10 @@
     },
     "tests/source-history-support.mjs": {
       "sha256": "e8ebe6178241caf192bf07b50a42689ab7095066fbbb7176ce075eef70d9437f",
+      "executable": false
+    },
+    "tests/startup-rer-mail-key-support.mjs": {
+      "sha256": "9af79dce7b5a428c93ec3a71ea3f77adbf58f40c3c37ca6a5e845d4344d7d040",
       "executable": false
     },
     "tests/startup-runner-config-support.mjs": {
