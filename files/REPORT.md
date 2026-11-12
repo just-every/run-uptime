@@ -2,6 +2,10 @@
 
 Repository: just-every/run-uptime
 Branch: cloud/main-uptime-docs-truth-1-c1
+Head: 0b5bf7da1c7512800392f91bccbc1eb3208811e0
+Verify: 43167998272, completed/success on this exact SHA
+
+Result: READY candidate; one squash commit above current main, all touched local checks passed, contract documents unchanged. No product blockers. The fleet owns publication scan and landing.
 
 ## Scope and outcome
 
@@ -26,12 +30,14 @@ GAP READAPI-001: This replay improves new-key use guidance and retains current m
 
 ## Custody and publication
 
-Product commit, push and CI results are recorded below after completion. Product pushes use only the named cloud branch and the fleet push guard. No PR or main push is needed. The Mac lander owns the complete Base publication scan and landing. Focused credential-shaped diff review is recorded in DIFF-REVIEW.txt; it does not substitute for that scan. Evidence is a separate report-only tree on refs/heads/evidence/main-uptime-docs-truth-1-c1, never a product branch or PR.
+Product commit, push and CI results are recorded below. Product pushes use only the named cloud branch and the fleet push guard. No PR or main push is needed. The Mac lander owns the complete Base publication scan and landing. Focused credential-shaped diff review is recorded in DIFF-REVIEW.txt; it does not substitute for that scan. Evidence is a separate report-only tree on refs/heads/evidence/main-uptime-docs-truth-1-c1, never a product branch or PR.
 
 The unchanged proveSecurityControls journey passed with exit 0 from an ordinary .mjs entry point (Node 24.19.0, Chromium /usr/bin/chromium, --no-sandbox). TOUCHED-TEST.txt is the actual output. Typecheck also passed with the repository-pinned Node 22.20.0.
 
 Product pushed successfully: cloud/main-uptime-docs-truth-1-c1 at 0b5bf7da1c7512800392f91bccbc1eb3208811e0. One commit, direct parent a715d2188b5d38cc563465292bc8c461b93c6528, no merge, no CI skip marker, both fleet identities and no trailers. Candidate identity/trailer inspection covered every commit including side parents (there is only this direct child). The product worktree is clean. Verify run 43167998272 was discovered queued for this exact SHA. No PR created; no default branch was modified.
 
-Exact-SHA Verify observed in progress on the first timed poll, run 43167998272. Two GitHub REST calls used including discovery.
 
-Interim custody: product is pushed, Verify is still in progress at the fifteen-minute poll (four GitHub REST calls used). This evidence snapshot is not a READY or landing signal. Final CI custody will be appended before task completion.
+
+Final CI custody: Verify run 43167998272 completed with success on exact head 0b5bf7da1c7512800392f91bccbc1eb3208811e0. Five GitHub REST calls were used including discovery, with at least 300 seconds between polls. No failed jobs or reruns, no PR, no clause status changes and no product blockers. CI-RECEIPT.json contains the actual terminal API result; all timed observations are included. The product branch was pushed once. The clone is scheduled for deletion immediately after final evidence publication; packet files remain outside it.
+
+READY branch=cloud/main-uptime-docs-truth-1-c1 head=0b5bf7da1c7512800392f91bccbc1eb3208811e0

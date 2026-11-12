@@ -8,5 +8,14 @@
   "push": "success attempt 1",
   "identity": "Run Edit Run fleet <fleet@runeditrun.com>",
   "trailers": [],
-  "clean_worktree": true
+  "clean_worktree": true,
+  "readiness": "READY",
+  "verify_run_id": 43167998272,
+  "verify_status": "completed",
+  "verify_conclusion": "success",
+  "verify_head_sha": "0b5bf7da1c7512800392f91bccbc1eb3208811e0",
+  "verify_html_url": "https://github.com/just-every/run-uptime/actions/runs/43167998272",
+  "github_calls": 5,
+  "pr": null,
+  "blockers": []
 }

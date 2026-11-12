@@ -1,5 +1,10 @@
 [
   {
+    "path": "REPORT.md",
+    "bytes": 5564,
+    "sha256": "51e4ed4423a9fb832ac06e163e0273af5b817ab7c95397638f35be3bc0fefe74"
+  },
+  {
     "path": "PLAN.md",
     "bytes": 1356,
     "sha256": "02c6d4d87d7fd32e685967eb6cccc224b702cb0b080169cbbb3064a63a524a5d"
@@ -11,8 +16,8 @@
   },
   {
     "path": "PRODUCT-RECEIPT.json",
-    "bytes": 385,
-    "sha256": "0478ab3b82147503b5f4d8cd6b180182fe0bb36aa81a4297cec2a4f54738aeb6"
+    "bytes": 715,
+    "sha256": "791c54356a8bc5a163b7053b990de6e19ea5a945e133f893f0f6d8d11b1a7c7f"
   },
   {
     "path": "PRODUCT-PUSH.txt",
@@ -53,6 +58,51 @@
     "path": "COMMIT-INSPECTION.txt",
     "bytes": 126,
     "sha256": "236dd59e2e55b59db68e6e2c0a1c16044aae5a841fde473ce02d00eadbe28c96"
+  },
+  {
+    "path": "SOURCE-CHECK.json",
+    "bytes": 415894,
+    "sha256": "c4da0947f0849352244b90aa09fc714410b097d008d09e2cdeb557ae43794246"
+  },
+  {
+    "path": "BUILD.txt",
+    "bytes": 10312,
+    "sha256": "a08156cdd0c4fba4d2e4161710a2489f746647e7c6970cbb5c3bed7f9bd1e588"
+  },
+  {
+    "path": "CI-DISCOVERY.json",
+    "bytes": 333,
+    "sha256": "7a745756d928cfe5e526dcbabdf02ff8db00cb536af31a71b4557a9ffc350c77"
+  },
+  {
+    "path": "CI-POLL-2.json",
+    "bytes": 278,
+    "sha256": "93890256b7d4a150b4993dbb636e5ffe392e94aeb33599b15b7fa0b5a2bb34c0"
+  },
+  {
+    "path": "CI-POLL-3.json",
+    "bytes": 278,
+    "sha256": "fa34c91f20631b424d7bbaecabcf30aff6c590acf5f1e373e46c8bfdb944a9fb"
+  },
+  {
+    "path": "CI-POLL-4.json",
+    "bytes": 278,
+    "sha256": "71fb5c669f0b90f934faf331cb9056687718cd14ccfdc0cc87dc005ac27509c7"
+  },
+  {
+    "path": "CI-POLL-5.json",
+    "bytes": 281,
+    "sha256": "811509bca28da3c64ab26f0dac565c2afdb7cb4a8d5dfaeb4209fc43d573ef94"
+  },
+  {
+    "path": "CI-RECEIPT.json",
+    "bytes": 281,
+    "sha256": "811509bca28da3c64ab26f0dac565c2afdb7cb4a8d5dfaeb4209fc43d573ef94"
+  },
+  {
+    "path": "INTERIM-EVIDENCE-RECEIPT.json",
+    "bytes": 276,
+    "sha256": "4c55015560510b4aa26a639bb199890a1ae1d1436ab35cd93ac68a7c1b9743b7"
   },
   {
     "path": "new-key-1440.png",

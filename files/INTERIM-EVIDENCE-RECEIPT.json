@@ -1,0 +1,7 @@
+{
+  "repository": "just-every/run-uptime",
+  "ref": "refs/heads/evidence/main-uptime-docs-truth-1-c1",
+  "head": "020ef6893cdf4b250055b1c380e74599d6312314",
+  "product_head": "0b5bf7da1c7512800392f91bccbc1eb3208811e0",
+  "readiness": "PUSHED; Verify in progress; not READY"
+}
