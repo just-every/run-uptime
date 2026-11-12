@@ -592,7 +592,7 @@
       "executable": false
     },
     "docs/definitions.md": {
-      "sha256": "1a15de343a80385d229d760d1d5332c7ad2fc1c0c3de0788c09921edbf206907",
+      "sha256": "3e5692df1b211747f9550a1f1a0f59b5e8418b8c29ebaaac6787288992d5bb13",
       "executable": false
     },
     "docs/deploy.md": {
@@ -2108,7 +2108,7 @@
       "executable": false
     },
     "docs/monitors.md": {
-      "sha256": "5ca37a52726b5befc3cd3111e6efcc31f9d1b84897ccef0694e028ddea1338fc",
+      "sha256": "20967dcb1c158c187a5829943427985eb5e01f43cdac2afe5daa58c3216bf372",
       "executable": false
     },
     "docs/moving-from-uptimerobot.md": {
@@ -2671,6 +2671,10 @@
       "sha256": "cf0510886267875973663d4f065a0dd3700911afec606b350c3902ff6f539dae",
       "executable": false
     },
+    "public/assets/key-usage.js": {
+      "sha256": "563ed714584f2251211bc1fd802451c0a2ba65a46409c80c5fab99205545f9a1",
+      "executable": false
+    },
     "public/assets/report-schedule-controls.js": {
       "sha256": "d9898770226fa84dc06dab3451fa16718b7db742865415caea2e731916fbe11e",
       "executable": false
@@ -2684,7 +2688,7 @@
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "f7d43a994ec315dc1ecea2f240c48b1a90ec9529c0cd0c976e4dfef301526d5b",
+      "sha256": "ca4d0c45963f03aaffa49275ce84620fb730de77c06d6a4747f5c95142714973",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -3080,7 +3084,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "7cb5fc83462cc8ca607588518bbd87e8c1170f34971ba14a3190cfe233c93523",
+      "sha256": "f6c3b7fdc3390d37e26b41fed7290e396f12fb4143db461689396915aabcb5b4",
       "executable": false
     },
     "RELEASE.json": {
@@ -9600,7 +9604,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "01220fb1778516c17e97913612edcb5d8c9a0e30ef06929f015c11e6ba477247",
+      "sha256": "ddcca3a6453f516187392a957ea5e3e6e65d70880b6a90e38450f39373cc0909",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
