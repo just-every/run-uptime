@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "3526bcea7a83a54e5523dfbc0cd9dc0fc0fc8317dd5d3b1951fc9319b29ef4bf",
+      "sha256": "76bb5e51d4779cbd95b39b2238d25cce13d1be428e8918604601e06ab9c5ca05",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "c5a60a47b3fa638b792c8a05c49f195d920bb1639c4f1378481e7142431e4d92",
+      "sha256": "0b70cec7f900fbc59542b6ae32afec508997695edda128142db3e88c8b770221",
       "executable": false
     },
     "DEMO.md": {
@@ -3516,7 +3516,7 @@
       "executable": false
     },
     "runners/src/probes.mjs": {
-      "sha256": "29601c7dcf2d3795bad38d03977948a943c93544257e197b74dbbae2479612df",
+      "sha256": "0df4512cf5b5704ae3ce62037b253e0e806d06b587b8795814a13319b717cbd7",
       "executable": false
     },
     "runners/src/protocol-diagnostics.mjs": {
@@ -4544,7 +4544,7 @@
       "executable": false
     },
     "src/agent-door/manual-check-effects.server.ts": {
-      "sha256": "4c3820b91cc541bf9b7187de2c81a58e35ab583c300fc7603b96a78880f4496f",
+      "sha256": "acb8c080b01e7e4a2b2f921934a3ab0bfe9b36224c5f37c15ae299a90c4cb028",
       "executable": false
     },
     "src/agent-door/monitor-create-effects.server.ts": {
@@ -8940,7 +8940,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "b0a4e5c5cdb45a2285973f382022be8e87b95406bc172df4edaa2cd7b40b6100",
+      "sha256": "a1c7934f337d51a6860bde84868e4ecec885b4e094a88a460d7d96d4749cbe6a",
       "executable": false
     },
     "tests/agent-drill-journey.mjs": {
@@ -8965,6 +8965,10 @@
     },
     "tests/agent-manual-debt-support.mjs": {
       "sha256": "d1a6c80e743a6d6854396c9defcba02b6637e08c35658b91d8b52e6fd255f3e6",
+      "executable": false
+    },
+    "tests/agent-manual-multicleanup-support.mjs": {
+      "sha256": "738e586adefaa6f05b9a9806d2c8efdd428a249fdba2e516ec05b1712f83d32a",
       "executable": false
     },
     "tests/agent-monitor-state-support.mjs": {
@@ -9391,6 +9395,14 @@
       "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
     },
+    "tests/network-redirect-cycle-routing.mjs": {
+      "sha256": "4f3b9d9dce92592d857c0cfe916d47927f118e07a1f59845cff15105416474fd",
+      "executable": false
+    },
+    "tests/network-redirect-cycle-support.mjs": {
+      "sha256": "1873d075397b263e22cf92dd3e202da2e5b8415411850b301d55539365f772f6",
+      "executable": false
+    },
     "tests/network-tls-hostname-routing.mjs": {
       "sha256": "194c23e2db8b0a68b4764aecbd9035cc724da3dfe227323d5bf489bce8c76752",
       "executable": false
@@ -9556,7 +9568,7 @@
       "executable": false
     },
     "tests/public-paths.mjs": {
-      "sha256": "83700db241039083c1aacdad18a53e640a99479368b3c81c055314418e5df63b",
+      "sha256": "95c5c3af0ce627c56635794d17bbdbdd748283e15cb26320016dacff1425a81d",
       "executable": false
     },
     "tests/public-surfaces-support.mjs": {
@@ -9691,6 +9703,10 @@
       "sha256": "e8ebe6178241caf192bf07b50a42689ab7095066fbbb7176ce075eef70d9437f",
       "executable": false
     },
+    "tests/startup-mail-sender-support.mjs": {
+      "sha256": "b0a5079c6e973ec03ff4366632937ebedc163dfcdeab0d2997e7fa0461907eec",
+      "executable": false
+    },
     "tests/startup-rer-mail-key-support.mjs": {
       "sha256": "9af79dce7b5a428c93ec3a71ea3f77adbf58f40c3c37ca6a5e845d4344d7d040",
       "executable": false
@@ -9712,7 +9728,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "84a8423963c789bfb2747aca1fe9f810dfae07028d09bb447135d12e2913061b",
+      "sha256": "413e9d70abebfdab3d998c69b011c2b3ffc0e569487a3fe673006a3dc2363628",
       "executable": false
     },
     "tests/tls-stages-support.mjs": {
