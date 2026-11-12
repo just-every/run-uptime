@@ -28,6 +28,10 @@ async function auth0Edge(directory){
   if(state.mode==='non-200'){res.writeHead(400);res.end('check your domain parameter synthetic-uptime-9');return}
   if(state.mode==='redirect'){res.writeHead(302,{location:'https://arbitrary.example.test/?domain='+CHANGED});res.end();return}
   res.writeHead(200,{'content-type':'application/rss+xml'});
+  if(state.mode==='timeout'){
+   const stream={closed:false};streams.push(stream);res.on('close',()=>{stream.closed=true});
+   res.write('<?xml version="1.0"?><rss><channel>');return;
+  }
   if(state.mode==='oversized'){
    const stream={sent:0,closed:false,total:32*1024*1024};streams.push(stream);res.on('close',()=>{stream.closed=true});
    res.write('<?xml version="1.0"?><rss><channel>');const chunk='<item><title>synthetic-uptime-1</title></item>'.repeat(256);
@@ -138,8 +142,13 @@ export async function proveAuth0Egress(){
   const beforeRevoked=edge.requests.length,stopped=await complete(revoked.data.id);assert.equal(stopped.status,'failed');assert.equal(stopped.stopReason,'initiator_revoked');assert.equal(edge.requests.length,beforeRevoked,'revoked owner authority cannot launch queued egress');
   assert.equal((await request('/api/service-catalog/checks',{...input,review:otherReview.data.review,consent:true},{headers:{cookie:other.cookie}})).status,401);
 
-  for(const [mode,problem] of [['non-200','unreachable'],['malformed','shape'],['oversized','too-large'],['redirect','moved'],['empty','shape'],['operational','shape'],['drop','unreachable'],['private','unreachable']]){
-   edge.state.mode=mode;const next=await ok('/api/service-catalog/checks',{...input,review:review.review,consent:true});await verifyRefusal(await complete(next.id),problem);
+  for(const [mode,problem] of [['non-200','unreachable'],['malformed','shape'],['oversized','too-large'],['redirect','moved'],['empty','shape'],['operational','shape'],['drop','unreachable'],['timeout','unreachable'],['private','unreachable']]){
+   edge.state.mode=mode;const next=await ok('/api/service-catalog/checks',{...input,review:review.review,consent:true});const done=await complete(next.id);await verifyRefusal(done,problem);
+   if(mode==='timeout'){
+    assert.match(done.result.detail,/did not answer in time/);
+    await wait(()=>edge.streams.at(-1).closed);
+    assert.deepEqual(await application(app.id),before,'a timed-out provider read cannot change application health');
+   }
   }
   await restart();assert.deepEqual((await ok('/api/discoveries/'+job.id)).spec,queued.spec);await verifyRefusal(await ok('/api/discoveries/'+job.id),'shape');
   assert.equal((await request('/api/service-follows',{check:job.id,tenantDomain:CHANGED})).status,400,'persisted reuse cannot substitute a tenant');

@@ -9628,7 +9628,7 @@
       "executable": false
     },
     "tests/service-catalog-auth0-support.mjs": {
-      "sha256": "9148c53c84315e32a6d4c15d57de41918cf8fff36d0927ee9f91e0ebb4eafd29",
+      "sha256": "cf3e243144d728dc1ed1f7ad7118ac845947a31eb6d569714a9fab1a47568467",
       "executable": false
     },
     "tests/service-catalog-fixture.mjs": {
