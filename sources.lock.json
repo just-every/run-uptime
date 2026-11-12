@@ -2688,7 +2688,7 @@
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "ca4d0c45963f03aaffa49275ce84620fb730de77c06d6a4747f5c95142714973",
+      "sha256": "e2b228c0e52762389b58a99a128caa84b78296650866c149441bf4e2f6498acf",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -2752,7 +2752,7 @@
       "executable": false
     },
     "public/definitions.js": {
-      "sha256": "456f36f4a1a7a51751e956cefcf3db245b029167320979a8d6b770fba339bdb6",
+      "sha256": "c8a1a234d7b924a0433e61ae0c7ea8104cbd5568937d8db74f5c414d8938e01a",
       "executable": false
     },
     "public/delivery-chain.js": {
@@ -2976,11 +2976,11 @@
       "executable": false
     },
     "public/notification-dialogs.js": {
-      "sha256": "736999cbecd4f9601f37c3c7e140db1e1cd4cfd07e7dc33cdcc69f693c2a9b09",
+      "sha256": "ede3e75658cdf70185ff07e9afd2c5f2be39c5d8cda9ed83f69b60ce46700db4",
       "executable": false
     },
     "public/notifications.css": {
-      "sha256": "9397a757b14c0c66d4320bc3ac26a1244a8ad42c093da05dcad88de7456ffaed",
+      "sha256": "04b419b42f582401d9163fe2c559a5a4f2ae02fc5d06f078440ae8b895133587",
       "executable": false
     },
     "public/notifications.js": {
@@ -8292,7 +8292,7 @@
       "executable": false
     },
     "src/editor/monitor/api.mjs": {
-      "sha256": "786edf9b921361950ebe932636c04a56422b871223542d828778e8efa425c84f",
+      "sha256": "7319aaa2f7dc7e16ff9a261b2e91530e581e5c337fb7271ee75807d4d1a4bda0",
       "executable": false
     },
     "src/editor/monitor/catalog.mjs": {
@@ -8332,7 +8332,7 @@
       "executable": false
     },
     "src/editor/monitor/erase.mjs": {
-      "sha256": "bc047156fa17584ebd11409b119dbb7bb883971f527caade8df13cc6adb9f05e",
+      "sha256": "6427e2c1b743778d42f7acc9acf770a7d12d275eada97ecf73ffc3a9cc08bd57",
       "executable": false
     },
     "src/editor/monitor/fields.mjs": {
@@ -9363,6 +9363,10 @@
       "sha256": "87adef8425bf0297c29a8a4d19b58920adacab1e91cfd2b658909decd7e529ee",
       "executable": false
     },
+    "tests/monitor-stepup-support.mjs": {
+      "sha256": "b85249d513dc962251e52756ce1a6fad7cdbb85ef34926898c5764cad0a9a062",
+      "executable": false
+    },
     "tests/network-diagnostics-support.mjs": {
       "sha256": "f7a383393c6849353779cba29f323ed2096a2971fa225289dc004542024a60a8",
       "executable": false
@@ -9428,7 +9432,7 @@
       "executable": false
     },
     "tests/operator-security.mjs": {
-      "sha256": "4b5afd29b31d9ab6c59ccd0c05e2011a88fdb2dd5b76bb9e3c9efb1139424aec",
+      "sha256": "7fd9f16e8a67284869ae707bf941ff02d96611cc877236ab33ed4d948b54f46c",
       "executable": false
     },
     "tests/ops-stale-coverage-support.mjs": {

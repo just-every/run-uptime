@@ -1,3 +1,4 @@
+import {needsStepUp,recoverStepUp} from './assets/step-up.js';
 import {changeMarkup} from './definition-changes.js';
 import {escape,icon} from './console-format.js';
 import {confirmDestination} from './notification-dialogs.js';
@@ -20,9 +21,10 @@ const SOURCES={'uptime.monitors':'Uptime monitor file',uptimerobot:'UptimeRobot 
 const sourceName=source=>SOURCES[String(source)]??SOURCES[String(source).split(':')[0]]??String(source);
 const when=time=>new Date(time).toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}),day=time=>new Date(time).toLocaleDateString(undefined,{day:'numeric',month:'short'});
 
-async function send(path,{body,type,headers={}}={}){
+async function send(path,{body,type,headers={}}={},retried=false){
  const response=await fetch(path,{method:body===undefined&&!type?'GET':'POST',headers:{...(type?{'content-type':type}:{}),...headers},body}),result=await response.json().catch(()=>({error:`Request ${response.status}`}));
- if([401,403].includes(response.status)&&!result.error?.startsWith?.('review_'))window.dispatchEvent(new Event('uptime:auth-lost'));
+ if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result);return send(path,{body,type,headers},true)}
+ if([401,403].includes(response.status)&&!needsStepUp(result)&&!result.error?.startsWith?.('review_'))window.dispatchEvent(new Event('uptime:auth-lost'));
  if(!response.ok)throw Object.assign(Error(response.status===413?'The file is larger than 2 MiB.':MESSAGES[result.error]??result.error??`Request ${response.status}`),{status:response.status,code:result.error});
  return result;
 }
