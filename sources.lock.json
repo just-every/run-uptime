@@ -9112,7 +9112,7 @@
       "executable": false
     },
     "tests/destination-stepup-support.mjs": {
-      "sha256": "d60c32407ea97dff369e0ca9266407847eb3fee82b2ac4c584688644f1b9481d",
+      "sha256": "8ea50cac6fc58fea7b11e7fce53e5ce7b632626fde6dad77b9b796461a37bf94",
       "executable": false
     },
     "tests/diagnostic-intake-refusals.mjs": {
@@ -9356,7 +9356,7 @@
       "executable": false
     },
     "tests/monitor-stepup-support.mjs": {
-      "sha256": "2897046e5b85643b8dbbdc5f9ac32bb8f43d651cc64ebd5573e38c4a1d5779a9",
+      "sha256": "b85249d513dc962251e52756ce1a6fad7cdbb85ef34926898c5764cad0a9a062",
       "executable": false
     },
     "tests/network-diagnostics-support.mjs": {
@@ -9424,7 +9424,7 @@
       "executable": false
     },
     "tests/operator-security.mjs": {
-      "sha256": "4b5afd29b31d9ab6c59ccd0c05e2011a88fdb2dd5b76bb9e3c9efb1139424aec",
+      "sha256": "7fd9f16e8a67284869ae707bf941ff02d96611cc877236ab33ed4d948b54f46c",
       "executable": false
     },
     "tests/ops-stale-coverage-support.mjs": {

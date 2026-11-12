@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {chromium} from 'playwright';
+import {migratedWorker} from './notify-acceptance-runtime.mjs';
+import {testAuthBindings,authRequest,sessionCookie} from './auth-test-support.mjs';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 
 // Part of operator-security's existing in-place step-up journey, at one width.
 export async function proveImportEraseStepUp({page,origin,call,cookie,DB,recovery}){
@@ -50,4 +55,19 @@ export async function proveImportEraseStepUp({page,origin,call,cookie,DB,recover
  await shot('monitor-erasure-receipt');
  await view.getByRole('button',{name:'Close receipt',exact:true}).click();await page.waitForURL(origin+'/app/monitors');assert.equal(await page.locator('.erasure-receipt').count(),0);
  console.log('Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, per-table receipt equal to storage and later backup.');
+}
+
+// A fresh installation keeps this navigation-heavy proof from consuming the
+// public asset budget of the existing People/keys journey. Both run in the
+// same operator-security registration, under the unchanged production limits.
+export async function proveMonitorStepUp(){
+ const directory=await mkdtemp(join(tmpdir(),'uptime-monitor-stepup-')),origin='http://localhost:15503',bindings={...testAuthBindings,UPTIME_ORIGIN:origin};let worker,browser;
+ try{
+  ({worker}=await migratedWorker({port:15503,persist:directory,bindings}));const DB=await worker.getD1Database('DB'),call=authRequest(origin),cookie=sessionCookie(await call('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'synthetic-uptime-stepup-owner'}));
+  assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);const factor=await completeSecondFactor(origin,cookie);
+  assert.equal((await call('/api/monitors',{name:'synthetic-uptime-retained',url:'https://example.com/',enabled:false},{cookie})).status,201);
+  browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});const context=await browser.newContext({viewport:{width:1440,height:1000},timezoneId:'UTC'}),[name,...parts]=cookie.split('=');await context.addCookies([{name,value:parts.join('='),url:origin}]);const page=await context.newPage();
+  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+  await proveImportEraseStepUp({page,origin,call,cookie,DB,recovery:factor.recoveryCodes});
+ }finally{await browser?.close();await worker?.dispose();await rm(directory,{recursive:true,force:true})}
 }
