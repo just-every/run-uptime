@@ -186,3 +186,8 @@
 .drill-schedule .webhook-pair { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .drill-schedule input, .drill-schedule select { min-width:0; max-width:100%; }
 @media(max-width:480px) { .drill-schedule .webhook-pair { grid-template-columns:minmax(0,1fr); } }
+
+/* Monitor receipts retain one compact row for every table in the stored receipt. */
+.erasure-receipt [data-erasure-table] { display: flex; justify-content: space-between; gap: 16px; padding-block: 5px; font-size: 14px; }
+.erasure-receipt [data-erasure-table] dt { min-width: 0; overflow-wrap: anywhere; }
+.erasure-receipt [data-erasure-table] dd { margin: 0; flex: none; font-variant-numeric: tabular-nums; }
