@@ -1,0 +1,9 @@
+{
+  "clone_cleanup_authorized": true,
+  "evidence_publish_preserved_product_head": true,
+  "product_checkout_clean": true,
+  "refs": {
+    "refs/heads/cloud/sd-uptime-c-f167": "3c3aa4c459d2688d6f6a7576b7658722db238012",
+    "refs/heads/evidence/sd-uptime-c-f167": "e54bfb17f99f188507b80b01b2b349553a9d1eee"
+  }
+}

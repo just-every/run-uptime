@@ -1,6 +1,12 @@
 {
   "files": [
     {
+      "blob": "1f57f43367ffb069715936aa8dad064a55059423",
+      "bytes": 313,
+      "path": "CUSTODY-CHECK.json",
+      "sha256": "364983f5b18cb7134a4ca6129b3ce32b1be33bfa26a92d2cc022955c5ae53862"
+    },
+    {
       "blob": "9594c897450a4c5f5838c3ce18e4720894362c41",
       "bytes": 1876,
       "path": "PLAN.md",
