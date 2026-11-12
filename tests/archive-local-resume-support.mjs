@@ -68,6 +68,7 @@ export async function proveLocalArchiveResume(source,installation){
   await writeFile(archive,bytes);
   const imported=await run(receiving,'import',archive).done;assert.equal(imported.code,0,'the interrupted local import resumes from the original archive');assert.equal(JSON.parse(imported.output.trim().split('\n').at(-1)).ok,true);
   const after=await inspect(receiving,product);assert.equal(after.monitors.length,120);assert.ok(after.monitors.every(m=>!JSON.parse(m.definition).enabled));assert.ok(after.observations.length>0);assert.ok(after.slots.every(s=>s.lease_owner==='restored-inactive'&&s.lease_until===0));
+  console.log('ARCHIVE_LOCAL_RESUME_RECEIPT '+JSON.stringify({schema:1,exportPhaseAtCrash:sourceJob.phase,exportPartsAtCrash:sourceJob.completed,importPhaseAtCrash:captured.phase,importPartsAtCrash:captured.completed,changedFileExit:changed.code,exportExit:resumed.code,importExit:imported.code,restoredMonitors:after.monitors.length,restoredObservations:after.observations.length,inactive:true,changedFileNoWrite:true}));
   console.log('PASS local archive interrupted-process resume: fsynced owner and installation checkpoints, original-file binding, no-write changed-file refusal and inactive completion');
  }finally{
   for(const child of children){try{process.kill(-child.pid,'SIGKILL')}catch(error){if(error.code!=='ESRCH')throw error}}

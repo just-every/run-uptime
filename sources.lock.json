@@ -588,7 +588,7 @@
       "executable": false
     },
     "docs/data.md": {
-      "sha256": "3cd77a382425c6ff61c24c2cce5c7dc6a59ca7b78410837359064d9f6686d93f",
+      "sha256": "bcb2907939181061bf04825abae5f63486a3e77cb92c0cc0694236ea08d3bd98",
       "executable": false
     },
     "docs/definitions.md": {
@@ -7064,7 +7064,7 @@
       "executable": false
     },
     "src/domain/archive-chunks.ts": {
-      "sha256": "32f503bec44eaccb8efe4397ffaac9b4605eecd8ddcf585e14467b55cd2089e5",
+      "sha256": "6dae5f7d8735d2a89a06c9fb25f9a9d5c95c9f055459eff025fb7cbe76bbe5bf",
       "executable": false
     },
     "src/domain/archive-definition-validation.ts": {
@@ -7112,7 +7112,7 @@
       "executable": false
     },
     "src/domain/archive-transfer.server.ts": {
-      "sha256": "558327cefe091a935bf943750867f8e4a85d7d0518ea4c4a9367f311c735a29d",
+      "sha256": "f2e305da3a4b1f4f4529d83f5618f3384d3005b7b5857e5a3db6e8b86d431d3a",
       "executable": false
     },
     "src/domain/archive-validation.ts": {
@@ -9064,7 +9064,7 @@
       "executable": false
     },
     "tests/archive-corruption-support.mjs": {
-      "sha256": "fe554547ef2bbd4c1fa5c9563d82b0189ade17396e59f491e407784ac19397ba",
+      "sha256": "116a1d7b9a48ba11ec3e30c036b605aa95188a101f003130e28386a1aafab3c8",
       "executable": false
     },
     "tests/archive-fixture.mjs": {
@@ -9072,11 +9072,11 @@
       "executable": false
     },
     "tests/archive-local-resume-support.mjs": {
-      "sha256": "f47adae71bce7269a84985ad5226aa908a64b55ac743deee6ecd2e7844f29e98",
+      "sha256": "32900f2382af78d5b9b7f13537e13db7bf3af5a2daae2845a9bae26fee933acc",
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
-      "sha256": "d0ade57768412273935c1e3d47788c1a39137ba0a837fdad79fefaf496725b4b",
+      "sha256": "44ee9bdf26e7a2e559098ab76e42ebd3cd5436fa4591a52c2f76537b9c901525",
       "executable": false
     },
     "tests/archive-selection-support.mjs": {
@@ -9084,7 +9084,7 @@
       "executable": false
     },
     "tests/archive-transfer-support.mjs": {
-      "sha256": "6b0104a213e47ad03611d98c9a59645f74c974d07868a2f6fe7b22bf4ac61e93",
+      "sha256": "4ee2af0f999282bd726eedbde491edb2cbe857e64069e518a180bfc2e0f28333",
       "executable": false
     },
     "tests/auth-test-support.mjs": {

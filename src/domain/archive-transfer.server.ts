@@ -31,9 +31,12 @@ export async function archiveTransfer(env:Bindings,request:Request){
  // Refuse foreign job handles before catalogue or any transfer state write.
  if(id){const row=await env.DB.prepare('SELECT actor,kind,metadata FROM rer_portability_jobs WHERE id=?').bind(id).first<{actor:string;kind:string;metadata:string}>();insist(row&&row.actor===actor&&row.kind===operation,'job_not_found',404);manifest=JSON.parse(row!.metadata).manifest}
  const body=async()=>{
+  // The existing erasure journal permits 100,000 digests. Creation and finalize
+  // must admit that journal independently of the bounded transport-part size.
+  const limit=request.method==='PUT'||action==='advance'?192*1024:8*1024*1024;
   const reader=request.body?.getReader();let text='',size=0;const decoder=new TextDecoder('utf-8',{fatal:true});
   if(!reader)return {};
-  try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;insist(size<=192*1024,'body_too_large',413);text+=decoder.decode(value,{stream:true})}text+=decoder.decode();const value=JSON.parse(text);insist(value&&typeof value==='object'&&!Array.isArray(value),'invalid_json');return value}finally{await reader.cancel();reader.releaseLock()}
+  try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;insist(size<=limit,'body_too_large',413);text+=decoder.decode(value,{stream:true})}text+=decoder.decode();const value=JSON.parse(text);insist(value&&typeof value==='object'&&!Array.isArray(value),'invalid_json');return value}finally{await reader.cancel();reader.releaseLock()}
  };
  if(collection==='exports'&&request.method==='GET'&&!id){
   const counts=await env.DB.batch(TABLES.map(name=>env.DB.prepare(`SELECT COUNT(*) n FROM ${name}`)));

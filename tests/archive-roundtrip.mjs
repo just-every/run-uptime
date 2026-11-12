@@ -13,7 +13,7 @@ async function installation(name){
  const bindings={...testAuthBindings,OWNER_EMAIL:name+'@example.test',SESSION_SECRET:crypto.randomUUID()+crypto.randomUUID(),SETUP_TOKEN:crypto.randomUUID(),UPTIME_RUNNER_KEY:crypto.randomUUID()+crypto.randomUUID()};
  let {worker,DB}=await migratedWorker({persist:join(directory,name),bindings});workers.push(worker);
  let origin=(await worker.ready).origin,owner=ownerAPI(origin);await owner.signIn(bindings);
- const ok=async(path,method='GET',body)=>{const response=await owner.api(path,method,body);assert.equal(response.status,200,JSON.stringify(response.data));return response.data};
+ const ok=async(path,method='GET',body)=>{const response=await owner.api(path,method,body);assert.equal(response.status,200,JSON.stringify(response.data).slice(0,400));return response.data};
  const site={worker,DB,bindings,owner,ok,persist:join(directory,name),async restart(){await worker.dispose();({worker,DB}=await migratedWorker({port:Number(new URL(origin).port),persist:join(directory,name),bindings}));workers.push(worker);origin=(await worker.ready).origin;owner=ownerAPI(origin);await owner.signIn(bindings);Object.assign(site,{worker,DB,owner})}};
  return site;
 }
