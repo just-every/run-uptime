@@ -41,7 +41,7 @@ Recorded 2026-11-12T12:27:20.233183+00:00. Repository: just-every/run-uptime. Ta
 
 ## CI and custody
 
-Exact-head Verify: https://github.com/just-every/run-uptime/actions/runs/43217811037 — initially queued on `ed5429192d18503c4c8caa8d797d82ffdcc78f54`; final state is recorded below when polling completes. No dispatch or rerun was requested.
+Exact-head Verify: https://github.com/just-every/run-uptime/actions/runs/43217811037 — completed/success on `ed5429192d18503c4c8caa8d797d82ffdcc78f54`, confirmed by the REST response in ci-final.json. No dispatch or rerun was requested.
 
 Product publication succeeded through the push guard. This is a release-metadata candidate, not a completed release. No main/default-branch push, tag creation, signing, provider deployment or GitHub Release publication was performed. The full-history publication scan is required on the guarded Mac lander and was not invoked in this cloud VM. Release production and readback remain follow-on fleet work; no RELEASED claim is made.
 
@@ -49,10 +49,14 @@ Actual evidence files are selected explicitly for `refs/heads/evidence/sd-uptime
 
 ## Blockers
 
-None identified for the metadata candidate. Exact-SHA CI is pending at this report checkpoint.
+None for this metadata candidate. Exact-SHA Verify completed successfully. The Mac lander still owns publication scanning and landing; producer/tag/signing/GitHub Release are subsequent release work.
 
 ## CI transport recovery checkpoint
 
 Verify was in progress at the first permitted poll. The second permitted poll returned HTTP 401 Bad credentials. The launcher was refreshed and the complete fleet Git setup repeated; credentials are reread from the same injected bundle, with no other credential sought. The next retry observes the five-minute CI interval. Product custody is already PUSHED at the reported SHA. No green conclusion is inferred from the earlier main runs.
 
 At 2026-11-12T12:41:52.485816+00:00, REST access recovered (call 7) using the same refreshed injected bundle. Verify remains in progress on the exact product SHA. Git remote lookup also succeeds. The first evidence checkpoint failed at ls-remote; a separate retry follows. No credential was substituted. A recovery bundle outside the clone was created and verified despite successful product push, to preserve an additional copy during the transient transport failure.
+
+## Terminal candidate receipt
+
+Confirmed 2026-11-12T12:46:44.688706+00:00. Exact-SHA Verify 43217811037: completed/success. 8 GitHub calls used of the ten-call budget. The metadata candidate is READY for guarded fleet landing. The complete selected packet is published separately through the evidence ref; its generated manifest records exact file hashes and this product SHA. Product clone and dependencies are removed after evidence publication and readback succeed.

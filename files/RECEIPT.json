@@ -2,7 +2,7 @@
   "schema": 1,
   "tag": "sd-uptime-release-0-5-8",
   "repository": "just-every/run-uptime",
-  "recorded_at": "2026-11-12T12:27:20.233183+00:00",
+  "recorded_at": "2026-11-12T12:46:44.688706+00:00",
   "product_branch": "cloud/sd-uptime-release-0-5-8",
   "product_head": "ed5429192d18503c4c8caa8d797d82ffdcc78f54",
   "base_head": "3da4c79633ac6703928e540a92689a14457b81c2",
@@ -14,8 +14,8 @@
   "verify": {
     "id": 43217811037,
     "head_sha": "ed5429192d18503c4c8caa8d797d82ffdcc78f54",
-    "status": "in_progress",
-    "conclusion": null,
+    "status": "completed",
+    "conclusion": "success",
     "html_url": "https://github.com/just-every/run-uptime/actions/runs/43217811037"
   },
   "local_checks": [
@@ -96,6 +96,9 @@
     "last_call": 6,
     "http_status": 401,
     "at": "2026-11-12T12:36:13.499360+00:00",
-    "recovery": "REST access recovered at call 7 with the refreshed injected bundle; exact-SHA Verify remains in progress"
-  }
+    "recovery": "Recovered with the refreshed injected bundle; final exact-SHA Verify completed/success at call 8"
+  },
+  "terminal_status": "READY",
+  "evidence_checkpoint": "First attempt failed at ls-remote; second attempt published 41735f19a2ea863e53db75d9065d68ea99885a4a; final publication appends complete terminal report",
+  "github_calls_used": 8
 }
