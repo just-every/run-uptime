@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {createPortability,readArchive} from '@runeditrun/rer/modules/portability';
 import {productPolicy} from '../scripts/local/transfer-policy.mjs';
+import {readChunkedArchive} from '../src/domain/archive-chunks.ts';
 import {fixture} from './resilience/support.mjs';
 
 export function assertStoredFailureHeaders(report,{observationId,trace,secrets}){
@@ -29,7 +30,7 @@ async function transfer(f){
  while((await service.exports.advance(id,{maxParts:16})).phase==='building'){}
  const records=[];for await(const record of readArchive(await service.exports.download(id)))records.push(record);
  const payload=records.filter(record=>record.kind==='part').flatMap(part=>part.items).filter(item=>item.kind==='payload'&&item.name==='uptime').sort((a,b)=>a.offset-b.offset);
- const archive=JSON.parse(Buffer.concat(payload.map(item=>Buffer.from(item.data,'base64'))).toString('utf8'));
+ const archive=await readChunkedArchive(new Response(Buffer.concat(payload.map(item=>Buffer.from(item.data,'base64')))).body);
  return {service,id,archive};
 }
 

@@ -19,14 +19,14 @@ const base='/api/archive-transfer';
 export async function archiveTransfer(env:Bindings,request:Request){
  const url=new URL(request.url),segments=url.pathname.slice(base.length+1).split('/'),[collection,id,action,index]=segments;
  const operation=collection==='exports'?'export':'import';
- insist(!url.search&&['exports','imports'].includes(collection)&&segments.length<=4,'route_not_found',404);
- insist(!id||/^[a-f0-9-]{36}$/.test(id),'job_not_found',404);
  const origin=env.UPTIME_ORIGIN??url.origin;
- if(request.headers.get('sec-fetch-site')==='cross-site'||request.headers.get('origin')&&request.headers.get('origin')!==origin)throw new PortabilityError('origin_refused',403);
- if(!['GET','HEAD'].includes(request.method))insist(request.headers.get('origin')===origin,'origin_refused',403);
  const authorityRequest=new Request(new URL(operation==='export'?'/api/archive':'/api/restore',origin),{method:operation==='export'?'GET':'POST',headers:request.headers});
  const authorize=()=>permission(env,authorityRequest);
  const access=await authorize(),actor=access.session.operator.id;
+ insist(!url.search&&['exports','imports'].includes(collection)&&segments.length<=4,'route_not_found',404);
+ insist(!id||/^[a-f0-9-]{36}$/.test(id),'job_not_found',404);
+ if(request.headers.get('sec-fetch-site')==='cross-site'||request.headers.get('origin')&&request.headers.get('origin')!==origin)throw new PortabilityError('origin_refused',403);
+ if(!['GET','HEAD'].includes(request.method))insist(request.headers.get('origin')===origin,'origin_refused',403);
  let manifest:any,laterJournal:any,jobId=id,selection:ArchiveSelection|undefined;
  // Refuse foreign job handles before catalogue or any transfer state write.
  if(id){const row=await env.DB.prepare('SELECT actor,kind,metadata FROM rer_portability_jobs WHERE id=?').bind(id).first<{actor:string;kind:string;metadata:string}>();insist(row&&row.actor===actor&&row.kind===operation,'job_not_found',404);manifest=JSON.parse(row!.metadata).manifest}
