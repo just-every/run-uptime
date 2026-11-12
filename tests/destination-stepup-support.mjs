@@ -1,4 +1,3 @@
-import {proveImportEraseStepUp} from './monitor-stepup-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -33,7 +32,6 @@ export async function proveDestinationStepUp({page,origin,call,cookie,DB}){
  await page.getByRole('button',{name:'Add destination',exact:true}).click();await destination.getByLabel('Email address',{exact:true}).fill('synthetic-uptime-resumed@example.test');await destination.getByRole('button',{name:'Create destination',exact:true}).click();await prompt.waitFor();assert.equal(await prompt.locator('[data-stepup-guidance]').textContent(),stale.stepUp.message);await prompt.getByLabel('Authenticator or recovery code',{exact:true}).fill('wrong-code');await prompt.getByRole('button',{name:'Verify code',exact:true}).click();await prompt.getByRole('status').filter({hasText:/code didn't match/}).waitFor();await shot('destination-needs-verification');
  await prompt.getByRole('button',{name:'Cancel',exact:true}).click();await prompt.waitFor({state:'detached'});await destination.getByRole('alert').filter({hasText:/cancelled/}).waitFor();assert.equal(await destination.getByLabel('Email address',{exact:true}).inputValue(),'synthetic-uptime-resumed@example.test');
  await destination.getByRole('button',{name:'Create destination',exact:true}).click();await prompt.waitFor();await prompt.getByLabel('Authenticator or recovery code',{exact:true}).fill(recovery.shift());await prompt.getByRole('button',{name:'Verify code',exact:true}).click();await destination.waitFor({state:'detached'});const all=await (await call('/api/notifications/destinations',undefined,{cookie})).json();assert.equal(all.filter(d=>d.address==='synthetic-uptime-resumed@example.test').length,1,'one destination created from the retained request');await shot('destination-created');
- await proveImportEraseStepUp({page,origin,call,cookie,DB,recovery});
  // Return to the existing suite's factorless baseline through the ordinary doors.
  for(const item of all)assert.equal((await fetch(origin+'/api/notifications/destinations/'+item.id,{method:'DELETE',headers:{origin,cookie}})).status,200);
  const state=await (await call('/api/access/mfa/status',undefined,{cookie})).json();for(const factor of state.factors)assert.equal((await fetch(origin+'/api/access/mfa/factors/'+factor.id,{method:'DELETE',headers:{origin,cookie}})).status,200);
