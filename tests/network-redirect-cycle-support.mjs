@@ -90,7 +90,9 @@ export async function proveNetworkRedirectCycle(){
   async function due(phase,expected){
    const before=await current();await sleep(Math.max(0,before.nextDue-Date.now()+20));
    const counts=traffic(),completed=completions.length;
+   const executionStartedAt=Date.now();
    await runner();
+   const executionCompletedAt=Date.now();
    assert.equal(completions.length,completed+1);
    const completion=completions.at(-1),task=claims.at(-1);
    assert.equal(completion.status,200,'signed redirect evidence passes native intake');
@@ -112,13 +114,15 @@ export async function proveNetworkRedirectCycle(){
     assert.deepEqual(observation.checks,[{assertion:'redirect',pass:false,reason:'Probe redirect check failed'}]);
     assert.ok(observation.durationMs<saved.timeoutMs,'hop exhaustion happens before the saved request timeout');
     assert.ok(observation.completedAt-observation.startedAt<saved.timeoutMs);
+    // Signed times use the runner's Worker-clock alignment; receiver times use this process's wall clock.
+    assert.ok(executionCompletedAt-executionStartedAt<saved.timeoutMs,'the entire signed run and native intake finish before the saved request timeout');
     assert.ok(received.length>wire[0].requests.length,'cycle actually follows more hops than the successful chain');
     assert.equal(received[0].path,'/entry');
     for(let index=0;index<received.length;index++){
      const row=received[index];assert.equal(row.status,302);
      if(index>0)assert.equal(row.path,received[index-1].location,'ordered receiver targets follow each prior redirect');
      assert.equal(row.location,row.path==='/cycle-a'?'/cycle-b':'/cycle-a');
-     assert.ok(row.at>=observation.startedAt&&row.at<=observation.completedAt);
+     assert.ok(row.at>=executionStartedAt&&row.at<=executionCompletedAt,'every receiver request occurs within the independently timed signed run');
     }
     assert.ok(received.some(row=>row.path==='/cycle-a')&&received.some(row=>row.path==='/cycle-b'));
    }else{
@@ -160,6 +164,9 @@ export async function proveNetworkRedirectCycle(){
   assert.equal(bridgeError,undefined);
   console.log('PASS redirect-cycle exhaustion: bounded redirect target failure, verified receiver counts and ordered targets, quiescence through restart, ordinary due recovery and immutable earlier evidence');
   if(process.env.UPTIME_REDIRECT_RECEIPT)await writeFile(process.env.UPTIME_REDIRECT_RECEIPT,JSON.stringify({journey:'proveNetworkRedirectCycle',revision,savedTimeoutMs:saved.timeoutMs,wire,quietWindows:2,quietWindowMs:saved.timeoutMs,stopped,history:await history(),incidents,definition:saved},null,2)+'\n');
+ }catch(error){
+  if(process.env.UPTIME_REDIRECT_RECEIPT)await writeFile(process.env.UPTIME_REDIRECT_RECEIPT,JSON.stringify({journey:'proveNetworkRedirectCycle',failure:error.message,completions,connections,handshakes,requests,canaries},null,2)+'\n');
+  throw error;
  }finally{
   await cleanup(async()=>{if(active){const ended=new Promise(resolve=>active.once('close',resolve));active.kill('SIGKILL');await ended}},[()=>close(control),()=>close(target),()=>close(canary)],()=>worker?.dispose(),()=>rm(directory,{recursive:true,force:true}));
  }
