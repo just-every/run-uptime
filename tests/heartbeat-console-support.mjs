@@ -103,3 +103,25 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   console.log('Heartbeat console passed: create, copy real URL/command, actual check-in, signed Healthy, grace, exact-deadline Failing and late recovery.');
  }finally{await context.close();await browser.close()}
 }
+
+// The same failure receipt is inspected through the operator's actual run-history control.
+export async function proveHeartbeatOutputRedaction({origin,cookie,id,output,planted,ordinary}){
+ const browser=await chromium.launch({headless:true,...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
+ const context=await browser.newContext({viewport:{width:1440,height:1000},ignoreHTTPSErrors:true});
+ try{
+  const separator=cookie.indexOf('=');await context.addCookies([{name:cookie.slice(0,separator),value:cookie.slice(separator+1),url:origin,httpOnly:true,secure:true,sameSite:'Lax'}]);
+  const page=await context.newPage();await page.goto(origin+`/app/monitors/${id}`);
+  if(new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'));await page.goto(origin+`/app/monitors/${id}`)}
+  const fold=page.locator('details#heartbeat');if(!await fold.evaluate(node=>node.open))await fold.locator(':scope > summary').click();
+  await page.getByRole('button',{name:'Load run history',exact:true}).click();
+  const history=page.locator('#heartbeat-run-history');await history.locator('pre').waitFor();
+  assert.equal(await history.locator('pre').textContent(),output,'the console displays the stored redacted output');
+  const text=await history.innerText();for(const secret of planted)assert.ok(!text.includes(secret),'the console withholds planted secrets');
+  for(const value of ordinary)assert.ok(text.includes(value),'the console preserves ordinary output');
+  if(process.env.UPTIME_HEARTBEAT_PROOF_DIR){
+   const directory=process.env.UPTIME_HEARTBEAT_PROOF_DIR;await mkdir(directory,{recursive:true});
+   for(const width of [1440,390]){await page.setViewportSize({width,height:width===390?844:1000});await history.screenshot({path:join(directory,`heartbeat-output-redacted-${width}.png`)})}
+   await writeFile(join(directory,'heartbeat-redaction.json'),JSON.stringify({journey:'signed-runner heartbeat failure output',result:'passed',assertionWidth:1440,proofWidths:[1440,390],providerKeys:planted.length-5,storedMasked:true,consoleMatchesStorage:true,ordinaryValuesPreserved:ordinary.length},null,2)+'\n');
+  }
+ }finally{await context.close();await browser.close()}
+}

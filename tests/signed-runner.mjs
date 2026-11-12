@@ -15,7 +15,7 @@ import {proveFreshResultSignature,assertRunnerAdmissionOnly} from './signed-runn
 import {proveImportedHeartbeatJobs} from './signed-runner-heartbeat-import.mjs';
 import {proveRunnerContact} from './signed-runner-contact.mjs';
 
-import {proveHeartbeatConsole} from './heartbeat-console-support.mjs';
+import {proveHeartbeatOutputRedaction,proveHeartbeatConsole} from './heartbeat-console-support.mjs';
 import {proveHeartbeatRevisionIsolation} from './signed-runner-heartbeat-revision.mjs';
 
 await proveRunnerContact();
@@ -160,8 +160,21 @@ try{
   events=(await api('/api/overview')).data.alerts.filter(a=>a.monitor_id===heartbeatId);
   assert.match(events.find(a=>a.kind==='recovery').event.explanation,/Late job success/);
   assert.ok(events.find(a=>a.kind==='recovery').event.incidentContext.downtimeSeconds>=0);
+  // Construct provider-shaped fixtures at runtime; no key-shaped literals enter source.
+  const providerKeys=[
+   ...['s','r','p'].flatMap(kind=>['live','test'].map(mode=>[kind+'k',mode,'Synthet1c'.repeat(4)].join('_'))),
+   ...['p','o','u','s','r'].map(kind=>'gh'+kind+'_'+'Synthet1c'.repeat(4)),
+   ['github','pat','Synthet1c'.repeat(4)].join('_'),
+   'AK'+'IA'+'SYNTHETICKEYABCD',
+   'sk'+'-'+'Synthet1c'.repeat(4),
+   ['ey'+'JSynthet1c','Synthet1c','Synthet1c'].join('.'),
+  ];
+  const ordinary=['backup task failed','deadbeef','a'+'4111'.repeat(4)+'b'.repeat(23),randomUUID(),['sk','test','short'].join('_'),['pk','live','word'].join('_')];
+  const planted=['planted-sensitive-token',issued.data.token,'synthetic-uptime-bearer','synthetic-uptime-password',...providerKeys];
+  const jobOutput=`Backup failed: disk full; token ${providerKeys.join(' ')}; Authorization: Bearer synthetic-uptime-bearer; password=synthetic-uptime-password; token=planted-sensitive-token private-word ${issued.data.token}; ${ordinary.join(' | ')}`;
+  const assertMasked=value=>{const text=typeof value==='string'?value:JSON.stringify(value);for(const [index,secret]of planted.entries())assert.ok(!text.includes(secret),`planted output secret ${index} is absent`)};
   const jobState=join(directory,'job-state');await mkdir(jobState,{mode:0o700});await writeFile(join(jobState,'sequence'),'3\n',{mode:0o600});
-  const wrapper=spawn('bash',['scripts/heartbeat/run-job.sh','bash','-c','printf "%s" "$JOB_TEST_OUTPUT"; exit 3'],{env:{...process.env,CURL_CA_BUNDLE:tls.caPath,UPTIME_HEARTBEAT_URL:origin+receiptPath,UPTIME_HEARTBEAT_TOKEN:issued.data.token,UPTIME_HEARTBEAT_STATE:jobState,JOB_TEST_OUTPUT:`token=planted-sensitive-token private-word ${issued.data.token}`},stdio:['ignore','pipe','pipe']});
+  const wrapper=spawn('bash',['scripts/heartbeat/run-job.sh','bash','-c','printf "%s" "$JOB_TEST_OUTPUT"; exit 3'],{env:{...process.env,CURL_CA_BUNDLE:tls.caPath,UPTIME_HEARTBEAT_URL:origin+receiptPath,UPTIME_HEARTBEAT_TOKEN:issued.data.token,UPTIME_HEARTBEAT_STATE:jobState,JOB_TEST_OUTPUT:jobOutput},stdio:['ignore','pipe','pipe']});
   let diagnostic='';wrapper.stdout.on('data',b=>diagnostic+=b);wrapper.stderr.on('data',b=>diagnostic+=b);
   assert.equal((await once(wrapper,'exit'))[0],3,`Bash wrapper preserves job exit (private diagnostic bytes ${diagnostic.length})`);
   assert.equal(await state(),'Healthy','failure ingress cannot open an incident');
@@ -175,6 +188,13 @@ try{
   await waitDue(heartbeatId);await runner();assert.equal(await state(),'Failing');
   const runs=(await api(`/api/monitors/${heartbeatId}/heartbeat-runs`)).data.runs;
   const failed=runs.find(r=>r.state==='fail');assert.equal(failed.exitCode,3);assert.ok(failed.durationMs>=0);assert.match(failed.output,/redacted/);assert.ok(!failed.output.includes('planted-sensitive-token')&&!failed.output.includes('private-word')&&!failed.output.includes(issued.data.token));
+  const stored=await db.prepare('SELECT output FROM heartbeat_runs WHERE id=?').bind(failed.id).first();
+  assert.equal(stored.output,failed.output);assertMasked(stored);
+  assert.ok(new TextEncoder().encode(stored.output).length<=1024);
+  for(const text of ordinary)assert.ok(stored.output.includes(text),'ordinary text and partial keys remain useful');
+  assertMasked((await api(`/api/monitors/${heartbeatId}/history`)).data);
+  assertMasked(await heartbeatRecords());
+  await proveHeartbeatOutputRedaction({origin,cookie,id:heartbeatId,output:failed.output,planted:[...planted,'private-word'],ordinary});
   assert.equal((await api(receiptPath+'/fail/3',{output:'x'.repeat(11000)},hheaders(6))).status,413);
   assert.equal((await api(receiptPath+'/fail/256',{},hheaders(6))).status,400);
   const lastSuccess=await api(receiptPath+'/success',{},hheaders(6));assert.equal(lastSuccess.status,200);await waitDue(heartbeatId);await runner();assert.equal(await state(),'Healthy');
@@ -185,10 +205,11 @@ try{
   assert.equal((await api(receiptPath+'/success',{},hheaders(7))).data.late,true);await waitDue(heartbeatId);await runner();assert.equal(await state(),'Healthy');
   const completeRuns=(await api(`/api/monitors/${heartbeatId}/heartbeat-runs`)).data.runs;
   const report=(await api(`/api/v1/monitors/${heartbeatId}/report?period=24h`)).data;
-  assert.deepEqual(report.jobRuns,completeRuns);
-  const csv=await api(`/api/v1/monitors/${heartbeatId}/report?period=24h&format=csv`);assert.equal(csv.status,200);assert.match(csv.data,/job_run/);
+  assert.deepEqual(report.jobRuns,completeRuns);assertMasked(report);
+  const csv=await api(`/api/v1/monitors/${heartbeatId}/report?period=24h&format=csv`);assert.equal(csv.status,200);assert.match(csv.data,/job_run/);assertMasked(csv.data);
   const exported=await api('/api/archive');assert.equal(exported.status,200,JSON.stringify(exported.data.error));
   assert.equal(exported.data.payload.productTables.heartbeat_runs.length,completeRuns.length);assert.ok(!JSON.stringify(exported.data).includes(issued.data.token));
+  assertMasked(exported.data);
   const sourceWorker=worker,sourceDb=db,sourceCookie=cookie,restoreDirectory=join(directory,'restored');await mkdir(restoreDirectory);
   worker=await emittedRunnerWorker(restoreDirectory,bindings);db=await worker.getD1Database('DB');
   try{
