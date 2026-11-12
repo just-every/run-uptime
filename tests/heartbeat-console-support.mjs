@@ -1,3 +1,4 @@
+import {definitionDoor} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -24,6 +25,17 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
  try{
   await page.goto(origin+'/app');
   if(new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'))}
+  // A documented import creates a digest-bearing internal ID; only opened integration instructions show it.
+  const fetcher=async(url,init)=>{const target=new URL(url),r=await api(target.pathname+target.search,init.body===undefined?undefined:JSON.parse(init.body),init.headers,init.method);return new Response(JSON.stringify(r.data),{status:r.status})};
+  const door=definitionDoor({origin,cookie,fetcher}),document={format:'uptime.monitors',version:5,monitors:[{name:'synthetic-uptime-801 nightly backup',type:'heartbeat',heartbeat:{maxAgeMs:300000},intervalMs:60000}]};
+  const plan=await door.preview(document);assert.equal(plan.status,200);const applied=await door.apply(plan.body);assert.equal(applied.status,200);const [importedId]=applied.body.created;
+  await page.goto(origin+'/app/monitors/'+encodeURIComponent(importedId));await page.locator('#monitor-detail-heading').waitFor();
+  assert.ok((await page.locator('.monitor-page-header').innerText()).includes(document.monitors[0].name));
+  assert.doesNotMatch(await page.locator('.monitor-page-header').innerText(),/[a-f0-9]{64}/i);
+  const heartbeat=page.locator('#heartbeat');if(!await heartbeat.evaluate(e=>e.open))await heartbeat.locator(':scope > summary').click();
+  assert.doesNotMatch(await heartbeat.innerText(),/[a-f0-9]{64}/i,'expanded heartbeat summary has no internal digest');
+  const integration=heartbeat.locator('.heartbeat-integration').first();await integration.locator('summary').click();assert.ok((await integration.innerText()).includes(importedId),'the receipt path remains available in integration instructions');await integration.locator('summary').click();
+  await shot('imported-job-summary');
   assert.equal((await api('/api/external-check',{url:'https://canary.runner-target.test/canary'})).status,200);
   await page.goto(origin+'/app/monitors');
   await page.getByRole('button',{name:'New monitor',exact:true}).click();
@@ -67,6 +79,9 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   assert.equal((await api(new URL(url).pathname,undefined,{cookie:''},'HEAD')).status,200);
   const posted=await api(new URL(url).pathname,{},{cookie:''},'POST');assert.equal(posted.status,200);assert.equal(posted.data.received,true);
   assert.equal(await state(id),'Unknown','ingress alone cannot establish Healthy');
+  const heartbeatRuns=page.locator('#heartbeat');if(!await heartbeatRuns.evaluate(e=>e.open))await heartbeatRuns.locator(':scope > summary').click();
+  await page.locator('#load-heartbeat-runs').click();await page.locator('.heartbeat-job-run').first().waitFor();assert.doesNotMatch(await page.locator('#heartbeat-run-history').innerText(),/\b(?:start|success|fail)\b|revision \d+/);
+
   await runner();assert.equal(await state(id),'Healthy');
   // Read the updated page without reloading: polling must keep its one-time URL.
   await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:15000});

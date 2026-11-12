@@ -1,4 +1,7 @@
 import {escape} from './console-format.js';
+import {deliveryLabel,simulatedDelivery,simulationNotice} from './delivery-chain.js';
+const runLabel=code=>({drill_queued:'Scheduled drill',destination_disabled:'Destination disabled',credential_rotated:'Credentials changed',credential_expired:'Credentials expired',credential_unavailable:'Credentials unavailable'})[code]??'Drill could not start';
+const confirmationLabel=state=>({confirmed:'Confirmed by recipient',missing:'Not confirmed in time',pending:'Waiting for confirmation'})[state]??'Confirmation unavailable';
 
 const dateFields=['windowStart','windowEnd','credentialExpiresAt'];
 const numberFields=['intervalMs','maxDrills','confirmationWaitMs','reminderIntervalMs','maxReminders'];
@@ -12,12 +15,12 @@ const describe=value=>typeof value==='object'?(value.text??JSON.stringify(value)
 const input=(name,label,type,attributes='')=>`<label>${label}<input form="drill-consent-fields" data-config="${name}" type="${type}" ${attributes}></label>`;
 const numeric=(name,label,min,max,value)=>input(name,label,'number',`min="${min}" ${max?`max="${max}"`:''} step="1" value="${value}"`);
 
-function runsMarkup(runs){
+function runsMarkup(runs,destination,notes){
  if(!runs.length)return '<p>No scheduled drills have run.</p>';
- return runs.map(run=>`<section class="drill-result" aria-label="Scheduled drill ${escape(run.code??run.id)}">
- <h4>${escape(run.code==='drill_queued'?'Scheduled drill':(run.code??'Drill').replaceAll('_',' '))}</h4><dl class="drill-lines">
- <div><dt>Provider</dt><dd>${escape(run.providerState??'Pending')}</dd></div>
- <div><dt>Recipient confirmation</dt><dd>${escape(describe(run.confirmation??'Pending'))}</dd></div>
+ return runs.map(run=>`<section class="drill-result" aria-label="Scheduled drill ${escape(runLabel(run.code))}">
+ <h4>${escape(runLabel(run.code))}</h4><dl class="drill-lines">
+ <div><dt>Provider</dt><dd>${escape(run.providerState==='not_sent'?'Not sent':simulatedDelivery({state:run.providerState,code:run.providerCode},notes)?simulationNotice(destination,notes):deliveryLabel(run.providerState))}</dd></div>
+ <div><dt>Recipient confirmation</dt><dd>${escape(confirmationLabel(run.confirmation))}</dd></div>
  </dl>${run.proposedRoute!=null?`<p>Suggested route correction: ${escape(describe(run.proposedRoute))}</p>`:''}
  ${run.proposedOncall!=null?`<p>Suggested Oncall escalation: ${escape(describe(run.proposedOncall))}</p>`:''}
  ${run.proposal==='open'?`<p>Suggestions await review. Recipients, secrets and phone settings stay under your control.</p><button type="button" class="secondary" data-decline="${escape(run.id)}">Decline proposal</button>`:run.proposal==='declined'?'<p>Proposal declined.</p>':''}
@@ -25,7 +28,7 @@ function runsMarkup(runs){
 }
 
 // These fields deliberately have no form owner: destination Save must not validate or submit consent configuration.
-export function mountDrillSchedule(form,{destination,api}){
+export function mountDrillSchedule(form,{destination,api,notes={}}){
  if(!destination)return;
  const panel=document.createElement('details');panel.className='latest-test drill-schedule';panel.style.fontSize='14px';
  panel.innerHTML=`<summary>Scheduled drills</summary><div style="display:grid;gap:14px;min-width:0">
@@ -55,9 +58,9 @@ export function mountDrillSchedule(form,{destination,api}){
  function render(data,fill){
   const consent=data.consent,schedule=data.schedule,active=consent&&consent.revokedAt==null;
   get('[data-status]').innerHTML=`<p>${consent?`${active?'Consent active':'Consent revoked'} · ID: <code>${escape(consent.id)}</code>`:'No consent saved.'}</p>${consent?`<p>Consent window: ${escape(when(consent.windowStart))} – ${escape(when(consent.windowEnd))}</p>`:''}
-  <p>${schedule?`Schedule: ${escape(schedule.state)} · Next due: ${escape(when(schedule.nextDue))} · Drills: ${escape(describe(schedule.drills))}`:'No schedule created.'}</p>`;
+  <p>${schedule?`Schedule: ${escape({active:'Active',complete:'Finished',cancelled:'Cancelled'}[schedule.state]??'Schedule status unavailable')} · Next due: ${escape(when(schedule.nextDue))} · Drills: ${escape(describe(schedule.drills))}`:'No schedule created.'}</p>`;
   get('[data-revoke]').hidden=!active;
-  get('[data-runs]').innerHTML=`<h3>Scheduled drill history</h3>${runsMarkup(data.runs)}`;
+  get('[data-runs]').innerHTML=`<h3>Scheduled drill history</h3>${runsMarkup(data.runs,destination,notes)}`;
   if(fill){
    for(const name of dateFields)field(name).value=localDate(consent?.[name]);
    for(const name of numberFields)if(consent)field(name).value=consent[name];

@@ -51,7 +51,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  // Spend the real reminder interval in browser inspection, then finish any remaining wait.
  await completeSecondFactor(origin,cookie);
  assert.equal((await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie}})).status,303);
- const browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});
+ const browser=await chromium.launch({headless:true,...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
  const context=await browser.newContext(),[name,...value]=cookie.split('=');await context.addCookies([{name,value:value.join('='),url:origin}]);
  const page=await context.newPage(),output=process.env.UPTIME_AGENT_DRILL_PROOF_DIR??join(directory,'drill-screens');await mkdir(output,{recursive:true});
  const axe=await readFile(createRequire(import.meta.url).resolve('axe-core/axe.min.js'),'utf8');
@@ -65,6 +65,8 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  }
  try{
   await page.setViewportSize({width:1440,height:1000});await open(first);
+  assert.doesNotMatch(await page.locator('[data-status]').innerText(),/\bactive\b/,'schedule state is translated');
+  assert.doesNotMatch(await page.locator('[data-runs]').innerText(),/\baccepted\b|\bdrill_queued\b/,'provider state and run codes are translated');
   await page.locator('[data-save]').click();await page.locator('[data-error]').getByText(/Explicit company consent/).waitFor();assert.equal((await read(first)).consent.id,consent.id);
   await page.evaluate(axe);const violations=await page.evaluate(()=>axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}}));assert.deepEqual(violations.violations.filter(v=>['serious','critical'].includes(v.impact)).map(v=>v.id),[]);
   await page.locator('[data-refresh]').click();await capture('consented-drill-1440');
@@ -77,7 +79,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
   await open(first);await page.getByRole('button',{name:'Decline proposal',exact:true}).click();await page.getByText('Proposal declined.',{exact:true}).first().waitFor();
   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await capture('declined-route-'+width)}
   await page.getByRole('button',{name:'Cancel',exact:true}).click();
-  await open(expired);for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await capture('expired-route-'+width)}
+  await open(expired);assert.ok(!(await page.locator('[data-runs]').innerText()).includes(expiredView.runs[0].code),'a refused drill explains its reason without the raw code');for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await capture('expired-route-'+width)}
   await page.getByRole('button',{name:'Cancel',exact:true}).click();await tick();await tick();
   assert.equal((await read(first)).runs[0].proposal,'declined');assert.equal((await read(first)).runs[0].reminders.length,1);
   assert.deepEqual((await db.prepare('SELECT id FROM notification_jobs ORDER BY id').all()).results,jobs,'declining creates no outbound job or new recipient');assert.deepEqual((await db.prepare('SELECT id FROM notification_credentials ORDER BY id').all()).results,credentials,'declining rotates no secret');assert.equal(mailFor(71).length,1);assert.equal(mailFor(72).length,0);assert.equal(mailFor(74).length,0,'the proposed replacement recipient is never contacted');

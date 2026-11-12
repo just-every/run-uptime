@@ -1,3 +1,5 @@
+import {proveAlertPresentation} from './alert-presentation-support.mjs';
+import {startLocalWorker as startNativeWorker} from '../scripts/local-worker.mjs';
 import {agentDrillJourney} from './agent-drill-journey.mjs';
 // DRILL-001: an alert drill is a labelled test send whose recipient can report receipt once, by POST, through a
 // one-time link. Real Worker/D1 and the production runner; fakes only at the SendGrid, webhook and Slack edges.
@@ -17,7 +19,7 @@ const canaryHost='93.184.216.35',canaryUrl=`http://${canaryHost}:${fixturePort}/
 const bindings={...testAuthBindings,UPTIME_RUNNER_KEY:key,UPTIME_SYNTHETIC_PORT:String(fixturePort),MAIL_PROVIDER:'sendgrid',MAIL_FROM:'qa-sender@example.com',SENDGRID_API_KEY:'synthetic-alert-drill-provider-key-local-only'};
 const secrets=[bindings.SETUP_TOKEN,bindings.SESSION_SECRET,key,bindings.SENDGRID_API_KEY,slackUrl],capabilities=[],runnerLogs=[],receivers=[];
 const originalConsoleError=console.error;console.error=(...values)=>runnerLogs.push(values.map(String).join(' '));
-const transport=loopbackWireTransport(new Map([[webhookUrl,{port:webhookPort,path:'/receiver'}],[slackUrl,{port:slackPort,path:'/slack'}]])),{api,signIn}=ownerAPI(origin);
+const transport=loopbackWireTransport(new Map([[webhookUrl,{port:webhookPort,path:'/receiver'}],[slackUrl,{port:slackPort,path:'/slack'}]])),owner=ownerAPI(origin),{api,signIn}=owner;
 let worker,DB,fixture,restoreWorker,webhookDestination;
 const ok=async(path,method='GET',body)=>{const result=await api(path,method,body);assert.ok(result.status>=200&&result.status<300,`${method} ${path}: ${result.status} ${JSON.stringify(result.data)}`);return result.data};
 const destination=async id=>(await ok('/api/notifications')).destinations.find(d=>d.id===id);
@@ -157,6 +159,17 @@ try{
   assertNoSecrets(runnerLogs,'runner logs');assertNoSecrets(fixture.getLogs(),'fixture logs');
   for(const receiver of receivers)receiver.assertValid();
  }
+ // The same real drill and incident sends in development are simulations, never recipient receipt.
+ await proveAlertPresentation({origin,cookie:owner.cookie,notes:await ok('/api/notifications'),mode:'hosted',destinationId:email.id});
+ await worker.dispose();
+ worker=await startNativeWorker({port:controlPort,persist:join(directory,'worker'),bindings:{...bindings,MAIL_PROVIDER:'development'},cf:{}});
+ await ok(`/api/notifications/destinations/${email.id}/drill`,'POST',{});await runOnce();
+ for(const [mode,state] of [['failing','Failing'],['healthy','Healthy']]){
+  assert.equal((await fetch(`http://127.0.0.1:${fixturePort}/control`,{method:'POST',body:JSON.stringify({mode})})).status,200);
+  await waitFor(async()=>{await runOnce();return (await ok('/api/overview')).monitors.find(m=>m.id===monitor.id)?.state.state===state},`development practice ${state}`);
+ }
+ await runOnce();
+ await proveAlertPresentation({origin,cookie:owner.cookie,notes:await ok('/api/notifications'),mode:'development',destinationId:email.id});
  // a restored destination is never proven and its drill history does not replay
  {
   const archive=await ok('/api/archive'),restoredOrigin=`http://127.0.0.1:${restorePort}`,restored=ownerAPI(restoredOrigin);
@@ -164,6 +177,7 @@ try{
   await restored.signIn(bindings);assert.equal((await restored.api('/api/restore','POST',archive)).status,200);
   const notes=(await restored.api('/api/notifications')).data,inbox=notes.destinations.find(d=>d.kind==='email');
   assert.ok(inbox);assert.equal(inbox.proof.state,'never');assert.equal(inbox.latestDrill,null);
+  await proveAlertPresentation({origin:restoredOrigin,cookie:restored.cookie,notes,mode:'imported',destinationId:inbox.id});
   const sent=counts();await runRunner({origin:restoredOrigin,key,grantPath,localReview:true,transport,once:true});assert.deepEqual(counts(),sent);
  }
  // erasing a destination removes its drill rows
