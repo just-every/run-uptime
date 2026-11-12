@@ -1,0 +1,17 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+(node:4219) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PROBE SURFACE-004 comment-delete-2026-07-28-autonomous: MCP explicit saved comment and version -> standard + destructive measure 1, incident target, one tombstone, no text or edit history, replay unchanged; stale and mismatched references refuse
+PROBE SURFACE-004 comment-delete-2026-07-28-held: MCP explicit saved comment and version -> standard + destructive measure 1, incident target, one tombstone, no text or edit history, replay unchanged; stale and mismatched references refuse
+PROBE SURFACE-004 comment-delete-2025-11-25-autonomous: MCP explicit saved comment and version -> standard + destructive measure 1, incident target, one tombstone, no text or edit history, replay unchanged; stale and mismatched references refuse
+PROBE SURFACE-004 comment-delete-2025-11-25-held: MCP explicit saved comment and version -> standard + destructive measure 1, incident target, one tombstone, no text or edit history, replay unchanged; stale and mismatched references refuse
+PROBE SURFACE-004 native-authority: responder own deletion -> allowed; foreign author, out-of-scope replay and read-only replay -> refused unchanged; administrator deletion -> allowed
+PROBE SURFACE-004 approval-version: named native approval after owner edit -> revision_conflict, newer text and history unchanged
+PROBE SURFACE-004 comment-edit-2026-07-28-autonomous: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2026-07-28-held: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2025-11-25-autonomous: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2025-11-25-held: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-authority: genuine named approval -> one edit; newer native edit -> stale approval refused; responder own edit and administrator foreign edit -> allowed; foreign author and narrowed replay -> refused unchanged; zero provider traffic
+PASS exact-candidate native MCP add, deletion and mention-free editing through Worker and D1

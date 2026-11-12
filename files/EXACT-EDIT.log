@@ -1,0 +1,11 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+(node:4120) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PROBE SURFACE-004 comment-edit-2026-07-28-autonomous: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2026-07-28-held: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2025-11-25-autonomous: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-2025-11-25-held: standard edit with destructive blocked -> one native edit and history revision, attributable timeline, effect-free replay; stale, foreign, deleted and malformed targets refused with unrelated durable state preserved
+PROBE SURFACE-004 comment-edit-authority: genuine named approval -> one edit; newer native edit -> stale approval refused; responder own edit and administrator foreign edit -> allowed; foreign author and narrowed replay -> refused unchanged; zero provider traffic
+PASS focused mention-free MCP comment editing through native Worker and D1

@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "head": "923b17846cfbce74cbcb8f4945967b1d7621fb9a",
+  "run_id": 43275815120,
+  "event": "push",
+  "run": {
+    "conclusion": "failure",
+    "head_sha": "923b17846cfbce74cbcb8f4945967b1d7621fb9a",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43275815120",
+    "status": "completed"
+  },
+  "jobs": [
+    {
+      "conclusion": "success",
+      "id": 131383783164,
+      "name": "plan",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "success",
+      "id": 131383894783,
+      "name": "prepare",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "failure",
+      "id": 131383894790,
+      "name": "build",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "failure",
+          "name": "Run node src/base/contract-docs.mjs check",
+          "number": 9
+        }
+      ]
+    },
+    {
+      "conclusion": "skipped",
+      "id": 131383898404,
+      "name": "light",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "skipped",
+      "id": 131384084777,
+      "name": "shards (${{ matrix.name }})",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "skipped",
+      "id": 131384085098,
+      "name": "nightly-proof",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "failure",
+      "id": 131384264405,
+      "name": "verify",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "failure",
+          "name": "Require the selected coverage and its proof",
+          "number": 2
+        }
+      ]
+    },
+    {
+      "conclusion": "skipped",
+      "id": 131384267074,
+      "name": "full-push-proof",
+      "status": "completed",
+      "steps": []
+    }
+  ],
+  "classification": "generated-view-only failure; accepted cloud handoff exception",
+  "failure": "ACCEPTANCE.md: generated content differs; run contract-docs write.",
+  "failed_jobs": [
+    131383894790,
+    131384264405
+  ],
+  "failed_job_log_commands": [
+    "gh run view 43275815120 --repo just-every/run-uptime --job 131383894790 --log-failed",
+    "gh run view 43275815120 --repo just-every/run-uptime --job 131384264405 --log-failed"
+  ],
+  "failed_job_log_command_exits": [
+    0,
+    0
+  ],
+  "api_calls": 6,
+  "polls_for_candidate": 2,
+  "poll_interval_seconds_at_least": 300,
+  "dispatches": 0,
+  "reruns": 0,
+  "application_shards": "skipped after generated-view failure",
+  "actual_green_verify": false,
+  "candidate_run_site": "not run; guarded lander responsibility"
+}

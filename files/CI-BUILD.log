@@ -1,0 +1,8 @@
+build	Run node src/base/contract-docs.mjs check	﻿2026-11-12T18:03:44.4792437Z ##[group]Run node src/base/contract-docs.mjs check
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:44.4792590Z node src/base/contract-docs.mjs check
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:44.4809982Z shell: /usr/bin/bash -e {0}
+[Environment block omitted from public packet.]
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:44.4810549Z ##[endgroup]
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:44.5519919Z Contract prose: 0 errors, 0 warnings.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:44.6000409Z ACCEPTANCE.md: generated content differs; run contract-docs write.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:44.6097534Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "tag": "sd-uptime-c-f166",
+  "repository": "just-every/run-uptime",
+  "base": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+  "commands": [
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "npx -y @runeditrun/rer check --profile first-party",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run spec:check",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check (after write, before restoring generated views)",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "cloud_run timeout 1200 node /home/agent/rer-consolidation/work/sd-uptime-c-f166/probe/agent-comment-edit.mjs (public-door bootstrap, invokes committed proveCommentEditing helper)",
+      "exit": 0
+    },
+    {
+      "command": "node tests/agent-door.mjs (candidate emitted Worker)",
+      "exit": 1,
+      "failure": "proveDestinationNameEffects at tests/agent-destination-name-support.mjs:88:17: true !== false; before new edit continuation"
+    },
+    {
+      "command": "node tests/agent-door.mjs (unchanged main emitted Worker, same runner)",
+      "exit": 1,
+      "failure": "proveDestinationNameEffects at tests/agent-destination-name-support.mjs:20:15: native /api/notifications/destinations HTTP 403; before new edit continuation"
+    }
+  ],
+  "status_rows_unchanged": true,
+  "generated_views_restored": true,
+  "journey_commands_before": 47,
+  "journey_commands_after": 47,
+  "helper_mounts": 1,
+  "migration_ledger": "not applicable; no migrations changed",
+  "files": {
+    "CONTRACT.md": "bb4d2745a39039d4e049faf601ca4fbb86be36af1990b0e21cbf8a28b4a12cbd",
+    "src/agent-door/incident-notes.server.ts": "e77bc43d0e668fcb4e7adf45d8e92662627142a3e29098f23806edd35f615060",
+    "src/agent-door/registry.server.ts": "6578c35bd9c9d1f7cab33ee7ba93fe2ec4271d20c0f74316be5b3ad63f93c3e8",
+    "tests/agent-door.mjs": "b0a4e5c5cdb45a2285973f382022be8e87b95406bc172df4edaa2cd7b40b6100",
+    "tests/agent-comment-edit-support.mjs": "113a7800d170fa29f4dfd4369a8ea320f5ec4970388d8a229b1587c6d2c6ed58",
+    "sources.lock.json": "04944bca10dd8f1a6507344eb9c8965f416c96f488a8c9fd6688e0777f72e67c"
+  },
+  "head": "923b17846cfbce74cbcb8f4945967b1d7621fb9a",
+  "exact_edit_probe": {
+    "head": "923b17846cfbce74cbcb8f4945967b1d7621fb9a",
+    "command": "cloud_run timeout 1200 node /home/agent/rer-consolidation/work/sd-uptime-c-f166/probe/agent-comment-edit.mjs",
+    "exit": 0,
+    "log": "EXACT-EDIT.log",
+    "provider_requests": 0,
+    "helper_sha256": "113a7800d170fa29f4dfd4369a8ea320f5ec4970388d8a229b1587c6d2c6ed58"
+  },
+  "ci_api_calls": 6,
+  "ci_receipt": "CI-RECEIPT.json",
+  "combined_comments_probe": {
+    "head": "923b17846cfbce74cbcb8f4945967b1d7621fb9a",
+    "command": "cloud_run timeout 1200 node /home/agent/rer-consolidation/work/sd-uptime-c-f166/probe/agent-comments.mjs",
+    "log": "EXACT-COMMENTS.log",
+    "assertions": "terminal PASS after existing add and deletion helper, new edit helper and browser checks",
+    "exit": null,
+    "exit_note": "process session receipt unavailable after environment reconnect; terminal assertion PASS is preserved; independent exact edit process exit 0 is established",
+    "provider_requests": 0
+  }
+}

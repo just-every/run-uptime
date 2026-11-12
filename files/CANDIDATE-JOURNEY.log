@@ -1,0 +1,107 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+(node:1998) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PROBE SURFACE-005 acceptance-5-first-call: first MCP monitor rename before policy -> policy_unset, canonical installation setup_url, no success or pending execution, no provider traffic; 222 durable tables unchanged, only agent identity admission and refusal audit added
+PASS SURFACE-005 first-call refusal and unchanged native state; the identical authorized rename completes once policy is adopted
+PROBE BASE-AGENT-012 acceptance-4-stale-autonomous-2026-07-28: owner name edit and independent revision read; MCP current version with stale expected_revision and fresh explicit key -> revision_conflict current_revision=2 in metadata and error text, no receipts or traffic; all 225 durable tables retain exact rows except one admission and one refusal audit with relay and sequences
+PROBE BASE-AGENT-012 acceptance-4-current-autonomous-2026-07-28: matching native expected revision -> autonomous, exactly one paused name edit and one immutable revision, no approval wait or traffic
+PROBE BASE-AGENT-012 acceptance-4-stale-autonomous-2025-11-25: owner name edit and independent revision read; MCP current version with stale expected_revision and fresh explicit key -> revision_conflict current_revision=2 in metadata and error text, no receipts or traffic; all 225 durable tables retain exact rows except one admission and one refusal audit with relay and sequences
+PROBE BASE-AGENT-012 acceptance-4-current-autonomous-2025-11-25: matching native expected revision -> autonomous, exactly one paused name edit and one immutable revision, no approval wait or traffic
+PROBE BASE-AGENT-012 acceptance-4-stale-held-2026-07-28: owner name edit and independent revision read; MCP current version with stale expected_revision and fresh explicit key -> revision_conflict current_revision=2 in metadata and error text, no receipts or traffic; all 225 durable tables retain exact rows except one admission and one refusal audit with relay and sequences
+PROBE BASE-AGENT-012 acceptance-4-current-held-2026-07-28: matching native expected revision -> review, exactly one paused name edit and one immutable revision, no approval wait or traffic
+PROBE BASE-AGENT-012 acceptance-4-stale-held-2025-11-25: owner name edit and independent revision read; MCP current version with stale expected_revision and fresh explicit key -> revision_conflict current_revision=2 in metadata and error text, no receipts or traffic; all 225 durable tables retain exact rows except one admission and one refusal audit with relay and sequences
+PROBE BASE-AGENT-012 acceptance-4-current-held-2025-11-25: matching native expected revision -> review, exactly one paused name edit and one immutable revision, no approval wait or traffic
+PASS BASE-AGENT-012 independently observed current revision in stale expected-revision refusals under both policies and both MCP versions
+PROBE BASE-AGENT-008 acceptance-3-form-2026-07-28: agent-only MCP form accept with exact key and returned state -> original pending approval, no receipt or native effect; all 225 durable tables match except one admission counter, replay audit and sequence; zero runner or provider traffic
+PROBE BASE-AGENT-008 acceptance-3-person-2026-07-28: named sponsor native approval of exact saved revision -> one pause, person approver and agent preparer receipt
+PROBE BASE-AGENT-008 acceptance-3-form-2025-11-25: agent-only MCP form accept with exact key and returned state -> original pending approval, no receipt or native effect; all 225 durable tables match except one admission counter, replay audit and sequence; zero runner or provider traffic
+PROBE BASE-AGENT-008 acceptance-3-person-2025-11-25: named sponsor native approval of exact saved revision -> one pause, person approver and agent preparer receipt
+PROBE BASE-AGENT-008 acceptance-3-autonomous-2026-07-28: ordinary MCP pause -> one revision without an approval requirement
+PROBE BASE-AGENT-008 acceptance-3-autonomous-2025-11-25: ordinary MCP pause -> one revision without an approval requirement
+PASS BASE-AGENT-008 synchronous form accept cannot approve; native person approval, ordinary autonomous pause and effect-free replay in both protocol versions
+PROBE BASE-AGENT-007 acceptance-5-rejected-2026-07-28: named native person rejects saved pause revision; identical arguments and key with fresh RPC ids -> approval_rejected twice, no execution receipt or second approval, enabled original revision; all 225 durable tables match enumerated decision and audit deltas; zero runner or provider traffic
+PROBE BASE-AGENT-007 acceptance-5-controls-2026-07-28: distinct genuine held approval and autonomous calls -> each pauses its own enabled monitor exactly once; original rejected monitor stays enabled; zero runner or provider traffic
+PROBE BASE-AGENT-007 acceptance-5-rejected-2025-11-25: named native person rejects saved pause revision; identical arguments and key with fresh RPC ids -> approval_rejected twice, no execution receipt or second approval, enabled original revision; all 225 durable tables match enumerated decision and audit deltas; zero runner or provider traffic
+PROBE BASE-AGENT-007 acceptance-5-controls-2025-11-25: distinct genuine held approval and autonomous calls -> each pauses its own enabled monitor exactly once; original rejected monitor stays enabled; zero runner or provider traffic
+PASS BASE-AGENT-007 synchronous pause rejection, complete durable preservation and independent actionable controls in both supported protocols
+PROBE SURFACE-004 role-widen: MCP native member update -> access measure=1 direction=widens; operator audit correlated
+PROBE SURFACE-004 role-narrow: MCP native member update -> access measure=1 direction=narrows; operator audit correlated
+PROBE SURFACE-004 service-broaden: MCP native member update -> access measure=1 direction=widens; operator audit correlated
+PROBE SURFACE-004 service-narrow: MCP native member update -> access measure=1 direction=narrows; operator audit correlated
+PROBE SURFACE-004 team-broaden: MCP native member update -> access measure=1 direction=widens; operator audit correlated
+PROBE SURFACE-004 team-narrow: MCP native member update -> access measure=1 direction=narrows; operator audit correlated
+PROBE SURFACE-004 workspace-broaden: MCP native member update -> access measure=1 direction=widens; operator audit correlated
+PROBE SURFACE-004 workspace-narrow: MCP native member update -> access measure=1 direction=narrows; operator audit correlated
+PROBE SURFACE-004 direction-policy: MCP widening held without writes; unnamed approval refused; narrowing autonomous; named native approval executes once
+PROBE SURFACE-004 current-version: native assignment changed during held MCP widening -> revision_conflict and no overwrite
+PASS SURFACE-004 native member role and service and team scope facts, current versions, native proof and direction-selective policy
+PROBE BASE-AGENT-001 acceptance-6 autonomous 2026-07-28 declared: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart autonomous 2026-07-28 declared: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, autonomous
+PROBE BASE-AGENT-001 acceptance-6 autonomous 2026-07-28 streamed: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart autonomous 2026-07-28 streamed: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, autonomous
+PROBE BASE-AGENT-001 acceptance-6 autonomous 2025-11-25 declared: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart autonomous 2025-11-25 declared: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, autonomous
+PROBE BASE-AGENT-001 acceptance-6 autonomous 2025-11-25 streamed: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart autonomous 2025-11-25 streamed: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, autonomous
+PROBE BASE-AGENT-001 acceptance-6 held 2026-07-28 declared: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart held 2026-07-28 declared: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, review
+PROBE BASE-AGENT-001 acceptance-6 held 2026-07-28 streamed: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart held 2026-07-28 streamed: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, review
+PROBE BASE-AGENT-001 acceptance-6 held 2025-11-25 declared: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart held 2025-11-25 declared: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, review
+PROBE BASE-AGENT-001 acceptance-6 held 2025-11-25 streamed: paused native name update at maxBodyBytes+1 -> 413, no result, zero provider traffic, 224 durable tables exact, public-admission delta=0
+PROBE BASE-AGENT-001 acceptance-6 counterpart held 2025-11-25 streamed: identical envelope at maxBodyBytes -> one native revision, saved name, still paused, review
+PASS BASE-AGENT-001 oversized native mutation has no effect under both policies, both protocol versions and declared or streamed body crossings
+PASS BASE-AGENT-009.uptime.complete-artifact-map (10 tables, every column)
+PROBE BASE-AGENT-006 acceptance-3-autonomous-2026-07-28: fresh MCP pause controls and class, live, internal and confirmation claims -> unchanged live measure=1 and native service, rule and target; one pause revision and exact-key replay without another effect; zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-autonomous-2025-11-25: fresh MCP pause controls and class, live, internal and confirmation claims -> unchanged live measure=1 and native service, rule and target; one pause revision and exact-key replay without another effect; zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-held-2026-07-28: fresh MCP pause controls and class, live, internal and confirmation claims -> unchanged live measure=1 and native service, rule and target; native pending approval with modern input_required, unchanged durable native state and saved approval until named person approves; one pause revision and exact-key replay without another effect; zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-held-2025-11-25: fresh MCP pause controls and class, live, internal and confirmation claims -> unchanged live measure=1 and native service, rule and target; native pending approval with modern input_required, unchanged durable native state and saved approval until named person approves; one pause revision and exact-key replay without another effect; zero runner or provider traffic
+PASS BASE-AGENT-006 fresh synchronous pause argument claims under both policies and protocol versions; other tools, record text and lifecycle families remain unqualified
+PROBE BASE-AGENT-006 acceptance-3-record-name-autonomous-2026-07-28: MCP reads exact clean and standard, paused, internal and confirmation names, then fresh ordinary pause -> live measure 1 and native service, unchanged rule and target; one target revision, effect-free exact-key replay, every unrelated durable record preserved and zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-record-name-autonomous-2025-11-25: MCP reads exact clean and standard, paused, internal and confirmation names, then fresh ordinary pause -> live measure 1 and native service, unchanged rule and target; one target revision, effect-free exact-key replay, every unrelated durable record preserved and zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-record-name-held-2026-07-28: MCP reads exact clean and standard, paused, internal and confirmation names, then fresh ordinary pause -> live measure 1 and native service, unchanged rule and target; canonical pending approval and saved arguments and summary unchanged until actual sponsor approval; one target revision, effect-free exact-key replay, every unrelated durable record preserved and zero runner or provider traffic
+PROBE BASE-AGENT-006 acceptance-3-record-name-held-2025-11-25: MCP reads exact clean and standard, paused, internal and confirmation names, then fresh ordinary pause -> live measure 1 and native service, unchanged rule and target; canonical pending approval and saved arguments and summary unchanged until actual sponsor approval; one target revision, effect-free exact-key replay, every unrelated durable record preserved and zero runner or provider traffic
+PASS BASE-AGENT-006 saved monitor-name record claims; other record-text cells and tools remain unqualified
+PROBE BASE-AGENT-005 acceptance-4-allowed-autonomous-2026-07-28: MCP native member grant -> missing proof refused, valid native proof grant access
+PROBE BASE-AGENT-005 acceptance-4-self-autonomous-2026-07-28: owner-sponsored MCP self-grant with fresh explicit key and native proof -> self_escalation, no success or pending work, zero provider traffic; all 225 durable tables preserve exact rows except one admission count and one refusal audit with its sequence
+PROBE BASE-AGENT-005 acceptance-4-allowed-autonomous-2025-11-25: MCP native member grant -> missing proof refused, valid native proof grant access
+PROBE BASE-AGENT-005 acceptance-4-self-autonomous-2025-11-25: owner-sponsored MCP self-grant with fresh explicit key and native proof -> self_escalation, no success or pending work, zero provider traffic; all 225 durable tables preserve exact rows except one admission count and one refusal audit with its sequence
+PROBE BASE-AGENT-005 acceptance-4-allowed-held-2026-07-28: MCP native member grant -> missing proof refused, valid native proof and signed-in sponsor approval grant access
+PROBE BASE-AGENT-005 acceptance-4-self-held-2026-07-28: owner-sponsored MCP self-grant with fresh explicit key and native proof -> self_escalation, no success or pending work, zero provider traffic; all 225 durable tables preserve exact rows except one admission count and one refusal audit with its sequence
+PROBE BASE-AGENT-005 acceptance-4-allowed-held-2025-11-25: MCP native member grant -> missing proof refused, valid native proof and signed-in sponsor approval grant access
+PROBE BASE-AGENT-005 acceptance-4-self-held-2025-11-25: owner-sponsored MCP self-grant with fresh explicit key and native proof -> self_escalation, no success or pending work, zero provider traffic; all 225 durable tables preserve exact rows except one admission count and one refusal audit with its sequence
+PASS BASE-AGENT-005 synchronous self-grant refusal and complete durable-state preservation under both policies and both MCP versions
+AGENT-SURFACE-DISCOVERY passed: both native protocol eras, exact current contract registry/classes/clauses, all declared unauthorized invocations preserve complete durable state.
+PROBE BASE-AGENT-009 acceptance-6-autonomous: private MCP monitor read then native owner revoke -> complete historical audit and identity unchanged, inventory revoked, same unexpired bearer <REDACTED> list 401; 224 durable tables compared, only intended revoked flag changed, no provider or mail effects
+PROBE BASE-AGENT-009 acceptance-6-held: private MCP monitor read then native owner revoke -> complete historical audit and identity unchanged, inventory revoked, same unexpired bearer <REDACTED> list 401; 224 durable tables compared, only intended revoked flag changed, no provider or mail effects
+PASS BASE-AGENT-005.uptime.evidence-self-escalation
+PASS BASE-AGENT-subset.uptime.core-declaration-and-refusals
+PROBE SURFACE-002 paused-name: MCP update under live-blocked policy -> standard, one native revision, exact-key replay and stale refusal
+PROBE SURFACE-002 running-name-blocked: equivalent MCP name edit -> live with native monitor target, policy_blocked and unchanged native records
+PROBE SURFACE-002 running-name-approved: MCP update -> held with native target and reviewed name; named native approval commits exactly once
+PASS SURFACE-002 ordinary paused and running name edits, native targets, policy refusal, person approval, replay and revision fences
+PROBE SURFACE-002 acceptance-5-name-autonomous-2026-07-28: owner-sponsored MCP name edit with live and access blocked -> standard measure 1, destination target, missing proof refused, one name effect, no review, no approval, exact-key replay unchanged; all durable tables and provider traffic checked
+PROBE SURFACE-002 acceptance-5-name-autonomous-2025-11-25: owner-sponsored MCP name edit with live and access blocked -> standard measure 1, destination target, missing proof refused, one name effect, no review, no approval, exact-key replay unchanged; all durable tables and provider traffic checked
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+true !== false
+
+    at proveDestinationNameEffects (file:///home/agent/rer-consolidation/work/sd-uptime-c-f166/run-uptime/tests/agent-destination-name-support.mjs:88:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///home/agent/rer-consolidation/work/sd-uptime-c-f166/run-uptime/tests/agent-door.mjs:125:2 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

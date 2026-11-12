@@ -1,0 +1,19 @@
+verify	Require the selected coverage and its proof	﻿2026-11-12T18:04:08.0533108Z ##[group]Run set -euo pipefail
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0533908Z set -euo pipefail
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0534788Z test "$PLAN" = success
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0535694Z case "$PUSH_PROOF:$NIGHTLY_PROOF" in
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0536375Z   *failure*|*cancelled*) exit 1 ;;
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0536980Z esac
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0537560Z case "$COVERAGE" in
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0538351Z   reuse) test "$SKIP" = true && test "$SHARDS" = skipped && test "$LIGHT" = skipped ;;
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0539461Z   light) test "$SKIP" = false && test "$LIGHT" = success && test "$SHARDS" = skipped ;;
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0540774Z   full) test "$LIGHT" = skipped && { test "$SHARDS" = success || { test "$HAS_SHARDS" = false && test "$SHARDS" = skipped; }; } ;;
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0541840Z   *) exit 1 ;;
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0542385Z esac || exit 1
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0543063Z 
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0543934Z if [ "$HAS_SHARDS" = true ]; then test "$BUILD" = success; else test "$BUILD" = skipped; fi
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.0545529Z if [ "$COVERAGE" = full ] && [ "$TIER" != nightly ]; then test "$PREPARE" = success; else test "$PREPARE" = skipped; fi
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.1208089Z shell: /usr/bin/bash -e {0}
+[Environment block omitted from public packet.]
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.1213690Z ##[endgroup]
+verify	Require the selected coverage and its proof	2026-11-12T18:04:08.1339296Z ##[error]Process completed with exit code 1.
