@@ -1,0 +1,14 @@
+Exact product head: 42a73be3d12eb6bb7a5c47354b8de27356c154ff
+Verify run: 43274367413; event: push; conclusion: failure
+Classification: generated-view-only exception; preparation passed; runtime shards skipped.
+
+Command: gh run view 43274367413 --repo just-every/run-uptime --job 131378852554 --log-failed
+Read exit: 0; invoked once.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T17:55:15.7173360Z Contract prose: 0 errors, 0 warnings.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T17:55:15.7702101Z ACCEPTANCE.md: generated content differs; run contract-docs write.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T17:55:15.7792346Z ##[error]Process completed with exit code 1.
+
+Command: gh run view 43274367413 --repo just-every/run-uptime --job 131379222427 --log-failed
+Read exit: 0; invoked once.
+The aggregate requires successful full shards and build. The jobs receipt records build failure and skipped shards as the dependency consequence.
+verify	Require the selected coverage and its proof	2026-11-12T17:55:42.3315021Z ##[error]Process completed with exit code 1.

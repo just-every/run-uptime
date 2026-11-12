@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "head": "42a73be3d12eb6bb7a5c47354b8de27356c154ff",
+  "node": "22.20.0",
+  "observedAt": "2026-11-12T17:59:12.003046+00:00",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0,
+      "log": "build.txt"
+    },
+    {
+      "command": "node tests/public-paths.mjs",
+      "exit": 0,
+      "log": "public-paths.txt",
+      "receipt": "mail-sender-receipt.json"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "typecheck.txt"
+    },
+    {
+      "command": "npx -y @runeditrun/rer check --profile first-party",
+      "exit": 0,
+      "log": "first-party.txt"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write then check",
+      "exit": 0,
+      "logs": [
+        "views-write.txt",
+        "views-check.txt"
+      ]
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check after required restore",
+      "exit": 1,
+      "expected": true,
+      "failure": "ACCEPTANCE.md: generated content differs; run contract-docs write.",
+      "log": "views-after-restore.txt"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "receipt": "mechanical-receipt.json"
+    }
+  ]
+}

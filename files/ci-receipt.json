@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "head": "42a73be3d12eb6bb7a5c47354b8de27356c154ff",
+  "repository": "just-every/run-uptime",
+  "runId": 43274367413,
+  "event": "push",
+  "observations": [
+    {
+      "source": "candidate-ci-discovery.jsonl",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "source": "candidate-ci-final.json",
+      "conclusion": "failure",
+      "head_sha": "42a73be3d12eb6bb7a5c47354b8de27356c154ff",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43274367413",
+      "status": "completed"
+    }
+  ],
+  "githubCallsSoFar": 6,
+  "classification": "permitted generated-view-only failure",
+  "pollIntervalSeconds": 300,
+  "dispatches": 0,
+  "reruns": 0,
+  "buildJobId": 131378852554,
+  "aggregateJobId": 131379222427,
+  "prepareJobId": 131378852639,
+  "prepareConclusion": "success",
+  "runtimeShardsConclusion": "skipped",
+  "failedLogReads": [
+    {
+      "job": 131378852554,
+      "exit": 0,
+      "reads": 1
+    },
+    {
+      "job": 131379222427,
+      "exit": 0,
+      "reads": 1
+    }
+  ],
+  "readiness": "eligible under the explicit generated-view exception; not ordinary green",
+  "runtimeCiPassClaimed": false
+}

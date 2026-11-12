@@ -1,0 +1,11 @@
+{
+  "head": "42a73be3d12eb6bb7a5c47354b8de27356c154ff",
+  "newRegistrations": 0,
+  "existingAssertionsRemoved": 0,
+  "existingAssertionsNarrowed": 0,
+  "productionDiff": [],
+  "generatedViewsDiff": [],
+  "contractStatusDiff": false,
+  "uiChanged": false,
+  "publicationScan": "guarded lander required; unestablished in cloud"
+}

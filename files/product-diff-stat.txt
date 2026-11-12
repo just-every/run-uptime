@@ -1,0 +1,5 @@
+ CONTRACT.md                           |   2 +
+ sources.lock.json                     |   8 +-
+ tests/public-paths.mjs                |   2 +
+ tests/startup-mail-sender-support.mjs | 166 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 176 insertions(+), 2 deletions(-)

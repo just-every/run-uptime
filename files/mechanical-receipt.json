@@ -1,0 +1,21 @@
+{
+  "command": "node scripts/edition-authoring/cli.mjs check",
+  "exit": 0,
+  "ok": true,
+  "manifest": "ed5842243ba4062b8330710558dda64f596e60a53de3aac5bc014b0ae89f4809",
+  "edition": "just-every/uptime-monitor",
+  "viewWrite": {
+    "command": "node src/base/contract-docs.mjs write",
+    "exit": 0
+  },
+  "viewCheckAfterWrite": {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit": 0
+  },
+  "viewsRestoredFrom": "origin/main",
+  "ledger": {
+    "command": null,
+    "reason": "no migration changes"
+  },
+  "head": "42a73be3d12eb6bb7a5c47354b8de27356c154ff"
+}

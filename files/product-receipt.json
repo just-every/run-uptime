@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "head": "42a73be3d12eb6bb7a5c47354b8de27356c154ff",
+  "branch": "cloud/sd-uptime-c-f165",
+  "base": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+  "changedFiles": [
+    "CONTRACT.md",
+    "sources.lock.json",
+    "tests/public-paths.mjs",
+    "tests/startup-mail-sender-support.mjs"
+  ],
+  "statusRowsUnchanged": true,
+  "productionAndSharedHelpersUnchanged": true,
+  "generatedViewsCommitted": false,
+  "journeyCommandsBefore": 47,
+  "journeyCommandsAfter": 47,
+  "countsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "countsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "sourceFiles": {
+    "CONTRACT.md": "74a66cd5bc154c1ade8431a01de2b87dea8e0fa408c7498216b142c9189faf39",
+    "sources.lock.json": "746332a8ded92cfe2c785647f885f04e87e7c63f4a3e450feb5c2073c4c5808e",
+    "tests/public-paths.mjs": "95c5c3af0ce627c56635794d17bbdbdd748283e15cb26320016dacff1425a81d",
+    "tests/startup-mail-sender-support.mjs": "b0a5079c6e973ec03ff4366632937ebedc163dfcdeab0d2997e7fa0461907eec"
+  },
+  "registrationDelta": 0
+}
