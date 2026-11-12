@@ -1,0 +1,38 @@
+{
+  "head": "a6a189444625c60b680a1805d354a61d13cf1675",
+  "checks": [
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "stdoutBytes": 416374,
+      "stdoutSha256": "9d851f60113353a1d3a0fa8479e37514a62acffa205719c39b9ecaff22672245"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "stdoutBytes": 416388,
+      "stdoutSha256": "75737bff6dcaaac0dde0d31a1db41395238af86b2fc5e457bc318ca4b0c82dee"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0,
+      "stdoutBytes": 28,
+      "stdoutSha256": "14cee29b7bd19487e15f4013d4fb85016e022ef21d230676971a6490c88436d2"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "stdoutBytes": 70,
+      "stdoutSha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "stdoutBytes": 248,
+      "stdoutSha256": "c3c8caa01912becbbffd9753d4ccfb9411cbf4c31c3ef202b6c1c29fd6bf22dc"
+    }
+  ],
+  "ledger": "not applicable; no migration changes",
+  "generatedViews": "restored unchanged from origin/main",
+  "sourceLock": "fresh on committed head"
+}

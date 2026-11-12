@@ -1,0 +1,25 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PROBE NETWORK-001 acceptance-1 short: unchanged owner-created public HTTPS monitor -> signed pass, status,body, Healthy; 2 TLS connections and 2 ordered requests, duration 35ms below saved 3000ms deadline
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: signed runner failed (2832 private diagnostic bytes); last completion status 400, error Invalid failure snapshot evidence
+
+1 !== 0
+
+    at runner (file:///workspace/run-uptime-f164/tests/network-redirect-cycle-support.mjs:76:411)
+    at async due (file:///workspace/run-uptime-f164/tests/network-redirect-cycle-support.mjs:93:4)
+    at async proveNetworkRedirectCycle (file:///workspace/run-uptime-f164/tests/network-redirect-cycle-support.mjs:136:45)
+    at async file:///tmp/f164-redirect-probe.mjs:2:1 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-c-f164",
+  "head": "a6a189444625c60b680a1805d354a61d13cf1675",
+  "base": "ed5429192d18503c4c8caa8d797d82ffdcc78f54",
+  "productPush": {
+    "status": "pushed",
+    "attempt": 1,
+    "command": "python3 /home/agent/rer-consolidation/.tools/cloud-push.py origin cloud/sd-uptime-c-f164",
+    "commits": [
+      "397ce9b0bcdf546803c7e1dee267dc44bd0fc589",
+      "a6a189444625c60b680a1805d354a61d13cf1675"
+    ]
+  },
+  "productStatus": "BLOCKED",
+  "reason": "Native signed cycle completion returns HTTP 400 Invalid failure snapshot evidence; production helper repair is explicitly outside the selected unchanged-helper scope.",
+  "countsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115,
+    "journeyCommands": 47
+  },
+  "countsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115,
+    "journeyCommands": 47
+  },
+  "checks": {
+    "setup": 0,
+    "build": 0,
+    "typecheck": 0,
+    "firstParty": 0,
+    "contractWrite": 0,
+    "contractCheck": 0,
+    "lock": 0,
+    "lockCheck": 0,
+    "lockCheckAfterRebase": 0,
+    "diffCheck": 0,
+    "initialRegisteredTlsJourney": 1,
+    "focusedCycleDiagnostic": 1,
+    "registeredTlsOnFirstPublishedSha": 1,
+    "finalFocusedCycle": 1,
+    "finalTypecheck": 0,
+    "finalHeadLock": 0
+  },
+  "githubCalls": 3,
+  "ci": {
+    "total_count": 0,
+    "workflow_runs": []
+  },
+  "sourceAndJudgments": "No production, shared helper, workflow, contract, generated view, migration or status-table changes; no existing assertions removed or weakened.",
+  "publicationScan": "NOT RUN in cloud; guarded lander duty. No landing candidate is offered.",
+  "runtimeReceipt": "redirect-final-sha.json",
+  "exactHeadRuntime": {
+    "head": "a6a189444625c60b680a1805d354a61d13cf1675",
+    "command": "UPTIME_REDIRECT_RECEIPT=<packet>/redirect-final-sha.json node /tmp/f164-redirect-probe.mjs",
+    "entrypoint": "tests/network-redirect-cycle-support.mjs#proveNetworkRedirectCycle",
+    "exit": 1,
+    "failure": "signed runner failed; last completion status 400, error Invalid failure snapshot evidence",
+    "durationMs": 45,
+    "sourceSha256": "4f020c1fc3c4df3a804b51223efef8fbeb04c5cc91117a1c9cc74f655abd686a"
+  },
+  "remoteProductRef": {
+    "head": "a6a189444625c60b680a1805d354a61d13cf1675",
+    "ref": "refs/heads/cloud/sd-uptime-c-f164",
+    "verified": true
+  }
+}
