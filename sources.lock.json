@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "a412e084fcca0cc9d268ce6b353894ba29ad0d4b8a1265a6d3a196911a849198",
+      "sha256": "76bb5e51d4779cbd95b39b2238d25cce13d1be428e8918604601e06ab9c5ca05",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "5cc0a4d11978e2ef62f6c037ab85d3e40e5736c7c6e8c72f86139ea039a78959",
+      "sha256": "0b70cec7f900fbc59542b6ae32afec508997695edda128142db3e88c8b770221",
       "executable": false
     },
     "DEMO.md": {
@@ -3516,7 +3516,7 @@
       "executable": false
     },
     "runners/src/probes.mjs": {
-      "sha256": "29601c7dcf2d3795bad38d03977948a943c93544257e197b74dbbae2479612df",
+      "sha256": "0df4512cf5b5704ae3ce62037b253e0e806d06b587b8795814a13319b717cbd7",
       "executable": false
     },
     "runners/src/protocol-diagnostics.mjs": {
@@ -4524,7 +4524,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "ae5eb94cbf16587cdb6be9e12360df398a03394abeaca16ba9a9e00c24778dfc",
+      "sha256": "1be0cbeee4d1983fc978e4c7e1f25cde2ee1aae2e3aea670de805a66d8e34738",
       "executable": false
     },
     "src/agent-door/authority.server.ts": {
@@ -7444,7 +7444,7 @@
       "executable": false
     },
     "src/domain/discovery.server.ts": {
-      "sha256": "f65ba80291230a927798ee4654ead5644e16eff637bb253b36825adbce7a5073",
+      "sha256": "d34522ac0bb4fdb7794953b4293f74410702312f3fc787db14da1defdefcc658",
       "executable": false
     },
     "src/domain/document-shell.server.ts": {
@@ -8124,11 +8124,19 @@
       "executable": false
     },
     "src/domain/service-catalog.server.ts": {
-      "sha256": "31ce4fee4b3738eb46447137306272d6d068051746f44e11977149009e177e2e",
+      "sha256": "995506c58f914495893c7ad648e28f3d6acb7a504a2daa43b89ce4440137b000",
+      "executable": false
+    },
+    "src/domain/service-catalog/authorization.mjs": {
+      "sha256": "32d3b161816a3d237f05f65e452b0931b246b7bf77748331aed66a51c9847f19",
+      "executable": false
+    },
+    "src/domain/service-catalog/authorization.server.ts": {
+      "sha256": "792931406be6db40a8df7dd32d46bfaa35d920744fac514524c143990c1b7a51",
       "executable": false
     },
     "src/domain/service-catalog/entries.mjs": {
-      "sha256": "56ac35977f612ac61a956f8ac19ca116ab2b9c98da31b2cd0b4cfa64c28903d3",
+      "sha256": "92b56b473033e5d8b2d8cbeb416c3efb66572cfdf9d609e9716ff8353e946edf",
       "executable": false
     },
     "src/domain/service-catalog/followed.mjs": {
@@ -8136,7 +8144,7 @@
       "executable": false
     },
     "src/domain/service-catalog/index.mjs": {
-      "sha256": "a466024e64c64986a288df5cb586ce656a66ee094832f86df1e944d06eeee81b",
+      "sha256": "03973207939397ee1e5b586a9f4045cf3d6723ba4e50a49f977f34f17794dc22",
       "executable": false
     },
     "src/domain/service-catalog/match.mjs": {
@@ -8164,7 +8172,7 @@
       "executable": false
     },
     "src/domain/service-catalog/source-check.mjs": {
-      "sha256": "386ba996bc19f5bb123e2128af9ed6cfada303ee739b6640a0f11baa7879efe0",
+      "sha256": "2bd1128ed396359264210fe47d21e051d56b1d10c65b540161a2143f829f94ae",
       "executable": false
     },
     "src/domain/setup-document.server.ts": {
@@ -8512,7 +8520,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "7a755b78e9d1714a93e9ef8e0756b66ef8ac1d8a9904e947349046c41fe1600d",
+      "sha256": "54148bc3dc413387c30c7efcf43f09d6b645f1da8a40595acf4a4401e7c75405",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -9176,7 +9184,7 @@
       "executable": false
     },
     "tests/discovery-jobs.mjs": {
-      "sha256": "d43c8b2a78837614773542fe5d685f8f1dc074848a1ac77d813660868d0f7d19",
+      "sha256": "c044b12f02d9ae1206bc7b35d7817a5efc20897705425a9e3e66efe6386fefbb",
       "executable": false
     },
     "tests/discovery-public-dns-support.mjs": {
@@ -9423,6 +9431,14 @@
       "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
     },
+    "tests/network-redirect-cycle-routing.mjs": {
+      "sha256": "4f3b9d9dce92592d857c0cfe916d47927f118e07a1f59845cff15105416474fd",
+      "executable": false
+    },
+    "tests/network-redirect-cycle-support.mjs": {
+      "sha256": "1873d075397b263e22cf92dd3e202da2e5b8415411850b301d55539365f772f6",
+      "executable": false
+    },
     "tests/network-tls-hostname-routing.mjs": {
       "sha256": "194c23e2db8b0a68b4764aecbd9035cc724da3dfe227323d5bf489bce8c76752",
       "executable": false
@@ -9588,7 +9604,7 @@
       "executable": false
     },
     "tests/public-paths.mjs": {
-      "sha256": "83700db241039083c1aacdad18a53e640a99479368b3c81c055314418e5df63b",
+      "sha256": "95c5c3af0ce627c56635794d17bbdbdd748283e15cb26320016dacff1425a81d",
       "executable": false
     },
     "tests/public-surfaces-support.mjs": {
@@ -9663,6 +9679,10 @@
       "sha256": "ddcca3a6453f516187392a957ea5e3e6e65d70880b6a90e38450f39373cc0909",
       "executable": false
     },
+    "tests/service-catalog-auth0-support.mjs": {
+      "sha256": "cf3e243144d728dc1ed1f7ad7118ac845947a31eb6d569714a9fab1a47568467",
+      "executable": false
+    },
     "tests/service-catalog-fixture.mjs": {
       "sha256": "664d706d3976fd253f991e9de61e7ecabdaac0d724a1a02551158a90c1e4c8f0",
       "executable": false
@@ -9719,6 +9739,10 @@
       "sha256": "e8ebe6178241caf192bf07b50a42689ab7095066fbbb7176ce075eef70d9437f",
       "executable": false
     },
+    "tests/startup-mail-sender-support.mjs": {
+      "sha256": "b0a5079c6e973ec03ff4366632937ebedc163dfcdeab0d2997e7fa0461907eec",
+      "executable": false
+    },
     "tests/startup-rer-mail-key-support.mjs": {
       "sha256": "9af79dce7b5a428c93ec3a71ea3f77adbf58f40c3c37ca6a5e845d4344d7d040",
       "executable": false
@@ -9740,7 +9764,7 @@
       "executable": false
     },
     "tests/tls-auth.mjs": {
-      "sha256": "84a8423963c789bfb2747aca1fe9f810dfae07028d09bb447135d12e2913061b",
+      "sha256": "413e9d70abebfdab3d998c69b011c2b3ffc0e569487a3fe673006a3dc2363628",
       "executable": false
     },
     "tests/tls-stages-support.mjs": {
