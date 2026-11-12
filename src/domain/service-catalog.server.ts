@@ -1,4 +1,6 @@
 import {MONITOR_LIMIT,get,grants,revisionStatements,save,withinMonitorCap,type Bindings} from './control.server.ts'
+// @ts-ignore Shared reviewed Auth0 source-check validation.
+import {validateCatalogCheck} from './service-catalog/source-check.mjs'
 import {assignDefinition} from './runner-registration.server.ts'
 import {mutationGuard,type AuditActor} from './audit.server.ts'
 // @ts-ignore Shared policy; edition JavaScript.
@@ -74,10 +76,10 @@ async function passingCheck(env:Bindings,text:string){
  const job=await env.DB.prepare("SELECT kind,spec,status,finished_at,result,error FROM discovery_jobs WHERE id=?").bind(input.check).first<any>()
  if(!job||job.kind!=='catalog')throw refuse('That status-source check was not found. Check the service again.',404)
  if(job.status!=='done')throw refuse(job.status==='failed'?`The check failed: ${job.error}`:'That check has not finished. Wait for it, then follow.')
- const result=JSON.parse(job.result)
+ const spec=JSON.parse(job.spec),result=validateCatalogCheck(JSON.parse(job.result),spec)
  if(!result.ok)throw refuse(`This status source ${PROBLEM_TEXT[result.problem]}: ${result.detail} The catalog entry is marked needs review and nothing was followed.`)
  if(Date.now()-job.finished_at>CHECK_FRESH_MS)throw refuse('That check is older than ten minutes. Check the service again.')
- return {spec:JSON.parse(job.spec),result,checkedAt:job.finished_at as number}
+ return {spec,result,checkedAt:job.finished_at as number}
 }
 export async function followServices(env:Bindings,text:string,actor:AuditActor){
  const {spec,result,checkedAt}=await passingCheck(env,text),entry=catalogEntry(spec.entry),targets=targetsFor(entry,spec),now=Date.now()

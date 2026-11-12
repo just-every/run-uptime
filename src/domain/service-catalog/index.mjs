@@ -3,6 +3,7 @@
 // names the status as the provider's own claim) and names its catalog part in `catalog`: every scheduled check reads that part
 // with the catalog's status-source reader (followed.mjs), never with an HTTP assertion over the document, and asserts only the
 // provider's claim: no latency assertion, because a slow status page says nothing about the provider.
+import {AUTH0_ENDPOINT} from './authorization.mjs';
 import {dependencyAttribution} from '../dependency-status.mjs';
 import {CATALOG_REVIEWED, CATALOG_VERSION, ENTRIES} from './entries.mjs';
 export {CATALOG_REVIEWED, CATALOG_VERSION, ENTRIES};
@@ -23,6 +24,7 @@ export function searchCatalog(query = '') {
 export function publicEntry(entry) {
   const regions = [...new Set(entry.components.map(component => component.region).filter(Boolean))];
   return {id: entry.id, name: entry.name, aliases: entry.aliases, summary: entry.summary, note: entry.note ?? null, followable: isFollowable(entry),
+    ...(entry.id === 'auth0' ? {tenantReview: {endpoint: AUTH0_ENDPOINT, required: true, status: 'unqualified'}} : {}),
     source: {kind: entry.source.kind, url: entry.source.url, page: entry.source.page}, whole: isFollowable(entry) && Boolean(entry.whole),
     components: entry.components.map(component => ({key: component.key, name: component.name, ...(component.region ? {region: component.region} : {})})), regions, dimension: entry.dimension ?? 'Region'};
 }
