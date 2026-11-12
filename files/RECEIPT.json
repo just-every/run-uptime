@@ -1,0 +1,167 @@
+{
+  "tag": "sd-uptime-c-f162",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-c-f162",
+  "base": "ed5429192d18503c4c8caa8d797d82ffdcc78f54",
+  "recorded_at": "2026-11-12T16:07:51.148197+00:00",
+  "source_files": {
+    "tests/control-stale-coverage-support.mjs": "49c36d8b57f2101bce125e333b4cdc424e2ae6d1fba07ea4dd80336dfe04376c",
+    "tests/control-runtime.mjs": "bf9b439bb173af26f38b3039200a9e19c134ff804c87e3b86d8045972f0e49f7",
+    "sources.lock.json": "a63cbeaa0118ff1a125e3596c6ef18a7183eddd973647d0e3b6713c6b7dd24c8"
+  },
+  "checks": [
+    {
+      "name": "build",
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0,
+      "output_sha256": "52154fda980167f3387fd611e938fd95599af7465c159879ac6049f2b3159e78"
+    },
+    {
+      "name": "focused",
+      "command": "cloud_run timeout -k 5 1200 node --input-type=module -e \"import {proveExpiredPassingCoverage} from './tests/control-stale-coverage-support.mjs'; await proveExpiredPassingCoverage();\"",
+      "exit": 0,
+      "output_sha256": "45d20294ab7e2d760f5b9ead0a4fb9817bbd7f94023e5f058a6d4ff26bf33de3"
+    },
+    {
+      "name": "typecheck",
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "output_sha256": "450193170fb30a425f40dc588bafa5e12b7880d7b64347707f3f6577683f27d2"
+    },
+    {
+      "name": "first-party",
+      "command": "npx -y @runeditrun/rer check --profile first-party",
+      "exit": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "views-write",
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0,
+      "output_sha256": "14cee29b7bd19487e15f4013d4fb85016e022ef21d230676971a6490c88436d2"
+    },
+    {
+      "name": "views-check",
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "output_sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "name": "lock-write",
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "output_sha256": "6a0d7ab39ac0c36ccb5574b05c05f4b4cf7194072cdcff30cd24383e5edec6bb"
+    },
+    {
+      "name": "lock-check",
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "output_sha256": "966c5934f9f0d8bc9af6bbd31c657d5f151fe8e5632dc58bff63d6edb255e662"
+    },
+    {
+      "name": "control-runtime",
+      "command": "cloud_run timeout -k 5 1200 node tests/control-runtime.mjs",
+      "exit": 0,
+      "output_sha256": "3c9635fcb3f67ceee3a4679fe6f71c15e0afb63d4a24f32a1a168b56e09bb5d3",
+      "source_identity": "Same file bytes as committed candidate; new support helper executed once"
+    },
+    {
+      "name": "exact-head-focused",
+      "command": "cloud_run timeout -k 5 1200 node --input-type=module -e \"import {proveExpiredPassingCoverage} from './tests/control-stale-coverage-support.mjs'; await proveExpiredPassingCoverage();\"",
+      "exit": 0,
+      "head": "1f6b2ac81205bf08c675ede0a6f2d42da13a2957",
+      "output_sha256": "45d20294ab7e2d760f5b9ead0a4fb9817bbd7f94023e5f058a6d4ff26bf33de3"
+    }
+  ],
+  "control_runtime": "passed",
+  "ui": "No changed screen; browser proof not applicable",
+  "ledger": "No migration added or edited",
+  "publication_scan": "Deferred to guarded Mac lander; not run in cloud",
+  "head": "1f6b2ac81205bf08c675ede0a6f2d42da13a2957",
+  "committed_source_equal_to_full_control_run": true,
+  "source_lock_after_rebase": "passed; no diff",
+  "views_after_rebase": "write and check passed; generated views restored from origin/main",
+  "product_push": "passed on attempt 1; refs/heads/cloud/sd-uptime-c-f162",
+  "ci": {
+    "id": 43252199623,
+    "name": "Verify",
+    "event": "push",
+    "head_sha": "1f6b2ac81205bf08c675ede0a6f2d42da13a2957",
+    "status": "completed",
+    "conclusion": "success",
+    "observations": [
+      [
+        {
+          "conclusion": null,
+          "event": "push",
+          "head_sha": "1f6b2ac81205bf08c675ede0a6f2d42da13a2957",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/43252199623",
+          "id": 43252199623,
+          "name": "Verify",
+          "status": "in_progress"
+        }
+      ],
+      {
+        "conclusion": null,
+        "head_sha": "1f6b2ac81205bf08c675ede0a6f2d42da13a2957",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43252199623",
+        "status": "in_progress"
+      },
+      {
+        "conclusion": null,
+        "head_sha": "1f6b2ac81205bf08c675ede0a6f2d42da13a2957",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43252199623",
+        "status": "in_progress"
+      },
+      {
+        "conclusion": "success",
+        "head_sha": "1f6b2ac81205bf08c675ede0a6f2d42da13a2957",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43252199623",
+        "status": "completed"
+      }
+    ],
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43252199623"
+  },
+  "github_api_calls": 5,
+  "registration": {
+    "journey": "node tests/control-runtime.mjs",
+    "shard": "push-4",
+    "calls": 1,
+    "commands_before": 47,
+    "commands_after": 47
+  },
+  "counts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    },
+    "clauses": 115
+  },
+  "product_diff": [
+    "tests/control-stale-coverage-support.mjs",
+    "tests/control-runtime.mjs",
+    "sources.lock.json"
+  ],
+  "test_construction": {
+    "direct_d1_handle": "Initial local harness stalled; final helper uses owner archive and history routes",
+    "corrections": [
+      "unset confirmedFailure is not a confirmed failure",
+      "runner contact lifetime is distinct from saved target freshness",
+      "owner export appends its own access audit receipts; product tables and whole history are preserved"
+    ],
+    "production_repairs": 0,
+    "ci_repairs": 0
+  },
+  "full_history": true,
+  "unchanged_contract": true,
+  "generated_views_not_committed": true,
+  "existing_assertions": "Preserved; control-runtime diff adds one import and one call only",
+  "environment_resume": "Packet, source hashes, clean checkout and candidate HEAD verified after runtime restart; old watcher was not running; one manual REST observation completed after the required interval.",
+  "terminal_product_status": "READY; exact-SHA push Verify success; branch-only pending guarded landing and publication scan"
+}

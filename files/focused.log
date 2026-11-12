@@ -1,0 +1,6 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PROBE STATE-001 expired-passing-coverage: two saved passing deadlines crossed with no runner invocation -> target and both regions Unknown, Incomplete coverage, denominator 2, original observation identities, exactly two target requests
+PROBE STATE-001 stale-restart: restarted emitted Worker on the same D1 and isolated clock -> identical owner history and durable records, zero new target requests and no trigger or recovery
+PROBE STATE-001 resumed-due-coverage: both signed production runners resumed -> Healthy Complete coverage, two new target checks, unchanged old history, no fabricated trigger or recovery; early polls execute no work

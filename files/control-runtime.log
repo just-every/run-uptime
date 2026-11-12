@@ -1,0 +1,11 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+RESTART-001 passed: repeated additive setup, exact persisted evidence/session/outbox continuity, single delivery per assigned probe, expired acceptance rejection, real scheduled recovery after process interruption, and an incident confirmed and recovered across a steadily lagging vantage.
+SCHEDULE-001 cadence revision passed: owner interval edit, next due readback, early refusal, signed scheduled and manual passes, immutable fixed selections and assignments, and delayed claims without catch-up checks.
+STATE-001 passed: two signed assigned runners, mixed-vantage Degraded, confirmed failure, manual-pass isolation, absent-probe Unknown, first complete scheduled Recovering and one recovery after the second complete scheduled pass with immutable evidence.
+PROBE STATE-001 expired-passing-coverage: two saved passing deadlines crossed with no runner invocation -> target and both regions Unknown, Incomplete coverage, denominator 2, original observation identities, exactly two target requests
+PROBE STATE-001 stale-restart: restarted emitted Worker on the same D1 and isolated clock -> identical owner history and durable records, zero new target requests and no trigger or recovery
+PROBE STATE-001 resumed-due-coverage: both signed production runners resumed -> Healthy Complete coverage, two new target checks, unchanged old history, no fabricated trigger or recovery; early polls execute no work
+RECOVERY-001 passed: separate empty D1 restore, forged revision/raw-body rejection, paused imported definitions, inactive imported outbox and no automatic execution/replay.
+CONTROL-001 passed: emitted Start/Hono Worker, real D1 migrations/native sessions, scoped signed runner, scheduled failure/recovery and manual evidence, rename lifecycle, notification authority isolation, archive/session revocation.

@@ -1,0 +1,10 @@
+{
+  "head": "ed5429192d18503c4c8caa8d797d82ffdcc78f54",
+  "clauses": 115,
+  "counts": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "journeys": 47
+}
