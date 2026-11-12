@@ -1,0 +1,53 @@
+{
+  "head": "8e37d089c74e07b22afe3a3eef7bfafd76e358e4",
+  "run": 43250600384,
+  "event": "push",
+  "status": "completed",
+  "conclusion": "failure",
+  "expected_generated_view_exception": true,
+  "primary_failure": {
+    "job": 131295205262,
+    "name": "build",
+    "command": "node src/base/contract-docs.mjs check",
+    "exit": 1,
+    "prose_errors": 0,
+    "prose_warnings": 0,
+    "diagnostic": "ACCEPTANCE.md: generated content differs; run contract-docs write."
+  },
+  "dependent_failure": {
+    "job": 131295530485,
+    "name": "verify",
+    "reason": "build failure; selected shards and full-push proof skipped"
+  },
+  "local_exact_command_reproduced": {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit": 1,
+    "failure": "ACCEPTANCE.md: generated content differs; run contract-docs write."
+  },
+  "failed_log_reads": [
+    {
+      "command": "gh run view 43250600384 --repo just-every/run-uptime --job 131295205262 --log-failed",
+      "exit": 0
+    },
+    {
+      "command": "gh run view 43250600384 --repo just-every/run-uptime --job 131295530485 --log-failed",
+      "exit": 0
+    }
+  ],
+  "source_log_receipts": {
+    "verify-build-failed.log": {
+      "sha256": "d0b53ab0bfca82fa9ca328cc3574fa60e265ea8c68647e034a769ea63814ea4b",
+      "bytes": 1386
+    },
+    "verify-aggregate-failed.log": {
+      "sha256": "3fe93f38c9307505c2936f8e44de19775614f0a9406761f358d9573a6a272cb4",
+      "bytes": 3563
+    }
+  },
+  "source_log_storage": "retained outside packet; routine runner environment metadata is not published",
+  "other_failed_test_assertions": [],
+  "candidate_tests_in_ci": "skipped after generated-view check; local touched journey passed",
+  "reruns_requested": 0,
+  "repairs_attempted": 0,
+  "github_calls_total": 6
+}

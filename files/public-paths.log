@@ -1,0 +1,359 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PROBE STARTUP-001 acceptance-1 MAIL_RELAY_URL missing: health and authenticated native claim -> 503 naming MAIL_RELAY_URL, value-free responses and diagnostics, zero outbound, all 225 durable tables unchanged
+PROBE STARTUP-001 acceptance-1 MAIL_RELAY_URL malformed: health and authenticated native claim -> 503 naming MAIL_RELAY_URL, value-free responses and diagnostics, zero outbound, all 225 durable tables unchanged
+PROBE STARTUP-001 acceptance-2 MAIL_RELAY_URL: valid HTTPS relay and same persistence restart -> health 200, wrong runner key 401, authenticated idle claim 200, zero outbound and preserved product custody
+PUBLIC_SURFACE {"requested":"https://run-uptime.com/","finalOrigin":"https://run-uptime.com","finalPath":"/","status":200,"redirects":0,"contentType":"text/html"}
+PUBLIC_SURFACE {"requested":"https://run-uptime.com/run","finalOrigin":"https://run-uptime.com","finalPath":"/run","status":200,"redirects":0,"contentType":"text/html"}
+PUBLIC_SURFACES_PASS {"marketing":[{"requested":"https://run-uptime.com/","finalOrigin":"https://run-uptime.com","finalPath":"/","status":200,"redirects":0,"contentType":"text/html","title":"Uptime — Sleep through the night","heading":"Sleep through the night ."},{"requested":"https://run-uptime.com/run","finalOrigin":"https://run-uptime.com","finalPath":"/run","status":200,"redirects":0,"contentType":"text/html","title":"Run Uptime","heading":"Run Uptime."}],"app":[{"requested":"https://uptime.example.test/","finalOrigin":"https://uptime.example.test","finalPath":"/","status":200,"title":"Finish setup · Uptime","heading":"Uptime","redirects":[]},{"requested":"https://uptime.example.test/docs","finalOrigin":"https://uptime.example.test","finalPath":"/docs","status":200,"title":"Docs · Uptime","heading":"Docs","redirects":[]},{"requested":"https://uptime.example.test/setup","finalOrigin":"https://uptime.example.test","status":303,"location":"/login?returnTo=%2Fsetup"},{"requested":"https://uptime.example.test/app","finalOrigin":"https://uptime.example.test","status":303,"location":"/login"},{"requested":"https://uptime.example.test/app/monitor","finalOrigin":"https://uptime.example.test","status":303,"location":"/login"}]}
+BURST_TIMING {"started":1794498032791,"windowStart":1794498000000,"remainingBeforeWaitMs":27209,"waited":false,"remainingMs":27209,"dispatched":1794498032805,"dispatchRemainingMs":27195,"completed":1794498032822}
+{"event":"storage_error","method":"GET","route":"/health","operation":"publicRateLimit.count","class":"schema","status":503,"cause":"D1_ERROR: no such table: public_rate_limits: SQLITE_ERROR"}
+{"event":"storage_error","method":"GET","route":"/app.js","operation":"publicRateLimit.count","class":"schema","status":503,"cause":"D1_ERROR: no such table: public_rate_limits: SQLITE_ERROR"}
+# BASE-ACCESS-003 public paths and rate limits
+
+Inspected emitted Worker with 143 discovered emitted files (142 served static resources); declaration read from seed.json. No session used. Counter fixtures set limit−1 through D1; the final allowed and first refused requests use the public Worker door.
+
+| Path | Class | Baseline | Limit+1 | Second IP | Source |
+| --- | --- | ---: | ---: | --- | --- |
+| /.assetsignore | undeclared emitted file | 404 | n/a | n/a | not served |
+| / | documents | 200 | 429 | 200 | declaration |
+| /docs | documents | 200 | 429 | 200 | declaration |
+| /docs/overview | documents | 200 | 429 | 200 | declaration |
+| /health | health | 200 | 429 | 200 | declaration |
+| /signin | authentication | 200 | 429 | 200 | declaration |
+| /login | authentication | 200 | 429 | 200 | declaration |
+| /claim | authentication | 200 | 429 | 200 | declaration |
+| /auth/bootstrap | authentication | 405 | 429 | 405 | declaration |
+| /auth/magic-link | authentication | 405 | 429 | 405 | declaration |
+| /auth/confirm | authentication | 400 | 429 | 400 | declaration |
+| /auth/owner-signin | authentication | 400 | 429 | 400 | declaration |
+| /auth/owner-claim | authentication | 503 | 429 | 503 | declaration |
+| /auth/one-click | authentication | 404 | 429 | 404 | declaration |
+| /auth/session | authentication | 401 | 429 | 401 | declaration |
+| /auth/operators | authentication | 403 | 429 | 403 | declaration |
+| /auth/sessions | authentication | 401 | 429 | 401 | declaration |
+| /auth/signout | authentication | 405 | 429 | 405 | declaration |
+| /auth/invite | authentication | 405 | 429 | 405 | declaration |
+| /auth/invite/cancel | authentication | 405 | 429 | 405 | declaration |
+| /auth/operator/status | authentication | 405 | 429 | 405 | declaration |
+| /auth/operator/role | authentication | 405 | 429 | 405 | declaration |
+| /auth/session/revoke | authentication | 401 | 429 | 401 | declaration |
+| /setup | setup | 303 | 429 | 303 | declaration |
+| /setup/state | setup | 200 | 429 | 200 | declaration |
+| /alert-drill | drills | 404 | 429 | 404 | declaration |
+| /api/editor/config | editor | 403 | 429 | 403 | declaration |
+| /monitor | redirects | 308 | 429 | 308 | declaration |
+| /monitor/ | redirects | 308 | 429 | 308 | declaration |
+| /api/heartbeats/declaration-probe | heartbeats | 400 | 429 | 400 | declaration (POST {}) |
+| /api/runner/claim | runner | 401 | 429 | 401 | declaration (POST {}) |
+| /uptime-runner.mjs | assets | 200 | 429 | 200 | declaration |
+| /api/rer/import/declaration-probe | imports | 404 | 429 | 404 | declaration (POST {}) |
+| /api/rer/runner-status | imports | 404 | 429 | 404 | declaration (POST {}) |
+| /api/rer/cutover-status | imports | 404 | 429 | 404 | declaration (POST {}) |
+| /app.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /console-format.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /dom-patch.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-coverage.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-list.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-page.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-report.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /report-render.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /report-jobs.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /report.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-status.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-status-line.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-rules-table.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-rule-edit.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-table-fit.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-recent-checks.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-folds.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-links.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-reads.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-page.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-timeline.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /notifications.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /delivery-chain.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /webhook-editor.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /notification-dialogs.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /alert-drills.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /alert-drill-schedules.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /app-theme.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /style.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /notifications.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /editor/discovery.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /editor.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /action-feedback.mjs | assets | 200 | 429 | 200 | declaration, emitted file |
+| /favicon.svg | assets | 200 | 429 | 200 | declaration, emitted file |
+| /assets/NotFound-DNTDs7ba.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /design-assets/dawn/left-clouds.a68fcb006c91.svg | assets | 200 | 429 | 200 | declaration, emitted file |
+| /rer-theme.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /brand/band.svg | assets | 200 | 429 | 200 | declaration, emitted file |
+| /locations.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /settings-view.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /settings-alerts.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /alert-health.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /alert-clauses.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /alert-destinations.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /alert-route-default.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /root-cause-categories.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /sent-alerts.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /settings-general.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /settings-people.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /settings-integrations.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /settings-backup.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /settings-save.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /installation-zone.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /archive-view.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-rules.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /sections.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /business-import-settings.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /external-check.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /definitions.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /definition-changes.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /flow-panel.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /pagespeed-panel.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /pagespeed-rum.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /protocol-panel.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /monitor-incidents.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /heartbeat-key.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /catalog.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /catalog-dialogs.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /catalog.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /planned-maintenance.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /planned-maintenance.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /maintenance-calendar.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /maintenance-markup.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /incident-work.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /incident-work-markup.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /incident-work.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /heartbeat-jobs.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /heartbeat-jobs.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /slow-policy.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /slow-policy.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /followed-service.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /followed-service.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /incident-dependencies.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /editor/catalog.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /editor/sources.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /cleanup-debt.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /cleanup-debt.css | assets | 200 | 429 | 200 | declaration, emitted file |
+| /metrics.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /api/v1/metrics | metrics | 401 | 429 | 401 | declaration |
+| /rum/v1/s/declaration-probe | rum | 404 | 429 | 404 | declaration |
+| /rum/v1/collect | rum | 405 | 429 | 405 | declaration |
+| /failure-snapshots.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /network-diagnostics.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /evidence-viewer.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /evidence-access.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /api/v1/openapi.json | documents | 200 | 429 | 200 | declaration |
+| /transaction-panel.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /mail-panel.js | assets | 200 | 429 | 200 | declaration, emitted file |
+| /assets/SiteHeader-D4hC-HzC.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/SiteHeader-DgNqAB8-.css | assets | 200 | 429 | 200 | emitted file |
+| /assets/_console-BVkegzwd.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/access-member-controls.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-route-check.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-route-fallback.css | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-route-fallback.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-route-markup.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-route-targeting.css | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-route-targeting.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-route.css | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-route.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/alert-teams.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/app.monitors._id.edit-Wx1pUhbb.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/app.monitors._id.index-Ds1RiGPi.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/app.monitors.new-Wx1pUhbb.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/authenticator-enrollment.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/contact-quiet.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/docs._slug-DWN1Lzks.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/docs.index-VhQsjvp8.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/failure-snapshot-view.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/index-DLZRbkYV.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/jsx-runtime-Cltr0gcK.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/key-usage.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/preload-helper-DB7eREMW.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/react-CgYkgSSX.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/report-schedule-controls.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/second-factor.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/security-controls.css | assets | 200 | 429 | 200 | emitted file |
+| /assets/security-controls.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/setup.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/step-up.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/styles-8s3iVeGC.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/styles-CspfDIiD.css | assets | 200 | 429 | 200 | emitted file |
+| /assets/tooltip-README.md | assets | 200 | 429 | 200 | emitted file |
+| /assets/tooltip.css | assets | 200 | 429 | 200 | emitted file |
+| /assets/tooltip.js | assets | 200 | 429 | 200 | emitted file |
+| /assets/useRouter-CwjitLz4.js | assets | 200 | 429 | 200 | emitted file |
+| /brand/mark.svg | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/dawn/left.74dafaacb610.svg | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/dawn/range.91ba21d46842.svg | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/dawn/right-clouds.69e26545f5a0.svg | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/dawn/right.743eda2631ae.svg | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/fonts/NotoSans-OFL.txt | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/fonts/OFL.txt | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/fonts/noto-sans-regular.ttf | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/fonts/plus-jakarta-sans-latin-ext-wght-normal.woff2 | assets | 200 | 429 | 200 | emitted file |
+| /design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2 | assets | 200 | 429 | 200 | emitted file |
+| /api/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/definitions/recognise | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/access/ | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations/ | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/archive | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /erase | private/undeclared | 404 | n/a | n/a | GET/POST denied |
+| /api/overview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/routing/named-routes | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/catalog/routes/undo | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/routing/teams | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/routing/recipient | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/alert-route/sample | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/alert-route/drill | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/access/self | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/access/members | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/access/invitations | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/access/members/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/auth/sign-out | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/credentials/private/jobs | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/credentials | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/credentials/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/metrics/keys | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/metrics/keys/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/catalog/routes | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/catalog | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/catalog/add | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/maintenance | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/maintenance/cancel | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitor-editor | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/slow-policy | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/slow-policy/import-preview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/slow-ack | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/alert-route | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/alert-route/preview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/alert-route/apply | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/alert-route | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/alert-route/preview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/alert-route/import-preview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/alert-route/apply | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/heartbeat-key | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/heartbeat-settings | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/heartbeat-runs | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/evidence/monitors/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/cleanup-debt | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/cleanup-debt/private/resolve | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/effect-grants | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/effect-grants/revoke | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/evidence-access | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incidents/private/failure-report | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incidents/private/failure-snapshots | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/failure-snapshots | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/history | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/incidents | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/revisions | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/v1/monitors | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/v1/monitors/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/v1/uptime | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/v1/incidents | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incidents/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/v1/incidents/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incident-settings | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incidents/private/mention-members | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incidents/private/comments | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incidents/private/comments/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incidents/private/root-cause | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/incidents/private/actions | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/v1/monitors/private/response-times | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/run | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/runners | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/runners/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/runners/private/check-all | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/preferences | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/external-check | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/v1/services/report | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/report-schedules/preview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/report-schedules | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/report-schedules/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/discoveries | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/service-catalog | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/service-catalog/checks | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/service-follows | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/followed-services/private/review | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/followed-services/private/links | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/dependency-notices/private/acknowledge | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/discoveries/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/discovery-sources | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/discovery-sources/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/discovery-sources/private/authorize | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/discovery-sources/private/runs | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/discovery-sources/private/decisions | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/archive/restore-status | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/restore | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/definitions/plans/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/definitions/export | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/definitions/batches | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/definitions/batches/private/undo | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/business-import-settings | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/erasure-journal | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/monitors/private/erase | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/operators/private/erase | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/webhook-preview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/webhook-import-preview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations/private/preview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations/private | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations/private/rotate | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations/private/test | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/drill-reminders | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations/private/drill-schedule | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations/private/drill-schedule/runs/private/decline | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/notifications/destinations/private/drill | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /app/monitors/ | private/undeclared | 303 | n/a | n/a | GET/POST denied |
+| /api/operator/import/ | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /rum/v1/ | private/undeclared | 404 | n/a | n/a | GET/POST denied |
+| /_serverFn/ | private/undeclared | 303 | n/a | n/a | GET/POST denied |
+| /api | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/ | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /auth/ | private/undeclared | 404 | n/a | n/a | GET/POST denied |
+| /api | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /api/overview | private/undeclared | 401 | n/a | n/a | GET/POST denied |
+| /app | private/undeclared | 303 | n/a | n/a | GET/POST denied |
+| /app/monitor | private/undeclared | 303 | n/a | n/a | GET/POST denied |
+| /app/monitors/private | private/undeclared | 303 | n/a | n/a | GET/POST denied |
+| /_serverFn/private | private/undeclared | 303 | n/a | n/a | GET/POST denied |
+| /unknown-path | private/undeclared | 404 | n/a | n/a | GET/POST denied |
+| /undeclared-public-probe.txt | private/undeclared | 404 | n/a | n/a | GET/POST denied |
+| /assets-private | private/undeclared | 404 | n/a | n/a | GET/POST denied |
+| /docs-private | private/undeclared | 404 | n/a | n/a | GET/POST denied |
+| /auth/undeclared-probe | private/undeclared | 404 | n/a | n/a | GET/POST denied |
+| /auth/setup-complete | authentication | 405 | 429 | 429 (shared loopback) | local declaration |
+| /__dev/key | development | 404 | 429 | 429 (shared loopback) | local declaration |
+| /__dev/personas | development | 404 | 429 | 429 (shared loopback) | local declaration |
+| /auth/dev/enter | development | 404 | 429 | 429 (shared loopback) | local declaration |
+| /@vite/client | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /@id/virtual:tanstack-start-dev-client-entry | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /@react-refresh | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /@tanstack-start/styles.css | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /@fs/installation/node_modules/vite/dist/client/env.mjs | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /node_modules/.pnpm/installation/node_modules/vite/dist/client/env.mjs | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /node_modules/.vite/declaration-probe | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/client.tsx | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/base/hydration/report.ts | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/base/hydration/intro-guard.ts | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/base/hydration/unit.tsx | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/router.tsx | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/routeTree.gen.ts | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/routes/declaration-probe | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/base/modules/editor/declaration-probe | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/editor/declaration-probe | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/site/declaration-probe | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /src/ui/declaration-probe | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+| /@id/__x00__virtual:uptime-docs | development-assets | 404 | 429 | 429 (shared loopback) | local declaration |
+
+Passed: independent classes; eight simultaneous final-slot requests admit exactly one; Worker restart preserves limits; absent/malformed hosted CF-Connecting-IP shares unknown bucket; canonical IPv6; spoofed local headers share loopback; raw IP absent from D1; scheduled cleanup removes expired counters and preserves active counters; unknown/undeclared paths fail closed; unavailable counter storage denies health/assets with 503 without SQL details.
+
+Defaults are owner-tunable and estimated-not-tested: {"documents":180,"health":180,"authentication":120,"setup":180,"editor":180,"redirects":180,"heartbeats":600,"runner":1800,"assets":600,"development":600,"drills":30,"development-assets":1800,"imports":120,"metrics":60,"rum":120}.
+Hosted dev endpoints are 404. The production build omits dev identity and Vite compiler handlers, so their local declarations return 404 in emitted local mode; the limiter still executes before routing. Actual Vite behavior is checked in the separate startup development evidence. Local second IP cannot create a second bucket by design. Runtime capacity is not established by these boundary checks.

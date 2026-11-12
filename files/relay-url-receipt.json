@@ -1,0 +1,955 @@
+{
+  "schema": 1,
+  "journey": "proveRerRelayUrlStartup",
+  "refusals": [
+    {
+      "kind": "missing",
+      "refusals": [
+        {
+          "door": "health",
+          "status": 503,
+          "diagnostic": "Invalid or missing configuration: MAIL_RELAY_URL"
+        },
+        {
+          "door": "runner claim",
+          "status": 503,
+          "diagnostic": "Invalid or missing configuration: MAIL_RELAY_URL"
+        }
+      ],
+      "tables": 225,
+      "outbound": 0,
+      "durableEqual": true,
+      "capturedDiagnosticBytes": 135
+    },
+    {
+      "kind": "malformed",
+      "refusals": [
+        {
+          "door": "health",
+          "status": 503,
+          "diagnostic": "Invalid or missing configuration: MAIL_RELAY_URL"
+        },
+        {
+          "door": "runner claim",
+          "status": 503,
+          "diagnostic": "Invalid or missing configuration: MAIL_RELAY_URL"
+        }
+      ],
+      "tables": 225,
+      "outbound": 0,
+      "durableEqual": true,
+      "capturedDiagnosticBytes": 135
+    }
+  ],
+  "recovery": {
+    "health": 200,
+    "wrongKey": 401,
+    "claim": 200,
+    "task": null,
+    "outbound": 0,
+    "productCustodyEqual": true
+  },
+  "tables": [
+    {
+      "name": "agent_door_agents",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_approvals",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_audit",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_calls",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_events",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_relay",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_replay_aliases",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_retired_refs",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_reviews",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_state",
+      "rows": 0
+    },
+    {
+      "name": "agent_door_usage",
+      "rows": 0
+    },
+    {
+      "name": "alert_contact_schedules",
+      "rows": 0
+    },
+    {
+      "name": "alert_drill_consents",
+      "rows": 0
+    },
+    {
+      "name": "alert_drill_reminders",
+      "rows": 0
+    },
+    {
+      "name": "alert_drill_runs",
+      "rows": 0
+    },
+    {
+      "name": "alert_drill_schedules",
+      "rows": 0
+    },
+    {
+      "name": "alert_drills",
+      "rows": 0
+    },
+    {
+      "name": "alert_fallback_chains",
+      "rows": 0
+    },
+    {
+      "name": "alert_named_routes",
+      "rows": 0
+    },
+    {
+      "name": "alert_recipient_consents",
+      "rows": 0
+    },
+    {
+      "name": "alert_recovery_matches",
+      "rows": 0
+    },
+    {
+      "name": "alert_route_changes",
+      "rows": 0
+    },
+    {
+      "name": "alert_routes",
+      "rows": 0
+    },
+    {
+      "name": "alert_team_deliveries",
+      "rows": 0
+    },
+    {
+      "name": "alert_team_members",
+      "rows": 0
+    },
+    {
+      "name": "alert_teams",
+      "rows": 0
+    },
+    {
+      "name": "archive_history",
+      "rows": 0
+    },
+    {
+      "name": "attempt_checkpoints",
+      "rows": 0
+    },
+    {
+      "name": "auxiliary_attempts",
+      "rows": 0
+    },
+    {
+      "name": "bs_assert",
+      "rows": 0
+    },
+    {
+      "name": "bs_audit",
+      "rows": 0
+    },
+    {
+      "name": "bs_logo",
+      "rows": 0
+    },
+    {
+      "name": "bs_overrides",
+      "rows": 0
+    },
+    {
+      "name": "bs_retired",
+      "rows": 0
+    },
+    {
+      "name": "bs_settings",
+      "rows": 0
+    },
+    {
+      "name": "bs_team",
+      "rows": 0
+    },
+    {
+      "name": "catalog_review",
+      "rows": 0
+    },
+    {
+      "name": "catalog_route_batch_entries",
+      "rows": 0
+    },
+    {
+      "name": "catalog_route_batches",
+      "rows": 0
+    },
+    {
+      "name": "cleanup_debt",
+      "rows": 0
+    },
+    {
+      "name": "cron_runs",
+      "rows": 0
+    },
+    {
+      "name": "definition_batch_entries",
+      "rows": 0
+    },
+    {
+      "name": "definition_batches",
+      "rows": 0
+    },
+    {
+      "name": "dependency_acks",
+      "rows": 0
+    },
+    {
+      "name": "discovery_decisions",
+      "rows": 0
+    },
+    {
+      "name": "discovery_jobs",
+      "rows": 0
+    },
+    {
+      "name": "discovery_source_runs",
+      "rows": 0
+    },
+    {
+      "name": "discovery_sources",
+      "rows": 0
+    },
+    {
+      "name": "effect_grants",
+      "rows": 0
+    },
+    {
+      "name": "evidence_generation",
+      "rows": 0
+    },
+    {
+      "name": "external_check",
+      "rows": 1
+    },
+    {
+      "name": "failure_evidence_grants",
+      "rows": 0
+    },
+    {
+      "name": "failure_snapshot_settings",
+      "rows": 0
+    },
+    {
+      "name": "failure_snapshots",
+      "rows": 0
+    },
+    {
+      "name": "followed_services",
+      "rows": 0
+    },
+    {
+      "name": "heartbeat_authority",
+      "rows": 0
+    },
+    {
+      "name": "heartbeat_claims",
+      "rows": 0
+    },
+    {
+      "name": "heartbeat_limits",
+      "rows": 0
+    },
+    {
+      "name": "heartbeat_runs",
+      "rows": 0
+    },
+    {
+      "name": "ik_batches",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_assertions",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_creation_plans",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_custody_revisions",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_custody_states",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_entries",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_erased_sources",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_erased_targets",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_erasure_journal",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_erasure_progress",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_erasure_tally",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_history",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_indexed_jobs",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_native_staging",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_native_staging_index",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_native_staging_values",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_original_chunks",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_plan_chunks",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_plan_index",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_preparation_receipts",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_preparation_steps",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_publication_fences",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_retirements",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_reversal_fences",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_reversal_reports",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_staging",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_staging_chunks",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_staging_headers",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_staging_index",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_staging_originals",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_staging_pages",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_stream_origins",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_stream_pages",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_stream_revisions",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_stream_sources",
+      "rows": 0
+    },
+    {
+      "name": "ik_d1_streams",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_apply_failures",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_approvals",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_archive_chunks",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_archives",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_chunks",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_grants",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_namespaces",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_plan_chunks",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_plans",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_revoked_keys",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_scopes",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_settings",
+      "rows": 0
+    },
+    {
+      "name": "ik_door_uploads",
+      "rows": 0
+    },
+    {
+      "name": "ik_jobs",
+      "rows": 0
+    },
+    {
+      "name": "ik_original_sets",
+      "rows": 0
+    },
+    {
+      "name": "ik_originals",
+      "rows": 0
+    },
+    {
+      "name": "ik_provenance",
+      "rows": 0
+    },
+    {
+      "name": "ik_sources",
+      "rows": 0
+    },
+    {
+      "name": "ik_stages",
+      "rows": 0
+    },
+    {
+      "name": "ik_targets",
+      "rows": 0
+    },
+    {
+      "name": "incident_comment_history",
+      "rows": 0
+    },
+    {
+      "name": "incident_comments",
+      "rows": 0
+    },
+    {
+      "name": "incident_mention_authority",
+      "rows": 0
+    },
+    {
+      "name": "incident_mentions",
+      "rows": 0
+    },
+    {
+      "name": "incident_settings",
+      "rows": 0
+    },
+    {
+      "name": "incident_timeline",
+      "rows": 0
+    },
+    {
+      "name": "incident_work",
+      "rows": 0
+    },
+    {
+      "name": "integration_attempts",
+      "rows": 0
+    },
+    {
+      "name": "integration_deliveries",
+      "rows": 0
+    },
+    {
+      "name": "integration_replays",
+      "rows": 0
+    },
+    {
+      "name": "integration_resolutions",
+      "rows": 0
+    },
+    {
+      "name": "integration_token_events",
+      "rows": 0
+    },
+    {
+      "name": "integration_token_usage",
+      "rows": 0
+    },
+    {
+      "name": "integration_tokens",
+      "rows": 0
+    },
+    {
+      "name": "login_attempts",
+      "rows": 0
+    },
+    {
+      "name": "migrations",
+      "rows": 3
+    },
+    {
+      "name": "monitoring_watch",
+      "rows": 0
+    },
+    {
+      "name": "monitors",
+      "rows": 0
+    },
+    {
+      "name": "notification_claim_custody",
+      "rows": 1
+    },
+    {
+      "name": "notification_credentials",
+      "rows": 0
+    },
+    {
+      "name": "notification_delivery_attempts",
+      "rows": 0
+    },
+    {
+      "name": "notification_destinations",
+      "rows": 0
+    },
+    {
+      "name": "notification_jobs",
+      "rows": 0
+    },
+    {
+      "name": "notification_preferences",
+      "rows": 0
+    },
+    {
+      "name": "notification_retry_policy",
+      "rows": 0
+    },
+    {
+      "name": "notification_retry_settings",
+      "rows": 1
+    },
+    {
+      "name": "oa_auth_audit",
+      "rows": 0
+    },
+    {
+      "name": "oa_auth_settings",
+      "rows": 1
+    },
+    {
+      "name": "oa_bootstrap",
+      "rows": 1
+    },
+    {
+      "name": "oa_credentials",
+      "rows": 0
+    },
+    {
+      "name": "oa_dev_credentials",
+      "rows": 0
+    },
+    {
+      "name": "oa_domain_rules",
+      "rows": 0
+    },
+    {
+      "name": "oa_external_identities",
+      "rows": 0
+    },
+    {
+      "name": "oa_identity_provider_health",
+      "rows": 0
+    },
+    {
+      "name": "oa_identity_providers",
+      "rows": 0
+    },
+    {
+      "name": "oa_invitation_cancellations",
+      "rows": 0
+    },
+    {
+      "name": "oa_limits",
+      "rows": 1
+    },
+    {
+      "name": "oa_logout_events",
+      "rows": 0
+    },
+    {
+      "name": "oa_oidc_limits",
+      "rows": 0
+    },
+    {
+      "name": "oa_oidc_transactions",
+      "rows": 0
+    },
+    {
+      "name": "oa_operators",
+      "rows": 1
+    },
+    {
+      "name": "oa_owner_signins",
+      "rows": 0
+    },
+    {
+      "name": "oa_provider_session_pins",
+      "rows": 0
+    },
+    {
+      "name": "oa_provider_sessions",
+      "rows": 0
+    },
+    {
+      "name": "oa_sessions",
+      "rows": 1
+    },
+    {
+      "name": "oa_setup_links",
+      "rows": 0
+    },
+    {
+      "name": "oa_step_up_challenges",
+      "rows": 0
+    },
+    {
+      "name": "oa_tokens",
+      "rows": 0
+    },
+    {
+      "name": "observations",
+      "rows": 0
+    },
+    {
+      "name": "oc_idp_grants",
+      "rows": 0
+    },
+    {
+      "name": "oc_owner_claims",
+      "rows": 0
+    },
+    {
+      "name": "outbox",
+      "rows": 0
+    },
+    {
+      "name": "public_rate_limits",
+      "rows": 3
+    },
+    {
+      "name": "report_occurrences",
+      "rows": 0
+    },
+    {
+      "name": "report_recurrences",
+      "rows": 0
+    },
+    {
+      "name": "rer_dependency_codes",
+      "rows": 0
+    },
+    {
+      "name": "rer_dependency_installation",
+      "rows": 0
+    },
+    {
+      "name": "rer_dependency_keys",
+      "rows": 0
+    },
+    {
+      "name": "rer_dependency_link",
+      "rows": 0
+    },
+    {
+      "name": "rer_dependency_pending",
+      "rows": 0
+    },
+    {
+      "name": "rer_mail_development_outbox",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_epochs",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_guard",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_jobs",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_journal",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_owned",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_parts",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_product_restore",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_segments",
+      "rows": 0
+    },
+    {
+      "name": "rer_portability_state",
+      "rows": 0
+    },
+    {
+      "name": "revisions",
+      "rows": 0
+    },
+    {
+      "name": "rum_aggregates",
+      "rows": 0
+    },
+    {
+      "name": "rum_dropped",
+      "rows": 0
+    },
+    {
+      "name": "rum_sites",
+      "rows": 0
+    },
+    {
+      "name": "rum_value_counts",
+      "rows": 0
+    },
+    {
+      "name": "runner_assignments",
+      "rows": 0
+    },
+    {
+      "name": "runner_contact",
+      "rows": 0
+    },
+    {
+      "name": "runners",
+      "rows": 2
+    },
+    {
+      "name": "scheduled_reports",
+      "rows": 0
+    },
+    {
+      "name": "sessions",
+      "rows": 0
+    },
+    {
+      "name": "slots",
+      "rows": 0
+    },
+    {
+      "name": "slow_acknowledgements",
+      "rows": 0
+    },
+    {
+      "name": "source_history_batches",
+      "rows": 0
+    },
+    {
+      "name": "source_history_cutovers",
+      "rows": 0
+    },
+    {
+      "name": "source_history_rows",
+      "rows": 0
+    },
+    {
+      "name": "sqlite_sequence",
+      "rows": 1
+    },
+    {
+      "name": "uptime_agent_discoveries",
+      "rows": 0
+    },
+    {
+      "name": "uptime_agent_handoffs",
+      "rows": 0
+    },
+    {
+      "name": "uptime_agent_manual",
+      "rows": 0
+    },
+    {
+      "name": "uptime_agent_native_proof",
+      "rows": 0
+    },
+    {
+      "name": "uptime_agent_notifications",
+      "rows": 0
+    },
+    {
+      "name": "uptime_agent_revisions",
+      "rows": 0
+    },
+    {
+      "name": "uptime_audit",
+      "rows": 0
+    },
+    {
+      "name": "uptime_business_import_targets",
+      "rows": 0
+    },
+    {
+      "name": "uptime_business_import_undos",
+      "rows": 0
+    },
+    {
+      "name": "uptime_business_import_writes",
+      "rows": 0
+    },
+    {
+      "name": "uptime_credential_grants",
+      "rows": 0
+    },
+    {
+      "name": "uptime_credential_limits",
+      "rows": 0
+    },
+    {
+      "name": "uptime_credential_workspace",
+      "rows": 1
+    },
+    {
+      "name": "uptime_erasure_receipts",
+      "rows": 0
+    },
+    {
+      "name": "uptime_first_run",
+      "rows": 0
+    },
+    {
+      "name": "uptime_member_roles",
+      "rows": 1
+    },
+    {
+      "name": "uptime_member_scopes",
+      "rows": 0
+    },
+    {
+      "name": "uptime_mfa_challenges",
+      "rows": 0
+    },
+    {
+      "name": "uptime_mfa_factors",
+      "rows": 0
+    },
+    {
+      "name": "uptime_mfa_limits",
+      "rows": 0
+    },
+    {
+      "name": "uptime_mfa_notices",
+      "rows": 0
+    },
+    {
+      "name": "uptime_mfa_policy",
+      "rows": 1
+    },
+    {
+      "name": "uptime_mfa_proofs",
+      "rows": 0
+    },
+    {
+      "name": "uptime_mfa_recovery",
+      "rows": 0
+    }
+  ],
+  "diagnosticsValueFree": true
+}

@@ -1,0 +1,10 @@
+{
+  "source_diff_credential_patterns": 0,
+  "source_diff_email_literals": 0,
+  "all_candidate_commits_identity": "fleet",
+  "trailers": "absent",
+  "status_section_unchanged": true,
+  "generated_views_committed": false,
+  "production_and_shared_helpers_changed": false,
+  "publication_scan": "not run; guarded lander duty"
+}
