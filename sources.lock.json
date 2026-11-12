@@ -4439,6 +4439,10 @@
       "sha256": "92144992b840f41d4808241b767e0f195c05fb0802c06f0d055ccce41bee8a97",
       "executable": false
     },
+    "scripts/local/transfer-checkpoint.mjs": {
+      "sha256": "1989df494a01881c53196909a204b82d9aee7296d5d08e786067ae55cf0d6b19",
+      "executable": false
+    },
     "scripts/local/transfer-policy.mjs": {
       "sha256": "ff5d0a7ccaafd353ed71d0eb8e4242f63da1ae48ae77062e4e3cfa4c2ceb2127",
       "executable": false
@@ -7059,6 +7063,10 @@
       "sha256": "ad42d69e6c4129648ab17df435b6a053c9bbcd430457584f0b478ece8c1ca40d",
       "executable": false
     },
+    "src/domain/archive-chunks.ts": {
+      "sha256": "32f503bec44eaccb8efe4397ffaac9b4605eecd8ddcf585e14467b55cd2089e5",
+      "executable": false
+    },
     "src/domain/archive-definition-validation.ts": {
       "sha256": "81c33215d8044fb0d31657decd4bdeb09f08a22b4a1f698c2ca9129486825246",
       "executable": false
@@ -7093,6 +7101,18 @@
     },
     "src/domain/archive-selection.server.ts": {
       "sha256": "2f553f6629fceb315aae04d295c2f08045b8171b720f60dd5078857a816ac452",
+      "executable": false
+    },
+    "src/domain/archive-transfer-limits.ts": {
+      "sha256": "e5feaa4056758615642303359f3fec495983ef361d19c299c7d8fb413fed6b56",
+      "executable": false
+    },
+    "src/domain/archive-transfer-policy.ts": {
+      "sha256": "acead6c79bcab6cca88a9392a4932906b9188e4a082704dd0db481219832d607",
+      "executable": false
+    },
+    "src/domain/archive-transfer.server.ts": {
+      "sha256": "558327cefe091a935bf943750867f8e4a85d7d0518ea4c4a9367f311c735a29d",
       "executable": false
     },
     "src/domain/archive-validation.ts": {
@@ -7741,6 +7761,10 @@
     },
     "src/domain/mfa/webauthn.server.ts": {
       "sha256": "160d84df1dfb5b693924cc75821abc517c83ce5605228509b735137a5dac3fb8",
+      "executable": false
+    },
+    "src/domain/monitor-cap.ts": {
+      "sha256": "0b78b15efc7975dbdc84321c47fe8d2deb3f25202604996125395d100be4fa33",
       "executable": false
     },
     "src/domain/monitor-editor.server.ts": {
@@ -9039,8 +9063,16 @@
       "sha256": "2570c4effded19c9183a1855fc2ec0c9bc2495eefcd24f8034790b9946f97c09",
       "executable": false
     },
+    "tests/archive-corruption-support.mjs": {
+      "sha256": "fe554547ef2bbd4c1fa5c9563d82b0189ade17396e59f491e407784ac19397ba",
+      "executable": false
+    },
     "tests/archive-fixture.mjs": {
       "sha256": "f069e3656f147da786c91cbdef5abdf0789e67bb3395f4914f0de4969ada2d12",
+      "executable": false
+    },
+    "tests/archive-local-resume-support.mjs": {
+      "sha256": "f47adae71bce7269a84985ad5226aa908a64b55ac743deee6ecd2e7844f29e98",
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {
@@ -9049,6 +9081,10 @@
     },
     "tests/archive-selection-support.mjs": {
       "sha256": "6f3673e59ccd8fcd1b08d788a62822b95afc28c55242abaa9bcaea1ada494323",
+      "executable": false
+    },
+    "tests/archive-transfer-support.mjs": {
+      "sha256": "6b0104a213e47ad03611d98c9a59645f74c974d07868a2f6fe7b22bf4ac61e93",
       "executable": false
     },
     "tests/auth-test-support.mjs": {
