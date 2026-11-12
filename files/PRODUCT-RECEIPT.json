@@ -1,0 +1,40 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-plain-states-1",
+  "head": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+  "advertisedRef": "refs/heads/cloud/main-uptime-plain-states-1",
+  "advertisedHead": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+  "cleanWorktree": true,
+  "outgoingCommitAudit": [
+    "Run Edit Run fleet <fleet@runeditrun.com>",
+    "Run Edit Run fleet <fleet@runeditrun.com>",
+    "",
+    "Run Edit Run fleet <fleet@runeditrun.com>",
+    "Run Edit Run fleet <fleet@runeditrun.com>"
+  ],
+  "candidateCommitMessages": [
+    "Verify plain delivery states with independent practice checks",
+    "",
+    "Explain heartbeat jobs and simulated or restored alert sends [skip ci]"
+  ],
+  "changedFiles": [
+    "public/alert-clauses.js",
+    "public/alert-destinations.js",
+    "public/alert-drill-schedules.js",
+    "public/alert-drills.js",
+    "public/delivery-chain.js",
+    "public/heartbeat-jobs.js",
+    "public/heartbeat-key.js",
+    "public/monitor-folds.js",
+    "public/monitor-page.js",
+    "public/notifications.js",
+    "public/sent-alerts.js",
+    "sources.lock.json",
+    "src/domain/alert-drill-schedules.server.ts",
+    "tests/agent-drill-schedules-support.mjs",
+    "tests/alert-drill.mjs",
+    "tests/alert-presentation-support.mjs",
+    "tests/heartbeat-console-support.mjs"
+  ],
+  "pullRequest": null
+}

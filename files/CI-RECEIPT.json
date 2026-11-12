@@ -1,0 +1,24 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+  "calls": 2,
+  "observations": [
+    {
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43151393663",
+      "at": 1794455763.8048918
+    },
+    {
+      "conclusion": null,
+      "head_sha": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43151393663",
+      "status": "in_progress",
+      "at": 1794456064.3901913
+    }
+  ],
+  "runId": 43151393663,
+  "status": "in_progress",
+  "conclusion": null
+}

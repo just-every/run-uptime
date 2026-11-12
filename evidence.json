@@ -1,0 +1,172 @@
+{
+  "files": [
+    {
+      "blob": "32af25513b62baf022a0c63c4c428cef9274896a",
+      "bytes": 709,
+      "path": "CI-RECEIPT.json",
+      "sha256": "50ef7b8c8e19229a62eb1030b9a9f64a86b24fe56fd4f0765ca20daf344dce20"
+    },
+    {
+      "blob": "dc078289990397c22b66376c19c859cb801ceb29",
+      "bytes": 1363,
+      "path": "PRODUCT-RECEIPT.json",
+      "sha256": "7d1488f24d2d88bf929dde5e96c25a03bd6234ee01deafbcd281839528602df1"
+    },
+    {
+      "blob": "91a5d67fa635a5e7baf0ecd1e8efd3b5d0f4e82b",
+      "bytes": 7218,
+      "path": "REPORT.md",
+      "sha256": "eddca69f74ed729ddeb5aa5127d71733b126ee21f1478017e10a87cdf2886d5e"
+    },
+    {
+      "blob": "8cd5b476be90c8dace2c7156aa3bbaa2f84f9435",
+      "bytes": 442,
+      "path": "REPRODUCTION.json",
+      "sha256": "95a0f102822d00f9249dc6842de8d7eda9e87ea41fe53416d3e7bf6471175a30"
+    },
+    {
+      "blob": "69daff164048467c1e583d4fe071e8f7b77776a9",
+      "bytes": 2082,
+      "path": "VALIDATION.json",
+      "sha256": "bc1108bf8d8f56edc82f920e5fcfe7148c9ffe340f37f4e6a6e30151570eeb3b"
+    },
+    {
+      "blob": "e7bfdbdf5f8a5d214e76fb8c09d95b907623a48b",
+      "bytes": 841,
+      "path": "alert-drill.log",
+      "sha256": "39e3d8ceae15d2d6e2d27900a60793308650261b8fe33babc0702697108922c5"
+    },
+    {
+      "blob": "bfe08e6b3fd951fa55b6de67762f5843de7fb6ac",
+      "bytes": 10312,
+      "path": "build.log",
+      "sha256": "ee51ba3636593e090760a72aa0069bec592f67a7fcbb5a4a8b41689af40a615b"
+    },
+    {
+      "blob": "346d79fc09d2aed4319e106d4d786d6b63ec7d58",
+      "bytes": 224111,
+      "path": "consented-drill-1440.png",
+      "sha256": "4049f52291f30aa9aa386b7d1fc9923914dac914b21ef26c64adbcb7e656ab7c"
+    },
+    {
+      "blob": "1114fa4d349446cc7a784207ec3072dcf2f08b15",
+      "bytes": 179555,
+      "path": "consented-drill-390.png",
+      "sha256": "3654499379a7d04ca1b044d5747e61c43b80aebbcea5de779723cf6bdb8cf1d5"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "contract-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "4f3b6d7d6d767306c38e152b7366da9c92e9996a",
+      "bytes": 216449,
+      "path": "development-alerts-1440.png",
+      "sha256": "29ea395c3e9e2ad7ec9d78e5dab9a817c2d8d5596d83e85fa3ab5c799f13c998"
+    },
+    {
+      "blob": "5a6ac919ac93e19b53c69b1def517c36e3737db9",
+      "bytes": 221731,
+      "path": "development-alerts-390.png",
+      "sha256": "ea829c32b84baa99c253007cb3e04c6f163c89686031ffb8de60fa84aa5edb81"
+    },
+    {
+      "blob": "d8bbbd0d49dbad5f0449d4219306169e63a5e0da",
+      "bytes": 255,
+      "path": "development-alerts.json",
+      "sha256": "37d887260bdfa5f129dd5a25f1f684df469b8dd4c730a0fe9e7616c3d969b8ef"
+    },
+    {
+      "blob": "c4f8778062f71049c2fb3be56cbe34844a839475",
+      "bytes": 261144,
+      "path": "development-drill-1440.png",
+      "sha256": "455e17f645ff8eac9a59a34d3db54d2166e44966f82b87a6ba7100ef586410a0"
+    },
+    {
+      "blob": "029e3fb0dec9fcbaf5c732f5868c03aefc8af7a0",
+      "bytes": 211244,
+      "path": "development-drill-390.png",
+      "sha256": "e030d2bbc82531709c290977c104e853060f085fb8aac120e4ac94c024854279"
+    },
+    {
+      "blob": "c827a77fefadbb7f47497cb6604dc7a0f4640db0",
+      "bytes": 232307,
+      "path": "expired-route-1440.png",
+      "sha256": "2a0bd82dd9f9df6aeb2d0749b4951eddc23eba906953e660ab57e11c245dd8f9"
+    },
+    {
+      "blob": "5c8a53dbc935d7e72c8a86d196e7de210250106a",
+      "bytes": 185887,
+      "path": "expired-route-390.png",
+      "sha256": "41e4cf931d3fa06172231f5f1ea16e64c73797087ae395656871071995842b52"
+    },
+    {
+      "blob": "972832a0415256ba868dcb3e5f943fab1476a515",
+      "bytes": 440,
+      "path": "heartbeat-console.json",
+      "sha256": "7219f451d60038fe642ea16373a8576e5b6002f8fa9bfc332f3b8cba63c09191"
+    },
+    {
+      "blob": "71b82b9eec643900a01f58c5a762616e394e3447",
+      "bytes": 250,
+      "path": "hosted-alerts.json",
+      "sha256": "8289a7dc0e4ed549cbb3cb03711378a2fe3ee332ddf3165d461c17137de364d1"
+    },
+    {
+      "blob": "ab0bb0f0dad5d3c31682ee96de4b1de4b0097002",
+      "bytes": 281497,
+      "path": "imported-alerts-1440.png",
+      "sha256": "01c0610737e33d0c6f4a946d83634d7f734637a195c164119fcb33ba69430d32"
+    },
+    {
+      "blob": "42289a9c600a6012081fa2a79cb633287ad9e971",
+      "bytes": 282516,
+      "path": "imported-alerts-390.png",
+      "sha256": "97d25f5be5b9259a51be89455745f0bb7ae1dbac54a09ee239f4cea4e95f31a7"
+    },
+    {
+      "blob": "32b89112e1ae089bc526d4eb7f78a95fd27074fa",
+      "bytes": 252,
+      "path": "imported-alerts.json",
+      "sha256": "cb61aad6396cd32e63968169b74c563310b91450d3f6cbca959cbaf3da34c32d"
+    },
+    {
+      "blob": "95ac829e202bf0495a5727518fac466cddcddf34",
+      "bytes": 271527,
+      "path": "imported-job-summary-1440.png",
+      "sha256": "30fc69ef74c9b06c28c6ca0f73cfa2dcae9fe52461f5f17e94138e6b8bc4c6c8"
+    },
+    {
+      "blob": "a88c1aea223f7f3f9e6738cfed570516aa048c9f",
+      "bytes": 241601,
+      "path": "imported-job-summary-390.png",
+      "sha256": "0cf1e1f2a86d9baafa0dd848ab1df5d7b2ba02f037ddb58c32806124e62af497"
+    },
+    {
+      "blob": "eba96be78fcc4f0e6d5fe7251e780900150b9b97",
+      "bytes": 1592,
+      "path": "signed-runner.log",
+      "sha256": "a2fdaa81c2cdcf423734fc7c8d2efc78a3dc8511f3e14b3f09a53b27ab524289"
+    },
+    {
+      "blob": "96c0e1cf68ca2ddd2e6ee200fd6b99d8162014be",
+      "bytes": 283,
+      "path": "spec-check.log",
+      "sha256": "ab0b26de624f23873e731e4a73faab369e4206ffd7bd6657cd937e171b8d213b"
+    },
+    {
+      "blob": "304c68b509277e89632804dececb9e7a0836e894",
+      "bytes": 243,
+      "path": "typecheck.log",
+      "sha256": "276f5776dca1a18931e49d0a0f75322c60a9bd90da01db92d94a6f9d5a7dbbf7"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-plain-states-1",
+  "product_head": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+  "ref": "refs/heads/evidence/main-uptime-plain-states-1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-plain-states-1"
+}

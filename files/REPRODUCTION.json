@@ -1,0 +1,18 @@
+{
+  "journey": "public owner routes on emitted Worker and migrated D1",
+  "baseline": "7f07c2c0584c32be2d3c0a848bc23e827832825d",
+  "documentedHeartbeatImport": {
+    "internalDigestInSummary": true
+  },
+  "developmentMail": {
+    "mailSuppressed": true,
+    "simulationNoticeVisible": false
+  },
+  "archiveRestore": {
+    "storedStates": [
+      "imported-inactive",
+      "imported-inactive"
+    ],
+    "rawImportedCodeVisible": true
+  }
+}

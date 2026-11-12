@@ -1,0 +1,7 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+Alert drill passed: real Worker/D1, production runner, SendGrid, signed webhook and Slack receivers.
+PROBE AGENT-004 1: company consent API, signed MCP schedule, real Cron and Settings -> one accepted drill without recipient confirmation, expired destination unsent, due internal owner reminder and route plus Oncall proposals
+PROBE AGENT-004 2: Settings decline and repeated Cron -> declined proposal, no new recipient jobs, no credential rotation, no phone charge or outbound phone path
+PASS AGENT-004 scheduledDrills: consent, bounded current-policy execution, expiry, provider and recipient separation, internal owner chase, decline, revocation, erasure, inactive archive and Settings at 1440 and 390

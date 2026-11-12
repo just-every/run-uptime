@@ -1,0 +1,14 @@
+{
+  "journey": "proveAlertPresentation",
+  "mode": "development",
+  "result": "passed",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "deliveries": 3,
+  "overflow": false,
+  "axeViolations": 0,
+  "recipientReceiptSeparate": true
+}

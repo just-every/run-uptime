@@ -1,0 +1,93 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-plain-states-1",
+  "head": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "node tests/signed-runner.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node tests/alert-drill.mjs",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run spec:check",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "browserExecutable": "/usr/bin/chromium",
+  "browserArgs": [
+    "--no-sandbox"
+  ],
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "registeredPushJourneys": {
+    "before": 47,
+    "after": 47,
+    "added": 0
+  },
+  "contractCounts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    }
+  },
+  "clauseStatusChanges": [],
+  "productPushAttempts": [
+    {
+      "head": "027d039",
+      "attempts": 1,
+      "result": "success"
+    },
+    {
+      "head": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+      "attempts": 1,
+      "result": "success"
+    }
+  ],
+  "proofFiles": [
+    "imported-job-summary-1440.png",
+    "imported-job-summary-390.png",
+    "development-alerts-1440.png",
+    "development-alerts-390.png",
+    "development-drill-1440.png",
+    "development-drill-390.png",
+    "imported-alerts-1440.png",
+    "imported-alerts-390.png",
+    "consented-drill-1440.png",
+    "consented-drill-390.png",
+    "expired-route-1440.png",
+    "expired-route-390.png"
+  ],
+  "proofRedaction": "Heartbeat URL capabilities, one-time commands and private-runner command blocks are masked by Playwright before capture. No archive or synthetic grant files are selected."
+}
