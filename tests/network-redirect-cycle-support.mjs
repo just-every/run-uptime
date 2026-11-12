@@ -141,7 +141,12 @@ export async function proveNetworkRedirectCycle(){
    assert.deepEqual(traffic(),stopped,'no target or canary requests restart after redirect refusal');
    assert.equal(open.size,0,'no target TCP socket remains after refusal');
    assert.deepEqual(await history(),failedHistory);
-   assert.deepEqual(await read(`/api/monitors/${id}/incidents`),failedIncidents);
+   const incidents=await read(`/api/monitors/${id}/incidents`);assert.equal(incidents.length,failedIncidents.length);
+   for(let index=0;index<incidents.length;index++){
+    const {durationMs,...current}=incidents[index],{durationMs:previousDuration,...previous}=failedIncidents[index];
+    assert.ok(durationMs>=previousDuration,'an open incident continues to accrue visible elapsed time');
+    assert.deepEqual(current,previous,'restart and quiet reads preserve every durable incident fact');
+   }
    assert.equal((await current()).state.targetState,'Failing');
    assert.deepEqual(await read(`/api/monitors/${id}/revisions`),revisions);
   };
