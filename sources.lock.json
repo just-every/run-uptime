@@ -500,7 +500,7 @@
       "executable": false
     },
     "ACCEPTANCE.md": {
-      "sha256": "eddaf5b6912664e5009cc97f963c3ee1708886657be8c5966358f455504fe2ca",
+      "sha256": "3526bcea7a83a54e5523dfbc0cd9dc0fc0fc8317dd5d3b1951fc9319b29ef4bf",
       "executable": false
     },
     "agent-surface.json": {
@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "14fb4722cb6a9c93ec7e55481e06e10eb3e94e5315fd289b05080c776e7b54e8",
+      "sha256": "c5a60a47b3fa638b792c8a05c49f195d920bb1639c4f1378481e7142431e4d92",
       "executable": false
     },
     "DEMO.md": {
@@ -4536,7 +4536,7 @@
       "executable": false
     },
     "src/agent-door/incident-notes.server.ts": {
-      "sha256": "6dc10940ee916ef541cc746aa89437ebc9b82bb1af504ca3081ce2e643fd8846",
+      "sha256": "e77bc43d0e668fcb4e7adf45d8e92662627142a3e29098f23806edd35f615060",
       "executable": false
     },
     "src/agent-door/index.server.ts": {
@@ -4568,7 +4568,7 @@
       "executable": false
     },
     "src/agent-door/registry.server.ts": {
-      "sha256": "3fe4e81241a8cc6922bfba4441f6e98c1a3d5d1c6bb04f2eb713fe140e5c5e33",
+      "sha256": "6578c35bd9c9d1f7cab33ee7ba93fe2ec4271d20c0f74316be5b3ad63f93c3e8",
       "executable": false
     },
     "src/agent-door/work.server.ts": {
@@ -8871,6 +8871,10 @@
       "sha256": "7aafa21cfa2a1ce538bff8b766387687adda388a526a9d9363f5e67bb903ebd9",
       "executable": false
     },
+    "tests/agent-comment-edit-support.mjs": {
+      "sha256": "113a7800d170fa29f4dfd4369a8ea320f5ec4970388d8a229b1587c6d2c6ed58",
+      "executable": false
+    },
     "tests/agent-conformance/destination-name.mjs": {
       "sha256": "79ab27c6313de4461e2a317b88abfc157597cb91870a0db744682495d3ff0382",
       "executable": false
@@ -8936,7 +8940,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "e7c3f60d491be0d0bca607d83216f34efe308780a5409b49b5b046c867399340",
+      "sha256": "b0a4e5c5cdb45a2285973f382022be8e87b95406bc172df4edaa2cd7b40b6100",
       "executable": false
     },
     "tests/agent-drill-journey.mjs": {

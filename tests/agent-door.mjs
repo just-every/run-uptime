@@ -1,5 +1,6 @@
 import {proveAgentRevocationAudit} from './agent-revocation-audit-support.mjs';
 import {proveDestinationNameEffects} from './agent-destination-name-support.mjs';
+import {proveCommentEditing} from './agent-comment-edit-support.mjs';
 import {proveCommentDeletion} from './agent-comment-delete-support.mjs';
 import {checkAgentArtifacts} from '../src/base/modules/agent-door/index.ts';
 import {uptimeAgentArtifacts} from '../src/agent-door/erasure.server.ts';
@@ -229,6 +230,7 @@ try{
  // through the native sign-in and second-factor doors before owner role writes.
  cookie=await emailSignIn(origin,{bindings});c.person.cookie=cookie;
  await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
+ await proveCommentEditing({c,native,db,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
  await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
  const notificationArgs={id:destination.id,idempotency_key:randomUUID()};
