@@ -245,10 +245,10 @@
     {
       "id": "service-catalog-status-sources",
       "required": false,
-      "requiredWhen": "An owner follows or reviews a provider from the third-party service catalog",
+      "requiredWhen": "An owner follows or reviews a provider from the third-party service catalog, or explicitly confirms a reviewed Auth0 tenant-domain source check",
       "why": "Before a provider is followed, the owner's runner (or a hosted demo's Worker) reads the catalog entry's own status source once to confirm it answers with the shape the catalog expects. Every scheduled check of a followed provider reads the same address with the same catalog reader.",
       "data": [
-        "Only status-source addresses the catalog itself names (provider status APIs, feeds and pages), one read-only GET each, with the catalog check User-Agent; no owner data, credential or other address is sent",
+        "Only status-source addresses the catalog itself names (provider status APIs, feeds and pages), one read-only GET each, with the catalog check User-Agent; no credential or other address is sent; the sole owner-data exception is an explicitly reviewed Auth0 source check sending one named tenant domain as the domain query parameter to the fixed https://status.auth0.com/rss endpoint (RL-101), with a new review required when the tenant changes",
         "The provider's status service sees the request time and the runner's source address",
         "The reader streams at most 1 MiB of a document, follows no redirect and keeps nothing but derived facts",
         "Only derived facts return to the Worker: whether the source answered, whether it has the expected shape, what the provider states about the followed part and region, and the provider's own id for a component or product; no body or header is kept"
@@ -348,7 +348,7 @@
       "data": [
         "Runner key authentication and signature, runner identity, declared network label, browser capability, request times, and claimed task identifiers",
         "Assigned monitor and flow definitions, canary URLs, retry and lease data, and signed attempt evidence, including status, assertions, timings, and bounded flow trace",
-        "Discovery input URLs and derived host/proposal results; for a service catalog check, the catalog entry and chosen parts, and the derived check result",
+        "Discovery input URLs and derived host/proposal results; for a service catalog check, the catalog entry and chosen parts, and the derived check result; a reviewed Auth0 source check also carries its named tenant domain, fixed official endpoint and explicit consent binding",
         "For notification delivery, the claimed endpoint URL, signing credential and event payload are returned to the runner for the one configured send; signed outcome and bounded provider response details return to the Worker",
         "Redacted HTTP failure snapshots (16 KiB text, optional 64 KiB PNG, 120 KiB total) carry final request details, owner-approved safe header/email exceptions, measured phases and bounded diagnostics under the signed envelope. Opt-in isolated screenshots render the already received excerpt after inert parsing/redaction, without fetching any target or subresource; scripts, styling and media are removed. Generated PNGs are authenticated-encrypted at rest, read only by owners and explicitly granted per-monitor evidence viewers, portable as redacted archive data, and subject to snapshot retention and erasure. Masks and access grants stay installation-local. Alerts carry no artifact content."
       ],
