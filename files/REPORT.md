@@ -59,7 +59,7 @@ A complete clause DONE claim is intentionally withheld. The required slice retai
 | --- | --- |
 | 1 | PASS for the selected runtime slice in the proof map; full clause outcomes remain unproved and no complete acceptance number is claimed. |
 | 2 | PASS for selected native allow, genuine person approval, blocked refusal and below-boundary counterpart; wrong possible count visibly fails the journey. |
-| 3 | Local journey PASS; exact-candidate Verify event and conclusion are recorded below and in candidate-ci.jsonl. The existing Verify command loads the new helper without a workflow change. |
+| 3 | Local journey PASS; exact-candidate push Verify has only the permitted generated-view failure; shards were skipped and full suite execution remains the lander's duty. Its event and actual conclusion are recorded below and in candidate-ci.jsonl. The existing Verify command loads the new helper without a workflow change. |
 | 4 | Relevant production and test bytes are bound in RECEIPT.json; no relevant byte changes follow the final runtime run. |
 | 5 | INSPECTED: SURFACE-006 continues citing BASE-AGENT-006; no inheritance or requirement change. |
 | 6 | Generator write and check PASS before restoring main's views; Status, Gap, Evidence and counts remain exactly main's judgments. The lander owns regenerated-view commits. |
@@ -73,7 +73,7 @@ Pre-handoff: selected behaviours have a public-door sanity proof and a demonstra
 
 ## Custody, CI and held remainder
 
-Exact-candidate push Verify 43275702351: in_progress with no conclusion at discovery, head 3c3aa4c459d2688d6f6a7576b7658722db238012. Two GitHub API calls used so far. The known restored-view check is expected to be owned by the lander; no unrelated CI failure is assumed or concealed.
+Exact-candidate push Verify 43275702351 completed with conclusion failure on 3c3aa4c459d2688d6f6a7576b7658722db238012. The only substantive failure is build job 131383500929 at `node src/base/contract-docs.mjs check`: `ACCEPTANCE.md: generated content differs; run contract-docs write.` Plan and prepare passed; shards were skipped because build failed. Aggregate job 131383880548 failed solely on that failed build and skipped coverage. The two failed-job archives were read once each and retained in build-job.log and verify-job.log with environment listings removed. This is precisely the cloud generated-view exception: READY eligibility is accepted for handoff, while the actual workflow conclusion remains failure and the guarded lander must regenerate and rerun its own exact-SHA gates. No workflow was dispatched or rerun, and no product repair was made. Six of ten allowed GitHub calls were used, with one status observation at least 300 seconds after discovery.
 
 Main Verify 43271045004 and Run site 43271045029 were successful on 88c586f6fabdaed6768ddc8072af2340310a7ace at inspection. Another main Verify, 43273433822, was in progress. No candidate result is inferred from those runs. GitHub API calls and exact candidate status are retained separately.
 
@@ -82,3 +82,5 @@ No product blocker remains for the selected POINTS. Plan row changed in this rep
 GAP SURFACE-006: Acceptance 1's irreversible debt resolution and setup resumption; acceptance 2's ownership reassignment and destructive grouped actions; acceptance 3's assignment-only absence of live, reminder and fallback suppression and affected monitor, incident and route facts; acceptance 4's other API shapes, browser fixtures, multiple probes and retries remain outside this bounded proof. The attributed-review-feed hold, ambiguous remainder, uip-owned console work, money and destructive-grant classification, worker-family qualification, resources and record links, AGENT-001 through AGENT-005 AI-flow hold, undeclared capabilities and unscoped lifecycle families, account, device, sibling and Platform obligations remain unchanged. Publication scanning, regenerated views, landing and candidate Run site remain guarded-lander duties.
 
 CLAIM SURFACE-006 PARTIAL points=none tests=tests/agent-manual-multicleanup-support.mjs#proveManualMultiCleanup; tests/agent-manual-debt-support.mjs#proveManualDebt
+
+Terminal handoff: READY branch=cloud/sd-uptime-c-f167 head=3c3aa4c459d2688d6f6a7576b7658722db238012, using only the explicitly permitted generated-view exception. No landing, publication-scan or candidate Run site result is claimed.

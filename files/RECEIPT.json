@@ -10,6 +10,82 @@
       "id": 43275702351,
       "name": "Verify",
       "status": "in_progress"
+    },
+    {
+      "conclusion": "failure",
+      "head_sha": "3c3aa4c459d2688d6f6a7576b7658722db238012",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43275702351",
+      "status": "completed"
+    }
+  ],
+  "candidate_jobs": [
+    {
+      "conclusion": "success",
+      "id": 131383391531,
+      "name": "plan",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "failure",
+      "id": 131383500929,
+      "name": "build",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "failure",
+          "name": "Run node src/base/contract-docs.mjs check",
+          "number": 9
+        }
+      ]
+    },
+    {
+      "conclusion": "success",
+      "id": 131383501331,
+      "name": "prepare",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "skipped",
+      "id": 131383503525,
+      "name": "light",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "skipped",
+      "id": 131383680716,
+      "name": "shards (${{ matrix.name }})",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "skipped",
+      "id": 131383682010,
+      "name": "nightly-proof",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "failure",
+      "id": 131383880548,
+      "name": "verify",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "failure",
+          "name": "Require the selected coverage and its proof",
+          "number": 2
+        }
+      ]
+    },
+    {
+      "conclusion": "skipped",
+      "id": 131383883317,
+      "name": "full-push-proof",
+      "status": "completed",
+      "steps": []
     }
   ],
   "checks": [
@@ -34,6 +110,11 @@
       "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
     },
     {
+      "bytes": 105,
+      "file": "restored-views-check.log",
+      "sha256": "9cf3c390ca9f5f8c7bb13f4dd1f4058d66f2e74d194584038d85eaf0d4767d1e"
+    },
+    {
       "bytes": 416722,
       "file": "source-lock-check.log",
       "sha256": "c5710b1b32cf6ba3925c6b4bda6498235f6183ae5453b31fc982f85f0faa3ff8"
@@ -47,6 +128,16 @@
       "bytes": 1390,
       "file": "mutation.log",
       "sha256": "8003fc101088dce6131ca390b5971a59c9e87762e7b7c0fe26802287fa53a9ea"
+    },
+    {
+      "bytes": 833,
+      "file": "build-job.log",
+      "sha256": "fea2469adc39a7f46f0e801c0d74ec49eefd9077f1ad8956a08757c4d3d7893c"
+    },
+    {
+      "bytes": 2401,
+      "file": "verify-job.log",
+      "sha256": "b7649c21265c0da937b95849b8d80ed9067189f3675ce81740d36e780900b57a"
     }
   ],
   "checks_executed": [
@@ -132,6 +223,7 @@
     "partial": 58
   },
   "full_history": true,
+  "github_call_count": 6,
   "head": "3c3aa4c459d2688d6f6a7576b7658722db238012",
   "landing": "branch-only; default branch was not pushed",
   "pr": null,
@@ -140,6 +232,16 @@
     "findings": null,
     "historyScanned": null,
     "status": "delegated-to-guarded-lander"
+  },
+  "ready_eligibility": {
+    "basis": "explicit generated-view exception",
+    "build_job": 131383500929,
+    "consequential_aggregate_job": 131383880548,
+    "eligible": true,
+    "lander_must_regenerate_and_run_checks": true,
+    "only_substantive_failure": "ACCEPTANCE.md generated content differs",
+    "shards_ran": false,
+    "workflow_conclusion": "failure"
   },
   "repository": "just-every/run-uptime",
   "runtime_source_equals_committed_bytes": true,

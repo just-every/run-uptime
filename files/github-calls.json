@@ -10,6 +10,27 @@
       "kind": "candidate exact-SHA run discovery",
       "head_sha": "3c3aa4c459d2688d6f6a7576b7658722db238012",
       "at": "2026-11-12T18:03:12.793610+00:00"
+    },
+    {
+      "number": 3,
+      "kind": "candidate exact-SHA run observation",
+      "run_id": 43275702351,
+      "at": "2026-11-12T18:08:13.441634+00:00"
+    },
+    {
+      "number": 4,
+      "kind": "completed candidate failed-job diagnosis, not status polling",
+      "run_id": 43275702351
+    },
+    {
+      "number": 5,
+      "kind": "one completed build job log archive read",
+      "command": "gh run view 43275702351 --repo just-every/run-uptime --job 131383500929 --log-failed"
+    },
+    {
+      "number": 6,
+      "kind": "one completed aggregate Verify job log archive read",
+      "command": "gh run view 43275702351 --repo just-every/run-uptime --job 131383880548 --log-failed"
     }
   ],
   "budget": 10

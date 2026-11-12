@@ -1,0 +1,7 @@
+build	Run node src/base/contract-docs.mjs check	﻿2026-11-12T18:03:05.8462494Z ##[group]Run node src/base/contract-docs.mjs check
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:05.8462684Z [36;1mnode src/base/contract-docs.mjs check[0m
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:05.8482043Z shell: /usr/bin/bash -e {0}
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:05.8482720Z ##[endgroup]
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:05.9362697Z Contract prose: 0 errors, 0 warnings.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:05.9992432Z ACCEPTANCE.md: generated content differs; run contract-docs write.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T18:03:06.0093225Z ##[error]Process completed with exit code 1.
