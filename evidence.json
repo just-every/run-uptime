@@ -1,0 +1,130 @@
+{
+  "files": [
+    {
+      "blob": "aa02e05dc1bb083b8b0aaf090d9a1e51025f6653",
+      "bytes": 2011,
+      "path": "PLAN.md",
+      "sha256": "c42f4e06aed9b1d6308e9ffeef3ee9f07a30af8fc27b33f08f82f1a9b05d84fd"
+    },
+    {
+      "blob": "b33d6d8349297ca9eb3642650a4fc5c23b8bb21f",
+      "bytes": 7876,
+      "path": "REPORT.md",
+      "sha256": "4f97a3f77717a3ec2994878343a56a5cb1aeb91e553942001843235e77cf2728"
+    },
+    {
+      "blob": "4d16d0e4dce4eab348aef9b17b7674ee61386bfe",
+      "bytes": 226,
+      "path": "candidate-ci-discovery.json",
+      "sha256": "a20718e7502ce55d08250bb836bbed760644f201f1416d93b45274c958ee9ea4"
+    },
+    {
+      "blob": "ceabe0657c1400a2104857797b7f70f4a1db3091",
+      "bytes": 312,
+      "path": "candidate-ci.json",
+      "sha256": "bf4de917d8e0721d06f444ad63dff90e28e5e60bdc0779ff5458117b61c4a86e"
+    },
+    {
+      "blob": "55bfeff023c4ae17dc59e12f86f446b1960e6b53",
+      "bytes": 85,
+      "path": "candidate-identity.txt",
+      "sha256": "148bad84b5b174568017df50d58e073566703d43c6c9fe7fa6f1af04420adf55"
+    },
+    {
+      "blob": "50bb71543d2fbf22c85ee956557ea3361fa5bf38",
+      "bytes": 80,
+      "path": "candidate-messages.txt",
+      "sha256": "3bf17b7f39c18ef09be5bfc30575407693745227c864da7bdc8f02c43dd5591b"
+    },
+    {
+      "blob": "f1f397529a60852a425e292b26f21305f99ee703",
+      "bytes": 1540,
+      "path": "ci-poll-history.json",
+      "sha256": "bcb6a3efc0619bea0809f5d3608d5c655396b82d68bd73e22448d8e78862655b"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "contract-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "f125684f41d8938bc326afa728c673dadd5b7e1a",
+      "bytes": 2247,
+      "path": "dependency-install.log",
+      "sha256": "991b36d6ae85142b568b66318ccaba57990bd5aa3d1a763c4834b3cf946951a0"
+    },
+    {
+      "blob": "224963c7da9d54ecfb47177388fb1abe341236e9",
+      "bytes": 1150,
+      "path": "main-ci.json",
+      "sha256": "d4e12fb32e056d9175360b00706ff5b762eafac9c1e9f2c522122fdac9448c22"
+    },
+    {
+      "blob": "373324876fcd3061df81beb6c19f79fc88513a36",
+      "bytes": 1700,
+      "path": "metadata-checks.json",
+      "sha256": "c49c4e1622cc41aafa924b283847da3a6e29715310cf28515dd6eaa9a361f287"
+    },
+    {
+      "blob": "b2033ff428553d2e23745727ad645d8848f56f8c",
+      "bytes": 3243,
+      "path": "open-pulls.json",
+      "sha256": "3b54061a80ffeaa5581ad01d9d224563d15c819c9cc61e8f32d6d1540e025c86"
+    },
+    {
+      "blob": "aa98c344ae4b86d919fd442e7af3cbe66376fcbd",
+      "bytes": 964,
+      "path": "preflight-receipt.json",
+      "sha256": "4997929ca97f2cc33bf961b9a840b7e368c30071e454ce7b1d2ca044589299f3"
+    },
+    {
+      "blob": "05a1c3263ddb9145da0b84935589285050ba00f4",
+      "bytes": 942,
+      "path": "product-push.log",
+      "sha256": "0c7b1e555c7d240c4c463cb03106dffcc670f44c19a7130ff1066d4f718762f5"
+    },
+    {
+      "blob": "09611047289aa766f4916da00bfc3db255f46dc0",
+      "bytes": 2628,
+      "path": "product-receipt.json",
+      "sha256": "d2aa988b163a6dfb3b88a421fd74944be7e842cfb9f7f3dab6232ea45b96875c"
+    },
+    {
+      "blob": "ebc2f2edd89c1012b67d9f869fd496f2b78d3070",
+      "bytes": 10536,
+      "path": "product.patch",
+      "sha256": "fa6a0f23f57d49c4805031464317058b3fa31afbfcc9061561293661bbfdec66"
+    },
+    {
+      "blob": "3d36cc489c084178d3ab01d002a0f73ac4a03aa1",
+      "bytes": 72589,
+      "path": "remote-heads.txt",
+      "sha256": "5402f447304eb8cfeb3946aa8d3365a16df2cf78c7941d506b775f4f3f7368a4"
+    },
+    {
+      "blob": "0de3b223707dffe899eb21ec9988329dbc5c6a20",
+      "bytes": 788,
+      "path": "since-0.5.8.txt",
+      "sha256": "1ce9f43c71acee7ab61871a752eaf1e29abb0d63051bdc32d363b4deb7f0fbc7"
+    },
+    {
+      "blob": "7d7b1482dec7d990d2630e18de458eb32da32f98",
+      "bytes": 537,
+      "path": "source-lock-receipt.json",
+      "sha256": "1f556c3db7debda84b9c5a2d10292d23828a881db441d4095fedca6233f9c980"
+    },
+    {
+      "blob": "cddc19fb26dc8881c748892c588da3d4ff257982",
+      "bytes": 185,
+      "path": "typecheck.log",
+      "sha256": "1645b8e6976daf309a9da6d142d99bcf0ff6c1cf5d216bfbaf1589f192dcdefc"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-release-0-5-9",
+  "product_head": "da70990aaf1add3cc760ef355df28f92c14ac115",
+  "ref": "refs/heads/evidence/sd-uptime-release-0-5-9",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-release-0-5-9"
+}

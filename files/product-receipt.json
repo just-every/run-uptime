@@ -1,0 +1,107 @@
+{
+  "timestamp": "2026-11-12T16:37:44.173796+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-9",
+  "head": "da70990aaf1add3cc760ef355df28f92c14ac115",
+  "base": "015cfa43cac61079a5809996696bbf193add85ff",
+  "previous_tag": "v0.5.8",
+  "previous_commit": "ed5429192d18503c4c8caa8d797d82ffdcc78f54",
+  "commits_since_previous_release": 4,
+  "version_before": "0.5.8",
+  "version_after": "0.5.9",
+  "rer_pin_before": "0.2.108",
+  "rer_pin_after": "0.2.108",
+  "changed_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "diff_stat": "6 files changed, 30 insertions(+), 11 deletions(-)",
+  "identity_check": "all candidate authors/committers are fleet; no trailers",
+  "working_tree": "clean",
+  "clauses_before": {
+    "Core": {
+      "done": 37,
+      "partial": 47,
+      "missing": 11,
+      "total": 95
+    },
+    "Agent surface": {
+      "done": 0,
+      "partial": 11,
+      "missing": 8,
+      "total": 19
+    },
+    "Later": {
+      "done": 0,
+      "partial": 0,
+      "missing": 1,
+      "total": 1
+    },
+    "Full target": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "clauses_after": {
+    "Core": {
+      "done": 37,
+      "partial": 47,
+      "missing": 11,
+      "total": 95
+    },
+    "Agent surface": {
+      "done": 0,
+      "partial": 11,
+      "missing": 8,
+      "total": 19
+    },
+    "Later": {
+      "done": 0,
+      "partial": 0,
+      "missing": 1,
+      "total": 1
+    },
+    "Full target": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "clause_status_changes": [],
+  "tests_added": 0,
+  "tests_removed": 0,
+  "typecheck": {
+    "command": "pnpm run typecheck",
+    "runtime": "v22.20.0",
+    "pnpm": "10.12.4",
+    "exit_code": 0
+  },
+  "contract_check": {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit_code": 0
+  },
+  "metadata_check": "17 checks passed",
+  "source_lock_check": "passed; regenerated last",
+  "pr": null,
+  "product_release_published": false,
+  "publication_scan": "deferred to guarded Mac lander as instructed",
+  "candidate_ci": {
+    "timestamp": "2026-11-12T16:57:56.615846+00:00",
+    "action": "poll",
+    "run_id": 43260670273,
+    "github_call": 8,
+    "conclusion": "success",
+    "head_sha": "da70990aaf1add3cc760ef355df28f92c14ac115",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43260670273",
+    "status": "completed"
+  },
+  "terminal_product_status": "READY",
+  "product_push": "succeeded attempt 1"
+}

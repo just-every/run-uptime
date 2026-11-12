@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-11-12T16:37:00.041020+00:00",
+  "runtime": "v22.20.0",
+  "commands": [
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit_code": 0,
+      "ok": true,
+      "tracked_files": 2366
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0,
+      "ok": true,
+      "tracked_files": 2366
+    }
+  ],
+  "changed_source_hashes": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "seed.json"
+  ],
+  "result": "pass"
+}

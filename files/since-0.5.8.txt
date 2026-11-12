@@ -1,0 +1,11 @@
+015cfa43cac61079a5809996696bbf193add85ff Merge current main preserving both rer mail startup proofs
+8e37d089c74e07b22afe3a3eef7bfafd76e358e4 Prove conditional relay URL refusal and persistent restart
+04998fe899d4bad1cf4186c7eae5a96fb9a6a42d Regenerate contract views from CONTRACT.md
+9455da9f9f03b90d15d09814886a256b8faff207 test: prove rer mail key startup refusal and recovery
+ ACCEPTANCE.md                           |   4 +-
+ CONTRACT.md                             |   4 +-
+ sources.lock.json                       |  14 +++-
+ tests/public-paths.mjs                  |   5 ++
+ tests/startup-rer-mail-key-support.mjs  | 119 +++++++++++++++++++++++++++
+ tests/startup-rer-relay-url-support.mjs | 140 ++++++++++++++++++++++++++++++++
+ 6 files changed, 281 insertions(+), 5 deletions(-)

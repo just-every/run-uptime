@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-11-12T16:38:24.550317+00:00",
+  "repository": "just-every/run-uptime",
+  "main": "015cfa43cac61079a5809996696bbf193add85ff",
+  "latest_public_release": {
+    "tag": "v0.5.8",
+    "title": "Uptime 0.5.8",
+    "published_at": "2026-11-12T13:38:20Z",
+    "url": "https://github.com/just-every/run-uptime/releases/tag/v0.5.8"
+  },
+  "v0.5.9_tag_present": false,
+  "v0.5.9_release_present": false,
+  "v0.5.9_main_version_present": false,
+  "release_peer_branch_present": false,
+  "release_peer_pull_request_present": false,
+  "github_calls_before_candidate_push": 3,
+  "main_ci_receipt": "main-ci.json",
+  "open_pull_requests_receipt": "open-pulls.json",
+  "remote_heads_receipt": "remote-heads.txt",
+  "metadata_paths_from_v0.5.8_commit": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "package_lock_json_present": false,
+  "pnpm_lock_version_edit_needed": false
+}

@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-11-12T16:57:56.615846+00:00",
+  "action": "poll",
+  "run_id": 43260670273,
+  "github_call": 8,
+  "conclusion": "success",
+  "head_sha": "da70990aaf1add3cc760ef355df28f92c14ac115",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/43260670273",
+  "status": "completed"
+}

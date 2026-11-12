@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-11-12T16:37:00.124015+00:00",
+  "checks": [
+    {
+      "name": "package/seed/release versions agree at 0.5.9",
+      "result": "pass"
+    },
+    {
+      "name": "previous version matches main and prior tag",
+      "result": "pass"
+    },
+    {
+      "name": "package changes contain only release version",
+      "result": "pass"
+    },
+    {
+      "name": "seed changes contain only release version",
+      "result": "pass"
+    },
+    {
+      "name": "published rer pin retained",
+      "result": "pass"
+    },
+    {
+      "name": "prior changelog retained verbatim",
+      "result": "pass"
+    },
+    {
+      "name": "new dated changelog and prior upgrade section present",
+      "result": "pass"
+    },
+    {
+      "name": "honest maintenance notes match code delta",
+      "result": "pass"
+    },
+    {
+      "name": "release known issues and screenshot provenance retained",
+      "result": "pass"
+    },
+    {
+      "name": "existing screenshot file present",
+      "result": "pass"
+    },
+    {
+      "name": "README only updates release references",
+      "result": "pass"
+    },
+    {
+      "name": "frozen dependency lock untouched",
+      "result": "pass"
+    },
+    {
+      "name": "CONTRACT.md untouched",
+      "result": "pass"
+    },
+    {
+      "name": "ACCEPTANCE.md untouched",
+      "result": "pass"
+    },
+    {
+      "name": "docs/CLAIMS.md untouched",
+      "result": "pass"
+    },
+    {
+      "name": "all changes within release metadata scope",
+      "result": "pass"
+    },
+    {
+      "name": "changes since previous release contain only tests, contract documents and lock",
+      "result": "pass"
+    }
+  ],
+  "result": "pass",
+  "check_count": 17
+}
