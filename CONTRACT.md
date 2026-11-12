@@ -1364,6 +1364,9 @@ Inherits BASE-AGENT-001 to BASE-AGENT-013. The company's policy decides every ca
 7. `uptime.definitions.read` or `uptime.definitions.preview` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
 8. `uptime.checks.run` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive. `uptime.grants.read` adds destructive when it grants authority for destructive writes, with the step and item count; a grant that does not allow destructive writes does not add destructive.
 
+
+**Bounded implementation evidence (qualification pending).** `tests/agent-comment-edit-support.mjs` proveCommentEditing, mounted once by `tests/agent-door.mjs`, exercises the synchronous mention-free edit variant of `uptime.incidents.note` through MCP. The server selects standard without destructive, reuses native comment history and current author or administrator authority, and fences versions and exact-key replay. The journey covers both supported protocol versions and ordinary autonomous or reviewed standard decisions with destructive blocked, genuine named approval, native and MCP timeline attribution, stale and foreign references, deleted targets and unrelated durable state with zero provider traffic. Native mention reconciliation remains unchanged; this fixture makes no claim about arbitrary pending mentions. This is bounded acceptance 4 evidence only, with no status promotion or qualification of the remaining clause outcomes or existing holds.
+
 #### SURFACE-005 — The monitoring-operator journey under two company policies
 
 *Tier:* Agent surface · *From:* new · *Cites:* BASE-AGENT-007, BASE-AGENT-013
