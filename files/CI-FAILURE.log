@@ -1,0 +1,37 @@
+shards (push-5)	Run this shard	2026-11-12T03:51:36.7256773Z > node tests/notification-fallback.mjs
+shards (push-5)	Run this shard	2026-11-12T03:51:37.7957178Z (node:2938) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-5)	Run this shard	2026-11-12T03:51:37.7958219Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-5)	Run this shard	2026-11-12T03:52:45.7501750Z DEPENDENCY_FALLBACK {"scenario":"delayed","delayMinutes":1,"sends":1,"workerElapsedMs":60447}
+shards (push-5)	Run this shard	2026-11-12T03:53:51.8168354Z DEPENDENCY_FALLBACK {"scenario":"primary-accepted","delayMinutes":1,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-12T03:53:58.3475687Z DEPENDENCY_FALLBACK {"scenario":"zero","delayMinutes":0,"sends":1,"workerElapsedMs":296}
+shards (push-5)	Run this shard	2026-11-12T03:54:04.7987974Z DEPENDENCY_FALLBACK {"scenario":"quiet","delayMinutes":0,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-12T03:54:11.3951368Z DEPENDENCY_FALLBACK {"scenario":"recovered","delayMinutes":1,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-12T03:54:11.4481451Z > node tests/mail-journey.mjs
+shards (push-5)	Run this shard	2026-11-12T03:55:58.8732126Z PASS MAIL-001 owner configuration, signed native protocols, per-step incidents, receiver confirmation and synthetic-only removal
+shards (push-5)	Run this shard	2026-11-12T03:55:58.9253417Z > node tests/agent-erasure.mjs
+shards (push-5)	Run this shard	2026-11-12T03:56:08.3602256Z PASS agent-door custody names no erased person after operator erasure; the other person's agent records are intact.
+shards (push-5)	Run this shard	2026-11-12T03:56:08.4095043Z > node tests/udp-monitors.mjs
+shards (push-5)	Run this shard	2026-11-12T03:56:54.5939742Z UDP-001 PASS: signed scheduled match/mismatch/timeout/recovery, immutable facts, destination rejection, one-packet/rate/size caps, cancellation, portable settings and revoked authority.
+shards (push-5)	Run this shard	2026-11-12T03:56:54.6415218Z > node tests/operator-security.mjs
+shards (push-5)	Run this shard	2026-11-12T03:57:05.5755066Z ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.
+shards (push-5)	Run this shard	2026-11-12T03:57:10.1126356Z ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.
+shards (push-5)	Run this shard	2026-11-12T03:57:25.5773034Z Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, per-table receipt equal to storage and later backup.
+shards (push-5)	Run this shard	2026-11-12T03:57:26.9462762Z Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7596843Z node:internal/modules/run_main:123
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7597561Z     triggerUncaughtException(
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7597817Z     ^
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7597937Z 
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7598210Z locator.waitFor: Timeout 30000ms exceeded.
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7598611Z Call log:
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7599391Z   - waiting for locator('#security-controls').locator('[data-factor-state]').getByText(/Second factors: 0/) to be visible
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7599815Z 
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7600242Z     at proveSecurityControls (/home/runner/work/run-uptime/run-uptime/tests/security-controls-browser-support.mjs:34:98)
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7600978Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/operator-security.mjs:58:2 {
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7601752Z   log: [
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7602264Z     "  - waiting for locator('#security-controls').locator('[data-factor-state]').getByText(/Second factors: 0/) to be visible"
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7602780Z   ],
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7602978Z   name: 'TimeoutError'
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7603199Z }
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7603305Z 
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7603398Z Node.js v22.20.0
+shards (push-5)	Run this shard	2026-11-12T03:57:57.7862771Z ##[error]Process completed with exit code 1.

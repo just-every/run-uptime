@@ -1,28 +1,64 @@
 {
   "files": [
     {
-      "blob": "44d2cf8b98c77587ba9009a24021c34d076f2443",
-      "bytes": 2068,
+      "blob": "e48ad0957808baf459f70cef1dcf5edd4dc914f5",
+      "bytes": 2187,
+      "path": "ASSET-LIMIT-DIAGNOSTIC.log",
+      "sha256": "f0ddbcd92925aa941ef5236005038a6cf4da0fdd22b0a997b0e3f573a71a56c5"
+    },
+    {
+      "blob": "ae573299e91926ccb04b4d8d3166b79c09b52c9d",
+      "bytes": 3381,
       "path": "CHECKS.json",
-      "sha256": "20c1cde9ffd429e31e0883e96e4ca1af33f8c2af44cac91b82397c92e35fee56"
+      "sha256": "e3e6df679a5c03ad1088b154be15ac4ab25a75fc5c28681690c292244ee04dc4"
+    },
+    {
+      "blob": "70926b7ac0efc0c0dc191e7b5b264696fa3974c1",
+      "bytes": 229,
+      "path": "CI-DISCOVERY.json",
+      "sha256": "43664e5aba25e686e6da2991d716b1986e677e930fb4a5dc116c86494691643f"
+    },
+    {
+      "blob": "12b07070bae63a7fe7d14cd550d3560470e4b102",
+      "bytes": 4839,
+      "path": "CI-FAILURE.log",
+      "sha256": "4fd4eb1a92c84879a045eb77ebfaec42c4d58f5995e462a9ee8a7a5c508cdf15"
     },
     {
       "blob": "dbaaf3360183ae66dfc089f4703aa46a81fe5a5a",
       "bytes": 229,
-      "path": "CI-DISCOVERY.json",
+      "path": "CI-ORIGINAL-DISCOVERY.json",
       "sha256": "4a4f724556c441736964f08106ec8e12415aa48cfb18794d2cefcca57321339c"
     },
     {
-      "blob": "519b362cba838a52ecd882abdf2afe32b49c6b7a",
-      "bytes": 176,
-      "path": "CI-STATUS.json",
-      "sha256": "538d8fa4ff3ffaebffe528c7ba10ee430cda067862896b4e2229080610411866"
+      "blob": "c0d5bdf39f5acb93555d8e25be624eb52b764dcb",
+      "bytes": 23108,
+      "path": "CI-ORIGINAL-JOBS.json",
+      "sha256": "4b91de0fff4621400a61a935b4fa2ae070a526cc009a2027f03a19e7b06e824d"
     },
     {
-      "blob": "07e2f21b51d582ba07554f5bf71e9d6a6c021dc6",
-      "bytes": 494,
+      "blob": "26594e125176c4f3f710c507ebb36b48cd1eb4d2",
+      "bytes": 179,
+      "path": "CI-ORIGINAL-STATUS.json",
+      "sha256": "80538007445f3b0ba6f565a91b09883740bac5956407b68e87ee64e9e1b42f60"
+    },
+    {
+      "blob": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+      "bytes": 2,
+      "path": "CI-RERUN-RESPONSE.txt",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "blob": "49d534566c8d1fa345499676bca342c425d2b573",
+      "bytes": 179,
+      "path": "CI-STATUS.json",
+      "sha256": "b2c4e7766da80b1d562801f3659ff4ce42df946c10681513036265a2a9f5c54c"
+    },
+    {
+      "blob": "f72e9d5109ec09ca189d6ef20c59a8a2e89ccf96",
+      "bytes": 500,
       "path": "COUNTS.json",
-      "sha256": "18fa1de3dffa0556c7d40b5030d196047e80f5473bb979ecf23fc4613def3497"
+      "sha256": "5a86e9f8f2b124cac183e548b001b7e272e8fa98fb28b936ae56a756c5534fa3"
     },
     {
       "blob": "e620b789e7e7f46f32127eb86b3de8a2ed485b52",
@@ -31,16 +67,16 @@
       "sha256": "a4453c3233bf62c55edc375995eace5056da4ca2e1e8a45cceab1172b565ecb8"
     },
     {
-      "blob": "8a39eb5fe8e5b225dd9a342dfec0496817d17a7a",
-      "bytes": 784,
+      "blob": "99dc3abc1f669a78178d5845962641cfa7c40cf1",
+      "bytes": 2561,
       "path": "GITHUB-CALLS.jsonl",
-      "sha256": "eb80110c67d199555dfb38b72ed4e4d2bd4246b32dd4ce0eb64a1bafde2ed34d"
+      "sha256": "c3a04607a7f43269da5a2b0ee5c5e1c3ef4da0520b8a94cd9d0efb8ab927d9eb"
     },
     {
-      "blob": "d479691a7cc63157d6b47660019658a223405b0a",
+      "blob": "6abd77150c631ceed27b6572429ab75cef8d03df",
       "bytes": 4996,
       "path": "MONITOR-ERASURE-RECEIPT.json",
-      "sha256": "821b4e089caeb840fecd151e1b654bd70ee6bf1d8c7a0044a5ef0ea4d453cc6b"
+      "sha256": "040fe3a6ff6070ad0ab23b92ceadebd0f3ff01ada7f8ab892a51a81c9fe4ef4f"
     },
     {
       "blob": "1a1430831347e24ddef53faeea427b3ce5f204a8",
@@ -49,10 +85,10 @@
       "sha256": "314610f73a1f27937131a4068d0622237a273ff379953a2a6138e2fb0ba75afb"
     },
     {
-      "blob": "2282cc3917b8c070c974eb6447bd4a7b15c896c8",
-      "bytes": 8824,
+      "blob": "a3e10b9fa91830ac5a1180d4781f08186bc376b5",
+      "bytes": 12706,
       "path": "REPORT.md",
-      "sha256": "b850fc55be6b6f4662dc188e991a66691c3becd027acdd55d2e9ec29d1b25f5b"
+      "sha256": "07766bddbb67ea187b7f83205df6d8ae58010ad7643cfe0114c1674bfcc33d70"
     },
     {
       "blob": "5242cb444606c839f1e9a844290f1e7f2dad048a",
@@ -61,16 +97,22 @@
       "sha256": "1ad4c310ffdcb2bc3b9acb73220c9efdfbda1fc8e5acb4dc01588c38ac086ba6"
     },
     {
-      "blob": "1687da583af86b03dd58d72e3aba333fefbe4001",
+      "blob": "4149edc1e6d5456f4619f342b693ced711f6b257",
       "bytes": 1165,
       "path": "SECURITY.log",
-      "sha256": "dbf9cb9066c71788986584781c8ceb452cd501679118c9bfce56b9b95ff48c61"
+      "sha256": "6ea651529ab20904ad8d8517e38453780cc379a01beb909cd21d53b052c8c94e"
     },
     {
-      "blob": "d524ba52cfa2492d3a57a6c44c9dfafaf7e5d151",
+      "blob": "b8a59d894b76cedf3231eed341b9971bff63df79",
       "bytes": 415738,
       "path": "SOURCE-LOCK-CHECK.json",
-      "sha256": "c9894623a1df950228971a823440089a04b917e2b3c00435b8d16571399b371d"
+      "sha256": "dd3e8a2ea6aa55cfb08323ae76899bf495d9e23ac0b11a14c28dfc1eef9d3853"
+    },
+    {
+      "blob": "96c0e1cf68ca2ddd2e6ee200fd6b99d8162014be",
+      "bytes": 283,
+      "path": "SPEC-CHECK.log",
+      "sha256": "ab0b26de624f23873e731e4a73faab369e4206ffd7bd6657cd937e171b8d213b"
     },
     {
       "blob": "304c68b509277e89632804dececb9e7a0836e894",
@@ -85,10 +127,10 @@
       "sha256": "5a048ec61395aabf1d7228eda15be7a0eabf82e3c8af9621b6ba3a0d01c49bd4"
     },
     {
-      "blob": "38e77f607deb76de56799416b74a8ed09f480661",
-      "bytes": 142909,
+      "blob": "72c9f1d6ea9200bb0e5a5c8191a14af1a37a1d6f",
+      "bytes": 143124,
       "path": "screens/import-preview-ready-390.png",
-      "sha256": "f522c02b93d473b6ef866095edbf2f4bf3ac7d4737003b4083a457041baacf14"
+      "sha256": "bc14baed35dddd5bf66999f3c9623ee1fd773c66d8bcc49517674206db432650"
     },
     {
       "blob": "30a19882fe6ee01679037c465f213f973021afa9",
@@ -97,38 +139,38 @@
       "sha256": "c91205896f8a4c5b1c9232b69f73b60fede4839e04b16026fcacc23175d0f055"
     },
     {
-      "blob": "2ba498db07929575d392a6c8f5ce753e368b93e1",
-      "bytes": 108448,
+      "blob": "a8b7e9952267f3e1c9293314a5f72c3090c97857",
+      "bytes": 108350,
       "path": "screens/import-preview-verification-390.png",
-      "sha256": "0e567564072ac13621432fd997b0df39efdd9ec7b098f4edfb3c93384c23ab7c"
+      "sha256": "a722ae6b20921d5b017a266b15dde5b1c36dc328ab8f99e766325c361845bc24"
     },
     {
-      "blob": "241979113268664d36943f1db810bf2323408670",
-      "bytes": 116744,
+      "blob": "6ed34358a0cdc186658fe85d4a37b25ebfcbae2c",
+      "bytes": 116529,
       "path": "screens/monitor-erase-verification-1440.png",
-      "sha256": "5a7fda4d98490282fddf2fbb5f346846f07fb6ebb7518b9ac4f735989dd6d34b"
+      "sha256": "9040cafe2d5dd313c40fac0ccab7d517e0f36da6e20ed735fecca2d7eaacf1a1"
     },
     {
-      "blob": "4ac5b2171249b37d8d4b9bbc4df294f7e1182354",
-      "bytes": 103361,
+      "blob": "471b863a72955141aafeb5116da6ca64e7fcfc2a",
+      "bytes": 102852,
       "path": "screens/monitor-erase-verification-390.png",
-      "sha256": "f6aafb12fc631ac9560f3ee9e62cbb7d6d2743535b403efa033bbb5068eae0de"
+      "sha256": "946a13a357b8db51f127914a6540682ffda1dd699730edfb1b46ac2172b0c44a"
     },
     {
-      "blob": "afdaf71053ca0686d6bd38fc5d6d2df6ee63a8b9",
-      "bytes": 158212,
+      "blob": "ac1c2c9a2256d7bc4c78a4a70acc174bf6bdf510",
+      "bytes": 157492,
       "path": "screens/monitor-erasure-receipt-1440.png",
-      "sha256": "ce62275f4069f3dfdfce84d6154a53448c28f8cfea2096d41a5cea5bbab7adf9"
+      "sha256": "29a81214377c135e47ca96201c3df99e708aa41505e7c23433747a53e3c13fbd"
     },
     {
-      "blob": "a24d2d17b532b5998bf452494e9cb25725f98368",
-      "bytes": 111062,
+      "blob": "787b4b127b3b37e7802f84700d7e6ac918af0d6a",
+      "bytes": 110447,
       "path": "screens/monitor-erasure-receipt-390.png",
-      "sha256": "9aba14b2f76e50edb79aa35e69ebdcc333e39c8cce41b89a6de045f80dc648fe"
+      "sha256": "59fef1a039655aeab722444f1911c1bb1a00539bee10b97954ef1a9643a3c08a"
     }
   ],
   "product_branch": "cloud/main-uptime-erase-in-place-1",
-  "product_head": "93edc3d34982c579e514b4e3df7cbaa5f72770f5",
+  "product_head": "1d5ace1d6e42f9fdbc208df94eefb867c3e965e4",
   "ref": "refs/heads/evidence/main-uptime-erase-in-place-1",
   "repository": "just-every/run-uptime",
   "schema": 1,

@@ -2,7 +2,7 @@
   "product_journey_command_registrations_before": 47,
   "product_journey_command_registrations_after": 47,
   "added_registrations": 0,
-  "extended_existing_registration": "tests/operator-security.mjs -> proveSecurityControls -> proveDestinationStepUp -> proveImportEraseStepUp",
+  "extended_existing_registration": "tests/operator-security.mjs -> proveSecurityControls and isolated proveMonitorStepUp -> proveImportEraseStepUp",
   "test_cap": 200,
   "contract_status_changes": 0,
   "contract_before": {

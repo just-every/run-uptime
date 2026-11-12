@@ -2,7 +2,7 @@
   "schema": 1,
   "repository": "just-every/run-uptime",
   "branch": "cloud/main-uptime-erase-in-place-1",
-  "head": "93edc3d34982c579e514b4e3df7cbaa5f72770f5",
+  "head": "1d5ace1d6e42f9fdbc208df94eefb867c3e965e4",
   "base": "7f07c2c0584c32be2d3c0a848bc23e827832825d",
   "recorded_at": "2026-11-12T03:50:46.236139+00:00",
   "checks": [
@@ -11,15 +11,15 @@
       "exit": 0
     },
     {
-      "command": "cloud_run node tests/operator-security.mjs",
+      "command": "cloud_run $HOME/.rer/node/node-v22.20.0-linux-x64/bin/node tests/operator-security.mjs",
       "exit": 0,
-      "note": "Full security journey passed; final receipt row ordering was subsequently exercised by the focused browser check."
+      "note": "Final fixture isolation; passed without UPTIME_SCREENSHOTS under pinned Node 22.20.0."
     },
     {
-      "command": "cloud_run node /tmp/uptime-final-check.mjs",
+      "command": "cloud_run $HOME/.rer/node/node-v22.20.0-linux-x64/bin/node /tmp/uptime-final-proof.mjs",
       "exit": 0,
       "function": "tests/monitor-stepup-support.mjs#proveImportEraseStepUp",
-      "note": "Final product bytes; desktop behavior plus changed-screen captures at 1440 and 390."
+      "note": "Actual final-SHA wrapper proveMonitorStepUp, with changed-screen captures at 1440 and 390."
     },
     {
       "command": "pnpm run typecheck",
@@ -36,6 +36,15 @@
     {
       "command": "git diff --cached --check",
       "exit": 0
+    },
+    {
+      "command": "pnpm run spec:generate",
+      "exit": 0,
+      "note": "No tracked bytes changed."
+    },
+    {
+      "command": "pnpm run spec:check",
+      "exit": 0
     }
   ],
   "product_push": {
@@ -43,7 +52,8 @@
     "exit": 0,
     "attempts": 1,
     "remote_ref": "refs/heads/cloud/main-uptime-erase-in-place-1",
-    "confirmed_remote_head": "93edc3d34982c579e514b4e3df7cbaa5f72770f5"
+    "confirmed_remote_head": "1d5ace1d6e42f9fdbc208df94eefb867c3e965e4",
+    "substantial_commits_pushed": 2
   },
   "identity": {
     "author": "Run Edit Run fleet <fleet@runeditrun.com>",
@@ -61,5 +71,27 @@
     "factor": "real TOTP enrollment and one-time recovery codes; real Chromium CTAP2 edge in the full security journey"
   },
   "publication_scan": "Fleet Mac only; not run in this cloud",
-  "contract_status_changes": []
+  "contract_status_changes": [],
+  "product_commits": [
+    "93edc3d34982c579e514b4e3df7cbaa5f72770f5",
+    "1d5ace1d6e42f9fdbc208df94eefb867c3e965e4"
+  ],
+  "initial_ci_failure": {
+    "run_id": 43150794457,
+    "job_id": 130959551895,
+    "step": "Run this shard",
+    "cause": "Extra shared-fixture navigation exhausted the production asset-request budget; JS assets returned 429 before the existing factor-reset assertion.",
+    "fix": "Fresh installation for the import/erase proof, in the existing operator-security registration; no policy changes or weakened assertions."
+  },
+  "final_ci_run_id": 43153980185,
+  "ci": {
+    "run_id": 43153980185,
+    "conclusion": "success",
+    "head_sha": "1d5ace1d6e42f9fdbc208df94eefb867c3e965e4",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43153980185",
+    "status": "completed",
+    "gh_calls_used": 10
+  },
+  "terminal_custody": "READY branch=cloud/main-uptime-erase-in-place-1 head=1d5ace1d6e42f9fdbc208df94eefb867c3e965e4",
+  "finalized_at": "2026-11-12T04:45:23.680043+00:00"
 }
