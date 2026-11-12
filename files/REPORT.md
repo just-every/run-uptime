@@ -45,8 +45,12 @@ GAP INTERFACE-001: This round proves the requested wording and state presentatio
 ## Product custody
 
 Baseline: 7f07c2c0584c32be2d3c0a848bc23e827832825d.
-Intermediate save: 027d039, published with skip ci.
+Intermediate save: 027d0398c90db5af868090fbfcefa3f87ad88103, published with skip ci.
 Candidate: 6b94d940fe9d4519f98cafb236ebf35ac8e15eaf, published without a skip marker on cloud/main-uptime-plain-states-1.
 Main was fetched and rebased before the initial save, and fetched again before the final candidate; the post-publication merge reported already up to date. Published history was not rewritten. Every outgoing author and committer was Run Edit Run fleet <fleet@runeditrun.com>, with no trailers. Both product pushes succeeded on their first guard attempt. No PR or default-branch push was made. The fleet owns the publication scan and landing on its own machine; this cloud run makes no landing claim.
 
 Exact-SHA Verify: run 43151393663, https://github.com/just-every/run-uptime/actions/runs/43151393663. Final status is recorded in CI-RECEIPT.json. Evidence publication is separate from product readiness.
+
+## Final result
+
+Verify run 43151393663 completed successfully on exact candidate 6b94d940fe9d4519f98cafb236ebf35ac8e15eaf. The single watcher used four GitHub REST calls, each observation at least 300 seconds apart. No failed-job archive read or rerun was needed. All local touched checks passed. No product blocker remains. The product branch is a READY candidate for the fleet; evidence transport is not landing or acceptance.

@@ -89,5 +89,12 @@
     "expired-route-1440.png",
     "expired-route-390.png"
   ],
-  "proofRedaction": "Heartbeat URL capabilities, one-time commands and private-runner command blocks are masked by Playwright before capture. No archive or synthetic grant files are selected."
+  "proofRedaction": "Heartbeat URL capabilities, one-time commands and private-runner command blocks are masked by Playwright before capture. No archive or synthetic grant files are selected.",
+  "exactShaVerify": {
+    "runId": 43151393663,
+    "head": "6b94d940fe9d4519f98cafb236ebf35ac8e15eaf",
+    "status": "completed",
+    "conclusion": "success",
+    "restCalls": 4
+  }
 }
