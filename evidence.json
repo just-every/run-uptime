@@ -7,10 +7,10 @@
       "sha256": "048d65af6a299b25792503d424a673a5484d57b59d1301fca762f3b537ad3701"
     },
     {
-      "blob": "321d581d27671086ac2604bef236f3baea3363fd",
-      "bytes": 6313,
+      "blob": "88c1b5b1efa5f89ae97461dd5e9c3764efedfe27",
+      "bytes": 7320,
       "path": "REPORT.md",
-      "sha256": "5618ef4912dab6171d784b84e19ba9943b4e60be1d2e8075b9912a5f7205abfd"
+      "sha256": "770c20a4c75d57c5f3f95b55334f2ec5277a4c3d59b065f4c7cc357c769f413b"
     },
     {
       "blob": "ac1e5512640d09449302549c76225c5c9d73aa9a",
@@ -43,16 +43,34 @@
       "sha256": "ef813298510dd7be378d540cba42f1835c8fd1007a14f0e211c6c7229596279a"
     },
     {
-      "blob": "d25b801e7639b49b0f015349008ba4b6b042117c",
-      "bytes": 261,
+      "blob": "640b78fadc2bf61f313c49e5660e808729c64139",
+      "bytes": 294,
+      "path": "ci-call-4.json",
+      "sha256": "0a83464e139b0e427b08f1469f915f7b907016e4cea042143caa0a9e931cdb0c"
+    },
+    {
+      "blob": "0323651247f5eaebac75de2d229cf043c881d3dc",
+      "bytes": 263,
+      "path": "ci-final.json",
+      "sha256": "1089ae0e6a02b92c4046845c1541dc73467dadaa198185e5d77a03ad0f4eb87f"
+    },
+    {
+      "blob": "0323651247f5eaebac75de2d229cf043c881d3dc",
+      "bytes": 263,
       "path": "ci-watch.json",
-      "sha256": "e5c9bc953c2bd7e6864fdb513880e6218ed81208e4086c0216b06d58cdb09766"
+      "sha256": "1089ae0e6a02b92c4046845c1541dc73467dadaa198185e5d77a03ad0f4eb87f"
     },
     {
       "blob": "0da19748fd1ee007c0c260a0a86a67924ee49181",
       "bytes": 444,
       "path": "counts.json",
       "sha256": "9fd0f965466cca71fa5c8eea6733df00780f8121a4f927b1dcf0cbfebf33a1d1"
+    },
+    {
+      "blob": "18bfd3c3fb3d372b7023eb99b61ca9f7af466368",
+      "bytes": 5998,
+      "path": "evidence-publish-initial.log",
+      "sha256": "7b8ee6b9612918311eeaf2e951f1f9c7ef3802ab855bac9ca2eb92c39508d064"
     },
     {
       "blob": "7a458a4282b5339f4d2cfcfaf4bf30c25eaa76e3",
@@ -187,10 +205,10 @@
       "sha256": "10659d1c28afa1d5cccdd3f44880b39fad144866e1c9b73881b2a942b0cb838f"
     },
     {
-      "blob": "e10a5b3ae5e5e966e0c624cadafe9fbee1f51de1",
-      "bytes": 1217,
+      "blob": "f37a46e844ead3e8c914a79cf73ce1dd37253313",
+      "bytes": 1565,
       "path": "validation.json",
-      "sha256": "967bf3d7dc18f092f6206e299abb7f0ca8f68f48f705fe41125cff264335c7dd"
+      "sha256": "d1844363fa8201df321c7deac6df28ebc7c530f761bde445a236fb95f8dd1a4d"
     }
   ],
   "product_branch": "cloud/main-uptime-heartbeat-redact-1",

@@ -47,5 +47,16 @@
   "contractsChanged": false,
   "newTestRegistrations": 0,
   "productPushed": true,
-  "pullRequest": null
+  "pullRequest": null,
+  "exactShaVerify": {
+    "calls": 4,
+    "lastCall": 1794456490.856866,
+    "head": "11994a0593d6a2599907f17fa41af9bb98d72ca7",
+    "runId": 43151105222,
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43151105222"
+  },
+  "terminalCustody": "READY",
+  "blockers": []
 }

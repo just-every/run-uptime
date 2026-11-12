@@ -5,7 +5,7 @@ Branch: cloud/main-uptime-heartbeat-redact-1
 Tag: main-uptime-heartbeat-redact-1
 Base: 7f07c2c0584c32be2d3c0a848bc23e827832825d
 Product head: 11994a0593d6a2599907f17fa41af9bb98d72ca7
-Verify run: 43151105222 (exact head; final status in CI receipts)
+Verify run: 43151105222 — completed/success on 11994a0593d6a2599907f17fa41af9bb98d72ca7; https://github.com/just-every/run-uptime/actions/runs/43151105222
 
 ## Plan and implementation
 
@@ -38,3 +38,9 @@ DEFAULT HEARTBEAT-002: Preserve all stored rows and contract judgments; investig
 ## Publication and custody
 
 The product branch is the sole product write target; main is never pushed. Fleet identity, commit hooks and all-candidate identity/trailer inspection remain active. The source lock is regenerated last and checked. The Mac fleet owns the complete publication scan and landing, per the cloud brief. Evidence publication uses only refs/heads/evidence/main-uptime-heartbeat-redact-1 and conveys no product acceptance or landing authority. No PR is required by the repository's documented branch workflow.
+
+## Final result
+
+READY product custody: cloud/main-uptime-heartbeat-redact-1 at 11994a0593d6a2599907f17fa41af9bb98d72ca7. Exact-SHA Verify run 43151105222 completed successfully. Four bounded REST calls were used, each at least 300 seconds after the preceding run call. No failed workflow jobs, reruns or PRs were needed. The remote product ref was independently read back and matches the clean checkout. There are no current blockers. The historical-row cleanup is follow-up scope, not implemented or claimed by this candidate.
+
+The separate evidence ref received an initial complete packet while CI was pending; its receipt is included in the final appended packet. Evidence transport is independent of READY custody. The product checkout will be deleted only after the final evidence transfer is verified. The full publication scan and landing remain the Mac fleet's responsibility under the cloud instructions.
