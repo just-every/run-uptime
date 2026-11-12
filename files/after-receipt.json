@@ -1,0 +1,735 @@
+{
+  "journey": "proveNetworkRedirectCycle",
+  "revision": 1,
+  "savedTimeoutMs": 3000,
+  "wire": [
+    {
+      "phase": "short",
+      "connections": 2,
+      "handshakes": 2,
+      "requests": [
+        {
+          "at": 1794500431468,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/entry",
+          "status": 302,
+          "location": "/healthy"
+        },
+        {
+          "at": 1794500431472,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/healthy",
+          "status": 200
+        }
+      ],
+      "observation": {
+        "id": "770d5818-440d-43f1-8996-e3a0a67f0e53",
+        "probe": "local-a",
+        "startedAt": 1794500431475,
+        "completedAt": 1794500431499,
+        "durationMs": 24,
+        "runnerVersion": "uptime-node/0.1.0",
+        "outcome": "pass",
+        "status": 200,
+        "bytes": 20,
+        "checks": [
+          {
+            "assertion": "status",
+            "pass": true,
+            "reason": "HTTP status matches expected status or range"
+          },
+          {
+            "assertion": "body",
+            "pass": true,
+            "reason": "Body contains required text"
+          }
+        ],
+        "attempt": 0,
+        "canary": {
+          "id": "c95e1060-d8b3-4ce4-bcc2-9f28cded6447",
+          "probe": "local-a",
+          "startedAt": 1794500431461,
+          "completedAt": 1794500431474,
+          "durationMs": 13,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 0,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            }
+          ],
+          "attempt": 0
+        }
+      }
+    },
+    {
+      "phase": "cycle",
+      "connections": 6,
+      "handshakes": 6,
+      "requests": [
+        {
+          "at": 1794500436824,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/entry",
+          "status": 302,
+          "location": "/cycle-a"
+        },
+        {
+          "at": 1794500436829,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/cycle-a",
+          "status": 302,
+          "location": "/cycle-b"
+        },
+        {
+          "at": 1794500436833,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/cycle-b",
+          "status": 302,
+          "location": "/cycle-a"
+        },
+        {
+          "at": 1794500436837,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/cycle-a",
+          "status": 302,
+          "location": "/cycle-b"
+        },
+        {
+          "at": 1794500436843,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/cycle-b",
+          "status": 302,
+          "location": "/cycle-a"
+        },
+        {
+          "at": 1794500436848,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/cycle-a",
+          "status": 302,
+          "location": "/cycle-b"
+        }
+      ],
+      "observation": {
+        "id": "3c1535b1-078f-4025-afd1-b4b1fd8b2473",
+        "probe": "local-a",
+        "startedAt": 1794500436831,
+        "completedAt": 1794500436871,
+        "durationMs": 40,
+        "runnerVersion": "uptime-node/0.1.0",
+        "outcome": "target_failure",
+        "checks": [
+          {
+            "assertion": "redirect",
+            "pass": false,
+            "reason": "Probe redirect check failed"
+          }
+        ],
+        "attempt": 0,
+        "canary": {
+          "id": "e2744327-2796-4eda-8da1-99775ea314eb",
+          "probe": "local-a",
+          "startedAt": 1794500436820,
+          "completedAt": 1794500436830,
+          "durationMs": 10,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 0,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            }
+          ],
+          "attempt": 0
+        },
+        "failureSnapshot": {
+          "version": 1,
+          "method": "GET",
+          "url": "https://redirect.sanity.test/cycle-a",
+          "redirects": [
+            "https://redirect.sanity.test/entry",
+            "https://redirect.sanity.test/cycle-a",
+            "https://redirect.sanity.test/cycle-b",
+            "https://redirect.sanity.test/cycle-a",
+            "https://redirect.sanity.test/cycle-b",
+            "https://redirect.sanity.test/cycle-a"
+          ],
+          "requestHeaders": {
+            "accept": "[redacted]",
+            "accept-encoding": "[redacted]",
+            "host": "[redacted]",
+            "user-agent": "[redacted]"
+          },
+          "responseHeaders": {
+            "connection": "[redacted]",
+            "date": "[redacted]",
+            "location": "[redacted]",
+            "transfer-encoding": "[redacted]"
+          },
+          "status": null,
+          "durationMs": 40,
+          "body": "",
+          "bodyTruncated": false,
+          "safeValues": {
+            "requestHeaders": [],
+            "responseHeaders": [],
+            "email": false
+          },
+          "policyVersion": 0,
+          "phases": {
+            "dnsMs": 0,
+            "connectMs": 1,
+            "tlsMs": 1,
+            "ttfbMs": 4,
+            "totalMs": 40
+          }
+        }
+      }
+    },
+    {
+      "phase": "restored",
+      "connections": 2,
+      "handshakes": 2,
+      "requests": [
+        {
+          "at": 1794500444928,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/entry",
+          "status": 302,
+          "location": "/healthy"
+        },
+        {
+          "at": 1794500444933,
+          "host": "redirect.sanity.test",
+          "sni": "redirect.sanity.test",
+          "method": "GET",
+          "path": "/healthy",
+          "status": 200
+        }
+      ],
+      "observation": {
+        "id": "716ac082-ff50-49cd-98f2-e570ee06d63e",
+        "probe": "local-a",
+        "startedAt": 1794500444937,
+        "completedAt": 1794500444960,
+        "durationMs": 23,
+        "runnerVersion": "uptime-node/0.1.0",
+        "outcome": "pass",
+        "status": 200,
+        "bytes": 20,
+        "checks": [
+          {
+            "assertion": "status",
+            "pass": true,
+            "reason": "HTTP status matches expected status or range"
+          },
+          {
+            "assertion": "body",
+            "pass": true,
+            "reason": "Body contains required text"
+          }
+        ],
+        "attempt": 0,
+        "canary": {
+          "id": "d27e0981-1a99-4c23-8ad9-d3be69ccce35",
+          "probe": "local-a",
+          "startedAt": 1794500444924,
+          "completedAt": 1794500444936,
+          "durationMs": 12,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 0,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            }
+          ],
+          "attempt": 0
+        }
+      }
+    }
+  ],
+  "quietWindows": 2,
+  "quietWindowMs": 3000,
+  "stopped": {
+    "connections": 8,
+    "handshakes": 8,
+    "requests": 8,
+    "canaries": 2
+  },
+  "history": [
+    {
+      "id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500441831",
+      "monitor_id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c",
+      "revision": 1,
+      "due_at": 1794500441831,
+      "status": "complete",
+      "definition": {
+        "name": "Verified public HTTPS redirects",
+        "type": "http",
+        "network": "public",
+        "url": "https://redirect.sanity.test/entry",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-c9adea2e-ccc8-44ca-9a17-ba749c878538",
+            "networkLabel": "River Lake",
+            "canaryUrl": "https://canary.redirect.sanity.test/canary"
+          }
+        },
+        "assertions": {
+          "status": 200,
+          "bodyIncludes": "synthetic-uptime-164"
+        },
+        "intervalMs": 5000,
+        "timeoutMs": 3000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 180000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "externalCheck": "own"
+      },
+      "lease_owner": "",
+      "lease_until": 1794500474889,
+      "missed_count": 0,
+      "manual": 0,
+      "observations": [
+        {
+          "id": "716ac082-ff50-49cd-98f2-e570ee06d63e",
+          "probe": "local-a",
+          "startedAt": 1794500444937,
+          "completedAt": 1794500444960,
+          "durationMs": 23,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 20,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            },
+            {
+              "assertion": "body",
+              "pass": true,
+              "reason": "Body contains required text"
+            }
+          ],
+          "attempt": 0,
+          "canary": {
+            "id": "d27e0981-1a99-4c23-8ad9-d3be69ccce35",
+            "probe": "local-a",
+            "startedAt": 1794500444924,
+            "completedAt": 1794500444936,
+            "durationMs": 12,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 0,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              }
+            ],
+            "attempt": 0
+          }
+        }
+      ],
+      "externalChecks": {
+        "local-a": "https://canary.redirect.sanity.test/canary"
+      }
+    },
+    {
+      "id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500436475",
+      "monitor_id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c",
+      "revision": 1,
+      "due_at": 1794500436475,
+      "status": "complete",
+      "definition": {
+        "name": "Verified public HTTPS redirects",
+        "type": "http",
+        "network": "public",
+        "url": "https://redirect.sanity.test/entry",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-c9adea2e-ccc8-44ca-9a17-ba749c878538",
+            "networkLabel": "River Lake",
+            "canaryUrl": "https://canary.redirect.sanity.test/canary"
+          }
+        },
+        "assertions": {
+          "status": 200,
+          "bodyIncludes": "synthetic-uptime-164"
+        },
+        "intervalMs": 5000,
+        "timeoutMs": 3000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 180000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "externalCheck": "own"
+      },
+      "lease_owner": "",
+      "lease_until": 1794500466796,
+      "missed_count": 0,
+      "manual": 0,
+      "observations": [
+        {
+          "id": "3c1535b1-078f-4025-afd1-b4b1fd8b2473",
+          "probe": "local-a",
+          "startedAt": 1794500436831,
+          "completedAt": 1794500436871,
+          "durationMs": 40,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "target_failure",
+          "checks": [
+            {
+              "assertion": "redirect",
+              "pass": false,
+              "reason": "Probe redirect check failed"
+            }
+          ],
+          "attempt": 0,
+          "canary": {
+            "id": "e2744327-2796-4eda-8da1-99775ea314eb",
+            "probe": "local-a",
+            "startedAt": 1794500436820,
+            "completedAt": 1794500436830,
+            "durationMs": 10,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 0,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              }
+            ],
+            "attempt": 0
+          },
+          "failureSnapshot": {
+            "version": 1,
+            "method": "GET",
+            "url": "https://redirect.sanity.test/cycle-a",
+            "redirects": [
+              "https://redirect.sanity.test/entry",
+              "https://redirect.sanity.test/cycle-a",
+              "https://redirect.sanity.test/cycle-b",
+              "https://redirect.sanity.test/cycle-a",
+              "https://redirect.sanity.test/cycle-b",
+              "https://redirect.sanity.test/cycle-a"
+            ],
+            "requestHeaders": {
+              "accept": "[redacted]",
+              "accept-encoding": "[redacted]",
+              "host": "[redacted]",
+              "user-agent": "[redacted]"
+            },
+            "responseHeaders": {
+              "connection": "[redacted]",
+              "date": "[redacted]",
+              "location": "[redacted]",
+              "transfer-encoding": "[redacted]"
+            },
+            "status": null,
+            "durationMs": 40,
+            "body": "",
+            "bodyTruncated": false,
+            "safeValues": {
+              "requestHeaders": [],
+              "responseHeaders": [],
+              "email": false
+            },
+            "policyVersion": 0,
+            "phases": {
+              "dnsMs": 0,
+              "connectMs": 1,
+              "tlsMs": 1,
+              "ttfbMs": 4,
+              "totalMs": 40
+            }
+          }
+        }
+      ],
+      "externalChecks": {
+        "local-a": "https://canary.redirect.sanity.test/canary"
+      }
+    },
+    {
+      "id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500431014",
+      "monitor_id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c",
+      "revision": 1,
+      "due_at": 1794500431014,
+      "status": "complete",
+      "definition": {
+        "name": "Verified public HTTPS redirects",
+        "type": "http",
+        "network": "public",
+        "url": "https://redirect.sanity.test/entry",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-c9adea2e-ccc8-44ca-9a17-ba749c878538",
+            "networkLabel": "River Lake",
+            "canaryUrl": "https://canary.redirect.sanity.test/canary"
+          }
+        },
+        "assertions": {
+          "status": 200,
+          "bodyIncludes": "synthetic-uptime-164"
+        },
+        "intervalMs": 5000,
+        "timeoutMs": 3000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 180000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "externalCheck": "own"
+      },
+      "lease_owner": "",
+      "lease_until": 1794500461428,
+      "missed_count": 0,
+      "manual": 0,
+      "observations": [
+        {
+          "id": "770d5818-440d-43f1-8996-e3a0a67f0e53",
+          "probe": "local-a",
+          "startedAt": 1794500431475,
+          "completedAt": 1794500431499,
+          "durationMs": 24,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 20,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            },
+            {
+              "assertion": "body",
+              "pass": true,
+              "reason": "Body contains required text"
+            }
+          ],
+          "attempt": 0,
+          "canary": {
+            "id": "c95e1060-d8b3-4ce4-bcc2-9f28cded6447",
+            "probe": "local-a",
+            "startedAt": 1794500431461,
+            "completedAt": 1794500431474,
+            "durationMs": 13,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 0,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              }
+            ],
+            "attempt": 0
+          }
+        }
+      ],
+      "externalChecks": {
+        "local-a": "https://canary.redirect.sanity.test/canary"
+      }
+    }
+  ],
+  "incidents": [
+    {
+      "id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500436475:trigger",
+      "key": "incident:5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500436475",
+      "startedAt": 1794500436871,
+      "endedAt": 1794500444954,
+      "durationMs": 8083,
+      "imported": false,
+      "trigger": {
+        "schemaVersion": 2,
+        "id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500436475:trigger",
+        "kind": "trigger",
+        "eventType": "uptime.incident.firing",
+        "incidentKey": "incident:5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500436475",
+        "state": "firing",
+        "title": "Down: Verified public HTTPS redirects",
+        "monitorId": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c",
+        "monitorRevision": 1,
+        "monitorName": "Verified public HTTPS redirects",
+        "url": "https://redirect.sanity.test/entry",
+        "slotId": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500436475",
+        "observedAt": 1794500436871,
+        "visibility": "private",
+        "evidenceRef": "/api/monitors/5eea39a3-e8fa-464b-8a42-dcfc8d0e578c/history",
+        "explanation": "River Lake: Probe redirect check failed. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.",
+        "probes": [
+          {
+            "name": "local-a",
+            "outcome": "target_failure",
+            "reason": "Probe redirect check failed"
+          }
+        ],
+        "consoleUrl": "https://localhost:44609",
+        "webhookContext": {
+          "monitorType": "http",
+          "failedAssertion": "redirect"
+        },
+        "incidentContext": {
+          "confirmedStartedLocal": "Nov 12, 2026, 04:20:36 PM GMT",
+          "confirmedRecoveredLocal": null,
+          "version": 2,
+          "confirmedStartedAt": 1794500436871,
+          "confirmedRecoveredAt": null,
+          "downtimeSeconds": null,
+          "downtimeHuman": null,
+          "originalReason": "River Lake: Probe redirect check failed. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.",
+          "failedLocations": [
+            {
+              "probe": "local-a",
+              "name": "River Lake",
+              "reason": "Probe redirect check failed"
+            }
+          ],
+          "timeZone": "UTC",
+          "incidentUrl": "https://localhost:44609/app/monitors/5eea39a3-e8fa-464b-8a42-dcfc8d0e578c#incident-incident%3A5eea39a3-e8fa-464b-8a42-dcfc8d0e578c%3A1%3A1794500436475"
+        }
+      },
+      "recovery": {
+        "schemaVersion": 2,
+        "id": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500441831:recovery",
+        "kind": "recovery",
+        "eventType": "uptime.incident.recovered",
+        "incidentKey": "incident:5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500436475",
+        "state": "recovered",
+        "title": "Recovered: Verified public HTTPS redirects",
+        "monitorId": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c",
+        "monitorRevision": 1,
+        "monitorName": "Verified public HTTPS redirects",
+        "url": "https://redirect.sanity.test/entry",
+        "slotId": "5eea39a3-e8fa-464b-8a42-dcfc8d0e578c:1:1794500441831",
+        "observedAt": 1794500444954,
+        "visibility": "private",
+        "evidenceRef": "/api/monitors/5eea39a3-e8fa-464b-8a42-dcfc8d0e578c/history",
+        "explanation": "0/1 selected probes failed; 0 unknown; coverage complete. 0 independent failing vantages; passing external check present; scheduled-slot confirmation 0/1; recovery 1/1.",
+        "probes": [
+          {
+            "name": "local-a",
+            "outcome": "pass",
+            "reason": "All checks passed"
+          }
+        ],
+        "consoleUrl": "https://localhost:44609",
+        "webhookContext": {
+          "monitorType": "http",
+          "httpStatusCode": 200,
+          "responseTimeMs": 23
+        },
+        "incidentContext": {
+          "confirmedStartedLocal": "Nov 12, 2026, 04:20:36 PM GMT",
+          "confirmedRecoveredLocal": "Nov 12, 2026, 04:20:44 PM GMT",
+          "version": 2,
+          "confirmedStartedAt": 1794500436871,
+          "confirmedRecoveredAt": 1794500444954,
+          "downtimeSeconds": 8.083,
+          "downtimeHuman": "8.083 seconds",
+          "originalReason": "River Lake: Probe redirect check failed. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.",
+          "failedLocations": [
+            {
+              "probe": "local-a",
+              "name": "River Lake",
+              "reason": "Probe redirect check failed"
+            }
+          ],
+          "timeZone": "UTC",
+          "incidentUrl": "https://localhost:44609/app/monitors/5eea39a3-e8fa-464b-8a42-dcfc8d0e578c#incident-incident%3A5eea39a3-e8fa-464b-8a42-dcfc8d0e578c%3A1%3A1794500436475"
+        }
+      }
+    }
+  ],
+  "definition": {
+    "name": "Verified public HTTPS redirects",
+    "type": "http",
+    "network": "public",
+    "url": "https://redirect.sanity.test/entry",
+    "method": "GET",
+    "probes": [
+      "local-a"
+    ],
+    "assignments": {
+      "local-a": {
+        "runnerId": "self-c9adea2e-ccc8-44ca-9a17-ba749c878538",
+        "networkLabel": "River Lake",
+        "canaryUrl": "https://canary.redirect.sanity.test/canary"
+      }
+    },
+    "assertions": {
+      "status": 200,
+      "bodyIncludes": "synthetic-uptime-164"
+    },
+    "intervalMs": 5000,
+    "timeoutMs": 3000,
+    "retries": 0,
+    "failureQuorum": 1,
+    "confirmSlots": 1,
+    "recoverSlots": 1,
+    "freshnessMs": 180000,
+    "enabled": true,
+    "maintenanceUntil": 0,
+    "externalCheck": "own"
+  }
+}

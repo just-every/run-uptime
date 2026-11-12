@@ -1,0 +1,4 @@
+
+> @uptime/uptime-console@0.5.8 typecheck /home/agent/rer-consolidation/work/sd-uptime-f164-snapshot-fix-1/run-uptime
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
+

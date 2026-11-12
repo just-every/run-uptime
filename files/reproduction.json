@@ -1,0 +1,10 @@
+{
+  "recordedAt": "2026-11-12T16:10:42Z",
+  "head": "a6a189444625c60b680a1805d354a61d13cf1675",
+  "command": "UPTIME_REDIRECT_RECEIPT=<packet>/before-receipt.json timeout 1200 node tests/tls-auth.mjs",
+  "node": "22.20.0",
+  "exit": 1,
+  "failure": "AssertionError [ERR_ASSERTION]: signed runner failed (3196 private diagnostic bytes); last completion status 400, error Invalid failure snapshot evidence",
+  "test": "tests/tls-auth.mjs#proveNetworkRedirectCycle",
+  "job": "local original saved SHA reproduction"
+}

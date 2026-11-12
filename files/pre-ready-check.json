@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-11-12T16:39:07Z",
+  "head": "4e5d09c76ece555a9924833e10a371de036c6a0c",
+  "checks": {
+    "originalFailureReproduced": true,
+    "fixedNativeSnapshot": true,
+    "touchedSuitePass": true,
+    "typecheckPass": true,
+    "sourceLockPass": true,
+    "originalAncestryPreserved": true,
+    "mainJudgmentsPreserved": true,
+    "publishedSavePreserved": true,
+    "noContractOrGeneratedViewChange": true,
+    "noNewPermanentRegistration": true,
+    "receiverClockComparisonCorrectedWithoutTolerance": true,
+    "strictWholeRunBoundAdded": true,
+    "sourceHistoryAndRestartAssertionsRetained": true
+  },
+  "claim": "NETWORK-001 PARTIAL; only the redirect-hop-exhaustion cell is qualified",
+  "verify": {
+    "id": 43258163840,
+    "head": "4e5d09c76ece555a9924833e10a371de036c6a0c",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/just-every/run-uptime/actions/runs/43258163840"
+  },
+  "landing": "not performed; guarded Mac lander owns publication scan, views, landing and Run site",
+  "ready": true
+}

@@ -1,0 +1,159 @@
+{
+  "recordedAt": "2026-11-12T16:39:07Z",
+  "status": "pass",
+  "selectedRegularFiles": 30,
+  "injectedSecretMatches": 0,
+  "selection": "Explicit actual non-secret report, receipts, logs and product diff; no credentials, environment dumps, held-out gate material or symlinks selected",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 11626,
+      "sha256": "c8ca742341d67c2c2f598cec100c5c3dbeda7408c4ff266f5f19372f66659dae"
+    },
+    {
+      "path": "PLAN.md",
+      "bytes": 2478,
+      "sha256": "afaed66e1bf53611da207a16a663e7ea8fe959e77ce50e6ee63690a5a58cd569"
+    },
+    {
+      "path": "after-receipt.json",
+      "bytes": 22961,
+      "sha256": "550056373e59edc105d97d23b9c4f1b7916a712720e8730916bfccf4393e040c"
+    },
+    {
+      "path": "after-tls-auth.log",
+      "bytes": 2039,
+      "sha256": "e00de3229f6d08a9d030ab1d6a3af8612ce53265b38fca3b8fa1e7fd227a8d20"
+    },
+    {
+      "path": "after-tls-auth.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "before-receipt.json",
+      "bytes": 8589,
+      "sha256": "b3e29c089bb5567bfb43797df0486119b77158d9b8267e412109d7d86fea6df7"
+    },
+    {
+      "path": "before-tls-auth.log",
+      "bytes": 2155,
+      "sha256": "1d2a41ca1f802c20affe014aa1f4cf7352988e1844c0d1a06376cdb3f3042e5d"
+    },
+    {
+      "path": "before-tls-auth.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "reproduction.json",
+      "bytes": 515,
+      "sha256": "268bdd1ea23b8c36839605158471327076b9197075448c7abe8b9ecb940fb88d"
+    },
+    {
+      "path": "results.json",
+      "bytes": 2971,
+      "sha256": "5251391f2819cae0cd9f7fa628a2f2a72c2cdfb519b4041ba16e08273c8dd451"
+    },
+    {
+      "path": "mechanical.json",
+      "bytes": 982,
+      "sha256": "e3c9929a363525cdfc1258436dfebe6459fb380d5cad922b1ae994ed58ccd6a0"
+    },
+    {
+      "path": "ci-receipt.json",
+      "bytes": 2393,
+      "sha256": "eb2bdb815e6a93e00187548c35403449813e38ec6907a7b44615cf7c637f9023"
+    },
+    {
+      "path": "api-budget.json",
+      "bytes": 1548,
+      "sha256": "c598051068e9c11092aefa9082f650a72262e1bcd4859167b6a0deee8f0a938d"
+    },
+    {
+      "path": "commit-identities.log",
+      "bytes": 510,
+      "sha256": "611ca8fded6b38fb8d0499c725b1e5b79156df92b61f2c7c14df1e8b612cea0a"
+    },
+    {
+      "path": "product-push.log",
+      "bytes": 973,
+      "sha256": "a0fe20d73d27923ce33aa4b1510ad3154537091209ebba870080ca0975da92fe"
+    },
+    {
+      "path": "final-product-push.log",
+      "bytes": 758,
+      "sha256": "700aafc702300dc9c90d0f3c9a6459ef49800a1786c797e08bea6db45cbfd00b"
+    },
+    {
+      "path": "product.diff",
+      "bytes": 20709,
+      "sha256": "c720b3a87b89da27d2a7434753f034121c27346e5e5a61eb8d85dab5049176b5"
+    },
+    {
+      "path": "typecheck.log",
+      "bytes": 191,
+      "sha256": "5a6518ef9f8fd1a1173ada81ed97af80c55f13d4a38994695d5f3082bc9c8ff4"
+    },
+    {
+      "path": "typecheck.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "views-write.log",
+      "bytes": 28,
+      "sha256": "14cee29b7bd19487e15f4013d4fb85016e022ef21d230676971a6490c88436d2"
+    },
+    {
+      "path": "views-check.log",
+      "bytes": 70,
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "path": "diagnostic-summary.json",
+      "bytes": 1375,
+      "sha256": "6690853a231c1f9fd4018978c94ea79cf759a8d145e1e8998ba13dcdc81e932d"
+    },
+    {
+      "path": "pre-ready-check.json",
+      "bytes": 1060,
+      "sha256": "884ecceb54a117d9b2f3df684d69a2028469b4f0e801e0a4992bb874285a2cc0"
+    },
+    {
+      "path": "snapshot-only-tls-auth.log",
+      "bytes": 2073,
+      "sha256": "11af47d84c71f44e0dcbc4add8f08b853791d5c800b902307318fea027df413a"
+    },
+    {
+      "path": "snapshot-only-tls-auth.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "timing-file-receipt.json",
+      "bytes": 9877,
+      "sha256": "e03c1783f265730ed248565e98e84d5c916d181b9bbf2e6a1edc015df7c06d26"
+    },
+    {
+      "path": "timing-file.log",
+      "bytes": 1352,
+      "sha256": "b93239bbea15d0d15ae09dbe3a1fffb97357df19e7e7d34e7615d07ee0bf6ef1"
+    },
+    {
+      "path": "timing-file.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "timing-diagnostic.log",
+      "bytes": 304,
+      "sha256": "d98c26a0bcd8b627740c86d1a78653614a6537a668c27f4fc027bc790f938f6f"
+    },
+    {
+      "path": "timing-diagnostic.exit",
+      "bytes": 4,
+      "sha256": "e3b9c2844b5a5c2677b3a2279db2ec8487491dd9a23d6b22fac153391b3bb63c"
+    }
+  ]
+}

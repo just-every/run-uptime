@@ -1,0 +1,14 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:3021) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS keyword owner creation, scheduled signed HTTPS status and text failures, immutable history and recovery
+PROBE NETWORK-001 acceptance-1 matching: owner-created unchanged public HTTPS monitor -> signed pass, Healthy, one TLS connection, one HTTP request, fixed coverage and retained history
+PROBE NETWORK-001 acceptance-1 wrong-name: owner-created unchanged public HTTPS monitor -> signed target_failure, Failing, one TLS connection, zero HTTP request, fixed coverage and retained history
+PROBE NETWORK-001 acceptance-1 restored: owner-created unchanged public HTTPS monitor -> signed pass, Healthy, one TLS connection, one HTTP request, fixed coverage and retained history
+PROBE NETWORK-001 acceptance-1 short: unchanged owner-created public HTTPS monitor -> signed pass, status,body, Healthy; 2 TLS connections and 2 ordered requests, duration 24ms below saved 3000ms deadline
+PROBE NETWORK-001 acceptance-1 cycle: unchanged owner-created public HTTPS monitor -> signed target_failure, redirect, Failing; 6 TLS connections and 6 ordered requests, duration 40ms below saved 3000ms deadline
+PROBE NETWORK-001 acceptance-1 restart: receiver remains in cycle mode through two full saved-timeout quiet windows and persistent Worker restart -> zero extra connections or requests, no open sockets, identical failure history and incident
+PROBE NETWORK-001 acceptance-1 restored: unchanged owner-created public HTTPS monitor -> signed pass, status,body, Healthy; 2 TLS connections and 2 ordered requests, duration 23ms below saved 3000ms deadline
+PASS redirect-cycle exhaustion: bounded redirect target failure, verified receiver counts and ordered targets, quiescence through restart, ordinary due recovery and immutable earlier evidence

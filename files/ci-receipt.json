@@ -1,0 +1,80 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "4e5d09c76ece555a9924833e10a371de036c6a0c",
+  "observations": [
+    {
+      "at": "2026-11-12T16:23:36Z",
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs?head_sha=4e5d09c76ece555a9924833e10a371de036c6a0c&per_page=100",
+        "--jq",
+        "{workflow_runs: [.workflow_runs[] | select(.name == \"Verify\") | {id,name,event,status,conclusion,head_sha,html_url}]}"
+      ],
+      "exit": 0,
+      "result": {
+        "workflow_runs": []
+      }
+    },
+    {
+      "at": "2026-11-12T16:28:36Z",
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs?head_sha=4e5d09c76ece555a9924833e10a371de036c6a0c&per_page=100",
+        "--jq",
+        "{workflow_runs: [.workflow_runs[] | select(.name == \"Verify\") | {id,name,event,status,conclusion,head_sha,html_url}]}"
+      ],
+      "exit": 0,
+      "result": {
+        "workflow_runs": [
+          {
+            "conclusion": null,
+            "event": "push",
+            "head_sha": "4e5d09c76ece555a9924833e10a371de036c6a0c",
+            "html_url": "https://github.com/just-every/run-uptime/actions/runs/43258163840",
+            "id": 43258163840,
+            "name": "Verify",
+            "status": "in_progress"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-12T16:33:36Z",
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43258163840",
+        "--jq",
+        "{id,status,conclusion,head_sha,html_url}"
+      ],
+      "exit": 0,
+      "result": {
+        "conclusion": null,
+        "head_sha": "4e5d09c76ece555a9924833e10a371de036c6a0c",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43258163840",
+        "id": 43258163840,
+        "status": "in_progress"
+      }
+    },
+    {
+      "at": "2026-11-12T16:38:37Z",
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43258163840",
+        "--jq",
+        "{id,status,conclusion,head_sha,html_url}"
+      ],
+      "exit": 0,
+      "result": {
+        "conclusion": "success",
+        "head_sha": "4e5d09c76ece555a9924833e10a371de036c6a0c",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43258163840",
+        "id": 43258163840,
+        "status": "completed"
+      }
+    }
+  ]
+}

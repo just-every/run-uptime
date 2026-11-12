@@ -1,0 +1,32 @@
+{
+  "recordedAt": "2026-11-12T16:37:12Z",
+  "head": "4e5d09c76ece555a9924833e10a371de036c6a0c",
+  "viewsWrite": {
+    "command": "node src/base/contract-docs.mjs write",
+    "exit": 0,
+    "output": "Wrote 0 contract documents.\n"
+  },
+  "viewsCheck": {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit": 0,
+    "output": "Contract prose: 0 errors, 0 warnings.\nContract documents are current.\n"
+  },
+  "viewsRestored": "git checkout origin/main -- ACCEPTANCE.md docs/CLAIMS.md",
+  "contractUnchanged": true,
+  "viewsUnchanged": true,
+  "lockWrite": {
+    "command": "node scripts/edition-authoring/cli.mjs lock",
+    "exit": 0
+  },
+  "lockCheck": {
+    "command": "node scripts/edition-authoring/cli.mjs check",
+    "exit": 0,
+    "ok": true
+  },
+  "sourceLockSha256": "52e97206ab8ca8f2d152439caa01e528dc9f888b220ac929b9175af28f66fb23",
+  "migrationLedger": {
+    "command": null,
+    "reason": "No migration added or edited"
+  },
+  "finalCheckNode": "22.20.0"
+}

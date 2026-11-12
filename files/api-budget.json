@@ -1,0 +1,57 @@
+[
+  {
+    "at": "2026-11-12T16:21:38Z",
+    "command": [
+      "gh",
+      "api",
+      "repos/just-every/run-uptime/actions/runs?head_sha=b0f6944e7c16a6ad8de1ea2e11e6ae9f84dcf940&per_page=100",
+      "--jq",
+      "{workflow_runs: [.workflow_runs[] | select(.name == \"Verify\") | {id,name,event,status,conclusion,head_sha,html_url}]}"
+    ],
+    "call": 1
+  },
+  {
+    "at": "2026-11-12T16:23:37Z",
+    "command": [
+      "gh",
+      "api",
+      "repos/just-every/run-uptime/actions/runs?head_sha=4e5d09c76ece555a9924833e10a371de036c6a0c&per_page=100",
+      "--jq",
+      "{workflow_runs: [.workflow_runs[] | select(.name == \"Verify\") | {id,name,event,status,conclusion,head_sha,html_url}]}"
+    ],
+    "call": 2
+  },
+  {
+    "at": "2026-11-12T16:28:37Z",
+    "command": [
+      "gh",
+      "api",
+      "repos/just-every/run-uptime/actions/runs?head_sha=4e5d09c76ece555a9924833e10a371de036c6a0c&per_page=100",
+      "--jq",
+      "{workflow_runs: [.workflow_runs[] | select(.name == \"Verify\") | {id,name,event,status,conclusion,head_sha,html_url}]}"
+    ],
+    "call": 3
+  },
+  {
+    "at": "2026-11-12T16:33:37Z",
+    "command": [
+      "gh",
+      "api",
+      "repos/just-every/run-uptime/actions/runs/43258163840",
+      "--jq",
+      "{id,status,conclusion,head_sha,html_url}"
+    ],
+    "call": 4
+  },
+  {
+    "at": "2026-11-12T16:38:37Z",
+    "command": [
+      "gh",
+      "api",
+      "repos/just-every/run-uptime/actions/runs/43258163840",
+      "--jq",
+      "{id,status,conclusion,head_sha,html_url}"
+    ],
+    "call": 5
+  }
+]

@@ -1,0 +1,99 @@
+{
+  "recordedAt": "2026-11-12T16:24:53Z",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-f164-snapshot-fix-1",
+  "head": "4e5d09c76ece555a9924833e10a371de036c6a0c",
+  "tree": "85107bcd8f152c64ba990a9a3df5664b3d6daaa3",
+  "mainAtIntegration": "04998fe899d4bad1cf4186c7eae5a96fb9a6a42d",
+  "savedOriginal": "a6a189444625c60b680a1805d354a61d13cf1675",
+  "originalIsAncestor": true,
+  "mainIsAncestor": true,
+  "savedRepairCommit": "64ac74852c1e16a29c510a3330049186e3a4e0d4",
+  "sameTreeAsSavedRepairCommit": true,
+  "workingTreeClean": true,
+  "changedFiles": [
+    "runners/src/probes.mjs",
+    "sources.lock.json",
+    "tests/network-redirect-cycle-routing.mjs",
+    "tests/network-redirect-cycle-support.mjs",
+    "tests/tls-auth.mjs"
+  ],
+  "touchedSuite": {
+    "command": "timeout 1200 node tests/tls-auth.mjs",
+    "exit": 0,
+    "node": "22.20.0",
+    "note": "Executed before commit; runtime and journey source bytes are identical on the final candidate. Source lock regenerated afterwards."
+  },
+  "typecheck": {
+    "command": "pnpm run typecheck",
+    "exit": 0,
+    "node": "22.20.0"
+  },
+  "sourceHashes": {
+    "runners/src/probes.mjs": "0df4512cf5b5704ae3ce62037b253e0e806d06b587b8795814a13319b717cbd7",
+    "tests/network-redirect-cycle-support.mjs": "b77bdb9075f0647139fc223479916d5e2abadbb0762531a0d2c03af68383cb66",
+    "tests/network-redirect-cycle-routing.mjs": "4f3b9d9dce92592d857c0cfe916d47927f118e07a1f59845cff15105416474fd",
+    "tests/tls-auth.mjs": "413e9d70abebfdab3d998c69b011c2b3ffc0e569487a3fe673006a3dc2363628"
+  },
+  "sourceLockSha256": "52e97206ab8ca8f2d152439caa01e528dc9f888b220ac929b9175af28f66fb23",
+  "before": {
+    "head": "a6a189444625c60b680a1805d354a61d13cf1675",
+    "exit": 1,
+    "nativeIntake": 400,
+    "observationHasStatus": false,
+    "snapshotStatus": 302
+  },
+  "after": {
+    "phases": [
+      {
+        "phase": "short",
+        "connections": 2,
+        "handshakes": 2,
+        "requests": 2,
+        "outcome": "pass",
+        "observationHasStatus": true,
+        "snapshotStatus": null,
+        "durationMs": 24
+      },
+      {
+        "phase": "cycle",
+        "connections": 6,
+        "handshakes": 6,
+        "requests": 6,
+        "outcome": "target_failure",
+        "observationHasStatus": false,
+        "snapshotStatus": null,
+        "durationMs": 40
+      },
+      {
+        "phase": "restored",
+        "connections": 2,
+        "handshakes": 2,
+        "requests": 2,
+        "outcome": "pass",
+        "observationHasStatus": true,
+        "snapshotStatus": null,
+        "durationMs": 23
+      }
+    ],
+    "quietWindows": 2,
+    "quietWindowMs": 3000,
+    "historyRows": 3,
+    "incidents": 1
+  },
+  "countsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "clauses": 115,
+    "journeyCommands": 47
+  },
+  "countsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "clauses": 115,
+    "journeyCommands": 47
+  },
+  "clauseChanges": []
+}

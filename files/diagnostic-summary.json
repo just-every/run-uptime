@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-11-12T16:20:28Z",
+  "snapshotOnlyRegisteredSuite": {
+    "command": "timeout 1200 node tests/tls-auth.mjs",
+    "exit": 1,
+    "failure": "assert.ok(row.at>=observation.startedAt&&row.at<=observation.completedAt)"
+  },
+  "fileDiagnostic": {
+    "command": "timeout 300 node ../redirect-diagnostic.mjs",
+    "exit": 1,
+    "failure": "{\"receiverAt\":1794500269001,\"startedAt\":1794500269007,\"completedAt\":1794500269052}",
+    "nativeIntake": 200,
+    "observationHasStatus": false,
+    "snapshotStatus": null,
+    "durationMs": 45
+  },
+  "evalDiagnostic": {
+    "command": "timeout 300 node --input-type=module -e <import existing journey>",
+    "exit": 137,
+    "result": "No proof: emitted Worker startup hung in eval mode; timeout did not finish cleanup, so only its owned Node and Worker PIDs were stopped. The same imported journey in an ordinary module reached the recorded timestamp assertion."
+  },
+  "proofCorrection": "Receiver timestamps are checked against a separately measured execution interval on their own clock. Added a stricter bound requiring the entire real child run, enrollment, canary and signed native intake to finish within the unchanged saved request timeout. Existing signed duration, categories, TLS verification, connection and request counts, ordering, cessation, restart, recovery and history assertions remain."
+}

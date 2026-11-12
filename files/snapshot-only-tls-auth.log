@@ -1,0 +1,31 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:2354) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS keyword owner creation, scheduled signed HTTPS status and text failures, immutable history and recovery
+PROBE NETWORK-001 acceptance-1 matching: owner-created unchanged public HTTPS monitor -> signed pass, Healthy, one TLS connection, one HTTP request, fixed coverage and retained history
+PROBE NETWORK-001 acceptance-1 wrong-name: owner-created unchanged public HTTPS monitor -> signed target_failure, Failing, one TLS connection, zero HTTP request, fixed coverage and retained history
+PROBE NETWORK-001 acceptance-1 restored: owner-created unchanged public HTTPS monitor -> signed pass, Healthy, one TLS connection, one HTTP request, fixed coverage and retained history
+PROBE NETWORK-001 acceptance-1 short: unchanged owner-created public HTTPS monitor -> signed pass, status,body, Healthy; 2 TLS connections and 2 ordered requests, duration 27ms below saved 3000ms deadline
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(row.at>=observation.startedAt&&row.at<=observation.completedAt)
+
+    at due (file:///home/agent/rer-consolidation/work/sd-uptime-f164-snapshot-fix-1/run-uptime/tests/network-redirect-cycle-support.mjs:121:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async proveNetworkRedirectCycle (file:///home/agent/rer-consolidation/work/sd-uptime-f164-snapshot-fix-1/run-uptime/tests/network-redirect-cycle-support.mjs:136:45)
+    at async file:///home/agent/rer-consolidation/work/sd-uptime-f164-snapshot-fix-1/run-uptime/tests/tls-auth.mjs:11:1 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

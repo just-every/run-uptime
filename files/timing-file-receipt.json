@@ -1,0 +1,341 @@
+{
+  "journey": "proveNetworkRedirectCycle",
+  "failure": "{\"receiverAt\":1794500269001,\"startedAt\":1794500269007,\"completedAt\":1794500269052}",
+  "completions": [
+    {
+      "body": {
+        "slotId": "ccc85501-86ed-4ff4-88e7-4f0a64217190:1:1794500262909",
+        "attempts": [
+          {
+            "id": "65b6e8d7-4107-4ed5-89b6-1c24735dfcf7",
+            "probe": "local-a",
+            "startedAt": 1794500263650,
+            "completedAt": 1794500263682,
+            "durationMs": 32,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 20,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              },
+              {
+                "assertion": "body",
+                "pass": true,
+                "reason": "Body contains required text"
+              }
+            ],
+            "attempt": 0,
+            "canary": {
+              "id": "dcc00e51-fd8a-48fe-8003-82584175fcb0",
+              "probe": "local-a",
+              "startedAt": 1794500263637,
+              "completedAt": 1794500263649,
+              "durationMs": 12,
+              "runnerVersion": "uptime-node/0.1.0",
+              "outcome": "pass",
+              "status": 200,
+              "bytes": 0,
+              "checks": [
+                {
+                  "assertion": "status",
+                  "pass": true,
+                  "reason": "HTTP status matches expected status or range"
+                }
+              ],
+              "attempt": 0
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "response": {
+        "accepted": true,
+        "state": {
+          "state": "Healthy",
+          "targetState": "Healthy",
+          "underlyingState": "Healthy",
+          "evidenceState": "Healthy",
+          "coverageState": "Complete",
+          "candidate": "Healthy",
+          "regions": [
+            {
+              "probe": "local-a",
+              "networkLabel": "Coral Crest",
+              "canaryPassed": true,
+              "terminal": true,
+              "state": "Healthy",
+              "observationId": "65b6e8d7-4107-4ed5-89b6-1c24735dfcf7",
+              "observedAt": 1794500263682
+            }
+          ],
+          "denominator": 1,
+          "fails": 0,
+          "unknown": 0,
+          "failingVantages": 0,
+          "failureStreak": 0,
+          "recoveryStreak": 1,
+          "notificationOpen": false,
+          "maintenance": false,
+          "reason": "0/1 selected probes failed; 0 unknown; coverage complete. 0 independent failing vantages; passing external check present; scheduled-slot confirmation 0/1; recovery 1/1.",
+          "evaluatedAt": 1794500263683,
+          "incidentKey": null,
+          "incidentRevision": null
+        }
+      }
+    },
+    {
+      "body": {
+        "slotId": "ccc85501-86ed-4ff4-88e7-4f0a64217190:1:1794500268650",
+        "attempts": [
+          {
+            "id": "66f82a33-e036-499b-bab2-09fc20751214",
+            "probe": "local-a",
+            "startedAt": 1794500269007,
+            "completedAt": 1794500269052,
+            "durationMs": 45,
+            "runnerVersion": "uptime-node/0.1.0",
+            "failureSnapshot": {
+              "version": 1,
+              "method": "GET",
+              "url": "https://redirect.sanity.test/cycle-a",
+              "redirects": [
+                "https://redirect.sanity.test/entry",
+                "https://redirect.sanity.test/cycle-a",
+                "https://redirect.sanity.test/cycle-b",
+                "https://redirect.sanity.test/cycle-a",
+                "https://redirect.sanity.test/cycle-b",
+                "https://redirect.sanity.test/cycle-a"
+              ],
+              "requestHeaders": {
+                "accept": "[redacted]",
+                "accept-encoding": "[redacted]",
+                "host": "[redacted]",
+                "user-agent": "[redacted]"
+              },
+              "responseHeaders": {
+                "connection": "[redacted]",
+                "date": "[redacted]",
+                "location": "[redacted]",
+                "transfer-encoding": "[redacted]"
+              },
+              "status": null,
+              "durationMs": 45,
+              "body": "",
+              "bodyTruncated": false,
+              "safeValues": {
+                "requestHeaders": [],
+                "responseHeaders": [],
+                "email": false
+              },
+              "policyVersion": 0,
+              "phases": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 2,
+                "ttfbMs": 4,
+                "totalMs": 45
+              }
+            },
+            "outcome": "target_failure",
+            "checks": [
+              {
+                "assertion": "redirect",
+                "pass": false,
+                "reason": "Probe redirect check failed"
+              }
+            ],
+            "attempt": 0,
+            "canary": {
+              "id": "0fdda5d5-3ff5-4a74-a1ff-f809026f4f12",
+              "probe": "local-a",
+              "startedAt": 1794500268993,
+              "completedAt": 1794500269006,
+              "durationMs": 13,
+              "runnerVersion": "uptime-node/0.1.0",
+              "outcome": "pass",
+              "status": 200,
+              "bytes": 0,
+              "checks": [
+                {
+                  "assertion": "status",
+                  "pass": true,
+                  "reason": "HTTP status matches expected status or range"
+                }
+              ],
+              "attempt": 0
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "response": {
+        "accepted": true,
+        "state": {
+          "state": "Failing",
+          "targetState": "Failing",
+          "underlyingState": "Failing",
+          "evidenceState": "Failing",
+          "coverageState": "Complete",
+          "candidate": "Failing",
+          "regions": [
+            {
+              "probe": "local-a",
+              "networkLabel": "Coral Crest",
+              "canaryPassed": true,
+              "terminal": true,
+              "state": "Failing",
+              "observationId": "66f82a33-e036-499b-bab2-09fc20751214",
+              "observedAt": 1794500269052
+            }
+          ],
+          "denominator": 1,
+          "fails": 1,
+          "unknown": 0,
+          "failingVantages": 1,
+          "failureStreak": 1,
+          "recoveryStreak": 0,
+          "confirmedFailure": true,
+          "notificationOpen": true,
+          "maintenance": false,
+          "reason": "Coral Crest: Probe redirect check failed. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.",
+          "evaluatedAt": 1794500269052,
+          "incidentKey": "incident:ccc85501-86ed-4ff4-88e7-4f0a64217190:1:1794500268650",
+          "incidentRevision": 1
+        }
+      }
+    }
+  ],
+  "connections": [
+    1794500263640,
+    1794500263646,
+    1794500268998,
+    1794500269004,
+    1794500269009,
+    1794500269013,
+    1794500269017,
+    1794500269022
+  ],
+  "handshakes": [
+    {
+      "at": 1794500263643,
+      "sni": "redirect.sanity.test"
+    },
+    {
+      "at": 1794500263648,
+      "sni": "redirect.sanity.test"
+    },
+    {
+      "at": 1794500269001,
+      "sni": "redirect.sanity.test"
+    },
+    {
+      "at": 1794500269007,
+      "sni": "redirect.sanity.test"
+    },
+    {
+      "at": 1794500269011,
+      "sni": "redirect.sanity.test"
+    },
+    {
+      "at": 1794500269015,
+      "sni": "redirect.sanity.test"
+    },
+    {
+      "at": 1794500269020,
+      "sni": "redirect.sanity.test"
+    },
+    {
+      "at": 1794500269024,
+      "sni": "redirect.sanity.test"
+    }
+  ],
+  "requests": [
+    {
+      "at": 1794500263643,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/entry",
+      "status": 302,
+      "location": "/healthy"
+    },
+    {
+      "at": 1794500263648,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/healthy",
+      "status": 200
+    },
+    {
+      "at": 1794500269001,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/entry",
+      "status": 302,
+      "location": "/cycle-a"
+    },
+    {
+      "at": 1794500269007,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-a",
+      "status": 302,
+      "location": "/cycle-b"
+    },
+    {
+      "at": 1794500269011,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-b",
+      "status": 302,
+      "location": "/cycle-a"
+    },
+    {
+      "at": 1794500269015,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-a",
+      "status": 302,
+      "location": "/cycle-b"
+    },
+    {
+      "at": 1794500269020,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-b",
+      "status": 302,
+      "location": "/cycle-a"
+    },
+    {
+      "at": 1794500269024,
+      "host": "redirect.sanity.test",
+      "sni": "redirect.sanity.test",
+      "method": "GET",
+      "path": "/cycle-a",
+      "status": 302,
+      "location": "/cycle-b"
+    }
+  ],
+  "canaries": [
+    {
+      "host": "canary.redirect.sanity.test",
+      "sni": "canary.redirect.sanity.test",
+      "path": "/canary"
+    },
+    {
+      "host": "canary.redirect.sanity.test",
+      "sni": "canary.redirect.sanity.test",
+      "path": "/canary"
+    }
+  ]
+}
