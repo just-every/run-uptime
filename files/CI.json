@@ -1,0 +1,124 @@
+{
+  "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+  "github_calls_used": 8,
+  "main": "f50e1d9b82e22a40066ae89ed56cdfd347086dc0",
+  "candidate": {
+    "workflow_runs": [
+      {
+        "conclusion": null,
+        "event": "push",
+        "head_sha": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43283757204",
+        "id": 43283757204,
+        "name": "Verify",
+        "status": "in_progress"
+      }
+    ]
+  },
+  "prior_candidate": {
+    "workflow_runs": [
+      {
+        "conclusion": null,
+        "event": "push",
+        "head_sha": "e2ea1d6d8689e6bffc6f8b262c13cc39ca0e939a",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43283401789",
+        "id": 43283401789,
+        "name": "Verify",
+        "status": "in_progress"
+      }
+    ]
+  },
+  "main_runs_file": "main-ci-final.json",
+  "initial_main_runs_file": "main-ci.json",
+  "final": {
+    "conclusion": "failure",
+    "head_sha": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43283757204",
+    "status": "completed"
+  },
+  "jobs": {
+    "jobs": [
+      {
+        "conclusion": "success",
+        "id": 131411577624,
+        "name": "plan",
+        "status": "completed",
+        "steps": []
+      },
+      {
+        "conclusion": "failure",
+        "id": 131411676225,
+        "name": "build",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "failure",
+            "name": "Run node src/base/contract-docs.mjs check",
+            "number": 9
+          }
+        ]
+      },
+      {
+        "conclusion": "success",
+        "id": 131411676652,
+        "name": "prepare",
+        "status": "completed",
+        "steps": []
+      },
+      {
+        "conclusion": "skipped",
+        "id": 131411678813,
+        "name": "light",
+        "status": "completed",
+        "steps": []
+      },
+      {
+        "conclusion": "skipped",
+        "id": 131411846591,
+        "name": "shards (${{ matrix.name }})",
+        "status": "completed",
+        "steps": []
+      },
+      {
+        "conclusion": "skipped",
+        "id": 131411847112,
+        "name": "nightly-proof",
+        "status": "completed",
+        "steps": []
+      },
+      {
+        "conclusion": "failure",
+        "id": 131412069522,
+        "name": "verify",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "failure",
+            "name": "Require the selected coverage and its proof",
+            "number": 2
+          }
+        ]
+      },
+      {
+        "conclusion": "skipped",
+        "id": 131412071408,
+        "name": "full-push-proof",
+        "status": "completed",
+        "steps": []
+      }
+    ]
+  },
+  "classification": "Expected generated ACCEPTANCE.md freshness failure only; aggregate failure and skipped shards are consequences; cloud READY exception applies",
+  "failed_log_commands": [
+    {
+      "job": 131411676225,
+      "command": "gh run view 43283757204 --repo just-every/run-uptime --job 131411676225 --log-failed",
+      "exit": 0
+    },
+    {
+      "job": 131412069522,
+      "command": "gh run view 43283757204 --repo just-every/run-uptime --job 131412069522 --log-failed",
+      "exit": 0
+    }
+  ]
+}

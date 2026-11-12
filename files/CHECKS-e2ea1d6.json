@@ -1,0 +1,94 @@
+{
+  "head": "e2ea1d6d8689e6bffc6f8b262c13cc39ca0e939a",
+  "checks": [
+    {
+      "name": "auth0-proof",
+      "command": [
+        "timeout",
+        "-k",
+        "10s",
+        "300s",
+        "node",
+        "/tmp/f170-auth0-proof.mjs"
+      ],
+      "head": "e2ea1d6d8689e6bffc6f8b262c13cc39ca0e939a",
+      "exit": 0,
+      "started_at": "2026-11-12T18:43:31.319258+00:00",
+      "finished_at": "2026-11-12T18:43:50.823102+00:00",
+      "log": "auth0-proof.log"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "pnpm",
+        "typecheck"
+      ],
+      "head": "e2ea1d6d8689e6bffc6f8b262c13cc39ca0e939a",
+      "exit": 0,
+      "started_at": "2026-11-12T18:43:50.823718+00:00",
+      "finished_at": "2026-11-12T18:44:00.273003+00:00",
+      "log": "typecheck.log"
+    },
+    {
+      "name": "first-party",
+      "command": [
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "check",
+        "--profile",
+        "first-party"
+      ],
+      "head": "e2ea1d6d8689e6bffc6f8b262c13cc39ca0e939a",
+      "exit": 0,
+      "started_at": "2026-11-12T18:44:00.274347+00:00",
+      "finished_at": "2026-11-12T18:44:01.604417+00:00",
+      "log": "first-party.log"
+    },
+    {
+      "name": "discovery-jobs",
+      "command": [
+        "timeout",
+        "-k",
+        "10s",
+        "1200s",
+        "node",
+        "tests/discovery-jobs.mjs"
+      ],
+      "head": "e2ea1d6d8689e6bffc6f8b262c13cc39ca0e939a",
+      "executed_from": "dc2ac3dc461e48a1e9acfbe731ab6566c7b0983d",
+      "exit": 1,
+      "log": "discovery-jobs.log",
+      "failure": "queryCname ENOTIMP run-uptime.com",
+      "relevant_code_and_tests_unchanged": true
+    },
+    {
+      "name": "main-control-build",
+      "head": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+      "command": [
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "build"
+      ],
+      "exit": 0,
+      "log": "main-control-build.log"
+    },
+    {
+      "name": "main-control-discovery",
+      "head": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+      "command": [
+        "timeout",
+        "-k",
+        "10s",
+        "1200s",
+        "node",
+        "tests/discovery-jobs.mjs"
+      ],
+      "exit": 1,
+      "log": "main-control-discovery.log",
+      "failure": "queryCname ENOTIMP www.run-uptime.com",
+      "classification": "Same resolver limitation on main; unchanged public DNS proof"
+    }
+  ]
+}

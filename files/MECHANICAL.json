@@ -1,0 +1,42 @@
+{
+  "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+  "main": "f50e1d9b82e22a40066ae89ed56cdfd347086dc0",
+  "branch": "cloud/sd-uptime-c-f170",
+  "contract_write": {
+    "command": "node src/base/contract-docs.mjs write",
+    "exit": 0,
+    "log": "contract-write.log"
+  },
+  "contract_check": {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit": 0,
+    "log": "contract-check.log",
+    "generated_views_restored_from": "origin/main",
+    "generated_views_committed": false
+  },
+  "lock": {
+    "command": "node scripts/edition-authoring/cli.mjs lock",
+    "exit": 0
+  },
+  "lock_check": {
+    "command": "node scripts/edition-authoring/cli.mjs check",
+    "exit": 0
+  },
+  "ledger": {
+    "command": null,
+    "exit": 0,
+    "reason": "No migration changed"
+  },
+  "status_table_main_equal": true,
+  "counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "journey_registrations_added": 0
+}

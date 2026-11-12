@@ -1,0 +1,48 @@
+{
+  "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+  "helper": "tests/service-catalog-auth0-support.mjs#proveAuth0Egress",
+  "checks": [
+    {
+      "point": "review",
+      "input": "Owner POST to /api/service-catalog/checks with one tenant and no consent",
+      "observed": "review_required; zero jobs, DNS lookups or provider requests",
+      "exit": 0
+    },
+    {
+      "point": "authority",
+      "input": "Anonymous, runner-key, admin and different-owner confirmation attempts",
+      "observed": "401, 403 or 409; no provider request",
+      "exit": 0
+    },
+    {
+      "point": "binding",
+      "input": "Changed tenant, endpoint, queries, URL, credentials, list and altered review",
+      "observed": "400 or 409; no egress before fresh review",
+      "exit": 0
+    },
+    {
+      "point": "restart",
+      "input": "Review, consent and persisted check across real Worker restarts; signed runner completion",
+      "observed": "Identical tenant, endpoint, consent and authorization binding retained",
+      "exit": 0
+    },
+    {
+      "point": "transport",
+      "input": "Signed runner against controlled official-host DNS and TLS edge",
+      "observed": "Only GET /rss with one domain parameter; verified TLS identity and public pin; no credential, cookie, referer or request body",
+      "exit": 0
+    },
+    {
+      "point": "unusable",
+      "input": "Non-200, malformed, oversized, redirected, empty, operational prose, dropped, unfinished and private-DNS sources",
+      "observed": "Needs review; no targets, false success or follow; unchanged application evidence and health; unfinished socket closes at deadline",
+      "exit": 0
+    },
+    {
+      "point": "replay",
+      "input": "Altered signed result, completed result replay and revoked initiating owner",
+      "observed": "Refused altered results and replay; revoked queued work fails with initiator_revoked and no provider request",
+      "exit": 0
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+Heavy job admitted: Uptime build:workflow [96c47a42186d]
+Checking pinned pnpm
+10.12.4
+Building your application
+
+> @uptime/uptime-console@0.5.9 build:app [REDACTED]
+> vite build
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 237 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/client/.assetsignore                                0.02 kB
+dist/client/assets/SiteHeader-DgNqAB8-.css               7.65 kB │ gzip:   2.52 kB
+dist/client/assets/styles-CspfDIiD.css                  10.23 kB │ gzip:   2.88 kB
+dist/client/assets/_console-BVkegzwd.js                  0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors._id.edit-Wx1pUhbb.js     0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors._id.index-Ds1RiGPi.js    0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors.new-Wx1pUhbb.js          0.07 kB │ gzip:   0.08 kB
+dist/client/assets/useRouter-CwjitLz4.js                 0.15 kB │ gzip:   0.14 kB
+dist/client/assets/docs.index-VhQsjvp8.js                1.51 kB │ gzip:   0.57 kB
+dist/client/assets/SiteHeader-D4hC-HzC.js                2.47 kB │ gzip:   0.99 kB
+dist/client/assets/docs._slug-DWN1Lzks.js                3.56 kB │ gzip:   1.24 kB
+dist/client/assets/preload-helper-DB7eREMW.js            6.82 kB │ gzip:   3.02 kB
+dist/client/assets/styles-8s3iVeGC.js                    7.28 kB │ gzip:   2.60 kB
+dist/client/assets/jsx-runtime-Cltr0gcK.js               8.43 kB │ gzip:   3.21 kB
+dist/client/assets/react-CgYkgSSX.js                     9.38 kB │ gzip:   3.58 kB
+dist/client/assets/NotFound-DNTDs7ba.js                 12.22 kB │ gzip:   4.14 kB
+dist/client/assets/index-DLZRbkYV.js                   789.22 kB │ gzip: 246.93 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 497ms
+vite v8.2.2 building ssr environment for production...
+transforming...
+✓ 1736 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/server/wrangler.json                                           1.56 kB │ gzip:   0.76 kB
+dist/server/.vite/manifest.json                                    11.59 kB │ gzip:   1.66 kB
+dist/server/assets/SiteHeader-DgNqAB8-.css                          7.65 kB │ gzip:   2.52 kB
+dist/server/assets/styles-CspfDIiD.css                             10.23 kB │ gzip:   2.88 kB
+dist/server/assets/_console-DnMKNpSv.js                             0.20 kB │ gzip:   0.15 kB
+dist/server/assets/app.monitors.new-DbIKipq7.js                     0.22 kB │ gzip:   0.16 kB
+dist/server/assets/app.monitors._id.index-Dev0dvbH.js               0.22 kB │ gzip:   0.17 kB
+dist/server/assets/app.monitors._id.edit-COHROgzC.js                0.23 kB │ gzip:   0.16 kB
+dist/server/assets/empty-plugin-adapters-BILUEO10.js                0.29 kB │ gzip:   0.19 kB
+dist/server/assets/start-BgoMywwE.js                                0.30 kB │ gzip:   0.21 kB
+dist/server/assets/useRouter-iE6P4bT8.js                            1.18 kB │ gzip:   0.55 kB
+dist/server/assets/rolldown-runtime-DC62tzP2.js                     1.44 kB │ gzip:   0.67 kB
+dist/server/assets/useMatch-y3GzirR7.js                             1.55 kB │ gzip:   0.72 kB
+dist/server/assets/monitor-editor-path-DI1AzMkS.js                  1.59 kB │ gzip:   0.61 kB
+dist/server/assets/_tanstack-start-manifest_v-EhEB5z5-.js           2.55 kB │ gzip:   0.70 kB
+dist/server/assets/docs.index-DLZTFWTZ.js                           3.70 kB │ gzip:   1.02 kB
+dist/server/assets/audit.server-D0TNWGJa.js                         4.29 kB │ gzip:   1.61 kB
+dist/server/assets/hash-BiVdoxJB.js                                 4.71 kB │ gzip:   2.17 kB
+dist/server/assets/storage-CTmPDxs5.js                              5.19 kB │ gzip:   2.08 kB
+dist/server/assets/SiteHeader-C769iiWw.js                           5.70 kB │ gzip:   1.73 kB
+dist/server/assets/tslib.es6-BudeFVtP.js                            5.76 kB │ gzip:   2.27 kB
+dist/server/assets/react-dom-B0J-mw7D.js                            6.70 kB │ gzip:   1.98 kB
+dist/server/assets/docs._slug-B2r3ktnV.js                           8.39 kB │ gzip:   2.27 kB
+dist/server/assets/alert-drill-scheduler.server-C2Wiru1a.js         8.52 kB │ gzip:   2.60 kB
+dist/server/assets/ClientOnly-DAFZ8hxR.js                           9.48 kB │ gzip:   3.46 kB
+dist/server/assets/styles-BlyO3Y_0.js                              13.71 kB │ gzip:   3.91 kB
+dist/server/assets/NotFound-DqPBze4-.js                            13.99 kB │ gzip:   4.50 kB
+dist/server/assets/useSelector-mb_4sM_c.js                         15.57 kB │ gzip:   5.33 kB
+dist/server/assets/react-D6Np61Ap.js                               16.24 kB │ gzip:   5.02 kB
+dist/server/assets/jsx-runtime-DYjIEiS4.js                         17.20 kB │ gzip:   4.49 kB
+dist/server/assets/notification-credentials.server-CBx6pzKP.js     20.96 kB │ gzip:   6.17 kB
+dist/server/assets/destination-BcfTVizM.js                         27.53 kB │ gzip:   8.72 kB
+dist/server/assets/protocol-CflBnAkl.js                            29.02 kB │ gzip:   7.91 kB
+dist/server/assets/Match-B3w8VCss.js                              123.24 kB │ gzip:  29.81 kB
+dist/server/assets/undo-snapshot-CFNM5wYx.js                      297.39 kB │ gzip:  77.28 kB
+dist/server/assets/router-v-09EeJj.js                             592.57 kB │ gzip: 170.30 kB
+dist/server/assets/authority.server-DNIPjTt2.js                   840.08 kB │ gzip: 203.05 kB
+dist/server/assets/alert-drills.server-BkgVxsr1.js              1,405.44 kB │ gzip: 363.00 kB
+dist/server/assets/pdf-6a8SClS5.js                              1,960.76 kB │ gzip: 622.71 kB
+dist/server/index.js                                            2,876.66 kB │ gzip: 705.84 kB
+
+[INEFFECTIVE_DYNAMIC_IMPORT] src/domain/notification-credentials.server.ts is dynamically imported by src/domain/notification-webhook.ts but also statically imported by src/domain/alert-drill-scheduler.server.ts, src/domain/alert-drills.server.ts, src/domain/alert-teams.server.ts, src/domain/archive.server.ts, src/domain/health.server.ts, ..., dynamic import will not move module into another chunk.
+
+✓ built in 1.37s
+Your application is built
+build: complete (exit 0)

@@ -1,0 +1,73 @@
+{
+  "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+  "checks": [
+    {
+      "name": "auth0-proof",
+      "command": [
+        "timeout",
+        "-k",
+        "10s",
+        "300s",
+        "node",
+        "/tmp/f170-auth0-proof.mjs"
+      ],
+      "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+      "exit": 0,
+      "started_at": "2026-11-12T18:48:15.047931+00:00",
+      "finished_at": "2026-11-12T18:48:33.251645+00:00",
+      "log": "auth0-proof.log"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "pnpm",
+        "typecheck"
+      ],
+      "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+      "exit": 0,
+      "started_at": "2026-11-12T18:48:33.252068+00:00",
+      "finished_at": "2026-11-12T18:48:41.888164+00:00",
+      "log": "typecheck.log"
+    },
+    {
+      "name": "first-party",
+      "command": [
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "check",
+        "--profile",
+        "first-party"
+      ],
+      "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+      "exit": 0,
+      "started_at": "2026-11-12T18:48:41.888498+00:00",
+      "finished_at": "2026-11-12T18:48:43.013776+00:00",
+      "log": "first-party.log"
+    },
+    {
+      "name": "candidate-build",
+      "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+      "command": [
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "build"
+      ],
+      "exit": 0,
+      "log": "candidate-build.log"
+    },
+    {
+      "name": "restored-generated-views-check",
+      "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+      "command": [
+        "node",
+        "src/base/contract-docs.mjs",
+        "check"
+      ],
+      "exit": 1,
+      "log": "candidate-stale-views.log",
+      "classification": "Expected restored lander-owned view freshness; write then check already passed"
+    }
+  ]
+}

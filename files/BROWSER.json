@@ -1,0 +1,17 @@
+{
+  "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+  "screen": "Existing Auth0 catalog entry; tenant confirmation controls remain held",
+  "screens": [
+    {
+      "width": 1440,
+      "reflow": true,
+      "screenshot": "auth0-catalog-1440.png"
+    },
+    {
+      "width": 390,
+      "reflow": true,
+      "screenshot": "auth0-catalog-390.png"
+    }
+  ],
+  "visually_inspected": true
+}

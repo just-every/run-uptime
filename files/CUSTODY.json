@@ -1,0 +1,20 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-c-f170",
+  "head": "07ec9f70b9f2a533f61d89741e87f47ee01d4cb9",
+  "main_merged": "f50e1d9b82e22a40066ae89ed56cdfd347086dc0",
+  "full_history": true,
+  "product_push": {
+    "command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/sd-uptime-c-f170",
+    "exit": 0,
+    "attempts": 1,
+    "log": "product-push.log"
+  },
+  "identity_audit": {
+    "candidate_commits": 5,
+    "result": "PASS",
+    "trailers": []
+  },
+  "generated_view_diff_against_main": [],
+  "working_tree_clean": true
+}
