@@ -36,9 +36,12 @@ export async function proveNetworkRedirectCycle(){
  let worker,db,control,target,canary,active,bridgeError,origin,cookie='',mode='short';
  try{
   const certs=await certificates(directory);
-  target=https.createServer(certs.server,(req,res)=>{
+  target=https.createServer(certs.server,async(req,res)=>{
+   // Keep receiver processing inside the exchange despite midpoint clock-calibration uncertainty.
+   await sleep(50);
    const location=mode==='cycle'?(req.url==='/cycle-a'?'/cycle-b':'/cycle-a'):req.url==='/entry'?'/healthy':undefined;
    requests.push({at:Date.now(),host:req.headers.host,sni:req.socket.servername,method:req.method,path:req.url,status:location?302:200,...(location?{location}:{})});
+   await sleep(50);
    res.writeHead(location?302:200,location?{location}:{});res.end(location?'':'synthetic-uptime-164');
   });
   target.on('connection',socket=>{connections.push(Date.now());open.add(socket);socket.once('close',()=>open.delete(socket))});

@@ -3516,7 +3516,7 @@
       "executable": false
     },
     "runners/src/probes.mjs": {
-      "sha256": "29601c7dcf2d3795bad38d03977948a943c93544257e197b74dbbae2479612df",
+      "sha256": "0df4512cf5b5704ae3ce62037b253e0e806d06b587b8795814a13319b717cbd7",
       "executable": false
     },
     "runners/src/protocol-diagnostics.mjs": {
@@ -9392,7 +9392,7 @@
       "executable": false
     },
     "tests/network-redirect-cycle-support.mjs": {
-      "sha256": "4f020c1fc3c4df3a804b51223efef8fbeb04c5cc91117a1c9cc74f655abd686a",
+      "sha256": "1873d075397b263e22cf92dd3e202da2e5b8415411850b301d55539365f772f6",
       "executable": false
     },
     "tests/network-tls-hostname-routing.mjs": {
