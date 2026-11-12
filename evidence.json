@@ -1,0 +1,118 @@
+{
+  "files": [
+    {
+      "blob": "9594c897450a4c5f5838c3ce18e4720894362c41",
+      "bytes": 1876,
+      "path": "PLAN.md",
+      "sha256": "75061aa46f7fbf5ae7ce11af9abb0b7a3084f20899449dd9dedc5c21183154e9"
+    },
+    {
+      "blob": "66ed3b3711fd6e2d843866c47137202ef7e25f77",
+      "bytes": 498,
+      "path": "PUSH-RECEIPT.json",
+      "sha256": "ff0fbf2cfdb82d768a55b9f3503d2bd70c320c0302c8326af4ef1b532c03f45d"
+    },
+    {
+      "blob": "5f3aff7d801f6362a4fb56269530a4c2b3f1c3b7",
+      "bytes": 4831,
+      "path": "RECEIPT.json",
+      "sha256": "180ad899ae50a8de19095db1f7596239d7ad235bc3fceefc69178563fd5d98e3"
+    },
+    {
+      "blob": "fbf18d7627bb639e4ded79d3c97b138779e33799",
+      "bytes": 12586,
+      "path": "REPORT.md",
+      "sha256": "7dcbcb03241cb228ddb46d2199484850d128e40e22de10b2a1881425e3e85457"
+    },
+    {
+      "blob": "377de6da32b6da9787890ef4ab73186b098b8c5d",
+      "bytes": 26683,
+      "path": "agent-door.log",
+      "sha256": "2f2d956566d9dc1255976e20a2958f51ae9f0ab7e5a6417b104a110b7354c599"
+    },
+    {
+      "blob": "28833ae0b1ec18a895a2121c48c679dca1bbdbec",
+      "bytes": 224,
+      "path": "candidate-ci.jsonl",
+      "sha256": "5cc42f60af4e435b34171771523b9b7f74298d2c1d03d9310e8d7afa1867a4c4"
+    },
+    {
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "path": "first-party.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "blob": "0350eaecb1c757492b66290803aa26799bf1e84b",
+      "bytes": 367,
+      "path": "github-calls.json",
+      "sha256": "2a7cf03b6f615af6baa0bbfb8498deae8b95c5a267dbcc84ea88444b0ee942ba"
+    },
+    {
+      "blob": "fc1ada73101cd8f13a7f0a8a0e266aa4835cff47",
+      "bytes": 1372,
+      "path": "main-ci.jsonl",
+      "sha256": "adeef487986d526bc23f4633e51f25650e8d81b9b5c9d7ae59942b013d4c48f0"
+    },
+    {
+      "blob": "9898a6a3c14615246f7214fa1f07c300aa889249",
+      "bytes": 76981,
+      "path": "manual-multicleanup-approval-1440.png",
+      "sha256": "a864ccc732ca913f7b9556e92a952be2491c2ed38257102426397239a59d9b9f"
+    },
+    {
+      "blob": "779623324717446f674b85c210b35894eb14a470",
+      "bytes": 69751,
+      "path": "manual-multicleanup-approval-390.png",
+      "sha256": "ed17eecef2b2431325a183b5bfc777194151326aedbf8f8d49f017e8ace7fa79"
+    },
+    {
+      "blob": "c870d3f14d44a6f97cb34e56defe2481d9c3a7f1",
+      "bytes": 1390,
+      "path": "mutation.log",
+      "sha256": "8003fc101088dce6131ca390b5971a59c9e87762e7b7c0fe26802287fa53a9ea"
+    },
+    {
+      "blob": "f8fb7de399b357a41cd1de544d1d265113cf1483",
+      "bytes": 105,
+      "path": "restored-views-check.log",
+      "sha256": "9cf3c390ca9f5f8c7bb13f4dd1f4058d66f2e74d194584038d85eaf0d4767d1e"
+    },
+    {
+      "blob": "880703c22495e98ac7eae02a825465168991c8ad",
+      "bytes": 416722,
+      "path": "source-lock-check.log",
+      "sha256": "c5710b1b32cf6ba3925c6b4bda6498235f6183ae5453b31fc982f85f0faa3ff8"
+    },
+    {
+      "blob": "2faac75a62084f383cccb03ad2b6298ebe1aef41",
+      "bytes": 416708,
+      "path": "source-lock-write.log",
+      "sha256": "34aa9d6ce9083c02bca61e5267905b167574fc7024bea5fdb05c07d97416c506"
+    },
+    {
+      "blob": "0232fd5b66016baefe67e222597cfb1f8c9f97f4",
+      "bytes": 278,
+      "path": "typecheck.log",
+      "sha256": "7fd3a2748d45b5dccaf52357a62cff79c8ff93c8da39bd3018d85ec079ad3a1c"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "views-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "d4d1e60ea7fdc565c576421664992b40e47a816e",
+      "bytes": 28,
+      "path": "views-write.log",
+      "sha256": "df91012bf66fb476e9cd1a30c002829398beb55f869e07cc7be477197fa5a276"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-c-f167",
+  "product_head": "3c3aa4c459d2688d6f6a7576b7658722db238012",
+  "ref": "refs/heads/evidence/sd-uptime-c-f167",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-c-f167"
+}

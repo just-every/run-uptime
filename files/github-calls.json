@@ -1,0 +1,16 @@
+{
+  "calls": [
+    {
+      "number": 1,
+      "kind": "main exact-SHA run discovery",
+      "head_sha": "88c586f6fabdaed6768ddc8072af2340310a7ace"
+    },
+    {
+      "number": 2,
+      "kind": "candidate exact-SHA run discovery",
+      "head_sha": "3c3aa4c459d2688d6f6a7576b7658722db238012",
+      "at": "2026-11-12T18:03:12.793610+00:00"
+    }
+  ],
+  "budget": 10
+}

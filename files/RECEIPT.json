@@ -1,0 +1,167 @@
+{
+  "base": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+  "branch": "cloud/sd-uptime-c-f167",
+  "candidate_ci": [
+    {
+      "conclusion": null,
+      "event": "push",
+      "head_sha": "3c3aa4c459d2688d6f6a7576b7658722db238012",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43275702351",
+      "id": 43275702351,
+      "name": "Verify",
+      "status": "in_progress"
+    }
+  ],
+  "checks": [
+    {
+      "bytes": 278,
+      "file": "typecheck.log",
+      "sha256": "7fd3a2748d45b5dccaf52357a62cff79c8ff93c8da39bd3018d85ec079ad3a1c"
+    },
+    {
+      "bytes": 0,
+      "file": "first-party.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 28,
+      "file": "views-write.log",
+      "sha256": "df91012bf66fb476e9cd1a30c002829398beb55f869e07cc7be477197fa5a276"
+    },
+    {
+      "bytes": 70,
+      "file": "views-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "bytes": 416722,
+      "file": "source-lock-check.log",
+      "sha256": "c5710b1b32cf6ba3925c6b4bda6498235f6183ae5453b31fc982f85f0faa3ff8"
+    },
+    {
+      "bytes": 26683,
+      "file": "agent-door.log",
+      "sha256": "2f2d956566d9dc1255976e20a2958f51ae9f0ab7e5a6417b104a110b7354c599"
+    },
+    {
+      "bytes": 1390,
+      "file": "mutation.log",
+      "sha256": "8003fc101088dce6131ca390b5971a59c9e87762e7b7c0fe26802287fa53a9ea"
+    }
+  ],
+  "checks_executed": [
+    {
+      "command": "node tests/agent-door.mjs",
+      "exit": 0,
+      "policies": [
+        "autonomous",
+        "held"
+      ],
+      "protocols": [
+        "2026-07-28",
+        "2025-11-25"
+      ],
+      "runtime": "emitted Worker and D1",
+      "timeout_seconds": 1200
+    },
+    {
+      "command": "focused native bootstrap invoking proveManualMultiCleanup",
+      "exit": 0
+    },
+    {
+      "command": "temporary possible=1 regression, rebuilt emitted Worker, same focused proof",
+      "exit": 1,
+      "expected_failure": true,
+      "restored": true
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "npx -y @runeditrun/rer check --profile first-party",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check after write",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check after restoring main views",
+      "diagnostic": "ACCEPTANCE.md: generated content differs; run contract-docs write.",
+      "exit": 1,
+      "expected_lander_owned_view_difference": true
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "clause_status": {
+    "SURFACE-006": {
+      "after": "missing",
+      "before": "missing",
+      "complete_clause_proven": false,
+      "selected_acceptance": "4: multiple-cleanup one-probe zero-retry API fixture only"
+    }
+  },
+  "counts_after": {
+    "clauses": 115,
+    "done": 37,
+    "journey_commands": 47,
+    "missing": 20,
+    "partial": 58
+  },
+  "counts_before": {
+    "clauses": 115,
+    "done": 37,
+    "journey_commands": 47,
+    "missing": 20,
+    "partial": 58
+  },
+  "full_history": true,
+  "head": "3c3aa4c459d2688d6f6a7576b7658722db238012",
+  "landing": "branch-only; default branch was not pushed",
+  "pr": null,
+  "publication_scan": {
+    "complete": null,
+    "findings": null,
+    "historyScanned": null,
+    "status": "delegated-to-guarded-lander"
+  },
+  "repository": "just-every/run-uptime",
+  "runtime_source_equals_committed_bytes": true,
+  "screenshots": [
+    {
+      "file": "manual-multicleanup-approval-1440.png",
+      "personally_inspected": true,
+      "sha256": "a864ccc732ca913f7b9556e92a952be2491c2ed38257102426397239a59d9b9f"
+    },
+    {
+      "file": "manual-multicleanup-approval-390.png",
+      "personally_inspected": true,
+      "sha256": "ed17eecef2b2431325a183b5bfc777194151326aedbf8f8d49f017e8ace7fa79"
+    }
+  ],
+  "source_sha256": {
+    "CONTRACT.md": "34e96c00735966aa1bb25a1cca0c482a696369e5875aff56ff4fb2d88a241edf",
+    "sources.lock.json": "61110e8f8544b11b4ad05324cbfdde0685035fa4e565d3ea566414513f5f7c5a",
+    "src/agent-door/manual-check-effects.server.ts": "acb8c080b01e7e4a2b2f921934a3ab0bfe9b36224c5f37c15ae299a90c4cb028",
+    "tests/agent-door.mjs": "a8a441f541f86b3081f7eba64a94ee401461d0a969596a2532c7bf22f7ab0264",
+    "tests/agent-manual-multicleanup-support.mjs": "738e586adefaa6f05b9a9806d2c8efdd428a249fdba2e516ec05b1712f83d32a"
+  },
+  "tag": "sd-uptime-c-f167",
+  "tree": "3ffcd0e495cca0511130a9cd5aff01d70e175ade"
+}

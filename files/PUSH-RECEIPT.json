@@ -1,0 +1,12 @@
+{
+  "attempts": 1,
+  "branch": "cloud/sd-uptime-c-f167",
+  "default_branch_pushed": false,
+  "exit": 0,
+  "head": "3c3aa4c459d2688d6f6a7576b7658722db238012",
+  "identity_check": "all candidates including side parents; one commit; fleet author and committer; no trailers",
+  "push_guard": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/sd-uptime-c-f167",
+  "rebase": "already up to date with origin/main",
+  "remote_ref_verified": true,
+  "repository": "just-every/run-uptime"
+}

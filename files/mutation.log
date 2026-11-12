@@ -1,0 +1,52 @@
+Deliberate regression: possible debt count changed to one.
+Command: node tests/.sd-uptime-c-f167-probe.mjs through cloud_run, timeout 180.
+Exit: 1 (expected). Intended implementation restored and rebuilt afterward.
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  [
+    {
+      class: 'external',
+      facts: {
+        counterparty: 'public',
+...
+    },
+-   {
+-     class: 'live',
+-     facts: {
+-       measure: 1,
+-       service: 'monitor:e55dde64-7d95-417a-a1f6-e5caf5ff2413'
+-     }
+-   }
+  ]
+
+    at proveManualMultiCleanup (file:///home/agent/rer-consolidation/work/sd-uptime-c-f167/repo/tests/agent-manual-multicleanup-support.mjs:164:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///home/agent/rer-consolidation/work/sd-uptime-c-f167/repo/tests/.sd-uptime-c-f167-probe.mjs:37:2 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    {
+      class: 'external',
+      facts: { measure: 1, counterparty: 'public' }
+    }
+  ],
+  expected: [
+    {
+      class: 'external',
+      facts: { measure: 1, counterparty: 'public' }
+    },
+    {
+      class: 'live',
+      facts: {
+        measure: 1,
+        service: 'monitor:e55dde64-7d95-417a-a1f6-e5caf5ff2413'
+      }
+    }
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0
