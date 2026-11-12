@@ -1,0 +1,7 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+ACCESS-001 Settings PASS: Base email-link invitations for all four roles, live service/team scope narrowing, no-op save and removal at 1440 with axe/reflow.
+ACCESS-001 member discovery PASS: initiating owner, completed outcome retention, explicit cancellation, revoked live member stops at result boundary without writing a result.
+ACCESS-001 lifecycle/API/CLI: live owner/admin/editor/responder/read-only, invitations, assignment/removal, role actions/refusals, scope boundaries, stale/forged authority and opaque mutation/export audit. Key-management UI, broader refusal coverage, delegated issuance and token-job durable stop presentation remain gaps.
+BASE-ACCESS-002 passed missing, expired, revoked and valid Base sessions on local and emitted hosted Worker documents, reads and every owner mutation; denied operations leave durable data unchanged; seven-day absolute expiry stays below 30 days and never slides on reads. BASE-ACCESS-004 passed: a member is refused every owner route and account change with nothing durable changed, and forged identity claims are neither authority nor stored.

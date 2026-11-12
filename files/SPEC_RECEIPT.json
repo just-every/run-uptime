@@ -1,0 +1,10 @@
+{
+  "head": "b195ca95cfdf274c3e74745e6698e85d1042af99",
+  "commands": [
+    "pnpm spec:generate",
+    "pnpm spec:check"
+  ],
+  "shell_exit_code": 0,
+  "tracked_byte_changes": false,
+  "check_result": "Deployment spec, setup digest and local setup match the build"
+}

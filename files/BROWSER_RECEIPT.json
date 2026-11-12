@@ -1,0 +1,113 @@
+{
+  "head": "b195ca95cfdf274c3e74745e6698e85d1042af99",
+  "assertion_width": 1440,
+  "screenshot_widths": [
+    1440,
+    390
+  ],
+  "node": "v22.20.0",
+  "browser_executable": "/usr/bin/chromium",
+  "launch_flags": [
+    "--no-sandbox"
+  ],
+  "member_probe": {
+    "command": [
+      "node",
+      "/tmp/uptime-member-race.mjs",
+      "--expect-fix"
+    ],
+    "exit_code": 0,
+    "rotation_requests_before": 0,
+    "rotation_requests_after": 1,
+    "saved_codes_cleared": true
+  },
+  "monitor_probe": {
+    "command": [
+      "node",
+      "/tmp/uptime-monitor-proof.mjs"
+    ],
+    "exit_code": 0,
+    "function": "tests/monitor-stepup-support.mjs#proveMonitorStepUp",
+    "receipt_tables": 42,
+    "receipt_matches_storage_and_archive": true
+  },
+  "review": "All ten screenshots visually inspected; no factor codes, live tokens or credentials selected. Native dialogs fit both widths; receipt is vertically scrollable.",
+  "setup_note": "An inline node --input-type=module -e launch stalled before browser creation and was stopped by its recorded PIDs; the ordinary .mjs launcher completed the unchanged journey.",
+  "files": [
+    {
+      "path": "browser/member-controls-1440.png",
+      "bytes": 94808,
+      "sha256": "6604ad3611b8a17b30f0ea80abbe36c2da7ce0225a9a4b691d8cc8283f12a5d3",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "browser/member-controls-390.png",
+      "bytes": 105080,
+      "sha256": "54d79afe11b7c31e68e314a5a0e9c9fc1aca8a805b60a79f407b741c70bcd6ac",
+      "width": 390,
+      "height": 1380
+    },
+    {
+      "path": "browser/import-preview-verification-1440.png",
+      "bytes": 118486,
+      "sha256": "8a655ad0e33ec8e2c669fa4f9d8ed9b1a154b5a8d14955ac149a2ec114723582",
+      "width": 1440,
+      "height": 1017
+    },
+    {
+      "path": "browser/import-preview-verification-390.png",
+      "bytes": 108441,
+      "sha256": "e8884a38fb9ba553eb1dfa2a540a58766363e4de14c1ceedde7665e1352a8247",
+      "width": 390,
+      "height": 1249
+    },
+    {
+      "path": "browser/import-preview-ready-1440.png",
+      "bytes": 137705,
+      "sha256": "5a048ec61395aabf1d7228eda15be7a0eabf82e3c8af9621b6ba3a0d01c49bd4",
+      "width": 1440,
+      "height": 1329
+    },
+    {
+      "path": "browser/import-preview-ready-390.png",
+      "bytes": 143085,
+      "sha256": "030b8cafb2971ba9dd2ed7d63cf9279ad7a1f1b9e3bf0e250f2972e10c3ec2c4",
+      "width": 390,
+      "height": 1817
+    },
+    {
+      "path": "browser/monitor-erase-verification-1440.png",
+      "bytes": 117195,
+      "sha256": "482631c25491f7a2b2c72d8061163047fda49d1c3fd9835ac0cdea48ca9448a6",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "browser/monitor-erase-verification-390.png",
+      "bytes": 103920,
+      "sha256": "6c628430d36406f951e5c0028d3b21a9bd55e2ef4a8ff0c44b2d3d0e0dc22ea7",
+      "width": 390,
+      "height": 1674
+    },
+    {
+      "path": "browser/monitor-erasure-receipt-1440.png",
+      "bytes": 158665,
+      "sha256": "c2df5e37be13efd4128644a36da1cb22ed39dcd9cd198b49ed936e249bb18101",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "browser/monitor-erasure-receipt-390.png",
+      "bytes": 111289,
+      "sha256": "52f28f0b41a6129088e7d793babf0952a3f2eaae5f3142552dc28f9eacb6a737",
+      "width": 390,
+      "height": 1674
+    },
+    {
+      "path": "browser/monitor-erasure-receipt.json",
+      "bytes": 4996,
+      "sha256": "a8afb704d548ea612f7a25318f1d83dbeb01658f29ab0c8a839c220c9500822e"
+    }
+  ]
+}

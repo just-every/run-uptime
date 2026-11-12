@@ -1,0 +1,15 @@
+{
+  "failed_command": [
+    "gh",
+    "api",
+    "repos/just-every/run-uptime/actions/runs/43168023807",
+    "--jq",
+    "{id,status,conclusion,head_sha,html_url}"
+  ],
+  "observed_at": "2026-11-12T06:35:26.506231+00:00",
+  "exit_code": 1,
+  "sanitized_diagnostic": "invalid character 'u' looking for beginning of value\n",
+  "http_status": "unknown (not supplied by gh)",
+  "recovery": "Launcher refreshed and complete fleet Git setup repeated; subsequent gh subprocesses reload the same decrypted bundle; the next observation remains at least 300 seconds after call 3.",
+  "recovery_result": "Call 4 succeeded and returned completed/success on the exact product SHA."
+}

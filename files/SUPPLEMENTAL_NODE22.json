@@ -1,0 +1,16 @@
+{
+  "checks": [
+    {
+      "name": "definitions-import",
+      "command": [
+        "node",
+        "tests/definitions-import.mjs"
+      ],
+      "started_at": "2026-11-12T06:19:15.258284+00:00",
+      "exit_code": 1,
+      "duration_seconds": 6.391,
+      "log_file": "definitions-import.log",
+      "node": "v22.20.0"
+    }
+  ]
+}

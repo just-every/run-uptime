@@ -1,0 +1,11 @@
+{
+  "ref": "origin/evidence/main-uptime-erase-in-place-1",
+  "head": "cb1ca9cc01372a2143ed955fe3ca898c9502f810",
+  "report_sha256": "07766bddbb67ea187b7f83205df6d8ae58010ad7643cfe0114c1674bfcc33d70",
+  "product_head": "1d5ace1d6e42f9fdbc208df94eefb867c3e965e4",
+  "claims": [
+    "CLAIM ACCESS-003 PARTIAL points=2 tests=tests/mfa-policy-support.mjs#proveMfaPolicy; tests/monitor-stepup-support.mjs#proveImportEraseStepUp",
+    "CLAIM ERASURE-001 PARTIAL points=none tests=tests/monitor-stepup-support.mjs#proveImportEraseStepUp",
+    "CLAIM IMPORT-001 PARTIAL points=none tests=tests/monitor-stepup-support.mjs#proveImportEraseStepUp"
+  ]
+}

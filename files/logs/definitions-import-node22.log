@@ -1,0 +1,21 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+node:internal/deps/undici/undici:13510
+      Error.captureStackTrace(err);
+            ^
+
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at async file:///workspace/run-uptime/tests/definitions-import.mjs:84:61
+    at async unchanged (file:///workspace/run-uptime/tests/definitions-import.mjs:59:74)
+    at async file:///workspace/run-uptime/tests/definitions-import.mjs:84:2 {
+  [cause]: Error: write ECONNRESET
+      at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19) {
+    errno: -104,
+    code: 'ECONNRESET',
+    syscall: 'write'
+  }
+}
+
+Node.js v22.20.0

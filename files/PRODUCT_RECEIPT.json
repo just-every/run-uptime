@@ -1,0 +1,47 @@
+{
+  "branch": "cloud/main-uptime-erase-in-place-1-c1",
+  "head": "b195ca95cfdf274c3e74745e6698e85d1042af99",
+  "parent": "a715d2188b5d38cc563465292bc8c461b93c6528",
+  "origin_main": "a715d2188b5d38cc563465292bc8c461b93c6528",
+  "candidate_commits": 1,
+  "merge_commits": 0,
+  "identity_check": "all candidates including side parents inspected; fleet identity; no trailers",
+  "contract_document_sha256": {
+    "CONTRACT.md": "879a0aeaeb48188b88efb518206a1f298c527772c4a86c077c9dbe88437eb849",
+    "ACCEPTANCE.md": "a8f018cf89045b9f4e69050fe0f97fd81afad012d8dc00db45fe3510e061982b",
+    "docs/CLAIMS.md": "adb3ad37ab113c2061ed4365767d2c347281a807acfa51eb712305959ad02b54"
+  },
+  "source_lock_sha256": "1108f91077e957043c3dd4476f93e857107aeb518c73b768cae8c64481daba61",
+  "contract_counts_before_after": {
+    "done": [
+      37,
+      37
+    ],
+    "partial": [
+      58,
+      58
+    ],
+    "missing": [
+      20,
+      20
+    ],
+    "total": [
+      115,
+      115
+    ]
+  },
+  "push_journeys_before_after": [
+    47,
+    47
+  ],
+  "pr": null,
+  "pushed": true,
+  "push_attempts": 1,
+  "verify_run_id": 43168023807,
+  "publication_scan": "fleet Mac responsibility; not run or claimed in this cloud",
+  "verify_status": "completed",
+  "verify_conclusion": "success",
+  "verify_head_sha": "b195ca95cfdf274c3e74745e6698e85d1042af99",
+  "github_calls": 4,
+  "blockers": []
+}

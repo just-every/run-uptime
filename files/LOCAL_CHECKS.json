@@ -1,0 +1,77 @@
+{
+  "checks": [
+    {
+      "name": "definitions-import",
+      "command": [
+        "node",
+        "tests/definitions-import.mjs"
+      ],
+      "started_at": "2026-11-12T06:20:12.136206+00:00",
+      "exit_code": 1,
+      "duration_seconds": 7.921,
+      "log_file": "definitions-import.log",
+      "node": "v24.19.0"
+    },
+    {
+      "name": "erasure-audit",
+      "command": [
+        "node",
+        "tests/erasure-audit.mjs"
+      ],
+      "started_at": "2026-11-12T06:21:01.506549+00:00",
+      "exit_code": 0,
+      "duration_seconds": 41.743,
+      "log_file": "erasure-audit.log",
+      "node": "v22.20.0"
+    },
+    {
+      "name": "signed-runner",
+      "command": [
+        "node",
+        "tests/signed-runner.mjs"
+      ],
+      "started_at": "2026-11-12T06:21:43.253940+00:00",
+      "exit_code": 0,
+      "duration_seconds": 90.451,
+      "log_file": "signed-runner.log",
+      "node": "v22.20.0"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "pnpm",
+        "run",
+        "typecheck"
+      ],
+      "started_at": "2026-11-12T06:23:13.709489+00:00",
+      "exit_code": 0,
+      "duration_seconds": 10.123,
+      "log_file": "typecheck.log",
+      "node": "v22.20.0"
+    },
+    {
+      "name": "access-matrix",
+      "command": [
+        "node",
+        "tests/access-matrix.mjs"
+      ],
+      "started_at": "2026-11-12T06:23:23.836964+00:00",
+      "exit_code": 0,
+      "duration_seconds": 27.092,
+      "log_file": "access-matrix.log",
+      "node": "v22.20.0"
+    },
+    {
+      "name": "operator-security",
+      "command": [
+        "node",
+        "tests/operator-security.mjs"
+      ],
+      "started_at": "2026-11-12T06:23:50.933310+00:00",
+      "exit_code": 0,
+      "duration_seconds": 52.747,
+      "log_file": "operator-security.log",
+      "node": "v22.20.0"
+    }
+  ]
+}
