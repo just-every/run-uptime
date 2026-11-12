@@ -1,3 +1,6 @@
+import {createHash} from 'node:crypto';
+import {readArchive,canonicalJson} from '@runeditrun/rer/modules/portability';
+import {ContentVerifier,ArchiveVerifier} from '@runeditrun/rer/modules/portability/format';
 import assert from 'node:assert/strict';
 import {watch} from 'node:fs';
 import {cp,mkdir,mkdtemp,readFile,readdir,rm,symlink,writeFile} from 'node:fs/promises';
@@ -58,6 +61,16 @@ export async function proveLocalArchiveResume(source,installation){
   const resumed=await run(original,'export',archive).done;assert.equal(resumed.code,0,'the interrupted local export resumes');assert.equal(JSON.parse(resumed.output.trim().split('\n').at(-1)).ok,true);
   assert.ok(!(await readdir(join(archive,'..'))).some(name=>name.endsWith('transfer.json')),'successful export removes its checkpoint');
   const receiving=await prepare(await installation('cli-resume-receiver'),'receiver');
+  const records=[];for await(const record of readArchive(new Response(await readFile(archive)).body))records.push(record);
+  const foreignManifest={...records[0],product:'synthetic-uptime-foreign'},parts=records.filter(record=>record.kind==='part'),content=new ContentVerifier(foreignManifest),wire=new ArchiveVerifier(foreignManifest);
+  for(const part of parts){wire.add(part);for(const item of part.items)content.add(item)}
+  const foreignPath=join(original.checkout,'exports/foreign.rer');await writeFile(foreignPath,[foreignManifest,...parts,{kind:'closing',partCount:parts.length,contentHash:content.digest(),archiveHash:wire.digest()}].map(canonicalJson).join('\n')+'\n',{mode:0o600});
+  const inventory=async db=>{
+   const names=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all()).results;
+   return Object.fromEntries(await Promise.all(names.map(async({name})=>[name,createHash('sha256').update(JSON.stringify((await db.prepare(`SELECT * FROM \"${name}\" ORDER BY rowid`).all()).results)).digest('hex')])));
+  };
+  const beforeForeign=await inspect(receiving,inventory),foreign=await run(receiving,'import',foreignPath).done;
+  assert.notEqual(foreign.code,0);assert.equal(JSON.parse(foreign.output.trim().split('\n').at(-1)).reason,'wrong_product');assert.deepEqual(await inspect(receiving,inventory),beforeForeign,'wrong-product CLI refusal preserves every durable table before transfer identity initialization');
   const importCheckpoint=await interrupt(receiving,'import',archive);
   const captured=await inspect(receiving,db=>db.prepare('SELECT phase,completed FROM rer_portability_jobs WHERE id=?').bind(importCheckpoint.id).first());assert.equal(captured.phase,'staging');
   const product=db=>Promise.all(TABLES.map(async name=>[name,(await db.prepare(`SELECT * FROM ${name} ORDER BY rowid`).all()).results])).then(Object.fromEntries);
@@ -68,7 +81,7 @@ export async function proveLocalArchiveResume(source,installation){
   await writeFile(archive,bytes);
   const imported=await run(receiving,'import',archive).done;assert.equal(imported.code,0,'the interrupted local import resumes from the original archive');assert.equal(JSON.parse(imported.output.trim().split('\n').at(-1)).ok,true);
   const after=await inspect(receiving,product);assert.equal(after.monitors.length,120);assert.ok(after.monitors.every(m=>!JSON.parse(m.definition).enabled));assert.ok(after.observations.length>0);assert.ok(after.slots.every(s=>s.lease_owner==='restored-inactive'&&s.lease_until===0));
-  console.log('ARCHIVE_LOCAL_RESUME_RECEIPT '+JSON.stringify({schema:1,exportPhaseAtCrash:sourceJob.phase,exportPartsAtCrash:sourceJob.completed,importPhaseAtCrash:captured.phase,importPartsAtCrash:captured.completed,changedFileExit:changed.code,exportExit:resumed.code,importExit:imported.code,restoredMonitors:after.monitors.length,restoredObservations:after.observations.length,inactive:true,changedFileNoWrite:true}));
+  console.log('ARCHIVE_LOCAL_RESUME_RECEIPT '+JSON.stringify({schema:1,exportPhaseAtCrash:sourceJob.phase,exportPartsAtCrash:sourceJob.completed,importPhaseAtCrash:captured.phase,importPartsAtCrash:captured.completed,changedFileExit:changed.code,exportExit:resumed.code,importExit:imported.code,restoredMonitors:after.monitors.length,restoredObservations:after.observations.length,inactive:true,changedFileNoWrite:true,foreignProductExit:foreign.code,foreignProductNoWrite:true}));
   console.log('PASS local archive interrupted-process resume: fsynced owner and installation checkpoints, original-file binding, no-write changed-file refusal and inactive completion');
  }finally{
   for(const child of children){try{process.kill(-child.pid,'SIGKILL')}catch(error){if(error.code!=='ESRCH')throw error}}

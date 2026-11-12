@@ -4448,7 +4448,7 @@
       "executable": false
     },
     "scripts/local/transfer.mjs": {
-      "sha256": "c2e50578fc7dd428b925cb463123618cb88b3af6565b072f0cf528a956bf2e45",
+      "sha256": "aa318ad3e737c6ad9a83888e8ee6b2d182587da8293f43f1c7ed32ff5e957403",
       "executable": false
     },
     "scripts/local/vite-runtime.mjs": {
@@ -9072,7 +9072,7 @@
       "executable": false
     },
     "tests/archive-local-resume-support.mjs": {
-      "sha256": "32900f2382af78d5b9b7f13537e13db7bf3af5a2daae2845a9bae26fee933acc",
+      "sha256": "bb676669dc9fe089cb468c11da93f5a300cebccd29dab97f36fadfc94f7dec60",
       "executable": false
     },
     "tests/archive-roundtrip.mjs": {

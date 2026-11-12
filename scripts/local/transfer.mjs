@@ -49,15 +49,8 @@ export async function transfer(direction, path) {
   // writes also carry the session/version/factor fence in their D1 transaction.
   const authorize=()=>permission(env,request);
   const access=await authorize();
-  const {state:portabilityState}=await import('@runeditrun/rer/modules/portability/storage');
-  const state=await portabilityState(env.DB);
-  const identity={installation:state?.source_identity??settings.UPTIME_ORIGIN,owner:access.session.operator.id};
-  if(direction==='export')await mkdir(dirname(path),{recursive:true,mode:0o700});
-  checkpoint=transferCheckpoint(path,direction,identity);
-  const saved=await checkpoint.read();
-  if(saved&&direction==='import'&&saved.sourceHash!==sourceHash)throw Error('Transfer checkpoint archive changed');
-  await auditAccess(env,access);
-  const policy = productPolicy({...env,DB:authorizedDatabase(env,access)}, () => id, () => ({manifest,laterJournal,actor:{kind:'operator',ref:access.session.operator.id}}),authorize);
+  const db=authorizedDatabase(env,access);
+  const policy = productPolicy({...env,DB:db}, () => id, () => ({manifest,laterJournal,actor:{kind:'operator',ref:access.session.operator.id}}),authorize);
   if(direction==='export')policy.partBytes=128*1024;
   // The migrations this installation applied, in Wrangler's applied order, so an archive made before later additive migrations
   // (new tables, columns with defaults, indexes) restores into it instead of being refused for a ledger it has outgrown.
@@ -78,8 +71,26 @@ export async function transfer(direction, path) {
     else await additiveBridge(env.DB, validatedManifest, cat, migrations);
    }
   }
-  service = await createPortability({ db: authorizedDatabase(env,access), policy, migrations });
-  if(saved){id=saved.id;if(await service.actor(id)!==access.session.operator.id)throw Error('Transfer checkpoint owner mismatch');await service.status(id)}
+  // Compatibility and resume ownership refuse before initializing transfer
+  // identity or recording an access receipt in the receiving installation.
+  const priorIdentity=await env.DB.prepare('SELECT source_identity FROM rer_portability_state WHERE id=1').first();
+  const checkpointPath=path+'.'+direction+'.transfer.json';
+  if(!priorIdentity&&await lstat(checkpointPath).catch(error=>{if(error.code!=='ENOENT')throw error}))throw Error('Transfer checkpoint installation unavailable');
+  const {state:portabilityState}=await import('@runeditrun/rer/modules/portability/storage');
+  const state=priorIdentity??await portabilityState(db);
+  const identity={installation:state.source_identity,owner:access.session.operator.id};
+  if(direction==='export')await mkdir(dirname(path),{recursive:true,mode:0o700});
+  checkpoint=transferCheckpoint(path,direction,identity);
+  const saved=await checkpoint.read();
+  if(saved&&direction==='import'&&saved.sourceHash!==sourceHash)throw Error('Transfer checkpoint archive changed');
+  if(saved){
+   const job=await env.DB.prepare('SELECT actor,kind FROM rer_portability_jobs WHERE id=?').bind(saved.id).first();
+   if(!job||job.actor!==access.session.operator.id||job.kind!==direction)throw Error('Transfer checkpoint owner mismatch');
+   id=saved.id;
+  }
+  await auditAccess(env,access);
+  service = await createPortability({ db, policy, migrations });
+  if(saved)await service.status(id);
   if (direction === 'export') {
    await mkdir(dirname(path), { recursive: true, mode: 0o700 });
    const file = await privateFile(temporary, Boolean(saved));
