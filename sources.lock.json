@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "f6685342c00a3826cb5d679ef8e25e57da1bda3bd1e81840a2ffb273c943bec2",
+      "sha256": "34e96c00735966aa1bb25a1cca0c482a696369e5875aff56ff4fb2d88a241edf",
       "executable": false
     },
     "DEMO.md": {
@@ -4544,7 +4544,7 @@
       "executable": false
     },
     "src/agent-door/manual-check-effects.server.ts": {
-      "sha256": "4c3820b91cc541bf9b7187de2c81a58e35ab583c300fc7603b96a78880f4496f",
+      "sha256": "acb8c080b01e7e4a2b2f921934a3ab0bfe9b36224c5f37c15ae299a90c4cb028",
       "executable": false
     },
     "src/agent-door/monitor-create-effects.server.ts": {
@@ -8928,7 +8928,7 @@
       "executable": false
     },
     "tests/agent-door.mjs": {
-      "sha256": "e7c3f60d491be0d0bca607d83216f34efe308780a5409b49b5b046c867399340",
+      "sha256": "a8a441f541f86b3081f7eba64a94ee401461d0a969596a2532c7bf22f7ab0264",
       "executable": false
     },
     "tests/agent-drill-journey.mjs": {
@@ -8953,6 +8953,10 @@
     },
     "tests/agent-manual-debt-support.mjs": {
       "sha256": "d1a6c80e743a6d6854396c9defcba02b6637e08c35658b91d8b52e6fd255f3e6",
+      "executable": false
+    },
+    "tests/agent-manual-multicleanup-support.mjs": {
+      "sha256": "738e586adefaa6f05b9a9806d2c8efdd428a249fdba2e516ec05b1712f83d32a",
       "executable": false
     },
     "tests/agent-monitor-state-support.mjs": {

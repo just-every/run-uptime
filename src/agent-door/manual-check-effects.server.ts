@@ -4,11 +4,11 @@ import {CLEANUP_DEBT_LIMIT} from '../domain/cleanup-debt.mjs'
 
 /** Qualified native boundary: one API fixture sequence, one probe, no retry. */
 export async function manualCheckEffects(env:Bindings,monitor:{id:string;definition:any}){
- const definition=monitor.definition,steps=definition.api?.steps??[]
+ const definition=monitor.definition,steps=definition.api?.steps??[],possible=steps.filter((step:any)=>step.phase==='cleanup').length
  if(definition.type!=='api'||definition.probes.length!==1||definition.retries!==0||
-  !steps.some((step:any)=>step.phase==='setup')||steps.filter((step:any)=>step.phase==='cleanup').length!==1)return null
+  !steps.some((step:any)=>step.phase==='setup')||possible===0)return null
  const debts=(await env.DB.prepare("SELECT id FROM cleanup_debt WHERE monitor_id=? AND state='open' ORDER BY id").bind(monitor.id).all<{id:string}>()).results
- const open=debts.length,possible=1
+ const open=debts.length
  return {open,possible,limit:CLEANUP_DEBT_LIMIT,evidence:debts.map(debt=>debt.id),
   live:definition.enabled&&open<CLEANUP_DEBT_LIMIT&&open+possible>=CLEANUP_DEBT_LIMIT}
 }
