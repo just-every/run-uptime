@@ -1,0 +1,237 @@
+{
+  "schema": 1,
+  "claim": "ARCHIVE-002 PARTIAL points=3",
+  "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+  "rows": [
+    {
+      "id": "AP1",
+      "item": "500 monitors with 90 days of 30-second checks from three locations; interrupted and resumed export with verified manifest",
+      "status": "UNPROVED",
+      "evidence": "No full-scale run; smaller synthetic fixture explicitly excluded as a substitute",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "AP2",
+      "item": "Restore the complete monitoring-scale archive into an empty installation and compare all counts and ARCHIVE-001 transformations",
+      "status": "PARTIAL",
+      "evidence": "tests/archive-transfer-support.mjs#proveArchiveTransfer:99-145; every small-fixture table compared, full-scale population absent",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "AP3",
+      "item": "All 120 monitors export; a subset export matches its independent selection",
+      "status": "LOCAL_PASS",
+      "evidence": "tests/archive-transfer-support.mjs#proveArchiveTransfer:23-29,78-85; tests/archive-selection-support.mjs#proveArchiveSelection",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "REQ-CHUNKS",
+      "item": "Bounded chunks and independently verifiable manifest digests",
+      "status": "LOCAL_PASS",
+      "evidence": "tests/archive-transfer-support.mjs:49-76; payload 7323872 bytes, 71 chunks, 3 fragments",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "REQ-RESUME",
+      "item": "Durable native and actual CLI interrupted-process resume",
+      "status": "LOCAL_PASS",
+      "evidence": "tests/archive-transfer-support.mjs:41-47,100-106; tests/archive-local-resume-support.mjs:38-84",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "REQ-BOUNDS",
+      "item": "No silent truncation; console displays all remaining bounds before export",
+      "status": "PARTIAL",
+      "evidence": "Native GET bounds and complete 120-monitor exports pass; console bound and selection controls remain uip-owned",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "REQ-RANGE",
+      "item": "Time-range and subset availability",
+      "status": "PARTIAL",
+      "evidence": "Exact subset proof retained; f62b range integration stays with its existing landing owner",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "BASE-DATA-001",
+      "item": "Installation-local authority and secrets stay local; independently owned empty receiver",
+      "status": "LOCAL_PASS",
+      "evidence": "tests/archive-roundtrip.mjs:30-45; tests/archive-transfer-support.mjs:77,108-110,99-145; tests/archive-local-resume-support.mjs:63-83",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "ARCHIVE-001-VALIDATION",
+      "item": "Complete graph validation; corrupt and rehashed invalid inputs refuse without product writes",
+      "status": "LOCAL_PASS",
+      "evidence": "tests/archive-transfer-support.mjs:88-96,108-110; tests/archive-selection-support.mjs:75-80",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "ARCHIVE-001-INACTIVE",
+      "item": "Paused definitions, interrupted leases, quarantined delivery and immutable originals",
+      "status": "LOCAL_PASS",
+      "evidence": "tests/archive-transfer-support.mjs:114-145; complete counts at 131-134 and original revisions at 136",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "ARCHIVE-001-ERASURE",
+      "item": "Later erasures and stale captures cannot resurrect data",
+      "status": "LOCAL_PASS",
+      "evidence": "tests/archive-transfer-support.mjs:147-158; source resume 404 and later-journal finalize 400 with product snapshots unchanged",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "AUTHORITY",
+      "item": "Current person and recent factor at progress boundaries",
+      "status": "INSPECTED_WITH_RETAINED_REFUSAL_PROOF",
+      "evidence": "src/domain/archive-transfer.server.ts:24-25,45,69; scripts/local/transfer.mjs:50-53,98-121; tests/archive-selection-support.mjs:96-103",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-1",
+      "item": "DONE-RIDERS row 1",
+      "status": "PARTIAL",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 1",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-2",
+      "item": "DONE-RIDERS row 2",
+      "status": "LOCAL_PASS",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 2",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-3",
+      "item": "DONE-RIDERS row 3",
+      "status": "PASS_FOR_IMPLEMENTED_JOURNEY",
+      "evidence": "Exact-SHA push Verify 43328095742 success; full-scale journey remains absent as recorded under AP1",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-4",
+      "item": "DONE-RIDERS row 4",
+      "status": "LOCAL_PASS",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 4",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-5",
+      "item": "DONE-RIDERS row 5",
+      "status": "INSPECTED",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 5",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-6",
+      "item": "DONE-RIDERS row 6",
+      "status": "PARTIAL",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 6",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-7",
+      "item": "DONE-RIDERS row 7",
+      "status": "INSPECTED",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 7",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-8",
+      "item": "DONE-RIDERS row 8",
+      "status": "LOCAL_PASS",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 8",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-9",
+      "item": "DONE-RIDERS row 9",
+      "status": "INSPECTED",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 9",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-10",
+      "item": "DONE-RIDERS row 10",
+      "status": "INSPECTED",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 10",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    },
+    {
+      "id": "RIDER-11",
+      "item": "DONE-RIDERS row 11",
+      "status": "PARTIAL",
+      "evidence": "REPORT.md DONE-RIDERS assessment row 11",
+      "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
+      "verifyEvent": "push",
+      "verifyRun": 43328095742,
+      "verifyConclusion": "success"
+    }
+  ]
+}

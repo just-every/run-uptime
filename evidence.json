@@ -1,10 +1,10 @@
 {
   "files": [
     {
-      "blob": "f077d42da49d80e186011fde15d5b58933ca5d89",
-      "bytes": 12234,
+      "blob": "93d35c5c2eb081daa7829994120f57a39c6d08e6",
+      "bytes": 15422,
       "path": "REPORT.md",
-      "sha256": "e663739fd6bbe0abd24a729096d6c8b904d9a67210c0d95cb88b722753bbc3b8"
+      "sha256": "51aab74b5a2b8ccb2aa289c6391d82f2420fbd63fe3c1af564fd5aeca8b93c5b"
     },
     {
       "blob": "2d75f663caf5c8aac3d61301632185c541ba5cf7",
@@ -19,10 +19,22 @@
       "sha256": "64316061aec1d9ea6f9643b49e93f872a09c3df0e2b723189e3c1a12132444a1"
     },
     {
-      "blob": "f0ca3ba17e750d2c70b338f85d46b21953eab608",
-      "bytes": 6579,
+      "blob": "ae161bde817a2e7101d14871900143b9d51b0945",
+      "bytes": 1742,
+      "path": "candidate-ci.json",
+      "sha256": "90a2148c8f2996ac519e5594abb155c27835001850663bb93959802d6b451c23"
+    },
+    {
+      "blob": "0524aa6cc3a3096f349bd014ed66c184c21abb49",
+      "bytes": 7024,
       "path": "candidate-receipt.json",
-      "sha256": "c765f00b8842c179231d73a61564827541e0fd70771ece43c0d563601a808ebf"
+      "sha256": "04d77f7614820c5eb7fb0bd6c0af0464d05652ef9feede0c271bb6be78217885"
+    },
+    {
+      "blob": "3a33f1515bbe73d9e9e599f3f2036b1eaed7d383",
+      "bytes": 9088,
+      "path": "coverage.json",
+      "sha256": "da12a63dc6ce321b3fc4ccd861e77aa686e3a12191e730e41f38a9a8c4c6b002"
     },
     {
       "blob": "db0751fd72bf46253548f228275714aa5c13838e",
@@ -47,6 +59,24 @@
       "bytes": 42643,
       "path": "original-shard.log",
       "sha256": "8b8f3fec81421483e18c21414857b37cc8722d40483585995a3fa184f68dfcef"
+    },
+    {
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "path": "prior-shard-full.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "path": "prior-shard.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "path": "prior-verify.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "blob": "9724fe75d6069d9ae26834a423cedd5084fa67c8",

@@ -1,5 +1,9 @@
 # sd-uptime-c-f169-pc1
 
+Final result: product branch cloud/sd-uptime-c-f169-pc1 is pushed at de789394918efe1b00999557463bbde5cb8a3f8b. Push Verify 43328095742 completed successfully on that exact full SHA: https://github.com/just-every/run-uptime/actions/runs/43328095742. No PR is required or created. ARCHIVE-002 stays PARTIAL, with acceptance point 3 proved; counts remain 37 DONE, 58 PARTIAL and 20 MISSING. No product blocker remains for guarded landing. Full-scale, bounded-memory, OPS-001, range integration, hosted and console gaps stay explicit. Main-only Run site and the full-history publication scan remain guarded-lander duties.
+
+The saved implementation is preserved. The only new product commit integrates current main and regenerates the source lock. The prior cancellation did not reproduce: the unchanged original shard passed, and the supplied head already had an exact-SHA green continuation Verify. No speculative repair or assertion weakening was made.
+
 Repository: just-every/run-uptime. Branch: cloud/sd-uptime-c-f169-pc1.
 Starting published head: e840bbaad90f2542d2f6ebd51aaa3f370056b52d. No amend, rebase or force push is permitted on this continuation.
 
@@ -46,7 +50,7 @@ No plan file or lane inbox is read or written in this VM. Plan rows changed: non
 DONE-RIDERS assessment (PARTIAL claim only):
 1. PARTIAL: point 3 has a passing public-door sanity journey; the complete scale population and its restore remain unproved.
 2. PASS for engineering proof: populated data, actual transfers, independent digests, complete comparison and unsafe-path no-write refusals; the small population is not relabeled as scale proof.
-3. Pending final candidate Verify; old-head push Verify 43321613259 is green and is reported only for its own SHA.
+3. PASS for implemented engineering journeys: push Verify 43328095742 completed successfully on de789394918efe1b00999557463bbde5cb8a3f8b. The full-scale acceptance remains unproved under row 1; old-head Verify 43321613259 is reported only for its own SHA.
 4. PASS: focused archive code and test bytes are preserved across the main merge, and the archive journey is rerun on merged source.
 5. PASS by inspection: ARCHIVE-002 cites BASE-DATA-001 and expressly retains ARCHIVE-001 validation, inactive restore and erasure fences.
 6. Mechanical generation and lock checks pass. Status, Gap and Evidence cells remain main-owned; stale gap descriptions are reported for landing-side reconciliation.
@@ -74,3 +78,15 @@ MECHANICAL lock=node scripts/edition-authoring/cli.mjs lock and check exit=0; vi
 PROBE ARCHIVE-002 1: native transfer with honest synthetic revision load -> 120 monitors, 71 independently verified chunks and resumed export; full 500-monitor and 90-day scale outcome remains unproved.
 PROBE ARCHIVE-002 2: native restore into independently owned empty D1 -> every table count compared with documented inactive transformations, immutable originals retained, corrupt and foreign and later-erased archives refused without product writes; full-scale restore remains unproved.
 PROBE ARCHIVE-002 3: native whole and subset archive routes -> all 120 monitors, exact 105-monitor legacy subset and 119-monitor service chunk subset; actual CLI export and import resume after process kill, changed and foreign input refuse without product writes.
+
+The per-sentence and inherited-duty proof map, with one row for each rider and its exact-head Verify field, is retained in coverage.json. Partial and unproved rows remain explicit; source inspection is distinguished from runtime proof.
+
+
+Final exact-head verification:
+- Verify 43328095742, event push, completed/success on de789394918efe1b00999557463bbde5cb8a3f8b. One watcher made at most one request per 300 seconds; the entire task used ten GitHub CLI or REST invocations, including prior-run diagnosis. No dispatch, rerun or competing watcher was used.
+- Local archive, typecheck, first-party, contract generator and source-lock checks pass. No migrations changed. Every supplied commit is an ancestor of the candidate, and current-main source and generated views are preserved. The candidate's eight commits beyond integrated main have fleet author and committer identity, zero co-author lines and no disallowed trailers, including side parents.
+- Product custody was verified by ls-remote on the exact named branch. Initial evidence publication was independently fetched and its manifest, file hashes, product head and report-only tree validated. Final evidence publication follows this report update.
+- Publication scan: not run in cloud, no COMPLETE or zero-finding result claimed. Main equality: not claimed. Run site: not run in cloud. These are guarded-lander conditions; no DONE claim is made.
+
+CLAIM ARCHIVE-002 PARTIAL points=3 tests=tests/archive-transfer-support.mjs#proveArchiveTransfer; tests/archive-selection-support.mjs#proveArchiveSelection; tests/archive-local-resume-support.mjs#proveLocalArchiveResume
+GAP ARCHIVE-002: Full 500-monitor and 90-day monitoring history with 30-second checks from three locations and its resumed export and restore, fully bounded-memory construction and restore beyond the explicit working-set bound, required-scale OPS-001 backup, hosted cadence and capacity and archive-size measurements, existing-owner f62b range integration and uip console bound and selection qualification remain owed. No narrowing or hosted-scale split is adopted.

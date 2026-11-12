@@ -183,7 +183,8 @@
   "candidateIdentityAudit": {
     "commits": 8,
     "includesSideParents": true,
-    "result": "pass"
+    "result": "pass",
+    "fullCommitMessageCoauthorLines": 0
   },
   "countsBefore": {
     "done": 37,
@@ -209,9 +210,23 @@
   "pr": null,
   "ci": {
     "head": "de789394918efe1b00999557463bbde5cb8a3f8b",
-    "status": "not-yet-discovered",
+    "runId": 43328095742,
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43328095742",
+    "usedCalls": 10,
     "priorSuppliedHeadGreenVerify": 43321613259,
     "priorCancelledRun": 43292021628
   },
-  "recordedAt": "2026-11-12T23:22:38.160860+00:00"
+  "recordedAt": "2026-11-12T23:22:38.160860+00:00",
+  "claim": {
+    "clause": "ARCHIVE-002",
+    "status": "PARTIAL",
+    "points": [
+      3
+    ]
+  },
+  "custody": "READY for guarded landing; evidence publication is separate",
+  "finalizedAt": "2026-11-12T23:42:32.582903+00:00"
 }
