@@ -1,0 +1,21 @@
+{
+  "clauseStatusBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clauseStatusAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clauseStatusChanges": 0,
+  "testRegistrationsAdded": 0,
+  "testRegistrationsRemoved": 0,
+  "stripeFamiliesCovered": 6,
+  "providerFixturesCovered": 15,
+  "plantedSecretsCovered": 20,
+  "ordinaryOutputValues": 6,
+  "leakingSurfacesBefore": 4,
+  "leakingSurfacesAfter": 0
+}

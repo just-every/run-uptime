@@ -1,0 +1,51 @@
+{
+  "head": "11994a0593d6a2599907f17fa41af9bb98d72ca7",
+  "branch": "cloud/main-uptime-heartbeat-redact-1",
+  "base": "7f07c2c0584c32be2d3c0a848bc23e827832825d",
+  "sourceFilesMatchLocalTests": true,
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit": 0
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run spec:generate",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "node tests/signed-runner.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node tests/failure-page-journey.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    }
+  ],
+  "browserExecutable": "/usr/bin/chromium",
+  "browserArgs": [
+    "--no-sandbox"
+  ],
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "assertionWidth": 1440,
+  "publicationScan": "complete scan reserved for the Mac fleet per the cloud brief; not claimed here",
+  "storedRowsRewritten": 0,
+  "contractsChanged": false,
+  "newTestRegistrations": 0,
+  "productPushed": true,
+  "pullRequest": null
+}

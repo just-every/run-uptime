@@ -1,0 +1,12 @@
+{
+  "sourceHead": "7f07c2c0584c32be2d3c0a848bc23e827832825d",
+  "door": "POST /api/heartbeats/:id/fail/3",
+  "status": 200,
+  "keyStored": true,
+  "keyInHistory": true,
+  "keyInReadAPI": true,
+  "keyInArchive": true,
+  "bearerMasked": true,
+  "passwordMasked": true,
+  "productionDataInspected": false
+}

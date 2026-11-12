@@ -1,0 +1,19 @@
+[
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "python3",
+      "/tmp/fleet-identity-audit.py"
+    ],
+    "exit": 0,
+    "output": "All candidate commits (including side parents) passed identity and trailer policy: 1"
+  }
+]
