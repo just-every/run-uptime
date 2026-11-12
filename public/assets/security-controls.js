@@ -78,7 +78,9 @@ export function securityControls(host,transport){
  host.addEventListener('submit',event=>place(event.target.querySelector('button')),true);
  const outcome=(text,block='nearest')=>{status.textContent=text;status.scrollIntoView({block})};
  const error=problem=>{outcome(problem.readable?problem.message:'This action could not finish. Try again.')};
- const run=async action=>{if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
+ // Startup reads must finish before an action runs, without consuming the
+ // mutation guard and silently discarding a click on an already visible control.
+ const run=async action=>{await initialized;if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
  const shownOnce=(title,value)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,done);once.scrollIntoView({block:'nearest'});done.focus()};
  const showCodes=result=>{if(result.recoveryCodes)shownOnce('Save these ten recovery codes once',result.recoveryCodes)};
  const continueEnrollment=async result=>{if(!pendingAction)return;if(result.recoveryCodes){once.querySelector('button').onclick=()=>{once.replaceChildren();void run(verified)}}else await verified()};
@@ -134,6 +136,7 @@ export function securityControls(host,transport){
    }
   }catch(problem){list.textContent=problem.readable?problem.message:'Keys could not be loaded. Refresh and try again.'}
  }
- void run(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()}).then(()=>{if(new URLSearchParams(location.search).get('enroll')==='authenticator'){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.click()}});
+ const initialized=(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()})().catch(error);
+ void initialized.then(()=>{if(new URLSearchParams(location.search).get('enroll')==='authenticator'){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.click()}});
  return {request:async(path,method,body)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;return new Promise((resolve,reject)=>{void fresh(async()=>{try{resolve(await api(path,method,body))}catch(error){reject(error)}}).catch(reject)})}}};
 }

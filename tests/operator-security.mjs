@@ -1,3 +1,4 @@
+import {proveMonitorStepUp} from './monitor-stepup-support.mjs';
 import {proveSecurityControls} from './security-controls-browser-support.mjs';
 import {proveMfaPolicy} from './mfa-policy-support.mjs';
 import {proveMfaWebAuthn} from './mfa-webauthn-support.mjs';
@@ -56,5 +57,6 @@ try{
  await worker.dispose();worker=null;
  await proveMfaWebAuthn();
  await proveSecurityControls();
+ await proveMonitorStepUp();
  console.log(`OPERATOR-SECURITY completed one owner-to-runner lifecycle`);
 }finally{await worker?.dispose();await rm(dir,{recursive:true,force:true})}

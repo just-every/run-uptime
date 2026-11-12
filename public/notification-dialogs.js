@@ -58,11 +58,12 @@ export function showSecret(secret,destinationName){
 export function showErasureReceipt(receipt,{onClose=()=>{}}={}){
  const dialog=document.createElement('dialog');dialog.className='editor notification-dialog erasure-receipt';dialog.setAttribute('aria-labelledby','erasure-receipt-heading');
  const heading=document.createElement('h2');heading.id='erasure-receipt-heading';heading.textContent='Erasure complete';
- const description=document.createElement('p');description.textContent=`${receipt.entityKind} erased at ${new Date(receipt.completedAt).toLocaleString()}.`;
+ const description=document.createElement('p'),completed=document.createElement('time');completed.dateTime=new Date(receipt.completedAt).toISOString();completed.textContent=new Date(receipt.completedAt).toLocaleString();description.append(`${receipt.entityKind} erased at `,completed,'.');
  const reference=document.createElement('p');reference.textContent=`Receipt: ${receipt.id}`;reference.style.overflowWrap='anywhere';
  const labels={notification_destinations:'Destinations',notification_credentials:'Stored credentials',notification_jobs:'Notification jobs',integration_attempts:'Delivery attempts',integration_deliveries:'Delivery records',integration_resolutions:'Delivery resolutions',integration_replays:'Replay records',notification_claim_custody:'Delivery authorizations',alert_drills:'Alert drills',archive_history:'Archived history copies',rer_mail_development_outbox:'Local development messages'};
- const totals={};for(const [table,count] of Object.entries(receipt.counts)){const label=labels[table]??'Other dependent records';totals[label]=(totals[label]??0)+Number(count)}
- const counts=document.createElement('dl');for(const [labelText,count] of Object.entries(totals)){const row=document.createElement('div'),label=document.createElement('dt'),value=document.createElement('dd');label.textContent=labelText;value.textContent=String(count);row.append(label,value);counts.append(row)}
+ const totals={};for(const [table,count] of Object.entries(receipt.counts)){const label=receipt.entityKind==='monitor'?table:labels[table]??'Other dependent records';totals[label]=(totals[label]??0)+Number(count)}
+ const entries=Object.entries(totals);if(receipt.entityKind==='monitor')entries.sort((a,b)=>b[1]-a[1]);
+ const counts=document.createElement('dl');for(const [labelText,count] of entries){const row=document.createElement('div'),label=document.createElement('dt'),value=document.createElement('dd');if(receipt.entityKind==='monitor'){row.dataset.erasureTable=labelText;label.textContent=labelText.replaceAll('_',' ').replace(/^./,c=>c.toUpperCase())}else label.textContent=labelText;value.textContent=String(count);row.append(label,value);counts.append(row)}
  const close=document.createElement('button');close.className='primary';close.textContent='Close receipt';close.onclick=()=>dialog.close();dialog.onclose=()=>{dialog.onclose=null;dialog.remove();onClose();if(receipt.entityKind==='destination'&&!document.querySelector('dialog:modal'))document.getElementById('add-destination')?.focus({preventScroll:true})};
  dialog.append(heading,description,reference,counts);
  if(receipt.counts.oa_bootstrap){const claim=document.createElement('p');claim.textContent='The original setup claim remains closed. Its counted row was anonymised.';dialog.append(claim)}
@@ -71,7 +72,7 @@ export function showErasureReceipt(receipt,{onClose=()=>{}}={}){
   const help=document.createElement('a');help.href='/docs/data';help.textContent='Owner settings after erasure';guidance.append(help);dialog.append(guidance);
  }
  dialog.append(close);document.body.append(dialog);
- if(receipt.entityKind==='destination'){Object.assign(dialog.style,{position:'fixed',inset:'auto 16px 16px auto',maxWidth:'min(560px, calc(100vw - 32px))',maxHeight:'calc(100vh - 32px)',overflow:'auto',zIndex:'10'});dialog.show()}else{containModalKeyboard(dialog);dialog.showModal();}
+ if(receipt.entityKind==='destination'){Object.assign(dialog.style,{position:'fixed',inset:'auto 16px 16px auto',maxWidth:'min(560px, calc(100vw - 32px))',maxHeight:'calc(100vh - 32px)',overflow:'auto',zIndex:'10'});dialog.show()}else{containModalKeyboard(dialog);dialog.showModal();if(receipt.entityKind==='monitor'){heading.tabIndex=-1;heading.focus();dialog.scrollTop=0}}
 }
 export function confirmErasure({kind,name,onConfirm}){
  const returnFocus=dialogFocusReturn();
