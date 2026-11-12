@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-erase-in-place-1",
+  "head": "93edc3d34982c579e514b4e3df7cbaa5f72770f5",
+  "base": "7f07c2c0584c32be2d3c0a848bc23e827832825d",
+  "recorded_at": "2026-11-12T03:50:46.236139+00:00",
+  "checks": [
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "cloud_run node tests/operator-security.mjs",
+      "exit": 0,
+      "note": "Full security journey passed; final receipt row ordering was subsequently exercised by the focused browser check."
+    },
+    {
+      "command": "cloud_run node /tmp/uptime-final-check.mjs",
+      "exit": 0,
+      "function": "tests/monitor-stepup-support.mjs#proveImportEraseStepUp",
+      "note": "Final product bytes; desktop behavior plus changed-screen captures at 1440 and 390."
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    }
+  ],
+  "product_push": {
+    "command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/main-uptime-erase-in-place-1",
+    "exit": 0,
+    "attempts": 1,
+    "remote_ref": "refs/heads/cloud/main-uptime-erase-in-place-1",
+    "confirmed_remote_head": "93edc3d34982c579e514b4e3df7cbaa5f72770f5"
+  },
+  "identity": {
+    "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "trailers": [],
+    "all_candidate_commits_checked": true
+  },
+  "browser": {
+    "assertion_width": 1440,
+    "capture_widths": [
+      1440,
+      390
+    ],
+    "browser": "/usr/bin/chromium",
+    "factor": "real TOTP enrollment and one-time recovery codes; real Chromium CTAP2 edge in the full security journey"
+  },
+  "publication_scan": "Fleet Mac only; not run in this cloud",
+  "contract_status_changes": []
+}

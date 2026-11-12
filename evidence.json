@@ -1,0 +1,136 @@
+{
+  "files": [
+    {
+      "blob": "44d2cf8b98c77587ba9009a24021c34d076f2443",
+      "bytes": 2068,
+      "path": "CHECKS.json",
+      "sha256": "20c1cde9ffd429e31e0883e96e4ca1af33f8c2af44cac91b82397c92e35fee56"
+    },
+    {
+      "blob": "dbaaf3360183ae66dfc089f4703aa46a81fe5a5a",
+      "bytes": 229,
+      "path": "CI-DISCOVERY.json",
+      "sha256": "4a4f724556c441736964f08106ec8e12415aa48cfb18794d2cefcca57321339c"
+    },
+    {
+      "blob": "519b362cba838a52ecd882abdf2afe32b49c6b7a",
+      "bytes": 176,
+      "path": "CI-STATUS.json",
+      "sha256": "538d8fa4ff3ffaebffe528c7ba10ee430cda067862896b4e2229080610411866"
+    },
+    {
+      "blob": "07e2f21b51d582ba07554f5bf71e9d6a6c021dc6",
+      "bytes": 494,
+      "path": "COUNTS.json",
+      "sha256": "18fa1de3dffa0556c7d40b5030d196047e80f5473bb979ecf23fc4613def3497"
+    },
+    {
+      "blob": "e620b789e7e7f46f32127eb86b3de8a2ed485b52",
+      "bytes": 270,
+      "path": "FOCUSED-BROWSER.log",
+      "sha256": "a4453c3233bf62c55edc375995eace5056da4ca2e1e8a45cceab1172b565ecb8"
+    },
+    {
+      "blob": "8a39eb5fe8e5b225dd9a342dfec0496817d17a7a",
+      "bytes": 784,
+      "path": "GITHUB-CALLS.jsonl",
+      "sha256": "eb80110c67d199555dfb38b72ed4e4d2bd4246b32dd4ce0eb64a1bafde2ed34d"
+    },
+    {
+      "blob": "d479691a7cc63157d6b47660019658a223405b0a",
+      "bytes": 4996,
+      "path": "MONITOR-ERASURE-RECEIPT.json",
+      "sha256": "821b4e089caeb840fecd151e1b654bd70ee6bf1d8c7a0044a5ef0ea4d453cc6b"
+    },
+    {
+      "blob": "1a1430831347e24ddef53faeea427b3ce5f204a8",
+      "bytes": 1393,
+      "path": "PLAN.md",
+      "sha256": "314610f73a1f27937131a4068d0622237a273ff379953a2a6138e2fb0ba75afb"
+    },
+    {
+      "blob": "2282cc3917b8c070c974eb6447bd4a7b15c896c8",
+      "bytes": 8824,
+      "path": "REPORT.md",
+      "sha256": "b850fc55be6b6f4662dc188e991a66691c3becd027acdd55d2e9ec29d1b25f5b"
+    },
+    {
+      "blob": "5242cb444606c839f1e9a844290f1e7f2dad048a",
+      "bytes": 271,
+      "path": "REPRODUCTION.json",
+      "sha256": "1ad4c310ffdcb2bc3b9acb73220c9efdfbda1fc8e5acb4dc01588c38ac086ba6"
+    },
+    {
+      "blob": "1687da583af86b03dd58d72e3aba333fefbe4001",
+      "bytes": 1165,
+      "path": "SECURITY.log",
+      "sha256": "dbf9cb9066c71788986584781c8ceb452cd501679118c9bfce56b9b95ff48c61"
+    },
+    {
+      "blob": "d524ba52cfa2492d3a57a6c44c9dfafaf7e5d151",
+      "bytes": 415738,
+      "path": "SOURCE-LOCK-CHECK.json",
+      "sha256": "c9894623a1df950228971a823440089a04b917e2b3c00435b8d16571399b371d"
+    },
+    {
+      "blob": "304c68b509277e89632804dececb9e7a0836e894",
+      "bytes": 243,
+      "path": "TYPECHECK.log",
+      "sha256": "276f5776dca1a18931e49d0a0f75322c60a9bd90da01db92d94a6f9d5a7dbbf7"
+    },
+    {
+      "blob": "4c2d4af5f23a156353e5bcb0b2b36afdc041b8a0",
+      "bytes": 137705,
+      "path": "screens/import-preview-ready-1440.png",
+      "sha256": "5a048ec61395aabf1d7228eda15be7a0eabf82e3c8af9621b6ba3a0d01c49bd4"
+    },
+    {
+      "blob": "38e77f607deb76de56799416b74a8ed09f480661",
+      "bytes": 142909,
+      "path": "screens/import-preview-ready-390.png",
+      "sha256": "f522c02b93d473b6ef866095edbf2f4bf3ac7d4737003b4083a457041baacf14"
+    },
+    {
+      "blob": "30a19882fe6ee01679037c465f213f973021afa9",
+      "bytes": 118737,
+      "path": "screens/import-preview-verification-1440.png",
+      "sha256": "c91205896f8a4c5b1c9232b69f73b60fede4839e04b16026fcacc23175d0f055"
+    },
+    {
+      "blob": "2ba498db07929575d392a6c8f5ce753e368b93e1",
+      "bytes": 108448,
+      "path": "screens/import-preview-verification-390.png",
+      "sha256": "0e567564072ac13621432fd997b0df39efdd9ec7b098f4edfb3c93384c23ab7c"
+    },
+    {
+      "blob": "241979113268664d36943f1db810bf2323408670",
+      "bytes": 116744,
+      "path": "screens/monitor-erase-verification-1440.png",
+      "sha256": "5a7fda4d98490282fddf2fbb5f346846f07fb6ebb7518b9ac4f735989dd6d34b"
+    },
+    {
+      "blob": "4ac5b2171249b37d8d4b9bbc4df294f7e1182354",
+      "bytes": 103361,
+      "path": "screens/monitor-erase-verification-390.png",
+      "sha256": "f6aafb12fc631ac9560f3ee9e62cbb7d6d2743535b403efa033bbb5068eae0de"
+    },
+    {
+      "blob": "afdaf71053ca0686d6bd38fc5d6d2df6ee63a8b9",
+      "bytes": 158212,
+      "path": "screens/monitor-erasure-receipt-1440.png",
+      "sha256": "ce62275f4069f3dfdfce84d6154a53448c28f8cfea2096d41a5cea5bbab7adf9"
+    },
+    {
+      "blob": "a24d2d17b532b5998bf452494e9cb25725f98368",
+      "bytes": 111062,
+      "path": "screens/monitor-erasure-receipt-390.png",
+      "sha256": "9aba14b2f76e50edb79aa35e69ebdcc333e39c8cce41b89a6de045f80dc648fe"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-erase-in-place-1",
+  "product_head": "93edc3d34982c579e514b4e3df7cbaa5f72770f5",
+  "ref": "refs/heads/evidence/main-uptime-erase-in-place-1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-erase-in-place-1"
+}

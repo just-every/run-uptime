@@ -1,0 +1,17 @@
+{
+  "preview": {
+    "status": 200,
+    "promptCount": 0,
+    "fileRetained": 1
+  },
+  "erase": {
+    "status": 403,
+    "code": "fresh_second_factor_required",
+    "promptCount": 0
+  },
+  "receipt": {
+    "stored": true,
+    "visibleCount": 0,
+    "notice": false
+  }
+}
