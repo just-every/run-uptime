@@ -54,10 +54,10 @@ Full acceptance population is NOT RUN: it requires 129,600,000 scheduled slots a
 | --- | --- | --- |
 | 1 | FAIL for DONE | Full-scale acceptance outcome and complete range and console obligations are unproved. PARTIAL retained. |
 | 2 | PASS at exercised load | Populated history and public commands complete; unsafe cases refuse with unchanged portable product tables. |
-| 3 | Pending independent CI | Exact candidate checks are in CHECKS.json; final CI disposition is recorded in RESULTS.json. No earlier SHA is claimed as candidate CI. |
+| 3 | UNQUALIFIED: final Verify cancelled | Exact candidate checks are in CHECKS.json; final CI disposition is recorded in RESULTS.json. No earlier SHA is claimed as candidate CI. |
 | 4 | PASS for recorded candidate checks | CHECKS.json binds each final check to the full candidate SHA, tree and clean checkout. Earlier exploratory runs are not candidate proof. |
 | 5 | PASS / INSPECTED | ARCHIVE-002 already cites BASE-DATA-001, and its requirement expressly retains ARCHIVE-001 validation, inactive restore and erasure fencing. |
-| 6 | PASS mechanically; judgments retained | Generator write and check and source-lock regeneration and check are recorded. Generated views and all Status judgments remain main's whole files. |
+| 6 | PASS mechanically; Gap bookkeeping pending | Generator write and check and source-lock regeneration and check are recorded. Generated views and all Status judgments remain main's whole files. |
 | 7 | PASS / INSPECTED | No acceptance change, split, rewrite or coverage loss. |
 | 8 | PASS at exercised doors | Current owner authority and factor checks, successful native and CLI restore, foreign and stale authority and no-write refusals. Retained selection journey keeps scoped, revoked and read-only refusals. |
 | 9 | PASS honestly scoped | No managed geographic, hosted-scale, provider, legal or storage-capacity claim. |
@@ -112,3 +112,15 @@ Exact-head local results: build, generator write and check, whole-file generated
 Local environment interruption: the pre-merge command run lost its parent and local service during a cloud environment restart, then reported scratch command setup failure with repeated runner contact errors. Its actual output is retained as command-environment-restart.log. The complete command was rerun on the merged candidate and passed; no application or assertion was changed for this interruption.
 
 Requested contract bookkeeping, for the sole landing writer: MONITOR-001 and SCHEDULE-002 should record discovery and removal of the real 100-monitor installation guard and its catalog, import and archive consumers. The shared admission cap is now 500 and the catalog fills that capacity through the public door. This is admission proof, not hosted cadence or capacity qualification; all remaining console, pricing, geographic and scale duties stay owed. Their Status rows were not edited here.
+
+Evidence preservation: the full actual packet was first published to the report-only ref evidence/sd-uptime-c-f169 at 94e02840781b42aac63ad6b297fb18c41232819d while Verify was still recorded in progress. This was evidence transport only. The final returned evidence head will include the final permitted CI observation; product custody remains e840bbaad90f2542d2f6ebd51aaa3f370056b52d.
+
+Report transport verification: the first evidence publication was fetched through the provided entrypoint with expected head 94e02840781b42aac63ad6b297fb18c41232819d. Its manifest, regular-file tree and all 42 file lengths, Git blob identities and SHA-256 values verified, restoring the complete selected packet outside the product clone. EVIDENCE-TRANSPORT-CHECK.json is the actual return receipt. This verifies report return only; the final evidence update and the fleet gate remain separate.
+
+## Final exact-SHA CI observation
+
+Verify run 43292021628, push event, head e840bbaad90f2542d2f6ebd51aaa3f370056b52d: status=completed, conclusion=cancelled. Observed at 2026-11-12T20:05:44.377627+00:00. This was the tenth and final GitHub call; no workflow was dispatched or rerun. The old failed candidate remains separately identified with its reproduction and repair receipts. Final product custody is PUSHED. A pending or running conclusion is not claimed as success.
+
+Counts remain 37 DONE, 58 PARTIAL and 20 MISSING; ARCHIVE-002 remains PARTIAL with no complete acceptance point promoted. No PR was required or opened. Full-scale population, fully bounded-memory capture and validation, f62b range integration, managed geography, hosted cadence and storage measurements, OPS-001 at required scale and uip console qualification remain owed. Publication scanning, generated-view commits, guarded landing and main-only Run site remain the maintained lander duties.
+
+Final CI handling: completed/cancelled is reported honestly, not treated as success or a reproduced test failure. The ten-call task budget is exhausted. No rerun, dispatch or main push was made. The pushed exact branch is returned with PUSHED custody for the maintained independent fleet gate; it still requires exact-SHA green Verify and publication scanning before landing.

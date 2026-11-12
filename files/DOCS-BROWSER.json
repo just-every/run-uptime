@@ -23,5 +23,14 @@
         "bodyFont": "16px"
       }
     }
-  ]
+  ],
+  "visualInspection": {
+    "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+    "widths": [
+      1440,
+      390
+    ],
+    "result": "Final article and code blocks readable; page content and navigation fit their viewports; no new icon-only control",
+    "recordedAt": "2026-11-12T20:07:04.038530+00:00"
+  }
 }

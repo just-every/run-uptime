@@ -159,14 +159,14 @@
     }
   ],
   "ci": {
-    "conclusion": null,
+    "conclusion": "cancelled",
     "event": "push",
     "head_sha": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
     "html_url": "https://github.com/just-every/run-uptime/actions/runs/43292021628",
     "id": 43292021628,
     "name": "Verify",
-    "observedAt": "2026-11-12T19:37:32.198313+00:00",
-    "status": "in_progress"
+    "observedAt": "2026-11-12T20:05:44.377627+00:00",
+    "status": "completed"
   },
   "claimedStatus": {
     "ARCHIVE-002": "PARTIAL"
@@ -182,9 +182,22 @@
     "missing": 20,
     "partial": 58
   },
+  "firstEvidencePublication": {
+    "ciAtPublication": "recorded in progress; no READY or landing signal",
+    "files": 42,
+    "head": "94e02840781b42aac63ad6b297fb18c41232819d",
+    "productHead": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+    "ref": "refs/heads/evidence/sd-uptime-c-f169",
+    "repository": "just-every/run-uptime"
+  },
   "fullMonitoringScaleQualified": false,
-  "githubApiCallsUsed": 9,
+  "githubApiCallsUsed": 10,
   "head": "e840bbaad90f2542d2f6ebd51aaa3f370056b52d",
+  "historicalReceiptNotes": {
+    "ARCHIVE-RECEIPTS-previous.json": "Initial candidate e92916f3cd06008fd35faba36a78c2bcfd8d2245; complete previous runtime receipt lines remain in archive-roundtrip.log.",
+    "CHECKS-premerge.json": "Historical successful checks on 2955e521327313bbf1b894540a4d503db11511fe; original temporary log paths were reused. Use the nine exact final-head receipts in CHECKS.json.",
+    "CHECKS-previous.json": "Initial candidate e92916f3cd06008fd35faba36a78c2bcfd8d2245; matching retained runtime logs use the shorter names archive-roundtrip.log, catalog.log, command-journey.log and typecheck.log."
+  },
   "journeyTasksAfter": 47,
   "journeyTasksBefore": 47,
   "localTransportDiagnostic": {
@@ -217,5 +230,7 @@
   "repairRounds": 1,
   "repository": "just-every/run-uptime",
   "tag": "sd-uptime-c-f169",
+  "terminalBlocker": null,
+  "terminalProductCustody": "PUSHED",
   "tree": "7be18a802798c79dfe1cc191b1ae37f016eb062f"
 }
