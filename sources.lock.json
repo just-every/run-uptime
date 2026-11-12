@@ -9092,7 +9092,11 @@
       "executable": false
     },
     "tests/control-runtime.mjs": {
-      "sha256": "3a248d1548d6f6de51a8e825a9cf82ef825b487056abdd7292caba35f4885a1a",
+      "sha256": "bf9b439bb173af26f38b3039200a9e19c134ff804c87e3b86d8045972f0e49f7",
+      "executable": false
+    },
+    "tests/control-stale-coverage-support.mjs": {
+      "sha256": "49c36d8b57f2101bce125e333b4cdc424e2ae6d1fba07ea4dd80336dfe04376c",
       "executable": false
     },
     "tests/control-state-support.mjs": {
