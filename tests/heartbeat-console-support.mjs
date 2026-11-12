@@ -18,7 +18,7 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
  const shot=async(name)=>{
   if(!output)return;
   // Screenshots never disclose the real URL capability or executable secret.
-  for(const width of [1440,390]){await page.setViewportSize({width,height:width===390?844:1000});await page.screenshot({path:join(output,`${name}-${width}.png`),fullPage:true,mask:[page.locator('#heartbeat-checkin-url'),page.locator('#heartbeat-checkin-command')]})}
+  for(const width of [1440,390]){await page.setViewportSize({width,height:width===390?844:1000});await page.screenshot({path:join(output,`${name}-${width}.png`),fullPage:true,mask:[page.locator('#heartbeat-checkin-url'),page.locator('#heartbeat-checkin-command'),page.locator('#heartbeat pre')]})}
   await page.setViewportSize({width:1440,height:1000});
  };
  const refreshState=async(id,expected)=>{await page.reload();await page.locator('#monitor-state').filter({hasText:expected}).waitFor();assert.equal(await state(id),expected)};
@@ -79,8 +79,6 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   assert.equal((await api(new URL(url).pathname,undefined,{cookie:''},'HEAD')).status,200);
   const posted=await api(new URL(url).pathname,{},{cookie:''},'POST');assert.equal(posted.status,200);assert.equal(posted.data.received,true);
   assert.equal(await state(id),'Unknown','ingress alone cannot establish Healthy');
-  const heartbeatRuns=page.locator('#heartbeat');if(!await heartbeatRuns.evaluate(e=>e.open))await heartbeatRuns.locator(':scope > summary').click();
-  await page.locator('#load-heartbeat-runs').click();await page.locator('.heartbeat-job-run').first().waitFor();assert.doesNotMatch(await page.locator('#heartbeat-run-history').innerText(),/\b(?:start|success|fail)\b|revision \d+/);
 
   await runner();assert.equal(await state(id),'Healthy');
   // Read the updated page without reloading: polling must keep its one-time URL.
@@ -92,6 +90,8 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   advance(anchor+31999);await runner();assert.notEqual(await state(id),'Failing','no failure before the exact deadline');
   advance(anchor+32000);await runner();assert.equal(await state(id),'Failing');
   await refreshState(id,'Failing');assert.equal(await page.locator('#heartbeat-checkin-secret').isVisible(),false,'reload retains no raw capability');
+  const heartbeatRuns=page.locator('#heartbeat');if(!await heartbeatRuns.evaluate(e=>e.open))await heartbeatRuns.locator(':scope > summary').click();
+  await page.locator('#load-heartbeat-runs').click();await page.locator('.heartbeat-job-run').first().waitFor();assert.doesNotMatch(await page.locator('#heartbeat-run-history').innerText(),/\b(?:start|success|fail)\b|revision \d+/);
   await shot('job-missed');
   const events=(await api('/api/overview')).data.alerts.filter(a=>a.monitor_id===id);assert.ok(events.some(a=>a.kind==='trigger'&&/Job missed/.test(a.event.explanation)));
   advance(anchor+33000);const recovered=await api(new URL(url).pathname,undefined,{cookie:''},'GET');assert.equal(recovered.status,200);assert.equal(recovered.data.late,true);

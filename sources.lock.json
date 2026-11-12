@@ -2852,7 +2852,7 @@
       "executable": false
     },
     "public/heartbeat-jobs.js": {
-      "sha256": "fa59fc2df32c27ed5db1ee4c7544cf284f11aed961c47b5783d32e11a384fdba",
+      "sha256": "884cdb8ff34aeab1cbc8ad55c4672053a1e79599f0a15081a5d7981643456588",
       "executable": false
     },
     "public/heartbeat-key.js": {
@@ -8932,7 +8932,7 @@
       "executable": false
     },
     "tests/agent-drill-schedules-support.mjs": {
-      "sha256": "8c90beafb0bcc008c54b2c61b989036f68b8c4cd8ed4d8143e3c47130c5d0795",
+      "sha256": "0932739208e2c5c996470cc39d55f5880e2686296d9a1a78c726fd21af71d974",
       "executable": false
     },
     "tests/agent-erasure.mjs": {
@@ -9004,7 +9004,11 @@
       "executable": false
     },
     "tests/alert-drill.mjs": {
-      "sha256": "e7abe9a64eae2a68cd3254a35a91b34882cfc923bd6df3437c47bdafc29cc90e",
+      "sha256": "59f0acebde886b9a36281655ca8cadde4a5b65f2395a67bd26117e317661d2d9",
+      "executable": false
+    },
+    "tests/alert-presentation-support.mjs": {
+      "sha256": "834bb3e9b510199e0656751880f090953effada2449ac9b597e8f8af4a02e50c",
       "executable": false
     },
     "tests/alert-routes.mjs": {
@@ -9236,7 +9240,7 @@
       "executable": false
     },
     "tests/heartbeat-console-support.mjs": {
-      "sha256": "feb3e738d56fc15a94b4d97493805cd5e41c8873de2c11438dc51a2a18afca3f",
+      "sha256": "63a928a71d4d60c0c5aefd6c2e7404c14b7ec99c1f3076446f250e7fcdecc92e",
       "executable": false
     },
     "tests/heartbeat-import-fixture.mjs": {

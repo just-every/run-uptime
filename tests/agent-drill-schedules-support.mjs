@@ -65,7 +65,7 @@ export async function proveScheduledDrills({c,native,worker,db,origin,cookie,spo
  }
  try{
   await page.setViewportSize({width:1440,height:1000});await open(first);
-  assert.doesNotMatch(await page.locator('[data-status]').innerText(),/\bactive\b/,'schedule state is translated');
+  assert.ok(!(await page.locator('[data-status] > p').last().innerText()).includes(view.schedule.state),'schedule state is translated');
   assert.doesNotMatch(await page.locator('[data-runs]').innerText(),/\baccepted\b|\bdrill_queued\b/,'provider state and run codes are translated');
   await page.locator('[data-save]').click();await page.locator('[data-error]').getByText(/Explicit company consent/).waitFor();assert.equal((await read(first)).consent.id,consent.id);
   await page.evaluate(axe);const violations=await page.evaluate(()=>axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}}));assert.deepEqual(violations.violations.filter(v=>['serious','critical'].includes(v.impact)).map(v=>v.id),[]);
