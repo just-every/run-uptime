@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.5.8 — 2026-11-12
+
+Patch release from `main`; previous version 0.5.7. Importing monitors and erasing a monitor now keep your request in place while you verify a second factor. Erasing a monitor shows its receipt before returning to the list. Newly issued keys come with usage instructions, and the guides match the current console. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.8.
+
+### Verification and erasure
+
+- **Verify without losing your import or erasure request.** If importing definitions or erasing a monitor needs a fresh second factor, the console opens its verification prompt in place and continues the saved request once verification succeeds, rather than treating it as a lost sign-in.
+- **Read the erasure receipt before leaving.** After erasing a monitor from its Edit page, the console shows the completed receipt, its time and the number of erased records for each table. Close the receipt to return to the monitor list.
+- **Early actions wait for the security panel to load.** An action entered while its initial reads are still running now waits for them instead of being silently dropped.
+
+### Keys and guides
+
+- **New keys explain how to use them.** Beside a key shown once, the console shows this installation's Read API address, an `Authorization: Bearer <YOUR_KEY>` example and a link to the Read API guide. A CI key also explains that it authorizes definition operations, not monitoring reads, and links to its own instructions. The examples use a placeholder, not your issued key.
+- **The guides match the console.** The README leads with the installer command that works without Node already installed. Monitor and definition-file instructions now use the current form fields, the scheduled-job check-in flow and **Settings › Backup and files**. They also describe the already available ICMP ping option and its private-runner requirement.
+
+### Upgrading from 0.5.7
+
+No migration is added and nothing in your settings changes. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps).
+
+### Known issues
+
+- Heartbeat output stored by 0.5.6 or earlier is not rewritten. If earlier job output may have contained a key, rotate it; pattern-based redaction can still miss a secret with no recognizable shape or label that you have not listed under **Output text to mask**.
+- A monitor CSV exported from UptimeRobot still cannot be imported: only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 to 0.5.7 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
 ## 0.5.7 — 2026-11-12
 
 Patch release from `main`; previous version 0.5.6. Heartbeat (scheduled job) output now has recognizable API keys redacted before it is saved. Period reports open in their own wide view with durations in plain words. The scheduled-job screen and the sent-alert screens explain what they are showing, including alerts that were only simulated or were restored from a backup, and delivery states read plainly. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
