@@ -1,3 +1,4 @@
+import {proveArchiveTransfer} from './archive-transfer-support.mjs';
 // One installation-to-installation move through the same archive doors the console uses.
 import assert from 'node:assert/strict';
 import {proveArchiveSelection} from './archive-selection-support.mjs';
@@ -10,13 +11,15 @@ const directory=await runtimeDirectory(),workers=[];
 const tables=archive=>({...archive.payload.tables,...archive.payload.productTables});
 async function installation(name){
  const bindings={...testAuthBindings,OWNER_EMAIL:name+'@example.test',SESSION_SECRET:crypto.randomUUID()+crypto.randomUUID(),SETUP_TOKEN:crypto.randomUUID(),UPTIME_RUNNER_KEY:crypto.randomUUID()+crypto.randomUUID()};
- const {worker,DB}=await migratedWorker({persist:join(directory,name),bindings});workers.push(worker);
- const origin=(await worker.ready).origin,owner=ownerAPI(origin);await owner.signIn(bindings);
+ let {worker,DB}=await migratedWorker({persist:join(directory,name),bindings});workers.push(worker);
+ let origin=(await worker.ready).origin,owner=ownerAPI(origin);await owner.signIn(bindings);
  const ok=async(path,method='GET',body)=>{const response=await owner.api(path,method,body);assert.equal(response.status,200,JSON.stringify(response.data));return response.data};
- return {worker,DB,bindings,owner,ok};
+ const site={worker,DB,bindings,owner,ok,persist:join(directory,name),async restart(){await worker.dispose();({worker,DB}=await migratedWorker({port:Number(new URL(origin).port),persist:join(directory,name),bindings}));workers.push(worker);origin=(await worker.ready).origin;owner=ownerAPI(origin);await owner.signIn(bindings);Object.assign(site,{worker,DB,owner})}};
+ return site;
 }
 try{
  await proveArchiveSelection(installation);
+ await proveArchiveTransfer(installation);
  const source=await installation('original-owner');
  // Historical, interrupted and already-sent records have no public manufacture door.
  await populateArchiveFixture({...source.bindings,DB:source.DB});

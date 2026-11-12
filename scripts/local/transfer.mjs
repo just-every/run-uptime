@@ -1,4 +1,5 @@
-import { open, mkdir, unlink, lstat, readFile } from 'node:fs/promises';
+import {transferCheckpoint,archiveFileIdentity} from './transfer-checkpoint.mjs';
+import { open, mkdir, lstat, readFile } from 'node:fs/promises';
 import { dirname, isAbsolute } from 'node:path';
 import { constants } from 'node:fs';
 import { Readable } from 'node:stream';
@@ -23,10 +24,11 @@ async function* records(path, reader = readArchive) {
  finally { await file.close(); }
 }
 export async function transfer(direction, path) {
- let laterJournal, validatedManifest;
+ let laterJournal, validatedManifest,sourceHash;
+ if(!['export','import'].includes(direction)||!isAbsolute(path))throw Error('Choose export or import and an absolute archive path');
  if(direction==='import'&&process.env.UPTIME_LATER_JOURNAL){const journalPath=process.env.UPTIME_LATER_JOURNAL;if(!isAbsolute(journalPath))throw Error('UPTIME_LATER_JOURNAL must be an absolute file path');const stat=await lstat(journalPath);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>8*1024*1024)throw Error('Invalid erasure journal file');laterJournal=validateJournal(JSON.parse(await readFile(journalPath,'utf8')))}
  if (direction === 'export') await absent(path);
- else try { for await (const record of records(path)) if (record.kind === 'manifest') validatedManifest = record; } catch (error) {
+ else try { sourceHash=await archiveFileIdentity(path);for await (const record of records(path)) if (record.kind === 'manifest') validatedManifest = record; } catch (error) {
   // Archives from Uptime 0.1.2 and earlier predate Base's metadata binding. Base reads them only through an
   // acknowledged recovery into an installation without an owner, which Uptime's setup-first import cannot offer.
   if (!(error instanceof PortabilityError)) throw error;
@@ -37,7 +39,7 @@ export async function transfer(direction, path) {
  if(!cookie||/[\r\n]/.test(cookie))throw new MfaError(401,'session_required');
  const settings = await readLocalSettings();
  const worker = await startLocalWorker({ bindings: settings, assets: false });
- let service, id, complete = false, manifest, closing;
+ let service, id, complete = false, manifest, closing,checkpoint;
  const temporary = path + '.partial';
  try {
   const env = { ...settings, UPTIME_LOCAL_REVIEW:'true', DB: await worker.getD1Database('DB') };
@@ -47,8 +49,16 @@ export async function transfer(direction, path) {
   // writes also carry the session/version/factor fence in their D1 transaction.
   const authorize=()=>permission(env,request);
   const access=await authorize();
+  const {state:portabilityState}=await import('@runeditrun/rer/modules/portability/storage');
+  const state=await portabilityState(env.DB);
+  const identity={installation:state?.source_identity??settings.UPTIME_ORIGIN,owner:access.session.operator.id};
+  if(direction==='export')await mkdir(dirname(path),{recursive:true,mode:0o700});
+  checkpoint=transferCheckpoint(path,direction,identity);
+  const saved=await checkpoint.read();
+  if(saved&&direction==='import'&&saved.sourceHash!==sourceHash)throw Error('Transfer checkpoint archive changed');
   await auditAccess(env,access);
-  const policy = productPolicy({...env,DB:authorizedDatabase(env,access)}, () => id, () => ({manifest,laterJournal,actor:{kind:'operator',ref:access.session.operator.id}}));
+  const policy = productPolicy({...env,DB:authorizedDatabase(env,access)}, () => id, () => ({manifest,laterJournal,actor:{kind:'operator',ref:access.session.operator.id}}),authorize);
+  if(direction==='export')policy.partBytes=128*1024;
   // The migrations this installation applied, in Wrangler's applied order, so an archive made before later additive migrations
   // (new tables, columns with defaults, indexes) restores into it instead of being refused for a ledger it has outgrown.
   const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -59,6 +69,7 @@ export async function transfer(direction, path) {
    // setup-first seed refuses product/schema/migration incompatibility before
    // that write, using the same read-only checks and keeping its final checks.
    const config = archivePolicy(policy);
+   if(!Array.isArray(validatedManifest.payloads)||validatedManifest.payloads.length!==1||validatedManifest.payloads[0].name!=='uptime')throw new PortabilityError('invalid_product_payload');
    if (validatedManifest.product !== config.product) throw new PortabilityError('wrong_product');
    await appliedMigrations(env.DB);
    const cat = await catalogue(env.DB, config);
@@ -67,12 +78,14 @@ export async function transfer(direction, path) {
     else await additiveBridge(env.DB, validatedManifest, cat, migrations);
    }
   }
-  service = await createPortability({ db: env.DB, policy, migrations });
+  service = await createPortability({ db: authorizedDatabase(env,access), policy, migrations });
+  if(saved){id=saved.id;if(await service.actor(id)!==access.session.operator.id)throw Error('Transfer checkpoint owner mismatch');await service.status(id)}
   if (direction === 'export') {
    await mkdir(dirname(path), { recursive: true, mode: 0o700 });
-   const file = await privateFile(temporary, false);
+   const file = await privateFile(temporary, Boolean(saved));
    try {
-    await authorize();id = await service.exports.create();
+    await authorize();id = id??await service.exports.create(access.session.operator.id);
+    await checkpoint.write({id});
     for(;;){await authorize();if((await service.exports.advance(id, { maxParts: 16 })).phase!=='building')break}
     await authorize();const reader = (await service.exports.download(id)).getReader();
     try { for (;;) { const { done, value } = await reader.read(); if (done) break; await authorize();await file.writeFile(value); } }
@@ -86,17 +99,21 @@ export async function transfer(direction, path) {
     await authorize();
     if (record.kind === 'manifest') {
      if (canonicalJson(record) !== canonicalJson(validatedManifest)) throw new PortabilityError('archive_changed');
-     manifest = record; id = await service.imports.create(manifest);
+     manifest = record;
+     if(id){const row=await env.DB.prepare('SELECT metadata FROM rer_portability_jobs WHERE id=?').bind(id).first();if(canonicalJson(JSON.parse(row.metadata).manifest)!==canonicalJson(manifest))throw Error('Transfer checkpoint manifest mismatch')}
+     else{id=await service.imports.create(manifest,access.session.operator.id);await checkpoint.write({id,sourceHash})}
     }
     else if (record.kind === 'part') await service.imports.uploadPart(id, record.index, record);
     else closing = record;
    }
+   if(await archiveFileIdentity(path)!==sourceHash)throw Error('Archive changed during transfer');
    await authorize();await service.imports.finalize(id, { contentHash: closing.contentHash, archiveHash: closing.archiveHash, laterJournal }); complete = true;
   }
   return { contentHash: closing.contentHash, payloads: manifest.payloads.map(({ name, size }) => ({ name, size })), exclusions: Object.values((await import('../../src/domain/archive-inventory.ts')).installationLocalTables), requiredConfiguration: manifest.requiredConfiguration };
  } finally {
-  if (id) { if (direction === 'export') await service.exports.abort(id); else if (!complete) await service.imports.abort(id); }
-  if (direction === 'export') await unlink(temporary).catch(error => { if (error.code !== 'ENOENT') throw error; });
+  // Failures keep durable jobs and private partial files for the next invocation.
+  // Erasure invalidates these jobs through the existing Base transfer fence.
+  if(complete){if(direction==='export')await service.exports.abort(id);await checkpoint.remove()}
   await worker.dispose();
  }
 }

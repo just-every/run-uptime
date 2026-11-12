@@ -109,7 +109,9 @@ test('MONITOR-001 catalog adds, metadata, lifecycle and undo keep reviewed revis
   assert.equal(selectedApply.status,201);assert.equal(selectedApply.data.created.length,1);
   const selectedMonitor=await monitor(selectedApply.data.created[0]);assert.equal(selectedMonitor.definition.url,'https://93.184.216.34/selected');assert.equal(selectedMonitor.definition.enabled,false);
   assert.equal((await DB.prepare("SELECT COUNT(*) n FROM monitors WHERE json_extract(definition,'$.url')='https://93.184.216.34/excluded'").first()).n,0);
-  const room=100-(await DB.prepare('SELECT COUNT(*) n FROM monitors').first()).n;
+  const currentQuota=(await preview({format:'urls',text:'https://93.184.216.34/capacity-preview'},true)).quota;
+  const room=currentQuota.available;
+  assert.ok(room>100,'the installation accepts the contract-scale batch beyond the former installation cap');
   const fill={format:'urls',text:Array.from({length:room},(_,i)=>`https://93.184.216.34/quota/${i}`).join('\n')};
   const fillPlan=await preview(fill,true);assert.equal(fillPlan.counts.create,room);assert.equal((await apply(fill,fillPlan.digest,true)).status,201);
   const quota=await unchanged(()=>preview({format:'urls',text:'https://93.184.216.34/no-room\nhttps://93.184.216.34/no-room-either'},true));

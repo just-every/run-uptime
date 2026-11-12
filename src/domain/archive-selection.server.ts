@@ -1,3 +1,4 @@
+import {MONITOR_LIMIT} from './monitor-cap.ts'
 import {columns,identity,object,shape,type Tables,type ArchiveSelection} from './archive-schema.ts'
 import type {Bindings} from './control.server.ts'
 
@@ -6,7 +7,7 @@ export function archiveSelection(params:URLSearchParams):ArchiveSelection|undefi
  if(!params.size)return;
  if([...params.keys()].some(key=>key!=='monitor'))throw Error('Unsupported archive selection; use repeated monitor parameters')
  const monitorIds=params.getAll('monitor')
- if(!monitorIds.length||monitorIds.length>100)throw Error(`Archive monitor selection bound exceeded: ${monitorIds.length} requested (1 to 100 required)`)
+ if(!monitorIds.length||monitorIds.length>MONITOR_LIMIT)throw Error(`Archive monitor selection bound exceeded: ${monitorIds.length} requested (1 to ${MONITOR_LIMIT} required)`)
  for(const id of monitorIds)identity(id,'selection monitor')
  if(new Set(monitorIds).size!==monitorIds.length)throw Error('Duplicate archive selection monitor')
  return {kind:'monitors',monitorIds:monitorIds.sort(),sharedRecords:'installation-history-v1'}
@@ -58,7 +59,7 @@ export function projectSelectionReplays(t:Tables,selection:ArchiveSelection){
 
 export function validateArchiveSelection(selection:any,t:Tables){
  shape(selection,['kind','monitorIds','sharedRecords'],'selection')
- if(selection.kind!=='monitors'||selection.sharedRecords!=='installation-history-v1'||!Array.isArray(selection.monitorIds)||!selection.monitorIds.length||selection.monitorIds.length>100)throw Error('Invalid archive selection')
+ if(selection.kind!=='monitors'||selection.sharedRecords!=='installation-history-v1'||!Array.isArray(selection.monitorIds)||!selection.monitorIds.length||selection.monitorIds.length>MONITOR_LIMIT)throw Error('Invalid archive selection')
  for(const id of selection.monitorIds)identity(id,'selection monitor')
  const selected=new Set(selection.monitorIds)
  if(selected.size!==selection.monitorIds.length||JSON.stringify(selection.monitorIds)!==JSON.stringify([...selected].sort())||JSON.stringify(t.monitors.map(m=>m.id).sort())!==JSON.stringify(selection.monitorIds))throw Error('Archive selection monitor mismatch')

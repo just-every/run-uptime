@@ -94,7 +94,7 @@ export async function proveArchiveSelection(installation){
   const repeated=await installation('subset-third-owner');await repeated.ok('/api/restore','POST',one);assert.deepEqual(tables(await repeated.ok('/api/archive')).observations,projected.observations.filter(o=>projected.slots.some(s=>s.id===o.slot_id&&s.monitor_id===monitors[0].id)));
 
   const refuse=async(query,options={},status=400)=>{const before=await snapshot();const result=await f.request(query,options);assert.equal(result.status,status,JSON.stringify(result.data));assert.ok(!result.data.payload,'no partial archive');assert.deepEqual(await snapshot(),before,'refusal changes no durable state');return result};
-  for(const query of ['/api/archive?monitor=','/api/archive?monitor=missing',path+'&monitor='+selected[0],'/api/archive?from=0', '/api/archive?'+Array.from({length:101},(_,n)=>'monitor=synthetic-uptime-'+n).join('&')])await refuse(query);
+  for(const query of ['/api/archive?monitor=','/api/archive?monitor=missing',path+'&monitor='+selected[0],'/api/archive?from=0', '/api/archive?'+Array.from({length:501},(_,n)=>'monitor=synthetic-uptime-'+n).join('&')])await refuse(query);
   await refuse(path,{headers:{cookie:''}},401);
   const admin=await inviteDoorMember(f.origin,f.cookie,'read-only','uptime-archive-reader');await completeSecondFactor(f.origin,admin.cookie);
   await refuse(path,{headers:{cookie:admin.cookie}},403);
