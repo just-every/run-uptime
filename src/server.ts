@@ -304,7 +304,7 @@ api.get('/api/monitors/:id/report-schedules/:scheduleId',async c=>{const report=
 api.delete('/api/monitors/:id/report-schedules/:scheduleId',async c=>c.json(await cancelScheduledReport(c.env,c.req.param('id'),c.req.param('scheduleId'))))
 api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText'),c.get('access')),201))
 api.get('/api/service-catalog',async c=>c.json(await catalogDocument(c.env,c.req.query('q')??'')))
-api.post('/api/service-catalog/checks',async c=>c.json(await createCatalogCheck(c.env,c.get('requestText')),201))
+api.post('/api/service-catalog/checks',async c=>{const check=await createCatalogCheck(c.env,c.get('requestText'),c.get('access'));return c.json(check,'id' in check?201:200)})
 api.post('/api/service-follows',async c=>c.json(await followServices(c.env,c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id}),201))
 api.post('/api/followed-services/:id/review',async c=>c.json(await reviewFollowed(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/followed-services/:id/links',async c=>c.json(await linkDependency(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))

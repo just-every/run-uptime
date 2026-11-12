@@ -12,6 +12,7 @@ import {join} from 'node:path';
 import {statuspageEdge,applicationUrl,statusOrigin,canaryUrl} from './dependency-status-fixture.mjs';
 import {proveServiceCatalog} from './service-catalog-journey.mjs';
 import {proveDiscoverySources} from './discovery-sources-journey.mjs';
+import {proveAuth0Egress} from './service-catalog-auth0-support.mjs';
 import {provePublicDnsDiscovery} from './discovery-public-dns-support.mjs';
 let f;
 before(async()=>{f=await fixture()});
@@ -173,6 +174,7 @@ test("Discover a site, review and adopt monitoring, follow its dependency, and r
 {
  const launch=()=>chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
  await proveServiceCatalog({launch,evidence:process.env.UPTIME_DEPENDENCY_EVIDENCE});
+ await proveAuth0Egress();
 }
 // DISCOVERY-001 owner-authorized DNS, sitemap, OpenAPI and six provider sources propose reviewed monitors with provenance, duplicates, traffic and Unknown cost; rediscovery shows new routes and removed endpoints; only adopted monitors run and provider credentials stay on the runner
 {
