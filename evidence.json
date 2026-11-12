@@ -1,0 +1,94 @@
+{
+  "files": [
+    {
+      "blob": "7f105548e8f04a897af17c11ec90995165b7324f",
+      "bytes": 506,
+      "path": "CI_FAILURE_EXCERPTS.log",
+      "sha256": "3970fbde316a97d5c549ca3baa2ee795a5c20b5ed73efb75fdc92eb183b18e8a"
+    },
+    {
+      "blob": "1300682182a57bc2e91687d681ba295e6e43fb19",
+      "bytes": 4857,
+      "path": "CI_JOBS.jsonl",
+      "sha256": "6186adba5ecb0925a8d09ca13c005c7245b5f01c9fc56764063b1dd57088ac3b"
+    },
+    {
+      "blob": "8ec6bc275cd4094101c8956d9f6b06825f534194",
+      "bytes": 8436,
+      "path": "CI_RECEIPT.json",
+      "sha256": "6e0e1a97c5ed91aedbd6c0e3ef809c7b7617f6867afe71ff8b3991b5c81cf6e7"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "CONTRACT_CHECK.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "d4d1e60ea7fdc565c576421664992b40e47a816e",
+      "bytes": 28,
+      "path": "CONTRACT_WRITE.log",
+      "sha256": "df91012bf66fb476e9cd1a30c002829398beb55f869e07cc7be477197fa5a276"
+    },
+    {
+      "blob": "2fc96ee9f2da880fc4ba6931527edd7bf641b826",
+      "bytes": 1375,
+      "path": "MAIN_CI_RECEIPT.jsonl",
+      "sha256": "e78f8f20e3c90569fa59bb42c9dd3893f1d910871725d4e136543a93d2f455af"
+    },
+    {
+      "blob": "ad8595e536e525ec2aba945706c1e6d0ea5563d1",
+      "bytes": 1878,
+      "path": "MECHANICAL_RECEIPT.json",
+      "sha256": "d6e510cf9bbd10920edacc5b1555c86d14b6dfbe0e0bb9b9db3da86ce71243c2"
+    },
+    {
+      "blob": "5d5b49fbb391b979eaeb501f486fe0334bda5b54",
+      "bytes": 3288,
+      "path": "PLAN.md",
+      "sha256": "6c8e66fa7d5515271accbdfb3947c5077b5c21f92012ab823978f7ece12d15cb"
+    },
+    {
+      "blob": "bef4dc345e975b4a4bc16aff6daaf2df1ad79ac5",
+      "bytes": 33613,
+      "path": "PUBLIC_PATHS.log",
+      "sha256": "d9ab9d3ca374ff037650714354b7d1c27f6afdc378c47970b107cad4c2f972e7"
+    },
+    {
+      "blob": "b22eb49eded574220b5eb203bd1f3264a3095204",
+      "bytes": 380,
+      "path": "PUSH_RECEIPT.json",
+      "sha256": "f9b18531a99b96589c898e8ca9ca3daa25baac5d851d878ab6d5e0e73271cfb4"
+    },
+    {
+      "blob": "12b25e7b87266232f16b2342110564658a8edfb6",
+      "bytes": 12788,
+      "path": "REPORT.md",
+      "sha256": "9748b34fe8e6b70cbbb30fbbd03c1227b37a88842e7d0db97bec4bcc223a119d"
+    },
+    {
+      "blob": "f8fb7de399b357a41cd1de544d1d265113cf1483",
+      "bytes": 105,
+      "path": "RESTORED_VIEW_CHECK.log",
+      "sha256": "9cf3c390ca9f5f8c7bb13f4dd1f4058d66f2e74d194584038d85eaf0d4767d1e"
+    },
+    {
+      "blob": "1695c0162339996915c185deeb206d8c7ebf9c6b",
+      "bytes": 2274,
+      "path": "RUNTIME_RECEIPT.json",
+      "sha256": "e013c7c89bc95fa4d245e46e3d40aa67684d639f25500532a453634ce016ded1"
+    },
+    {
+      "blob": "89e862044ca7dbe734a5975026695a0b45db46f2",
+      "bytes": 137,
+      "path": "TYPECHECK.log",
+      "sha256": "d8fe0ca22aad94fce13786b1395393d309a3a32b3dd0a137e94f7dcb6c7486b7"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-c-f161",
+  "product_head": "9455da9f9f03b90d15d09814886a256b8faff207",
+  "ref": "refs/heads/evidence/sd-uptime-c-f161",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-c-f161"
+}

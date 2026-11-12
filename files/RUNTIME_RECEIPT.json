@@ -1,0 +1,72 @@
+{
+  "head": "9455da9f9f03b90d15d09814886a256b8faff207",
+  "branch": "cloud/sd-uptime-c-f161",
+  "command": "timeout -k 5 1200 node tests/public-paths.mjs",
+  "node": "22.20.0",
+  "exit": 0,
+  "completed": "2026-11-12T14:57:11.291824+00:00",
+  "log_sha256": "d9ab9d3ca374ff037650714354b7d1c27f6afdc378c47970b107cad4c2f972e7",
+  "runtime": {
+    "cases": [
+      {
+        "kind": "missing",
+        "refused": [
+          {
+            "path": "/health",
+            "status": 503,
+            "diagnostic": "Invalid or missing configuration: MAIL_API_KEY"
+          },
+          {
+            "path": "/api/runner/claim",
+            "status": 503,
+            "diagnostic": "Invalid or missing configuration: MAIL_API_KEY"
+          }
+        ],
+        "tablesCompared": 225,
+        "healthAfter": 200,
+        "claimAfter": 200,
+        "task": null,
+        "outboundRequests": 0
+      },
+      {
+        "kind": "malformed",
+        "refused": [
+          {
+            "path": "/health",
+            "status": 503,
+            "diagnostic": "Invalid or missing configuration: MAIL_API_KEY"
+          },
+          {
+            "path": "/api/runner/claim",
+            "status": 503,
+            "diagnostic": "Invalid or missing configuration: MAIL_API_KEY"
+          }
+        ],
+        "tablesCompared": 225,
+        "healthAfter": 200,
+        "claimAfter": 200,
+        "task": null,
+        "outboundRequests": 0
+      }
+    ],
+    "capturedDiagnostics": [
+      "[mf:info] Ready on http://127.0.0.1:36845",
+      "[mf:info] POST / 303 See Other (18ms)",
+      "[mf:info] POST / 200 OK (15ms)",
+      "[mf:info] POST / 200 OK (11ms)",
+      "[mf:info] Ready on http://127.0.0.1:37433",
+      "[mf:info] POST / 503 Service Unavailable (3ms)",
+      "[mf:info] POST / 503 Service Unavailable (1ms)",
+      "[mf:info] Ready on http://127.0.0.1:46391",
+      "[mf:info] POST / 200 OK (19ms)",
+      "[mf:info] POST / 200 OK (14ms)",
+      "[mf:info] Ready on http://127.0.0.1:37759",
+      "[mf:info] POST / 503 Service Unavailable (4ms)",
+      "[mf:info] POST / 503 Service Unavailable (1ms)",
+      "[mf:info] Ready on http://127.0.0.1:46573",
+      "[mf:info] POST / 200 OK (19ms)",
+      "[mf:info] POST / 200 OK (17ms)"
+    ],
+    "outboundRequests": 0
+  }
+}

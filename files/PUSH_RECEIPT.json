@@ -1,0 +1,12 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-c-f161",
+  "head": "9455da9f9f03b90d15d09814886a256b8faff207",
+  "advertised": "9455da9f9f03b90d15d09814886a256b8faff207\trefs/heads/cloud/sd-uptime-c-f161",
+  "push_guard_exit": 0,
+  "push_attempts": 1,
+  "author": "Run Edit Run fleet",
+  "committer": "Run Edit Run fleet",
+  "trailers": [],
+  "pr": null
+}

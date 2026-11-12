@@ -1,0 +1,4 @@
+build	Run node src/base/contract-docs.mjs check	2026-11-12T14:56:24.2623891Z Contract prose: 0 errors, 0 warnings.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T14:56:24.2966873Z ACCEPTANCE.md: generated content differs; run contract-docs write.
+build	Run node src/base/contract-docs.mjs check	2026-11-12T14:56:24.3049336Z ##[error]Process completed with exit code 1.
+verify	Require the selected coverage and its proof	2026-11-12T14:56:48.8437333Z ##[error]Process completed with exit code 1.
