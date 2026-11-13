@@ -1,0 +1,22 @@
+{
+  "command_journey": {
+    "command": "cloud_run node tests/command-journey.mjs",
+    "node": "22.20.0",
+    "exit": 0,
+    "code_sha256": {
+      "tests/command-journey.mjs": "1030fd491ec5988a9c56c97417eeb34e8bb5d16fd938077a5a5676d884b28ac7",
+      "tests/local-signin-truth-support.mjs": "7cd34f79a455fae5f03d09840215ba376b412e35b217cf8e38e13d54bbe1d156"
+    }
+  },
+  "typecheck": {
+    "command": "pnpm run typecheck",
+    "exit": 0
+  },
+  "source_lock": {
+    "command": "node scripts/edition-authoring/cli.mjs lock then check",
+    "exit": 0
+  },
+  "diff_check": "passed",
+  "credential_shape_scan": "passed",
+  "head": "83b2f2692149c9171a12cba0d7397734a1e8096b"
+}

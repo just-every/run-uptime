@@ -1,0 +1,11 @@
+{
+  "repository": "just-every/run-uptime",
+  "main": "04016399e1e879e7be3b8e891baf02d975bb3901",
+  "rer_before": "0.2.108",
+  "rer_after": "0.2.113",
+  "base_target": "c2efb501cbc148c2aee4d5e1107ebdba81469006",
+  "adaptations": {
+    ".github/workflows/verify.yml": "f21afe50cbece771e186965c2bb9c3c5c034baccc2e73543d856d239491dac96",
+    "src/base/lobby.ts": "39fe3ab173a12dac8bbba249ba9fcbc81b2d81ae81c0b1ec07d5790ebca62326"
+  }
+}

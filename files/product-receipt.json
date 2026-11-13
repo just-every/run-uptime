@@ -1,0 +1,8 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-rer-0213-1",
+  "head": "83b2f2692149c9171a12cba0d7397734a1e8096b",
+  "identity_check": "all candidate commits: fleet author/committer; no trailers",
+  "pushed": true,
+  "prior_pushed_head": "df5963c7755ef64a5cb54307d419050df1ad1960"
+}

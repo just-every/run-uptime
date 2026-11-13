@@ -1,0 +1,28 @@
+shards (push-3)	Run this shard	﻿2026-11-13T15:42:56.1018789Z ##[group]Run node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-3)	Run this shard	2026-11-13T15:42:56.1019132Z [36;1mnode .github/scripts/verify-ci.mjs "$SHARD"[0m
+shards (push-3)	Run this shard	2026-11-13T15:42:56.1036257Z shell: /usr/bin/bash -e {0}
+[workflow environment block omitted]
+shards (push-3)	Run this shard	2026-11-13T15:42:56.1039585Z ##[endgroup]
+shards (push-3)	Run this shard	2026-11-13T15:42:56.1927115Z > node tests/command-journey.mjs
+shards (push-3)	Run this shard	2026-11-13T15:44:36.6778347Z HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0175711Z node:internal/modules/run_main:123
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0176455Z     triggerUncaughtException(
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0190619Z     ^
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0190848Z 
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0191367Z AssertionError [ERR_ASSERTION]: the sign-in destination requires the same terminal handoff
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0192438Z     at proveLocalSignInTruth (file:///home/runner/work/run-uptime/run-uptime/tests/local-signin-truth-support.mjs:19:10)
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0193429Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/command-journey.mjs:138:2 {
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0194385Z   generatedMessage: false,
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0194696Z   code: 'ERR_ASSERTION',
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0194975Z   actual: 'Uptime\n' +
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0195232Z     '\n' +
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0195557Z     'This app runs on your own computer\n' +
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0195900Z     '\n' +
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0196846Z     'It opens only from that computer. Use the link printed in the terminal where rer dev is running, or run rer dev --as owner from the project folder.',
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0197660Z   expected: /RER_OPEN/,
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0197952Z   operator: 'match',
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0198208Z   diff: 'simple'
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0198456Z }
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0198576Z 
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0198686Z Node.js v22.20.0
+shards (push-3)	Run this shard	2026-11-13T15:44:44.0463977Z ##[error]Process completed with exit code 1.

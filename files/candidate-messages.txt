@@ -1,0 +1,6 @@
+83b2f2692149c9171a12cba0d7397734a1e8096b
+Verify refreshed local sign-in guidance through the CLI
+
+df5963c7755ef64a5cb54307d419050df1ad1960
+Adopt rer 0.2.113 and refresh recorded Base source
+

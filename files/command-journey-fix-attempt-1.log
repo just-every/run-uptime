@@ -1,0 +1,20 @@
+HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: the displayed command opens a native session
+
+403 !== 200
+
+    at proveLocalSignInTruth (file:///workspace/run-uptime/tests/local-signin-truth-support.mjs:31:74)
+    at async file:///workspace/run-uptime/tests/command-journey.mjs:138:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 403,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

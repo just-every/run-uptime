@@ -1,0 +1,88 @@
+rer toolchain: node v24.19.0 pnpm 10.12.4 (pins 22.20.0 / 10.12.4)
+Allow roughly 500 MB–1 GB of downloads and 1–3 GB of disk space for a first run, including Node, rer, the app and its dependencies. The app and your computer can need more; later runs reuse downloads.
+rer dev: checking the server limit
+rer dev: installing dependencies
+rer dev: checking the server limit
+rer dev: setting up a local owner (owner@uptime-final-dev-main-uptime-rer-0213-1.test) on port 8787
+rer dev: Using project Node 22.20.0 (current Node 24.19.0).
+rer dev: using port 8787
+rer dev: still setting up a local owner (owner@uptime-final-dev-main-uptime-rer-0213-1.test) on port 8787 (22s). Allow up to 10 minutes; if this command is stopped, run rer dev again to reattach.
+rer dev: still setting up a local owner (owner@uptime-final-dev-main-uptime-rer-0213-1.test) on port 8787 (42s). Allow up to 10 minutes; if this command is stopped, run rer dev again to reattach.
+rer dev: checking the server limit
+Using project Node 22.20.0 (current Node 24.19.0).
+Checking pinned pnpm
+10.12.4
+Applying database migrations
+Applying database migrations
+Heavy job admitted: Uptime dev:command [10d308743fbe]
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+
+ ⛅️ wrangler 4.144.0 (update available 4.161.0)
+───────────────────────────────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+✅ No migrations to apply!
+Starting your application on this computer
+Heavy job admitted: Uptime dev:command [10d308743fbe]
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+
+ ⛅️ wrangler 4.144.0 (update available 4.161.0)
+───────────────────────────────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+✅ No migrations to apply!
+Starting the synthetic target
+Local synthetic endpoint http://127.0.0.1:37639
+Starting your application on this computer
+Waiting for the application server to finish starting; first launch may optimize dependencies.
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+  ➜  Local:   http://127.0.0.1:34101/
+Starting the private runner
+Opening your application
+Your application is running locally
+Building the run site
+(node:27560) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"pages":29,"assets":4,"styles":1}
+Open your app, already signed in on this computer: http://127.0.0.1:8787/__dev/key[private link removed]
+Help and public site preview (secondary): http://127.0.0.1:8788
+App address (without sign-in): http://127.0.0.1:8787
+Keep the sign-in link private.
+Downloads this run (archive payloads): Node installer: not measured; rer installer: not measured.
+Other downloads: project Node, clone and dependencies: not measured. Package-manager caches and metadata are not included in archive counts.
+Disk use now (allocated space, not download sizes): rer: 11161600 bytes; clone (Git objects): 4096 bytes; dependencies: 513880064 bytes.
+Details for tools and troubleshooting:
+RER_READY http://127.0.0.1:8787
+RER_SIGNED_IN owner@uptime-final-dev-main-uptime-rer-0213-1.test
+RER_OPEN [private link removed]
+RER_SITE http://127.0.0.1:8788
+Running the scheduled trigger locally: * * * * *
+Stopped by SIGTERM after owned children were stopped.
+dev: failed (exit 143)

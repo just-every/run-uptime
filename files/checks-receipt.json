@@ -1,0 +1,29 @@
+{
+  "tested_at": "2026-11-13T15:40:31.912304+00:00",
+  "checks": [
+    {
+      "name": "verify-base",
+      "command": "node scripts/edition-authoring/cli.mjs verify-base --offline",
+      "exit": 0,
+      "seconds": 0.8
+    },
+    {
+      "name": "first-party",
+      "command": "pnpm exec rer check --profile first-party",
+      "exit": 0,
+      "seconds": 1.78
+    },
+    {
+      "name": "typecheck",
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "seconds": 8.88
+    },
+    {
+      "name": "source-lock",
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "seconds": 1.11
+    }
+  ]
+}

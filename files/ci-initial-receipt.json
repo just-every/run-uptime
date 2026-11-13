@@ -1,0 +1,16 @@
+{
+  "run_id": 43455110942,
+  "head": "df5963c7755ef64a5cb54307d419050df1ad1960",
+  "url": "https://github.com/just-every/run-uptime/actions/runs/43455110942",
+  "github_ci_calls": 8,
+  "status": "completed",
+  "conclusion": "failure",
+  "last_observed": 1794586009.349904,
+  "jobs_api_calls": 1,
+  "failed_log_calls": 1,
+  "failed_job": 131987598612,
+  "failed_step": "Run this shard",
+  "assertion": "tests/local-signin-truth-support.mjs:19 required literal RER_OPEN; refreshed Base supplies executable rer dev guidance",
+  "timeout_job": 131987598615,
+  "timeout_step": "Run this shard"
+}

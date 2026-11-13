@@ -1,0 +1,22 @@
+{
+  "command": "cloud_run python3 /tmp/fleet-gh.py pnpm exec rer dev --foreground",
+  "head": "df5963c7755ef64a5cb54307d419050df1ad1960",
+  "started_at": "2026-11-13T15:41:39.574526+00:00",
+  "clean_tracked_checkout": true,
+  "previous_local_installation": false,
+  "ready": true,
+  "origin": "http://127.0.0.1:8787",
+  "ready_seconds": 79.6,
+  "health_status": 200,
+  "health_ok": true,
+  "elapsed_seconds": 84.64,
+  "stopped_owned_process_group": true,
+  "stopped_recorded_dev_manager_pid": 18763,
+  "stopped_descendant_pids": [],
+  "forced_cleanup": true,
+  "listeners_closed": [
+    8787,
+    8788
+  ],
+  "cleanup_note": "Launcher group stop left managed dev in a separate group. SIGTERM stopped app and site but manager retained proxy after 40 seconds; SIGKILL was sent only to recorded owned manager and its descendants, then both listeners were verified closed."
+}

@@ -1,0 +1,10 @@
+{
+  "head": "83b2f2692149c9171a12cba0d7397734a1e8096b",
+  "command": "cloud_run node tests/agent-door.mjs",
+  "node": "22.20.0",
+  "browser": "/usr/bin/chromium",
+  "browser_config": "Both UPTIME_BROWSER_EXECUTABLE and PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH name the installed real Chromium",
+  "exit": 0,
+  "seconds": 509.53,
+  "completed_at": "2026-11-13T16:36:30.249731+00:00"
+}

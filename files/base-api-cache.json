@@ -1,0 +1,6 @@
+{
+  "command": "gh api repos/runeditrun/base/tarball/c2efb501cbc148c2aee4d5e1107ebdba81469006",
+  "archive_sha256": "352441c27eb664ca0ec772037cf40c80b153a00b011f68312703fdc3b1de979d",
+  "regular_files": 4796,
+  "cache": "Git blob SHA-1 keyed; every object independently checked by refresh API reader against the immutable API tree; historical objects still fetched by gh api"
+}

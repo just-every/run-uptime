@@ -1,0 +1,17 @@
+{
+  "head": "df5963c7755ef64a5cb54307d419050df1ad1960",
+  "tests": [
+    {
+      "command": "cloud_run node tests/roster-erasure.mjs",
+      "node": "22.20.0",
+      "exit": 0,
+      "seconds": 10.11
+    },
+    {
+      "command": "cloud_run node tests/operator-security.mjs",
+      "node": "22.20.0",
+      "exit": 0,
+      "seconds": 115.35
+    }
+  ]
+}

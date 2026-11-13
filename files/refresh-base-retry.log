@@ -1,0 +1,928 @@
+Using project Node 22.20.0 (current Node 24.19.0).
+{
+  "refreshed": "c2efb501cbc148c2aee4d5e1107ebdba81469006",
+  "record": "base-copies.json",
+  "copies": [
+    {
+      "path": ".github/workflows/run-demo.yml",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": ".github/workflows/verify.yml",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 0,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "DEMO.md",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0007_integrations.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0011_development_outbox.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0014_portability.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0016_owner_claim.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0018_dev_sessions.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0019_domain_rules_step_up.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0028_identity_providers.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0029_provider_control.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0030_dependencies.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0031_idp_owner.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0032_provider_pins.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0033_dependency_setup.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0034_dependency_approval.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0037_owner_signin.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0051_import_custody_replace.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "migrations/0056_import_door_archive.sql",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "RUN-LOCALLY.md",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/artifact.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/bindings.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/capabilities.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/cli.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/declarations.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/export.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/generators",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 4,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/mail.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/migrations.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/native-export.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/package.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/paths.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/payloads.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/schema/business-field-inputs.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/schema/dependencies.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/schema/json-schema.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/schema/setup-validation.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/schema/SETUP.schema.json",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/sign-in.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/spec.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/delivery/base/sql-statements.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/edition-authoring",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 150,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/verify-app.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/verify-ci.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/verify-evidence.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/verify-light.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "scripts/verify-plan.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "SEED-COMMAND-CONTRACT.md",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/contract-anchor.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/contract-docs.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/contract-filter.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/contract-page.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/contract-prose-patterns.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/contract-prose.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/contract-style.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/deployment-health.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/dispatch.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/font-head.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/font-response.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/foundation/runtime",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 3,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/hosting-page.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/hydration",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 4,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/icon-head.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/identity.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/lobby.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 0,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/agent-door",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 88,
+      "added": [
+        "src/base/modules/agent-door/policy-event.ts"
+      ],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/business-settings",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 18,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/d1-transport",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 4,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/demo",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 14,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/dependencies",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 16,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/editor",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 12,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/d1",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 141,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/admission.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/ADOPTING.md",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/archive.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/authority.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/failures.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/grants.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/handler.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/index.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake-policy.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake-upload.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake/csv.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake/json.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake/projection.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/intake/types.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/inventory.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/jobs.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/limits.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/operator.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/planning.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/protocol.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/raw.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/README.md",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/refusals.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/schema.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/store.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/types.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/door/uploads.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/journal",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/plan",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 3,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/provenance",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 9,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/readers",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 6,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/storage",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 3,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/import-kit/src/types.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/integrations",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 30,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/mail",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 65,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/operator-auth",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 112,
+      "added": [
+        "src/base/modules/operator-auth/dev/invited.mjs"
+      ],
+      "removed": []
+    },
+    {
+      "path": "src/base/modules/owner-claim",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 10,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/page-style.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/rejected-response.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/run-chooser-style.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/run-data.d.mts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/run-data.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/run-pricing.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/run-site.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/seed-contract.d.mts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/seed-contract.mjs",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/select-style.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/setup-state.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/setup.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/static-assets.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    },
+    {
+      "path": "src/base/theme-frame.ts",
+      "from": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "files": 1,
+      "added": [],
+      "removed": []
+    }
+  ],
+  "retired": [],
+  "adapted": [
+    {
+      "path": ".github/workflows/verify.yml",
+      "originPath": "export/verify.yml",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "conflict": false
+    },
+    {
+      "path": "src/base/lobby.ts",
+      "originPath": "foundation/runtime/lobby.ts",
+      "revision": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "conflict": true,
+      "note": "Upstream changed or removed this seed-owned adaptation; review and reconcile explicitly.",
+      "diffHint": "git -C <base> diff 73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf c2efb501cbc148c2aee4d5e1107ebdba81469006 -- \"foundation/runtime/lobby.ts\""
+    }
+  ],
+  "relocated": [],
+  "withheld": [],
+  "packageDependencies": [
+    {
+      "package": "react",
+      "version": "19.2.8",
+      "baseVersion": "19.3.1",
+      "conflict": true,
+      "files": [
+        "src/base/hydration/unit.tsx",
+        "src/base/modules/editor/react.tsx"
+      ]
+    },
+    {
+      "package": "miniflare",
+      "version": "5.20260926.1-alpha",
+      "baseVersion": "5.20260907.0-alpha",
+      "conflict": true,
+      "files": [
+        "src/base/modules/agent-door/conformance/network-runtime.mjs"
+      ]
+    },
+    {
+      "package": "wrangler",
+      "version": "4.144.0",
+      "baseVersion": "4.129.1",
+      "conflict": true,
+      "files": [
+        "src/base/modules/agent-door/conformance/network-runtime.mjs"
+      ]
+    }
+  ],
+  "editionMigrations": [],
+  "templateAdoptions": [],
+  "notices": [
+    ".github/workflows/verify.yml: preserved seed-owned workflow. The current template pins Ubuntu 24.04 and moves browser and apt caches to the runner temporary directory. To adopt, merge export/verify.yml from Base c2efb501cbc148c2aee4d5e1107ebdba81469006 into .github/workflows/verify.yml, then run node node_modules/@runeditrun/rer/edition-authoring/cli.mjs record-base .github/workflows/verify.yml export/verify.yml c2efb501cbc148c2aee4d5e1107ebdba81469006 --base <base-checkout> and repeat rer refresh-base --ref c2efb501cbc148c2aee4d5e1107ebdba81469006 --base <base-checkout>."
+  ],
+  "next": "Run verify-base, then the edition tests, and commit the copied files with the record."
+}
+refresh-base: complete (exit 0)
