@@ -1,0 +1,55 @@
+{
+  "helper_assertions_before": 98,
+  "helper_assertions_after": 99,
+  "all_original_assertions_retained": true,
+  "push_journeys_before": 47,
+  "push_journeys_after": 47,
+  "operator_security_registrations_before": 1,
+  "operator_security_registrations_after": 1,
+  "contract_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contract_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clause_changes": [],
+  "network_status_counts": {
+    "before": {
+      "200": 707,
+      "204": 8,
+      "403": 5,
+      "400": 5,
+      "201": 5,
+      "401": 1,
+      "303": 2,
+      "429": 8,
+      "failed": 7
+    },
+    "after": {
+      "200": 1296,
+      "204": 14,
+      "403": 9,
+      "400": 6,
+      "201": 5,
+      "401": 1,
+      "303": 2,
+      "202": 1
+    },
+    "candidate-instrumented": {
+      "200": 947,
+      "204": 10,
+      "403": 6,
+      "400": 6,
+      "201": 5,
+      "401": 1,
+      "303": 2,
+      "202": 1
+    }
+  }
+}

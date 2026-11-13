@@ -1,0 +1,3 @@
+e46b7145c4d4ff255e30f5669b5c4394917807c4
+Wait for the real asset window before credential reloads
+

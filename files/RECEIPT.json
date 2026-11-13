@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "tag": "sd-uptime-security-wait-1",
+  "recorded_at": "2026-11-13T08:54:47Z",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-security-wait-1",
+  "head": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+  "base": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+  "fresh_main_before_push": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+  "pr": null,
+  "product_files": [
+    "tests/security-controls-browser-support.mjs",
+    "sources.lock.json"
+  ],
+  "test_runs": [
+    {
+      "command": "cloud_run node ../trace-journey.mjs (imports unchanged tests/operator-security.mjs)",
+      "node": "24.19.0",
+      "head": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+      "started_at": "2026-11-13T08:37:54Z",
+      "ended_at": "2026-11-13T08:39:05Z",
+      "exit_code": 1,
+      "log": "before-journey.log",
+      "expected_result": "reproduced reported credential-row timeout at original helper line 91"
+    },
+    {
+      "command": "cloud_run node ../trace-after.mjs (imports tests/operator-security.mjs)",
+      "node": "24.19.0",
+      "head": null,
+      "started_at": "2026-11-13T08:40:27Z",
+      "ended_at": "2026-11-13T08:43:19Z",
+      "exit_code": 0,
+      "log": "after-journey.log",
+      "source_bytes_match_candidate": true
+    },
+    {
+      "command": "cloud_run node ../trace-candidate.mjs (external evidence capture around existing journey)",
+      "node": "22.20.0",
+      "head": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+      "started_at": "2026-11-13T08:44:28Z",
+      "ended_at": "2026-11-13T08:47:33Z",
+      "exit_code": 1,
+      "log": "candidate-instrumented-journey.log",
+      "failure_classification": "external screenshot instrumentation tried owner-only key capture after intentional nonowner switch; the key must correctly be absent; no product assertion changed"
+    },
+    {
+      "command": "cloud_run node tests/operator-security.mjs",
+      "node": "22.20.0",
+      "head": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+      "started_at": "2026-11-13T08:48:06Z",
+      "ended_at": "2026-11-13T08:50:15Z",
+      "exit_code": 0,
+      "log": "candidate-journey.log",
+      "native_uninstrumented": true
+    }
+  ],
+  "typecheck": {
+    "command": "cloud_run pnpm typecheck",
+    "node": "v22.20.0",
+    "head": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+    "started_at": "2026-11-13T08:44:57Z",
+    "ended_at": "2026-11-13T08:45:16Z",
+    "exit_code": 0,
+    "log": "typecheck-pinned.log"
+  },
+  "source_lock": {
+    "write_command": "node scripts/edition-authoring/cli.mjs lock",
+    "check_command": "node scripts/edition-authoring/cli.mjs check",
+    "check_ok": true,
+    "generated_last": true
+  },
+  "contract_documents": {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit_code": 0,
+    "log": "contract-check.log",
+    "generated_views_committed": false
+  },
+  "syntax_check": {
+    "command": "node --check tests/security-controls-browser-support.mjs",
+    "exit_code": 0
+  },
+  "diff_check": {
+    "command": "git diff --check",
+    "exit_code": 0
+  },
+  "counts": "COUNTS.json",
+  "proof": "PROOF.json",
+  "identity": "identity-check.json",
+  "product_push": {
+    "command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/sd-uptime-security-wait-1",
+    "status": "pushed",
+    "attempts": 1,
+    "pushed_at": "2026-11-13T08:43:58Z",
+    "log": "product-push.log"
+  },
+  "ci": {
+    "id": 43395524991,
+    "conclusion": null,
+    "head_sha": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43395524991",
+    "status": "in_progress",
+    "checked_at": "2026-11-13T08:54:21Z",
+    "api_calls_so_far": 3,
+    "discovery": "gh api repos/just-every/run-uptime/actions/runs?head_sha=e46b7145c4d4ff255e30f5669b5c4394917807c4&per_page=100",
+    "status_command": "gh api repos/just-every/run-uptime/actions/runs/43395524991",
+    "reruns_or_dispatches": 0
+  },
+  "clause_status_changes": [],
+  "publication_scan": "Mac fleet owns required complete publication scan before landing; not available in this cloud task",
+  "evidence_ref": "refs/heads/evidence/sd-uptime-security-wait-1",
+  "evidence_status": "packet prepared for separate report-only publication; terminal EVIDENCE line gives receipt head"
+}

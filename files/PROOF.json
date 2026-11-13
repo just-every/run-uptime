@@ -1,0 +1,33 @@
+{
+  "head": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+  "captured_by": "external diagnostic wrapper around existing operator-security journey; no permanent test or application changes",
+  "assertion_width": 1440,
+  "screenshot_widths": [
+    1440,
+    390
+  ],
+  "inspected_at": "2026-11-13T08:47:27Z",
+  "screenshots": [
+    {
+      "file": "proof/credential-readiness-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "bytes": 106518,
+      "sha256": "7a49b529cf74bd347e819cfd0bd2ac6ee509e5cbe68802ff4fd92368fcb9c39a",
+      "screen": "Settings > People > Security and keys",
+      "state": "Monitoring key active, selected monitors and last use visible after browser credential-list readiness",
+      "shown_once_material_visible": false
+    },
+    {
+      "file": "proof/credential-readiness-390.png",
+      "width": 390,
+      "height": 844,
+      "bytes": 59112,
+      "sha256": "d7514323ff408a60c348dccd84f87cf00a9d1a2f0d673925028b00ca61c9f808",
+      "screen": "Settings > People > Security and keys",
+      "state": "Monitoring key active, selected monitors and last use visible after browser credential-list readiness",
+      "shown_once_material_visible": false
+    }
+  ],
+  "diagnostic_run_limitation": "Screenshots were captured at the successful owner reload. Later in this diagnostic run, an external wrapper tried the same capture on the intentional nonowner member reload and timed out because owner-only keys are correctly absent. See candidate-instrumented-journey.log; the native exact-candidate journey is independently recorded."
+}

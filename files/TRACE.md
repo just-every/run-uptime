@@ -1,0 +1,13 @@
+# Credential-row readiness trace
+
+Baseline main: 1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6.
+
+The unchanged `tests/operator-security.mjs` failed at `tests/security-controls-browser-support.mjs:91:80` with the reported 30-second credential-row timeout. The test had already issued and used the monitoring credential through the real API, checked its last-used timestamp, read its selected monitor IDs, refused an unrelated monitor, and checked shown-once material was absent. No evidence of lost credential data was found.
+
+The failure occurred before the People screen mounted. The captured safe network metadata shows `/app/settings/people` returning 200, followed by 429 responses for `/report-render.js`, `/settings-save.js`, `/settings-view.js`, `/slow-policy.js`, `/transaction-panel.js`, `/assets/app.monitors.new-E_AB7uLb.js`, `/assets/step-up.js` and the favicon. JavaScript imports aborted. The DOM sample had zero security panels and zero credential rows, with `html.signed-in` false. There was no credential-list request after that reload. Waiting longer for the row would not reload the failed module graph.
+
+`src/domain/public-rate-limits.server.ts` puts public assets in a shared installation/client fixed window. Local review deliberately shares the loopback client identity, and route interception in the existing browser journey sends each cold graph through the real Worker. This journey loads several graphs in rapid succession (including a second enrollment page and sign-in navigation); whether the fifth People document fits depends on the real minute boundary. Denied assets do not become available to the failed graph when the boundary passes. This is fixture workload exceeding the real limiter, not a pending credential read or a missing persisted grant.
+
+People renders through `public/app.js` → `public/settings-view.js` → `public/settings-people.js` → `public/assets/access-member-controls.js` → `public/assets/security-controls.js`. Security initialization reads `/api/access/mfa/status`, then `/api/overview`, then `/api/credentials`; only the last read populates `[data-credential-id]`.
+
+The fix reads the existing asset counter expiry without changing it and waits for that real admission window before reloading the module graph. It then observes and asserts the actual browser credential-list response is 200 before retaining the original row visibility, last-use, restriction, secret custody, revocation, stopped-job and restart assertions. The same natural window wait replaces the pre-existing deletion of public counters at Worker restart. No application code, limits, test registration, retry, assertion timeout or mock was added or changed.

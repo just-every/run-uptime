@@ -1,0 +1,8 @@
+{
+  "path": "/app/settings/people",
+  "signedIn": true,
+  "panels": 1,
+  "keys": 3,
+  "factorState": "Second factors: 2 · Fresh verification · Require all: On",
+  "keyList": false
+}

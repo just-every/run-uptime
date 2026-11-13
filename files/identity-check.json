@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-11-13T08:46:50Z",
+  "range": "origin/main..HEAD",
+  "all_parents_included": true,
+  "commits": [
+    "e46b7145c4d4ff255e30f5669b5c4394917807c4"
+  ],
+  "authors": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "committers": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "trailers": [],
+  "passed": true
+}
