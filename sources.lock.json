@@ -9688,7 +9688,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "ddcca3a6453f516187392a957ea5e3e6e65d70880b6a90e38450f39373cc0909",
+      "sha256": "16282439e11b006524317cd8f25fe88660e0401a838f6f90cf17fd4113381098",
       "executable": false
     },
     "tests/service-catalog-auth0-support.mjs": {
