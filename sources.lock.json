@@ -528,7 +528,7 @@
       "executable": false
     },
     "CONTRACT.md": {
-      "sha256": "c2dc58d86b49f7c39b5177d9090886906affd58c95b6714a969cf6e0351fdb0f",
+      "sha256": "15145d9425bbeedd7716aaa06134e91aedbcc8f76c0ef93847220175fc4f9ca5",
       "executable": false
     },
     "DEMO.md": {
@@ -9523,6 +9523,10 @@
       "sha256": "7fd9f16e8a67284869ae707bf941ff02d96611cc877236ab33ed4d948b54f46c",
       "executable": false
     },
+    "tests/ops-healthy-digest-support.mjs": {
+      "sha256": "d9e17209946c20a03458c50004580e27491736aaa723b228d832f99b25ecd6d9",
+      "executable": false
+    },
     "tests/ops-stale-coverage-support.mjs": {
       "sha256": "00634639e964ba49c1db467629dbbed05bbb257f81e3e170d460bc3b4990f1e3",
       "executable": false
@@ -9684,7 +9688,7 @@
       "executable": false
     },
     "tests/resilience/watches.mjs": {
-      "sha256": "653656d59a71fc864241e941bfae9d4f634af62c2376c2d69c804c39065a45bf",
+      "sha256": "b5023e81d46ac928ef998d6d4729fd807c916042584e1df29f00314520c57515",
       "executable": false
     },
     "tests/retention-browser-proof.mjs": {
