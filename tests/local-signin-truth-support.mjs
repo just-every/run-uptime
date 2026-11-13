@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {openGate} from './auth-test-support.mjs';
+import {completeBrowserSecondFactor} from './mfa-auth-support.mjs';
 
 // Part of COMMAND-JOURNEY's real local installation, with its actual
 // development mail adapter. Do not use the mail-provider test fixture here.
-export async function proveLocalSignInTruth({browser,page,origin,key,output}){
+export async function proveLocalSignInTruth({browser,page,origin,key,runRer,output}){
  const checks=[];
  if(output)await mkdir(output,{recursive:true});
  const unsigned=await browser.newContext({viewport:{width:1440,height:1000}});
@@ -16,9 +17,25 @@ export async function proveLocalSignInTruth({browser,page,origin,key,output}){
   assert.doesNotMatch(lobby,/persona|choose (?:a |an |your )?(?:local )?account/i,'fresh Lobby does not promise an unavailable account picker');
   assert.match(lobby,/RER_OPEN/,'Lobby explains the private terminal handoff');
   await visitor.getByRole('link',{name:'Sign in',exact:true}).click();
-  assert.match(await visitor.locator('main').innerText(),/RER_OPEN/,'the sign-in destination requires the same terminal handoff');
+  // Follow the gate's displayed CLI guidance instead of pinning its wording.
+  const command=(await visitor.locator('code').allTextContents()).map(text=>text.trim().split(/\s+/)).filter(([program,verb])=>program==='rer'&&verb==='dev').at(-1);
+  assert.ok(command,'the sign-in gate supplies an executable local launch command');
   assert.equal(await visitor.locator('input[type=email]').count(),0,'the gated page does not promise an email form');
   assert.equal((await unsigned.request.get(origin+'/api/overview')).status(),401);
+  const launched=await runRer(command.slice(1)),link=launched.match(/^RER_OPEN (http:\/\/\S+)$/m)?.[1];
+  assert.ok(link,'the displayed command returns a private sign-in handoff');
+  assert.equal(new URL(link).origin,origin,'the handoff belongs to this installation');
+  const handoff=await browser.newContext({viewport:{width:1440,height:1000}});
+  try{
+   const opened=await handoff.newPage();await opened.goto(link);
+   await opened.waitForURL(url=>!['/__dev/key','/signin','/login'].includes(url.pathname));
+   const pending=await handoff.request.get(origin+'/auth/session');assert.equal(pending.status(),403,'the terminal handoff preserves the owner\'s second-factor gate');
+   assert.equal((await pending.json()).code,'second_factor_required');
+   await completeBrowserSecondFactor(opened,origin);
+   const actual=await handoff.request.get(origin+'/auth/session');assert.equal(actual.status(),200,'the displayed command opens a native session after the enrolled factor');
+   const expected=await(await page.request.get(origin+'/auth/session')).json();
+   assert.equal((await actual.json()).operator.id,expected.operator.id,'the handoff signs in as this installation\'s owner');
+  }finally{await handoff.close()}
   checks.push({screen:'signed-out',width:1440,matchingHandoff:true,privateAPI:401});
   // One-width behavioral journey; optional screenshots are the separate
   // candidate proof, once per changed screen at desktop and phone widths.

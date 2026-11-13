@@ -9140,7 +9140,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "e4100ff044d8eaa74622a05518f5da095e5e3b610ec7709cd8d7b4f541ae7b40",
+      "sha256": "1030fd491ec5988a9c56c97417eeb34e8bb5d16fd938077a5a5676d884b28ac7",
       "executable": false
     },
     "tests/connection-diagnostics-protocols.mjs": {
@@ -9376,7 +9376,7 @@
       "executable": false
     },
     "tests/local-signin-truth-support.mjs": {
-      "sha256": "7fd69790626b36b6d1503b6b0c37de085d03ea545546fde35097007c59f6cb0c",
+      "sha256": "7cd34f79a455fae5f03d09840215ba376b412e35b217cf8e38e13d54bbe1d156",
       "executable": false
     },
     "tests/mail-edges.mjs": {

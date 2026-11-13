@@ -135,7 +135,7 @@ try {
  await monitorHydration(page, origin, scratch.root);
  await definitionsJourney(page, origin);
  await completeBrowserSecondFactor(page,origin);
- await proveLocalSignInTruth({browser,page,origin,key:devKey});
+ await proveLocalSignInTruth({browser,page,origin,key:devKey,runRer:invoke});
  const before = await page.request.get(origin + '/api/archive'); assert.equal(before.status(), 200);
  let expected = await before.json();
  for (const group of await descendantGroups(dev.pid)) groups.add(group);
