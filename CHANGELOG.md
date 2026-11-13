@@ -2,7 +2,34 @@
 
 ## Unreleased
 
+## 0.5.11 — 2026-11-13
+
+Patch release from `main`; previous version 0.5.10. Maintenance plans and erasure receipts are easier to read, heartbeat summaries follow the saved schedule, and local invitations explain how to sign in without email. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.11.
+
+### Maintenance, erasure and heartbeat schedules
+
 - Planned maintenance names the selected monitors in its planner and preview. Monitor erasure completion names the erased monitor, explains what was removed, and offers a copyable receipt reference. Exact per-table counts and the original receipt ID remain under **Receipt details** and in the downloadable receipt; stored receipts and maintenance behavior are unchanged.
+- **Heartbeat summaries follow the saved schedule.** A cron heartbeat shows its cron expression, time zone and grace period in the check-in instructions, receipts, job schedule and rule table, together with the maximum run duration or **No limit set**. Period heartbeats show the period plus grace. Scheduled health evaluation uses the saved job's cron deadline and duration limit rather than also applying an unrelated period age limit; older receipts without a job snapshot cannot establish a cron heartbeat as healthy. A private runner is still required, and only signed scheduled checks change health.
+
+### Local invitations and sign-in
+
+- **Local invitations explain that no email was sent.** Development and demo installations record the invitation and say how to choose the invited account. Local guidance directs you to the private `RER_OPEN` link printed by `rer dev`, then `/signin`; keep the link private because it gives access to the local installation. The signed-out local Lobby points to the same terminal handoff. Hosted invitation delivery is unchanged.
+
+### Upgrading from 0.5.10
+
+No migration is added and nothing in your settings changes. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps).
+
+### Known issues
+
+- Heartbeat output stored by 0.5.6 or earlier is not rewritten. If earlier job output may have contained a key, rotate it; pattern-based redaction can still miss a secret with no recognizable shape or label that you have not listed under **Output text to mask**.
+- A monitor CSV exported from UptimeRobot still cannot be imported: only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 to 0.5.8 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+- Completely bounded-memory archive transfer and restore, operation at 500 monitors with 90 days of history, time-range selection and console controls for chunk transfers remain unestablished or unavailable as described in 0.5.10.
 
 ## 0.5.10 — 2026-11-13
 

@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "9b0776ff5e0924187520952b61130023470239185007dba5bdccd5128621b039",
+      "sha256": "54801633a1ab0cb796dd188c00a61e5d1176a49bd04a36b4d4de98b0ed0cdc35",
       "executable": false
     },
     "CLAUDE.md": {
@@ -2568,7 +2568,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "657894a379a0ad4e57a0b745c6c33e69add4d1db9cd660a99d44b644c3050017",
+      "sha256": "7190e19734d02512339aa4cc4051f6dac441e2b79c6c2e37a2ed74afb8e94055",
       "executable": false
     },
     "patches/README.md": {
@@ -3088,11 +3088,11 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "fea4ebfad576667a341f6642ff6d17c7bba9b0b528a0fac4b218e10184068899",
+      "sha256": "52c9d14b06fdfff8337665a2143d5e557fab5a0d77dab096fbd6b2772bd867a3",
       "executable": false
     },
     "RELEASE.json": {
-      "sha256": "66853979fa089698dac3e40856f9206b95f9769b2542463c90b84e5eaeb3643b",
+      "sha256": "fc66caec0a19a7ebae62b9c547407c6d71c1f5ce42754d64bfd7c688234e7c9e",
       "executable": false
     },
     "RELEASE.md": {
@@ -4528,7 +4528,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "e40d042d0806e153d62aad24afc2ef35dfcb40b8c2844bd0aa7fcc53bb3ce354",
+      "sha256": "6683864c580c2486f81098c8f310393d3acc6ce91be0bb33e79ae70a7c4fbab1",
       "executable": false
     },
     "src/agent-door/authority.server.ts": {
