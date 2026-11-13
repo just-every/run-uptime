@@ -35,6 +35,20 @@ the exact pnpm version declared in `package.json` when it is missing, using
 off PATH, so where a project's docs say `pnpm run X -- ARGS`, run
 `rer run X -- ARGS`: the same script, with the pnpm and Node the project pins.
 `rer run` alone lists the scripts.
+
+Downloaded JavaScript tools also run with the installed runtime. Open the
+folder containing the file and run `"$HOME/.local/bin/rer" run --script ./tool.mjs`
+followed by its arguments. For the Oncall PagerDuty exporter, from Downloads:
+
+```sh
+"$HOME/.local/bin/rer" run --script ./oncall-export.mjs pagerduty
+```
+
+This uses the Node running `rer`, including the installer's private Node. It
+needs no checkout, pnpm or `node` on PATH. The path is relative to the current
+folder, or to `--cwd DIR` when supplied before `--script`; all remaining
+arguments go directly to the file.
+
 First-party seeds pin the command implementation in either vendored mode or
 package mode. Vendored mode carries Base's exported CLI; package mode pins an
 exact `@runeditrun/rer` devDependency. In both modes the checkout's
