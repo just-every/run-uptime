@@ -1437,7 +1437,16 @@
       },
       "originFiles": [
         "foundation/runtime/lobby.ts"
-      ]
+      ],
+      "adapted": {
+        "src/base/lobby.ts": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf"
+      },
+      "acknowledged": {
+        "src/base/lobby.ts": {
+          "sha256": "39fe3ab173a12dac8bbba249ba9fcbc81b2d81ae81c0b1ec07d5790ebca62326",
+          "mode": "100644"
+        }
+      }
     },
     {
       "path": "src/base/modules/agent-door",

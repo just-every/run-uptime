@@ -1,5 +1,126 @@
 # Changelog
 
+## 0.5.10 — 2026-11-13
+
+Patch release from `main`; previous version 0.5.9. Archive transfers can resume after interruption, the installation admits up to 500 monitors, and agents can edit internal incident notes. Redirect failure snapshots and API manual-check approval accounting are corrected. The owner API also offers an explicitly reviewed Auth0 source check; Auth0 monitoring remains unavailable. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.8.
+
+### Archives and monitor admission
+
+- **Resume an interrupted archive transfer.** `rer export` and `rer import` now use digest-checked chunks and keep a private checkpoint after an interrupted job. Repeat the same command with the same absolute archive path after verifying a second factor and supplying a current `UPTIME_ACCESS_COOKIE`. A changed input file or a different installation or owner is refused. Large individual records and the erasure journal travel in chunks too. Restored monitors stay paused, delivery stays quarantined, and receiving-owner settings stay local. See [the transfer guide](docs/data.md#resumable-chunk-transfers) for the native API and bounds.
+- **Admit up to 500 monitors.** Native creation, definition imports, reviewed catalog batches and archive restore now share this admission limit. It is a limit on accepted definitions, not a claim of measured monitoring capacity. Chunk transfers accept up to 64 MiB of encoded payload and one million rows per table; the ordinary console JSON archive route retains its 2 MiB and 10,000-row limits.
+
+### Incident notes, checks and provider review
+
+- **Edit an internal incident note through an agent.** The incident-note tool accepts an explicit edit with the comment's current version. It retains edit history, checks the author's or administrator's native permission and sends no mentions. A stale comment version is refused.
+- **Account for every cleanup step before approving an API manual check.** Approval now considers all saved cleanup steps that could add cleanup debt, rather than qualifying only a sequence with exactly one cleanup step.
+- **Keep redirect failures distinct from HTTP responses.** A private-runner redirect refusal now records a statusless failure snapshot instead of carrying the previous hop's HTTP status.
+- **Review an Auth0 tenant disclosure before a diagnostic source check.** Through the owner API, review and explicitly confirm sending one named tenant domain to Auth0's fixed official RSS endpoint. Changing the tenant requires a new review. This checks the source only: Auth0's status interpretation remains unqualified, its status stays Unknown, and it cannot be followed as a monitored provider.
+
+### Upgrading from 0.5.9
+
+No migration is added and nothing in your settings changes. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps). Older JSON archive payloads remain readable with their original size bound. Completely bounded-memory transfer and restore, and operation at 500 monitors with 90 days of history, have not been established; archive validation still materializes the complete graph in memory. Time-range selection and console controls for chunk transfers remain unavailable.
+
+### Known issues
+
+- Heartbeat output stored by 0.5.6 or earlier is not rewritten. If earlier job output may have contained a key, rotate it; pattern-based redaction can still miss a secret with no recognizable shape or label that you have not listed under **Output text to mask**.
+- A monitor CSV exported from UptimeRobot still cannot be imported: only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 to 0.5.8 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
+## 0.5.9 — 2026-11-12
+
+Maintenance release from `main`; previous version 0.5.8. There are no application behavior changes since 0.5.8. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.8.
+
+### Upgrading from 0.5.8
+
+No migration is added and nothing in your settings changes. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps).
+
+### Known issues
+
+- Heartbeat output stored by 0.5.6 or earlier is not rewritten. If earlier job output may have contained a key, rotate it; pattern-based redaction can still miss a secret with no recognizable shape or label that you have not listed under **Output text to mask**.
+- A monitor CSV exported from UptimeRobot still cannot be imported: only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 to 0.5.8 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
+## 0.5.8 — 2026-11-12
+
+Patch release from `main`; previous version 0.5.7. Importing monitors and erasing a monitor now keep your request in place while you verify a second factor. Erasing a monitor shows its receipt before returning to the list. Newly issued keys come with usage instructions, and the guides match the current console. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.8.
+
+### Verification and erasure
+
+- **Verify without losing your import or erasure request.** If importing definitions or erasing a monitor needs a fresh second factor, the console opens its verification prompt in place and continues the saved request once verification succeeds, rather than treating it as a lost sign-in.
+- **Read the erasure receipt before leaving.** After erasing a monitor from its Edit page, the console shows the completed receipt, its time and the number of erased records for each table. Close the receipt to return to the monitor list.
+- **Early actions wait for the security panel to load.** An action entered while its initial reads are still running now waits for them instead of being silently dropped.
+
+### Keys and guides
+
+- **New keys explain how to use them.** Beside a key shown once, the console shows this installation's Read API address, an `Authorization: Bearer <YOUR_KEY>` example and a link to the Read API guide. A CI key also explains that it authorizes definition operations, not monitoring reads, and links to its own instructions. The examples use a placeholder, not your issued key.
+- **The guides match the console.** The README leads with the installer command that works without Node already installed. Monitor and definition-file instructions now use the current form fields, the scheduled-job check-in flow and **Settings › Backup and files**. They also describe the already available ICMP ping option and its private-runner requirement.
+
+### Upgrading from 0.5.7
+
+No migration is added and nothing in your settings changes. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps).
+
+### Known issues
+
+- Heartbeat output stored by 0.5.6 or earlier is not rewritten. If earlier job output may have contained a key, rotate it; pattern-based redaction can still miss a secret with no recognizable shape or label that you have not listed under **Output text to mask**.
+- A monitor CSV exported from UptimeRobot still cannot be imported: only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 to 0.5.7 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
+## 0.5.7 — 2026-11-12
+
+Patch release from `main`; previous version 0.5.6. Heartbeat (scheduled job) output now has recognizable API keys redacted before it is saved. Period reports open in their own wide view with durations in plain words. The scheduled-job screen and the sent-alert screens explain what they are showing, including alerts that were only simulated or were restored from a backup, and delivery states read plainly. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0, 0.5.1, 0.5.2, 0.5.3, 0.5.4, 0.5.5, 0.5.6 and 0.5.7.
+
+### Heartbeat output and secrets
+
+- **Recognizable API keys are redacted before output is saved.** When a scheduled job reports a failure with output text, Uptime now removes keys of well-known shapes (for example payment-provider `sk_live_…`, `rk_live_…` and `pk_test_…` keys, GitHub tokens, AWS access keys, `sk-…` keys, JSON web tokens and private-key blocks) and replaces each with `[redacted]` before the excerpt is stored. Before this, a key shaped like `sk_live_…` in a job's output was saved exactly as sent. The phrases you list under **Output text to mask** and the labelled secrets (`password=`, `token:` and similar) were already masked and still are.
+- **Output saved before this release is not rewritten.** Redaction happens as new output arrives. Run output that an earlier version already stored is left as it was saved: if a job's earlier output may have contained a key, rotate that key.
+- **Redaction is pattern based.** A secret with no recognizable shape and no label, and that you have not listed under **Output text to mask**, can still be stored. Only a bounded failure excerpt is kept.
+
+### Scheduled jobs
+
+- **The job screen explains itself.** The reporting commands now sit behind **Job reporting instructions**, saving job settings says it changes the settings and retires the key, and the one-time key dialog says a new key replaces every previous one.
+- **Run history reads plainly.** Each receipt shows when it arrived in your own time, then **Started**, **Finished successfully** or **Failed**, rather than a revision number and an internal state. A receipt sent before your last edit says **before your last edit**.
+
+### Period reports
+
+- **A report opens in a wide view.** On a monitor, **Reports** now has just a period choice and **Generate report**. Choosing it opens the report on its own page with a **Back to monitor** link, the generated snapshot at full width, and the period and filters tucked under **Change period or filters**. On a phone the facts stack into one column and the chart text is larger.
+- **Durations read in words.** A duration in a report no longer repeats itself as seconds in brackets.
+
+### Alerts you sent and test sends
+
+- **Simulated sends say so.** On an installation whose email is simulated for development, or in the demo, a sent alert or test message now reads **Simulated · no email sent** (or **nothing sent**), with a notice that nothing left this machine, and the destination's setup notes say the same. This stays true after you change the mail provider.
+- **Restored alerts say sending is held.** After an archive restore, imported alert history reads **Imported, sending held** with a note that the alert will not be sent again.
+- **Delivery states read plainly.** Scheduled-drill history shows **Scheduled drill**, **Destination disabled**, **Credentials changed** or **Credentials expired** instead of internal codes, **Confirmed by recipient**, **Not confirmed in time** or **Waiting for confirmation**, and a schedule reads **Active**, **Finished** or **Cancelled**. A fallback alert says why the earlier destination failed in words, such as **destination disabled**, **delivery timed out** or **email is not set up**.
+
+### Upgrading from 0.5.6
+
+No migration is added and nothing in your settings changes. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps).
+
+### Known issues
+
+- Heartbeat output stored by 0.5.6 or earlier is not rewritten by this release (see above).
+- A monitor CSV exported from UptimeRobot still cannot be imported: only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
+- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
+- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
+- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
+- The limits listed under 0.4.0 to 0.5.6 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
+
 ## 0.5.6 — 2026-11-11
 
 Patch release from `main`; previous version 0.5.5. The monitor page, incident records and period reports now read in plain words instead of internal codes and raw JSON: places are named, failed checks say what was measured and what was expected, and the original saved data sits behind a **Raw data** disclosure. The local walkthrough in the README now works without Node on your `PATH`. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.

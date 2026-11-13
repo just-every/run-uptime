@@ -59,6 +59,8 @@ export async function probeHttp(input,probe,grants=[],{statusOnly=false,monitorI
     const runnerError=['custody','runner','network','dns','credential','grant'].includes(category),completedAt=Date.now();
     if(!statusOnly&&!runnerError&&isDependencyStatus(def))return evidence({outcome:'runner_error',checks:[dependencyMissingCheck(def)]},completedAt);
     capture.phases.totalMs=completedAt-startedAt;
+    // Redirect refusal has no HTTP result; the captured status belongs to the last hop.
+    if(category==='redirect')capture.status=null;
     let diagnostics;
     if(snapshotPolicy&&!statusOnly&&['timeout','connection','transport','unresolved','dns','tls'].includes(category))diagnostics=await collectNetworkDiagnostics({category,phases:capture.phases,pin:capture.pin,privateNetwork:def.network==='private',signal:artifactSignal()});
     const failureSnapshot=snapshotPolicy&&!statusOnly&&!['custody','runner','network','credential','grant'].includes(category)?tryCaptureFailureSnapshot({...capture,method:capture.method??def.method,url:capture.url??def.url,durationMs:completedAt-startedAt,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version,diagnostics,...(snapshotPolicy.screenshot?{screenshot:{unavailable:'capture_failed'}}:{})}):undefined;

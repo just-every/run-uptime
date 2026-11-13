@@ -1,3 +1,4 @@
+import {MONITOR_LIMIT} from '../monitor-cap.ts'
 import type {Bindings} from '../control.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from '../audit.server.ts'
 import {digest} from '../archive-schema.ts'
@@ -9,7 +10,7 @@ const policy=(p:any)=>({mode:p.mode,destinationIds:p.destinationIds,contactSetti
 const owner=(actor:AuditActor)=>{if(actor.kind!=='operator')throw Object.assign(Error('Owner required'),{status:403})}
 async function plan(env:Bindings,raw:any){
  fields(raw,['routeId','monitorIds'],'alert route batch');
- if(typeof raw.routeId!=='string'||!raw.routeId||raw.routeId.length>512||!Array.isArray(raw.monitorIds)||!raw.monitorIds.length||raw.monitorIds.length>100||raw.monitorIds.some((id:any)=>typeof id!=='string'||!id||id.length>512||/[\x00-\x1f\x7f]/.test(id))||new Set(raw.monitorIds).size!==raw.monitorIds.length)fail('Choose one existing named route and up to 100 distinct monitor IDs.');
+ if(typeof raw.routeId!=='string'||!raw.routeId||raw.routeId.length>512||!Array.isArray(raw.monitorIds)||!raw.monitorIds.length||raw.monitorIds.length>MONITOR_LIMIT||raw.monitorIds.some((id:any)=>typeof id!=='string'||!id||id.length>512||/[\x00-\x1f\x7f]/.test(id))||new Set(raw.monitorIds).size!==raw.monitorIds.length)fail(`Choose one existing named route and up to ${MONITOR_LIMIT} distinct monitor IDs.`);
  const route=await namedAlertRoute(env,raw.routeId),entries:any[]=[];
  for(const monitorId of [...raw.monitorIds].sort()){
   try{

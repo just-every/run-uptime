@@ -13,6 +13,11 @@ export function developmentMail(env:AuthBindings){
  if(env.RER_DEMO==='1'&&env.MAIL_PROVIDER==='development')return true;
  try{const url=new URL(env.UPTIME_ORIGIN!);return env.UPTIME_LOCAL_REVIEW==='true'&&env.MAIL_PROVIDER==='development'&&url.origin===env.UPTIME_ORIGIN&&isLoopbackHost(url.hostname)&&['http:','https:'].includes(url.protocol)}catch{return false}
 }
+// Presentation metadata only: Base still records the invitation and decides
+// whether its sender succeeded. Development success never means mail left.
+export function invitationResult(env:AuthBindings,result:{status:'accepted'}){
+ return developmentMail(env)?{...result,delivery:'not_sent' as const,local:env.RER_DEMO!=='1'}:result
+}
 // The operator-auth configuration; the local-only dev entry builds the same one. Its sign-in and confirmation pages wear the
 // same theme and mark as the Lobby (src/identity.ts).
 export function authConfig(env:AuthBindings){const local=env.UPTIME_LOCAL_REVIEW==='true';return {origin:env.UPTIME_ORIGIN!,local,branding:{productName:branding.name,accentColor:branding.primaryColor,signInPath:'/login',theme:'/rer-theme.css',mark:'/brand/mark.svg'},OWNER_EMAIL:env.OWNER_EMAIL!,SESSION_SECRET:env.SESSION_SECRET!,...(env.SETUP_TOKEN?{SETUP_TOKEN:env.SETUP_TOKEN}:{}),...(env.MAIL_FROM?{MAIL_FROM:env.MAIL_FROM}:{}),...(local?{ipLimit:1000,emailLimit:1000}:{})}}
@@ -46,7 +51,11 @@ export async function authRoute(env:AuthBindings,request:Request){try{
   }
   if(!own){try{const actor=await permission(env,request,undefined,{action:'members',workspace:true});configured={...env,DB:authorizedDatabase(env,actor)}}catch(error){if(accessResponse(error))return Response.json({error:'forbidden'},{status:principal?403:401});throw error}}
  }
- return await createAuthHandler(operatorAuth(configured))(request)
+ const response=await createAuthHandler(operatorAuth(configured))(request)
+ if(path==='/auth/invite'&&request.method==='POST'&&response?.status===202&&developmentMail(env)){
+  return Response.json(invitationResult(env,await response.json() as {status:'accepted'}),{status:202,headers:response.headers})
+ }
+ return response
  }catch(error){return authFailure(error)}}
 export function authFailure(error:unknown){return Response.json({error:error instanceof AuthError?error.code:'auth_unavailable'},{status:error instanceof AuthError?error.status:503,headers:{'cache-control':'no-store'}})}
 export async function signOut(env:AuthBindings,request:Request){return operatorAuth(env).signOut(request)}

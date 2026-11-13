@@ -1,3 +1,4 @@
+import {TRANSFER_BYTES,TRANSFER_ROWS} from './archive-transfer-limits.ts'
 import {validateArchiveSelection} from './archive-selection.server.ts'
 import {validateSourceHistory} from './source-history/archive.ts'
 // @ts-ignore Opaque second-factor audit vocabulary excludes factor material.
@@ -24,8 +25,9 @@ const RUM_AUDIT_ACTIONS=['rum_site_register','rum_site_change','rum_site_disable
 // Fixed native features, and an agent acting for a person under its own non-personal identifier (agent-actor.ts).
 const FEATURE_ACTORS=['notification-dispatch','operator-auth-mail','cron-maintenance','archive-transfer','credential-maintenance','business-import','incident-mention'];
 const monitorRef=(v:any)=>{try{identity(v,'audit monitor');return true}catch{return false}};
-export async function validateArchive(input:any){
- try{assertBytes(input)}catch(error){if(error instanceof Error)throw Error(`Invalid archive integrity/version: ${error.message}`);throw error}
+export async function validateArchive(input:any,options:{transfer?:boolean}={}){
+ const rowLimit=options.transfer?TRANSFER_ROWS:ARCHIVE_ROWS;
+ try{assertBytes(input,0,options.transfer?TRANSFER_BYTES:undefined)}catch(error){if(error instanceof Error)throw Error(`Invalid archive integrity/version: ${error.message}`);throw error}
  if(!object(input)||Object.keys(input).sort().join(',')!=='payload,sha256'||!object(input.payload)||![1,ARCHIVE_VERSION].includes(input.payload.schemaVersion)||input.payload.target!=='uptime-worker-d1'||typeof input.sha256!=='string'||input.sha256!==await digest(JSON.stringify(input.payload)))throw Error('Invalid archive integrity/version');
  const p=input.payload,extended=p.extensionVersion!==undefined;
  shape(p,extended?['schemaVersion','target','createdAt','tables','extensionVersion','productTables',...(p.erasureFence!==undefined?['erasureFence']:[]),...(p.selection!==undefined?['selection']:[])]:['schemaVersion','target','createdAt','tables'],'payload');clock(p.createdAt,'creation');
@@ -35,7 +37,7 @@ export async function validateArchive(input:any){
  const extra=TABLES.filter(t=>!LEGACY_TABLES.includes(t)),expected=extended?extensionTables(p.extensionVersion):[];
  if(extended&&(!object(p.productTables)||Object.keys(p.productTables).sort().join(',')!==expected.slice().sort().join(',')))throw Error('Invalid archive product tables');
  const t:Tables={...structuredClone(p.tables),...Object.fromEntries(extra.map(name=>[name,extended?structuredClone(p.productTables[name]??[]):[]]))};
- for(const name of TABLES){if(!Array.isArray(t[name])||t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);for(const row of t[name]){if(p.schemaVersion===1&&name==='slots'&&!Object.hasOwn(row,'manual'))row.manual=row.id?.includes(':manual:')?1:0;if((p.extensionVersion??0)<6&&['notification_destinations','notification_jobs'].includes(name)&&!Object.hasOwn(row,'webhook_template'))row.webhook_template=null;shape(row,columns[name],name)}}
+ for(const name of TABLES){if(!Array.isArray(t[name])||t[name].length>rowLimit)throw Error(`Archive row bound exceeded: ${name} (${rowLimit})`);for(const row of t[name]){if(p.schemaVersion===1&&name==='slots'&&!Object.hasOwn(row,'manual'))row.manual=row.id?.includes(':manual:')?1:0;if((p.extensionVersion??0)<6&&['notification_destinations','notification_jobs'].includes(name)&&!Object.hasOwn(row,'webhook_template'))row.webhook_template=null;shape(row,columns[name],name)}}
  if(p.selection!==undefined)validateArchiveSelection(p.selection,t);
  const receiptTables=new Set([...TABLES,...Object.keys(installationLocalTables)]);
  const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;

@@ -1,3 +1,4 @@
+import {MONITOR_LIMIT} from './monitor-cap.ts'
 import {definitionTimeline} from './incident-work/definition-timeline.server.ts'
 import type {CredentialAuthority} from './credentials/model.server.ts'
 // @ts-ignore Shared monitor metadata vocabulary.
@@ -70,7 +71,7 @@ export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
   runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact,externalCheckUrl:external.url},
   timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
 }
-export const MONITOR_LIMIT=100
+export {MONITOR_LIMIT} from './monitor-cap.ts'
 // The revision guard runs in the write transaction. A racing create returns the same useful capacity error as preflight.
 export async function withinMonitorCap<T>(env:Bindings,adding:number,batch:Promise<T>):Promise<T>{
  try{return await batch}catch(error){

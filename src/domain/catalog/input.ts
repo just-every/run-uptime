@@ -1,3 +1,4 @@
+import {MONITOR_LIMIT} from '../monitor-cap.ts'
 import {boundDefinitionText,DefinitionFileError} from '../definitions/format.ts'
 // @ts-ignore Shared definition metadata vocabulary.
 import {MONITOR_METADATA_FIELDS,validateMonitorMetadata} from '../monitor-metadata.mjs'
@@ -31,7 +32,7 @@ export function addInput(input:any){
 }
 export function bulkInput(input:any){
  fields(input,['monitorIds','action','changes','enableAfterCreate','alertRoute'],'catalog bulk')
- if(!Array.isArray(input.monitorIds)||!input.monitorIds.length||input.monitorIds.length>100||input.monitorIds.some((id:any)=>typeof id!=='string'||!id||id.length>512||/[\x00-\x1f\x7f]/.test(id))||new Set(input.monitorIds).size!==input.monitorIds.length)fail('Select between 1 and 100 distinct monitor IDs.')
+ if(!Array.isArray(input.monitorIds)||!input.monitorIds.length||input.monitorIds.length>MONITOR_LIMIT||input.monitorIds.some((id:any)=>typeof id!=='string'||!id||id.length>512||/[\x00-\x1f\x7f]/.test(id))||new Set(input.monitorIds).size!==input.monitorIds.length)fail(`Select between 1 and ${MONITOR_LIMIT} distinct monitor IDs.`)
  if(!['edit','pause','resume','clone'].includes(input.action))fail('Choose edit, pause, resume or clone.')
  const changes=fields(input.changes??{},metadataFields,'catalog change')
  if(!['edit','clone'].includes(input.action)&&Object.keys(changes).length)fail('Metadata changes require edit or clone.')

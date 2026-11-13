@@ -1,3 +1,4 @@
+import {admitAuth0Check} from './service-catalog/authorization.server.ts'
 import {agentDiscoveryTask} from '../agent-door/work.server.ts'
 import type {Access,AgentAccess} from './access.server.ts'
 // @ts-ignore Edition URL validation is JavaScript.
@@ -64,14 +65,17 @@ export async function createDiscovery(env:Bindings,text:string,initiator?:Access
  return {id,status:'queued'}
 }
 // DEPENDENCY-002: the owner asks the runner to read a catalog entry's status source before following it. The request names the
-// catalog entry and the chosen parts; the address is the catalog's own and is not taken from the owner.
-export async function createCatalogCheck(env:Bindings,text:string){
+// catalog entry and chosen parts. Auth0 alone first returns a disclosure for one tenant domain; only its confirmed
+// review can queue a request to Auth0's fixed endpoint. No owner-supplied destination is admitted.
+export async function createCatalogCheck(env:Bindings,text:string,initiator?:Access){
  const runtime=runnerRuntime(env,await listRunners(env));
  if(runtime.hosted&&!runtime.privateRunnerReady&&!runtime.workerDiscovery)throw Error('Checking a provider\u2019s status source needs a connected private runner. Start it from the deploying checkout: '+runtime.privateRunnerCommand);
  let input;try{input=JSON.parse(text)}catch{throw Error('Invalid catalog check')}
- const spec=catalogSpec(input),id=crypto.randomUUID(),now=Date.now();
+ const admission=input?.entry==='auth0'?await admitAuth0Check(env,input,initiator):null;
+ if(admission?.preview)return admission.preview;
+ const spec=admission?.spec??catalogSpec(input),id=crypto.randomUUID(),now=Date.now();
  await expire(env,now);
- if(!(await insertJob(env,id,catalogEntry(spec.entry).source.url,now,false,'catalog',JSON.stringify(spec))).meta.changes)throw refuse(FULL,429);
+ if(!(await insertJob(env,id,admission?.url??catalogEntry(spec.entry).source.url,now,false,'catalog',JSON.stringify(spec),spec.entry==='auth0'?initiator:undefined)).meta.changes)throw refuse(FULL,429);
  if(runtime.workerDiscovery){await answerInWorker(env,id,{kind:'catalog',spec},(answer,runner)=>completeDiscovery(env,id,answer,runner));return {id,status:(await readDiscovery(env,id)).status}}
  return {id,status:'queued'}
 }

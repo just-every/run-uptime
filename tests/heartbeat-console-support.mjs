@@ -1,3 +1,4 @@
+import {definitionDoor} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -17,13 +18,24 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
  const shot=async(name)=>{
   if(!output)return;
   // Screenshots never disclose the real URL capability or executable secret.
-  for(const width of [1440,390]){await page.setViewportSize({width,height:width===390?844:1000});await page.screenshot({path:join(output,`${name}-${width}.png`),fullPage:true,mask:[page.locator('#heartbeat-checkin-url'),page.locator('#heartbeat-checkin-command')]})}
+  for(const width of [1440,390]){await page.setViewportSize({width,height:width===390?844:1000});await page.screenshot({path:join(output,`${name}-${width}.png`),fullPage:true,mask:[page.locator('#heartbeat-checkin-url'),page.locator('#heartbeat-checkin-command'),page.locator('#heartbeat pre')]})}
   await page.setViewportSize({width:1440,height:1000});
  };
  const refreshState=async(id,expected)=>{await page.reload();await page.locator('#monitor-state').filter({hasText:expected}).waitFor();assert.equal(await state(id),expected)};
  try{
   await page.goto(origin+'/app');
   if(new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'))}
+  // A documented import creates a digest-bearing internal ID; only opened integration instructions show it.
+  const fetcher=async(url,init)=>{const target=new URL(url),r=await api(target.pathname+target.search,init.body===undefined?undefined:JSON.parse(init.body),init.headers,init.method);return new Response(JSON.stringify(r.data),{status:r.status})};
+  const door=definitionDoor({origin,cookie,fetcher}),document={format:'uptime.monitors',version:5,monitors:[{name:'synthetic-uptime-801 nightly backup',type:'heartbeat',heartbeat:{maxAgeMs:300000},intervalMs:60000}]};
+  const plan=await door.preview(document);assert.equal(plan.status,200);const applied=await door.apply(plan.body);assert.equal(applied.status,200);const [importedId]=applied.body.created;
+  await page.goto(origin+'/app/monitors/'+encodeURIComponent(importedId));await page.locator('#monitor-detail-heading').waitFor();
+  assert.ok((await page.locator('.monitor-page-header').innerText()).includes(document.monitors[0].name));
+  assert.doesNotMatch(await page.locator('.monitor-page-header').innerText(),/[a-f0-9]{64}/i);
+  const heartbeat=page.locator('#heartbeat');if(!await heartbeat.evaluate(e=>e.open))await heartbeat.locator(':scope > summary').click();
+  assert.doesNotMatch(await heartbeat.innerText(),/[a-f0-9]{64}/i,'expanded heartbeat summary has no internal digest');
+  const integration=heartbeat.locator('.heartbeat-integration').first();await integration.locator('summary').click();assert.ok((await integration.innerText()).includes(importedId),'the receipt path remains available in integration instructions');await integration.locator('summary').click();
+  await shot('imported-job-summary');
   assert.equal((await api('/api/external-check',{url:'https://canary.runner-target.test/canary'})).status,200);
   await page.goto(origin+'/app/monitors');
   await page.getByRole('button',{name:'New monitor',exact:true}).click();
@@ -67,6 +79,7 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   assert.equal((await api(new URL(url).pathname,undefined,{cookie:''},'HEAD')).status,200);
   const posted=await api(new URL(url).pathname,{},{cookie:''},'POST');assert.equal(posted.status,200);assert.equal(posted.data.received,true);
   assert.equal(await state(id),'Unknown','ingress alone cannot establish Healthy');
+
   await runner();assert.equal(await state(id),'Healthy');
   // Read the updated page without reloading: polling must keep its one-time URL.
   await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:15000});
@@ -77,6 +90,8 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   advance(anchor+31999);await runner();assert.notEqual(await state(id),'Failing','no failure before the exact deadline');
   advance(anchor+32000);await runner();assert.equal(await state(id),'Failing');
   await refreshState(id,'Failing');assert.equal(await page.locator('#heartbeat-checkin-secret').isVisible(),false,'reload retains no raw capability');
+  const heartbeatRuns=page.locator('#heartbeat');if(!await heartbeatRuns.evaluate(e=>e.open))await heartbeatRuns.locator(':scope > summary').click();
+  await page.locator('#load-heartbeat-runs').click();await page.locator('.heartbeat-job-run').first().waitFor();assert.doesNotMatch(await page.locator('#heartbeat-run-history').innerText(),/\b(?:start|success|fail)\b|revision \d+/);
   await shot('job-missed');
   const events=(await api('/api/overview')).data.alerts.filter(a=>a.monitor_id===id);assert.ok(events.some(a=>a.kind==='trigger'&&/Job missed/.test(a.event.explanation)));
   advance(anchor+33000);const recovered=await api(new URL(url).pathname,undefined,{cookie:''},'GET');assert.equal(recovered.status,200);assert.equal(recovered.data.late,true);
@@ -86,5 +101,27 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   if(output)await writeFile(join(output,'heartbeat-console.json'),JSON.stringify(receipt,null,2)+'\n');
   assert.equal((await api(`/api/monitors/${id}`,{...(await read(id)).definition,enabled:false},{},'PATCH')).status,200);
   console.log('Heartbeat console passed: create, copy real URL/command, actual check-in, signed Healthy, grace, exact-deadline Failing and late recovery.');
+ }finally{await context.close();await browser.close()}
+}
+
+// The same failure receipt is inspected through the operator's actual run-history control.
+export async function proveHeartbeatOutputRedaction({origin,cookie,id,output,planted,ordinary}){
+ const browser=await chromium.launch({headless:true,...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
+ const context=await browser.newContext({viewport:{width:1440,height:1000},ignoreHTTPSErrors:true});
+ try{
+  const separator=cookie.indexOf('=');await context.addCookies([{name:cookie.slice(0,separator),value:cookie.slice(separator+1),url:origin,httpOnly:true,secure:true,sameSite:'Lax'}]);
+  const page=await context.newPage();await page.goto(origin+`/app/monitors/${id}`);
+  if(new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'));await page.goto(origin+`/app/monitors/${id}`)}
+  const fold=page.locator('details#heartbeat');if(!await fold.evaluate(node=>node.open))await fold.locator(':scope > summary').click();
+  await page.getByRole('button',{name:'Load run history',exact:true}).click();
+  const history=page.locator('#heartbeat-run-history');await history.locator('pre').waitFor();
+  assert.equal(await history.locator('pre').textContent(),output,'the console displays the stored redacted output');
+  const text=await history.innerText();for(const secret of planted)assert.ok(!text.includes(secret),'the console withholds planted secrets');
+  for(const value of ordinary)assert.ok(text.includes(value),'the console preserves ordinary output');
+  if(process.env.UPTIME_HEARTBEAT_PROOF_DIR){
+   const directory=process.env.UPTIME_HEARTBEAT_PROOF_DIR;await mkdir(directory,{recursive:true});
+   for(const width of [1440,390]){await page.setViewportSize({width,height:width===390?844:1000});await history.screenshot({path:join(directory,`heartbeat-output-redacted-${width}.png`)})}
+   await writeFile(join(directory,'heartbeat-redaction.json'),JSON.stringify({journey:'signed-runner heartbeat failure output',result:'passed',assertionWidth:1440,proofWidths:[1440,390],providerKeys:planted.length-5,storedMasked:true,consoleMatchesStorage:true,ordinaryValuesPreserved:ordinary.length},null,2)+'\n');
+  }
  }finally{await context.close();await browser.close()}
 }

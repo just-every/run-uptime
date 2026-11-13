@@ -83,7 +83,7 @@ export const ENTRIES = [
     note: 'Okta’s official status feed names no service or cell in a field, so Okta is followed as a whole: it states an issue while any listed incident is not resolved.',
     source: {kind: 'feed', url: 'https://feeds.feedburner.com/OktaStatusRSS', page: 'https://status.okta.com/', signal: 'atom-unresolved'}, whole: true, components: []},
   {id: 'auth0', name: 'Auth0', aliases: ['login', 'identity'], summary: 'Sign-in and identity.',
-    note: 'Auth0 publishes its regional status feeds by tenant domain (status.auth0.com/rss?domain=<your tenant domain>), and the catalog sends no owner data, so it does not follow Auth0 yet.',
+    note: 'An owner may review sending one named Auth0 tenant domain to https://status.auth0.com/rss as its domain query parameter for a bounded source check. Status interpretation is unqualified, so Auth0 remains Unknown and cannot yet be followed.',
     source: {kind: 'page', url: 'https://status.auth0.com/', page: 'https://status.auth0.com/'}, whole: false, components: []},
   statuspage('digitalocean', 'DigitalOcean', 'https://status.digitalocean.com', {aliases: ['droplets', 'hosting'], summary: 'Cloud servers and managed databases.',
     components: ['API', 'Cloud Control Panel', 'DNS', 'Billing', ...grouped('Droplets', ['NYC1', 'NYC3', 'SFO3', 'AMS3', 'FRA1', 'SGP1']), ...grouped('Managed Databases', ['NYC1', 'NYC3', 'FRA1']),
