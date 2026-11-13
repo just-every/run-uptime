@@ -46,7 +46,7 @@ export async function proveNetworkRebinding(){
   const allowedPort=await endpoint('allowed'),forbiddenPort=await endpoint('forbidden'),canaryPort=await endpoint('canary');
   // Qualify B's independent counters before the journey, then start its zero
   // baseline. All simulated addresses map only to these owned loopback ports.
-  const qualified=await request(`https://localhost:${forbiddenPort}`,certs.ca,'/counter-canary',{method:'GET'});
+  const qualified=await request(`https://localhost:${forbiddenPort}`,certs.ca,'/counter-canary',{method:'GET',headers:{connection:'close'}});
   assert.equal(qualified.status,200);assert.equal(received.forbidden.connections.length,1);assert.equal(received.forbidden.handshakes.length,1);assert.equal(received.forbidden.requests.length,1);
   for(const rows of Object.values(received.forbidden))rows.length=0;
   const control=https.createServer(certs.server,async(req,res)=>{

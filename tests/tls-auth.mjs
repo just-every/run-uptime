@@ -2,6 +2,7 @@ import {tlsTrustJourney} from './tls-trust-journey.mjs';
 import {apiAuthJourney} from './api-auth-journey.mjs';
 import {keywordMonitorJourney} from './keyword-monitor-journey.mjs';
 import {proveNetworkTlsHostname} from './network-tls-hostname-support.mjs';
+import {proveNetworkRebinding} from './network-rebinding-support.mjs';
 import {proveNetworkRedirectCycle} from './network-redirect-cycle-support.mjs';
 // Choose trust, rotate and revoke local credentials, then retain scheduled keyword evidence.
 await tlsTrustJourney();
@@ -9,3 +10,4 @@ await apiAuthJourney();
 await keywordMonitorJourney();
 await proveNetworkTlsHostname();
 await proveNetworkRedirectCycle();
+await proveNetworkRebinding();
