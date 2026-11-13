@@ -33,4 +33,10 @@ Contract totals remain 37 done, 58 partial, 20 missing, 115 total. Published: 14
 
 ## Custody and limits
 
-Product push succeeded on the first guard attempt. Full product provenance, local commands/results and exact-SHA CI status are retained in the packet. Evidence is published only to evidence/sd-uptime-security-wait-1 and does not signal acceptance or landing. The cloud cannot run the Mac fleet's full publication scan; the fleet must perform it and its independent gates before landing. No hosted/provider or broader member-shell qualification is claimed.
+Product push succeeded on the first guard attempt. Full product provenance, local commands/results and exact-SHA CI status are retained in the packet. Evidence is published only to evidence/sd-uptime-security-wait-1 and does not signal acceptance or landing. An isolated round-trip of the first report-only publication restored all 33 selected files and verified the exact evidence head, product head, manifest, blob identities, byte sizes and SHA-256 hashes; EVIDENCE-ROUNDTRIP.json retains that actual receipt. The temporary restored copy was removed, and the product checkout/head/index remained clean and unchanged. The cloud cannot run the Mac fleet's full publication scan; the fleet must perform it and its independent gates before landing. No hosted/provider or broader member-shell qualification is claimed.
+
+## Terminal CI custody
+
+At 2026-11-13T09:04:23Z, Verify run 43395524991 was still `in_progress`, with conclusion null, on exact head e46b7145c4d4ff255e30f5669b5c4394917807c4. Five run API calls were used: one discovery and four status reads at intervals of at least 300 seconds; the required launcher also ran gh auth status. No rerun or dispatch was requested. The bounded watcher ends PUSHED, preserving remaining GitHub budget for diagnosis/continuation. READY is not claimed. There is no local blocker or observed red conclusion; the remaining gate is completed/success on that exact SHA. The fleet must continue its exact-SHA CI/publication/landing gates.
+
+Product custody and the complete report-only packet were published separately. The owned checkout and dependencies are removed after remote custody verification; the packet remains under the task work directory.

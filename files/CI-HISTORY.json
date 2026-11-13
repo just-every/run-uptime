@@ -1,0 +1,34 @@
+{
+  "run_id": 43395524991,
+  "head_sha": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+  "calls": [
+    {
+      "kind": "discovery",
+      "at": "2026-11-13T08:44:19Z",
+      "status": "in_progress"
+    },
+    {
+      "kind": "status",
+      "at": "2026-11-13T08:49:20Z",
+      "status": "in_progress"
+    },
+    {
+      "kind": "status",
+      "at": "2026-11-13T08:54:21Z",
+      "status": "in_progress"
+    },
+    {
+      "kind": "status",
+      "at": "2026-11-13T08:59:22Z",
+      "status": "in_progress"
+    },
+    {
+      "kind": "status",
+      "at": "2026-11-13T09:04:23Z",
+      "status": "in_progress",
+      "conclusion": null
+    }
+  ],
+  "timestamps_source": "date -u output saved at each request",
+  "no_dispatch_or_rerun": true
+}

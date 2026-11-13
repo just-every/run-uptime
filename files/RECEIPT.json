@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "tag": "sd-uptime-security-wait-1",
-  "recorded_at": "2026-11-13T08:54:47Z",
+  "recorded_at": "2026-11-13T09:05:20Z",
   "repository": "just-every/run-uptime",
   "branch": "cloud/sd-uptime-security-wait-1",
   "head": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
@@ -99,14 +99,20 @@
     "head_sha": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
     "html_url": "https://github.com/just-every/run-uptime/actions/runs/43395524991",
     "status": "in_progress",
-    "checked_at": "2026-11-13T08:54:21Z",
-    "api_calls_so_far": 3,
+    "checked_at": "2026-11-13T09:04:23Z",
+    "api_calls_so_far": 5,
     "discovery": "gh api repos/just-every/run-uptime/actions/runs?head_sha=e46b7145c4d4ff255e30f5669b5c4394917807c4&per_page=100",
     "status_command": "gh api repos/just-every/run-uptime/actions/runs/43395524991",
-    "reruns_or_dispatches": 0
+    "reruns_or_dispatches": 0,
+    "required_launcher_gh_auth_status_also_executed": true,
+    "poll_intervals_seconds_at_least": 300
   },
   "clause_status_changes": [],
   "publication_scan": "Mac fleet owns required complete publication scan before landing; not available in this cloud task",
   "evidence_ref": "refs/heads/evidence/sd-uptime-security-wait-1",
-  "evidence_status": "packet prepared for separate report-only publication; terminal EVIDENCE line gives receipt head"
+  "evidence_status": "packet prepared for separate report-only publication; terminal EVIDENCE line gives receipt head",
+  "terminal_status": "PUSHED",
+  "remaining_gate": "Verify run 43395524991 is still in_progress on the exact candidate SHA after the twenty-minute read; no completed/success conclusion observed, so READY is not claimed.",
+  "cleanup_plan": "Remove the owned product checkout/dependencies after final remote product/evidence custody verification; retain this packet outside the clone.",
+  "evidence_roundtrip_receipt": "EVIDENCE-ROUNDTRIP.json"
 }
