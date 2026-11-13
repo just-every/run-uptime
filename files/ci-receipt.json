@@ -1,0 +1,74 @@
+{
+  "head": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+  "observations": [
+    {
+      "at": 1794543479.1508024,
+      "discovery": [
+        {
+          "conclusion": "success",
+          "event": "push",
+          "head_sha": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364553827",
+          "id": 43364553827,
+          "name": "Verify",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "at": 1794543779.1514728,
+      "result": {
+        "conclusion": null,
+        "head_sha": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364553827",
+        "status": "in_progress"
+      }
+    },
+    {
+      "at": 1794544079.1523905,
+      "result": {
+        "conclusion": null,
+        "head_sha": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364553827",
+        "status": "in_progress"
+      }
+    },
+    {
+      "at": 1794544379.1525524,
+      "result": {
+        "conclusion": null,
+        "head_sha": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364553827",
+        "status": "in_progress"
+      }
+    },
+    {
+      "at": 1794544679.1527135,
+      "result": {
+        "conclusion": null,
+        "head_sha": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364553827",
+        "status": "in_progress"
+      }
+    },
+    {
+      "at": 1794544979.1528869,
+      "result": {
+        "conclusion": "success",
+        "head_sha": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364553827",
+        "status": "completed"
+      }
+    }
+  ],
+  "run": {
+    "conclusion": "success",
+    "event": "push",
+    "head_sha": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364553827",
+    "id": 43364553827,
+    "name": "Verify",
+    "status": "completed"
+  },
+  "watcherStarted": 1794543479.150798
+}

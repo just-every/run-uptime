@@ -1,0 +1,27 @@
+{
+  "journey": "proveHeartbeatConsole",
+  "result": "passed",
+  "width": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "createdThroughForm": true,
+  "copyUrl": true,
+  "copyCommand": true,
+  "realInstallUrl": true,
+  "ingressState": "Unknown",
+  "scheduledState": "Healthy",
+  "periodMs": 30000,
+  "graceMs": 2000,
+  "beforeDeadline": "not Failing",
+  "atDeadline": "Failing",
+  "lateRecovery": "Healthy",
+  "cronSettingsSavedThroughForm": true,
+  "cronRulePanels": 4,
+  "cronAfterOldPeriod": "Healthy",
+  "cronBeforeDeadline": "not Failing",
+  "cronAtDeadline": "Failing",
+  "cronLateRecovery": "Healthy",
+  "secretsInStorage": false
+}

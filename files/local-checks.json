@@ -1,0 +1,109 @@
+{
+  "checks": [
+    {
+      "command": [
+        "pnpm",
+        "run",
+        "typecheck"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "pnpm",
+        "run",
+        "spec:check"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "node",
+        "scripts/edition-authoring/cli.mjs",
+        "lock"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "node",
+        "scripts/edition-authoring/cli.mjs",
+        "check"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "setup",
+        "--owner-email",
+        "fleet@runeditrun.com",
+        "--non-interactive"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "build"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/signed-runner.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/control-runtime.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/public-paths.mjs"
+      ],
+      "exit": 0
+    }
+  ],
+  "appJourneyRegistrationsBefore": 47,
+  "appJourneyRegistrationsAfter": 47,
+  "contractStatusChanges": [],
+  "productBranch": "cloud/main-uptime-cron-rules-1",
+  "productHead": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+  "baseHead": "36779a7228727cb38d7180b26c5b5aa656ca1056",
+  "browserAssertionsWidth": 1440,
+  "browserProofWidths": [
+    1440,
+    390
+  ],
+  "contractCountsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "contractCountsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "contractClaim": "CLAIM HEARTBEAT-002 PARTIAL points=none tests=tests/heartbeat-console-support.mjs#proveHeartbeatConsole",
+  "sourceLockSha256": "93b89af3d47d3171fff59317a8643fb1ed9f100970fc88bad22fd461f528a45d"
+}

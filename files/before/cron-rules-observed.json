@@ -1,0 +1,11 @@
+{
+  "summaries": [
+    "Up or down\nRule\nSuccess period + grace 16 min\nMaximum run duration 30 min\nDOWN WHEN\n1 failed check · fails from Misty Peak while canary.runner-target.test still loads there\nBACK UP AFTER\n1 passing check",
+    "Heartbeat receipts\nJob\nsynthetic-uptime-701\nSuccess age limit (period + grace)\n16 min\nIntegration instructions\nIssue heartbeat key\n\nIssuing a key replaces the previous key and clears its receipts. Save the new key when it appears.",
+    "Connect your job\n\nSend a check-in after your job succeeds. The next scheduled check marks it up. If no success arrives within the scheduled time (0 2 * * *, America/New_York) plus 15 min grace, a scheduled check marks it down. Until the first success, it stays Unknown. A private runner must be running.\n\nCreate or replace check-in URL…\n\nJob heartbeat instructions"
+  ],
+  "afterOldPeriod": "Unknown",
+  "periodMs": 60000,
+  "graceMs": 900000,
+  "maximumMs": 1800000
+}

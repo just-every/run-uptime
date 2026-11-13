@@ -1,0 +1,13 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-cron-rules-1",
+  "head": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+  "advertisedHead": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+  "pushGuardCommand": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/main-uptime-cron-rules-1",
+  "observedPush": "PUSH_OK branch=cloud/main-uptime-cron-rules-1",
+  "attempts": 1,
+  "candidateCommitsInspected": 1,
+  "allAuthorsAndCommitters": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "trailers": [],
+  "worktreeClean": true
+}

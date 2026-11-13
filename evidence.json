@@ -1,0 +1,118 @@
+{
+  "files": [
+    {
+      "blob": "2e4c5e79a02e2fc611802235227b33c6852b8d4a",
+      "bytes": 7062,
+      "path": "REPORT.md",
+      "sha256": "64311e5882b4127b84d4fd9d17820925e48483e8a98b46c5b385cb4c6d7e072c"
+    },
+    {
+      "blob": "438b6bf9dc209cecf89016b531df39b739a14f96",
+      "bytes": 315609,
+      "path": "after/cron-job-rules-1440.png",
+      "sha256": "a9cfe59622f18ad10c113b1b041f6af978b60e95ba7174834e76cebc8fd25483"
+    },
+    {
+      "blob": "6db29dfc464b536b9be72d288b473eaa0352f84b",
+      "bytes": 285341,
+      "path": "after/cron-job-rules-390.png",
+      "sha256": "f47b04fd2b8d859ec83f1558aca08b8b01e8ab2126653e6954835722e3c62c78"
+    },
+    {
+      "blob": "cedefb6c77d45f4dbf59a215c619f8f5ab6b1054",
+      "bytes": 1278,
+      "path": "after/cron-rules-observed.json",
+      "sha256": "af76738884b787ec6f60803c5c4cad1aa79a1c7f76f6d5d31e3431bbdf2d84ec"
+    },
+    {
+      "blob": "aa93cdb0d90c5a2d5f4a631c2df594289a782777",
+      "bytes": 641,
+      "path": "after/heartbeat-console.json",
+      "sha256": "c694d975fadbb89f3f9d9c6e44654dad70a1fcbd882040421d2f9e6ba0274225"
+    },
+    {
+      "blob": "2c67b5044e3ddf535d0023c7b14ce9d91044b5bd",
+      "bytes": 999,
+      "path": "baseline-regression.log",
+      "sha256": "cd4c7c1050c776d4e1ebc367527e918a42bda9ff0e3cf2acfdba5869fbd96511"
+    },
+    {
+      "blob": "24d0d39bfd15ca37a7e9247f7f3a6d7df2a5de62",
+      "bytes": 286792,
+      "path": "before/cron-job-rules-1440.png",
+      "sha256": "a24ec7f4ae148682c4a881e8ab48fdd0ee25fa1b8121dc4583f01e6e8584e698"
+    },
+    {
+      "blob": "43af71d2026b58ce6322a10c164fde0506ff5edf",
+      "bytes": 259714,
+      "path": "before/cron-job-rules-390.png",
+      "sha256": "1c5a9e399e5617dd575d576e1f12d3444af97a4a02d30006467286b107c08501"
+    },
+    {
+      "blob": "4bdabfeff0c062f227f0ebd3aa3fd16f3501e49b",
+      "bytes": 969,
+      "path": "before/cron-rules-observed.json",
+      "sha256": "e2c1740b3aa2febb88fcd82ba308bc026b5d41022680f5b6170a7b38967700fa"
+    },
+    {
+      "blob": "533711ad3fe562e46cd91d9be95e25f6153f5549",
+      "bytes": 2227,
+      "path": "ci-receipt.json",
+      "sha256": "b4c287bd9eb972fcd7c8305f278a90311a2e70418832fe3326280114af784162"
+    },
+    {
+      "blob": "4af3a264bdb41cf519587936eb764040e4da0a09",
+      "bytes": 1946,
+      "path": "control-runtime.log",
+      "sha256": "3c9635fcb3f67ceee3a4679fe6f71c15e0afb63d4a24f32a1a168b56e09bb5d3"
+    },
+    {
+      "blob": "030df300659e239c79e3fceb9633ce3cc5708829",
+      "bytes": 1252,
+      "path": "github-calls.json",
+      "sha256": "8eaf2de639924319837d7021dcc067978aeba768b26962361aaad9354803a413"
+    },
+    {
+      "blob": "6540a48619787de1e29512e45aac618c6062cbec",
+      "bytes": 2027,
+      "path": "local-checks.json",
+      "sha256": "e5371dd60c430518af38b4bb196b637abdedd71a59ba06f1bdb56cf53abf37c8"
+    },
+    {
+      "blob": "4b81a8df6a5ee31d6caf662ef4281eb9b3776f59",
+      "bytes": 35380,
+      "path": "public-paths.log",
+      "sha256": "ffdd239f6a9a06fc05ab3b84be8ee0189072c92e16718f27e1bd01c334b3d7cf"
+    },
+    {
+      "blob": "4e681072425e9d286f5163b4878ee7b29f72757e",
+      "bytes": 559,
+      "path": "push-receipt.json",
+      "sha256": "568acac5f617ce0ac1e16920de8a43e141a525237eb149fa86c079c71be78e63"
+    },
+    {
+      "blob": "eba96be78fcc4f0e6d5fe7251e780900150b9b97",
+      "bytes": 1592,
+      "path": "signed-runner.log",
+      "sha256": "a2fdaa81c2cdcf423734fc7c8d2efc78a3dc8511f3e14b3f09a53b27ab524289"
+    },
+    {
+      "blob": "552f477b36a02ac5a9a8ecfe32644d39d2fe97ad",
+      "bytes": 283,
+      "path": "spec-check.log",
+      "sha256": "d7454dbe1a022c44dfe1debda119d5a8ca7d0f09068041fc955096df07516293"
+    },
+    {
+      "blob": "acf343f45a0d9401dcba991345b3267face19822",
+      "bytes": 243,
+      "path": "typecheck.log",
+      "sha256": "725b7e3f3e9ca4145fe3e6ac64bbd07078bc2745c99e07e9d129d01323401f2a"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-cron-rules-1",
+  "product_head": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+  "ref": "refs/heads/evidence/main-uptime-cron-rules-1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-cron-rules-1"
+}
