@@ -1,0 +1,8 @@
+2026-11-13T22:27:15Z gh api repos/just-every/run-uptime/actions/runs/43516474881
+2026-11-13T22:27:33Z gh api repos/just-every/run-uptime/actions/runs/43516474881/jobs?filter=all&per_page=100
+2026-11-13T22:27:46Z gh api --method POST repos/just-every/run-uptime/actions/jobs/132199995867/rerun --include
+2026-11-13T22:28:03Z gh run view 43516474881 --repo just-every/run-uptime --job 132199995867 --log-failed
+2026-11-13T22:33:04Z gh api repos/just-every/run-uptime/actions/runs/43516474881 --jq {id,run_attempt,status,conclusion,head_sha,html_url,updated_at}
+2026-11-13T22:38:04Z gh api repos/just-every/run-uptime/actions/runs/43516474881 --jq {id,run_attempt,status,conclusion,head_sha,html_url,updated_at}
+2026-11-13T22:43:04Z gh api repos/just-every/run-uptime/actions/runs/43516474881 --jq {id,run_attempt,status,conclusion,head_sha,html_url,updated_at}
+2026-11-13T22:43:27Z gh api repos/just-every/run-uptime/actions/runs/43516474881/attempts/2/jobs?per_page=100

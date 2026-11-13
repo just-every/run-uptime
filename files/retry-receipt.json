@@ -1,0 +1,47 @@
+{
+  "type": "job-rerun-request",
+  "repository": "just-every/run-uptime",
+  "failed_sha": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+  "workflow_run": 43516474881,
+  "original_attempt": 1,
+  "original_job": 132199995867,
+  "original_job_name": "shards (push-8)",
+  "precondition": "initial REST run metadata completed/failure run_attempt=1; filter=all job list only attempt-1 jobs",
+  "method": "POST",
+  "endpoint": "repos/just-every/run-uptime/actions/jobs/132199995867/rerun",
+  "requests_made": 1,
+  "http_status": 201,
+  "requested_at": "2026-11-13T22:27:47Z",
+  "post_request_observed_attempt": 2,
+  "status_read": {
+    "conclusion": null,
+    "head_sha": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43516474881",
+    "id": 43516474881,
+    "run_attempt": 2,
+    "status": "in_progress",
+    "updated_at": "2026-11-13T22:27:52Z"
+  },
+  "no_full_workflow_rerun": true,
+  "no_dispatch": true,
+  "no_successful_job_rerun_requested": true,
+  "final_status": {
+    "conclusion": "success",
+    "head_sha": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43516474881",
+    "id": 43516474881,
+    "run_attempt": 2,
+    "status": "completed",
+    "updated_at": "2026-11-13T22:40:34Z"
+  },
+  "retry_job": {
+    "id": 132209791853,
+    "name": "shards (push-8)",
+    "run_attempt": 2,
+    "status": "completed",
+    "conclusion": "success",
+    "runner_name": "GitHub Actions 1000323048",
+    "started_at": "2026-11-13T22:27:51Z",
+    "completed_at": "2026-11-13T22:40:24Z"
+  }
+}

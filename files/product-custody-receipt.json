@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-13T22:36:28Z",
+  "branch": "cloud/sd-uptime-f172-ci-triage-1",
+  "head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "origin_main": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "tracked_status": "",
+  "product_candidate_commits": 0,
+  "identity_inspection_command": "git log origin/main..HEAD --format=\"%an <%ae>%n%cn <%ce>%n%(trailers:only,unfold)\"",
+  "identity_inspection_output": "",
+  "source_changes": 0,
+  "pr_created": false,
+  "product_push": false,
+  "source_lock_changed": false,
+  "release_metadata_changed": false,
+  "main_modified": false,
+  "published_history_rewritten": false,
+  "publication_scan": "Mac fleet scan unavailable; no product candidate or product public push made; evidence files reviewed separately"
+}

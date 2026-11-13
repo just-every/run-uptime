@@ -1,0 +1,42 @@
+{
+  "failed_head": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+  "main_head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "files": [
+    {
+      "path": "tests/network-redirect-cycle-support.mjs",
+      "identical": true,
+      "failed_sha256": "1873d075397b263e22cf92dd3e202da2e5b8415411850b301d55539365f772f6",
+      "main_sha256": "1873d075397b263e22cf92dd3e202da2e5b8415411850b301d55539365f772f6"
+    },
+    {
+      "path": "tests/tls-auth.mjs",
+      "identical": true,
+      "failed_sha256": "e0fac0a4b7c5c6eb1327abc8c7182bcca8dc051decd4e0391dc549e4abe53def",
+      "main_sha256": "e0fac0a4b7c5c6eb1327abc8c7182bcca8dc051decd4e0391dc549e4abe53def"
+    },
+    {
+      "path": "tests/network-redirect-cycle-routing.mjs",
+      "identical": true,
+      "failed_sha256": "4f3b9d9dce92592d857c0cfe916d47927f118e07a1f59845cff15105416474fd",
+      "main_sha256": "4f3b9d9dce92592d857c0cfe916d47927f118e07a1f59845cff15105416474fd"
+    },
+    {
+      "path": "runners/src/clock.mjs",
+      "identical": true,
+      "failed_sha256": "45f5b85fd682a8641aed7d40137c5418d829db0233c0619633c8040948e2a894",
+      "main_sha256": "45f5b85fd682a8641aed7d40137c5418d829db0233c0619633c8040948e2a894"
+    },
+    {
+      "path": "runners/src/runner.mjs",
+      "identical": true,
+      "failed_sha256": "052310a10a6bbc19131ac174530f78fd872148989417cf4b9896d12fc84c6670",
+      "main_sha256": "052310a10a6bbc19131ac174530f78fd872148989417cf4b9896d12fc84c6670"
+    },
+    {
+      "path": "runners/src/probes.mjs",
+      "identical": true,
+      "failed_sha256": "0df4512cf5b5704ae3ce62037b253e0e806d06b587b8795814a13319b717cbd7",
+      "main_sha256": "0df4512cf5b5704ae3ce62037b253e0e806d06b587b8795814a13319b717cbd7"
+    }
+  ]
+}

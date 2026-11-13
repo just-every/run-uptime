@@ -1,0 +1,5 @@
+Checking pinned pnpm
+10.12.4
+Installing frozen dependencies
+Run this project's package scripts with rer run SCRIPT (it uses the pnpm this project pins).
+install: complete (exit 0)

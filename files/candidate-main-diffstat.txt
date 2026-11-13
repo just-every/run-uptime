@@ -1,0 +1,7 @@
+ ACCEPTANCE.md                                 |   2 +
+ CONTRACT.md                                   |   2 +
+ sources.lock.json                             |  12 +-
+ src/agent-door/manual-check-effects.server.ts |   6 +-
+ tests/agent-door.mjs                          |   2 +
+ tests/agent-manual-multiprobe-support.mjs     | 262 ++++++++++++++++++++++++++
+ 6 files changed, 279 insertions(+), 7 deletions(-)

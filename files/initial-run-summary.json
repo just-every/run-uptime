@@ -1,0 +1,14 @@
+{
+  "id": 43516474881,
+  "name": "Verify",
+  "event": "push",
+  "head_branch": "cloud/sd-uptime-c-f172-rebase-e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+  "head_sha": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+  "run_attempt": 1,
+  "status": "completed",
+  "conclusion": "failure",
+  "created_at": "2026-11-13T22:06:20Z",
+  "updated_at": "2026-11-13T22:22:28Z",
+  "run_started_at": "2026-11-13T22:06:20Z",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/43516474881"
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "probe": "failed-head",
+    "phase": "short",
+    "connections": 2,
+    "handshakes": 2,
+    "requests": 2,
+    "duration_ms": 218,
+    "saved_timeout_ms": 3000,
+    "outcome": "pass",
+    "first_receiver_after_start_ms": 47,
+    "last_receiver_before_completion_ms": 66
+  },
+  {
+    "probe": "failed-head",
+    "phase": "cycle",
+    "connections": 6,
+    "handshakes": 6,
+    "requests": 6,
+    "duration_ms": 636,
+    "saved_timeout_ms": 3000,
+    "outcome": "target_failure",
+    "first_receiver_after_start_ms": 47,
+    "last_receiver_before_completion_ms": 67
+  },
+  {
+    "probe": "failed-head",
+    "phase": "restored",
+    "connections": 2,
+    "handshakes": 2,
+    "requests": 2,
+    "duration_ms": 226,
+    "saved_timeout_ms": 3000,
+    "outcome": "pass",
+    "first_receiver_after_start_ms": 45,
+    "last_receiver_before_completion_ms": 70
+  },
+  {
+    "probe": "main",
+    "phase": "short",
+    "connections": 2,
+    "handshakes": 2,
+    "requests": 2,
+    "duration_ms": 218,
+    "saved_timeout_ms": 3000,
+    "outcome": "pass",
+    "first_receiver_after_start_ms": 45,
+    "last_receiver_before_completion_ms": 68
+  },
+  {
+    "probe": "main",
+    "phase": "cycle",
+    "connections": 6,
+    "handshakes": 6,
+    "requests": 6,
+    "duration_ms": 635,
+    "saved_timeout_ms": 3000,
+    "outcome": "target_failure",
+    "first_receiver_after_start_ms": 46,
+    "last_receiver_before_completion_ms": 67
+  },
+  {
+    "probe": "main",
+    "phase": "restored",
+    "connections": 2,
+    "handshakes": 2,
+    "requests": 2,
+    "duration_ms": 225,
+    "saved_timeout_ms": 3000,
+    "outcome": "pass",
+    "first_receiver_after_start_ms": 45,
+    "last_receiver_before_completion_ms": 75
+  }
+]

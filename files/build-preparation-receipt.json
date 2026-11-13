@@ -1,0 +1,32 @@
+{
+  "repository": "just-every/run-uptime",
+  "failed_head": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+  "main_head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "dependency_install": {
+    "command": "pnpm install --frozen-lockfile",
+    "log": "dependency-install.log",
+    "result": "completed; Done in 5.8s using pnpm v10.12.4"
+  },
+  "rer_install": {
+    "command": "pnpm exec rer install",
+    "exit": 0,
+    "log": "rer-install.log"
+  },
+  "failed_head_build": {
+    "command": "npx -y @runeditrun/rer build",
+    "exit": 0,
+    "log": "failed-head-build.log",
+    "completed_at": "2026-11-13T22:31:36Z"
+  },
+  "main_build": {
+    "command": "npx -y @runeditrun/rer build",
+    "exit": 0,
+    "log": "main-build.log",
+    "completed_before_probe_at": "2026-11-13T22:34:20Z"
+  },
+  "runner": "cloud_run subreaper for installs/builds and test subprocesses",
+  "setup": "NOT RUN: test fixtures create and migrate their own isolated Worker state; no dev/browser/owner setup required",
+  "browser": "NOT RUN: the failing command does not launch a browser",
+  "typecheck_and_full_suite": "NOT RUN: read-only triage lease permits only the failing test and required preparation",
+  "changes": "No product/test/contract/lock edits or commits"
+}

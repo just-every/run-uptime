@@ -1,0 +1,18 @@
+{
+  "label": "main",
+  "head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "command": [
+    "node",
+    "tests/tls-auth.mjs"
+  ],
+  "started_at": "2026-11-13T22:34:20Z",
+  "completed_at": "2026-11-13T22:36:11Z",
+  "exit_code": 0,
+  "node": "v22.20.0",
+  "pnpm": "10.12.4",
+  "canonical_temp": true,
+  "private_home": false,
+  "same_github_runner": false,
+  "probe_log": "main-probe.log",
+  "redirect_receipt": "main-redirect-receipt.json"
+}

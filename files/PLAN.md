@@ -1,0 +1,10 @@
+# CI triage plan
+
+Scope: just-every/run-uptime; failed candidate e6b5aab6aeaa68f6b6317e1701f157e0405961ca, run 43516474881 attempt 1, job 132199995867 (shards push-8). Read-only tests/network-redirect-cycle-support.mjs probe; no product, test, contract, release, tag, main, landing or hold changes. No repair writer or subagents.
+
+1. Read launcher and repository guidance, record current run attempt and jobs once. If no retry exists, request exactly one supported job rerun; never rerun successful jobs, dispatch a workflow, or rerun the full workflow.
+2. Save the actual HTTP rerun receipt. Read completed original failed-job assertions once with the supported gh archive command. Use one REST status observer with at least 300 seconds between observations, within ten GitHub calls.
+3. Clone the declared repository shallow and create the named local task branch from actual main. Read test and workflow preparation. Record actual main SHA and environment without secrets. Fetch failed candidate branch if needed. Preserve original assertions.
+4. Run only node tests/tls-auth.mjs and necessary compilation/preparation on failed SHA and current main. Keep failed-head evidence before any repair recommendation. Do not run full verification or intentionally stress the machine. Record commands, UTC stamps, exit status, test output and environment differences from GitHub Actions; cloud reproduction cannot establish same-runner proof.
+5. Record retry outcome and classification without claiming a flake or product defect from an unreproduced timing assertion. Route main failure or known infrastructure to fv; candidate-only reproduction to sd with a proposed minimal repair lease; report non-reproduction honestly.
+6. Write complete non-secret report and receipts outside the product tree, explicitly review/select them, and publish only to evidence/sd-uptime-f172-ci-triage-1 with cloud_evidence.py. No product commits, push, PR or READY status. Remove the owned clone and dependencies after evidence publication; stop only owned processes if any.

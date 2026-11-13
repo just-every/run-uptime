@@ -1,0 +1,9 @@
+{
+  "command": "gh run view 43516474881 --repo just-every/run-uptime --job 132199995867 --log-failed",
+  "calls": 1,
+  "result": "unavailable",
+  "diagnostic": "run 43516474881 is still in progress; logs will be available when it is complete",
+  "http_status": "not supplied",
+  "archive_read": false,
+  "note": "Original workflow was completed when initial metadata was read, but the supported job rerun made its run active before this log command. No archive/blob retry was made. Assertion/stack details remain assignment evidence, not independently downloaded original logs."
+}

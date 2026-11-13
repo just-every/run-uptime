@@ -1,0 +1,14 @@
+{
+  "reviewed_at": "2026-11-13T22:38:00Z",
+  "regular_files_only": true,
+  "credential_shape_flags": [],
+  "review": "Explicit reports, hashes, API/job/HTTP receipts, synthetic fixture receipts, whitelisted runtime/platform information and build/test logs only. No credential file, inherited environment dump, private held-out material or symlink. Secret-shape scan clean and report reviewed for unsupported conclusions.",
+  "node_or_workerd_processes_remaining": [],
+  "test_root_pids_from_logs": [
+    1393,
+    2015
+  ],
+  "cleanup_method": "Test fixtures cleanup their servers; cloud_run subreaper settled all child processes. No broad process termination is used.",
+  "final_review_at": "2026-11-13T22:43:48Z",
+  "files_reviewed": 38
+}

@@ -1,0 +1,15 @@
+{
+  "stamp": "2026-11-13T22:31:26Z",
+  "head": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+  "os": "PRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\nNAME=\"Debian GNU/Linux\"\nVERSION_ID=\"13\"\nVERSION=\"13 (trixie)\"\nVERSION_CODENAME=trixie\nDEBIAN_VERSION_FULL=13.6\nID=debian\nHOME_URL=\"https://www.debian.org/\"\nSUPPORT_URL=\"https://www.debian.org/support\"\nBUG_REPORT_URL=\"https://bugs.debian.org/\"\n",
+  "kernel": "Linux 6.18.57 x86_64",
+  "node": "v22.20.0",
+  "pnpm": "10.12.4",
+  "openssl": "OpenSSL 3.5.7 9 Jun 2026 (Library: OpenSSL 3.5.7 9 Jun 2026)",
+  "CI": "true",
+  "WRANGLER_SEND_METRICS": "false",
+  "PLAYWRIGHT_SKIP_BROWSER_GC": "1",
+  "same_github_runner": false,
+  "browser_required": false,
+  "upstream_main_at_clone": "954353ad135f144d54f8e37013d6341a19a98e16"
+}

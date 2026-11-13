@@ -1,0 +1,212 @@
+{
+  "observed_at": "2026-11-13T22:43:30Z",
+  "repository": "just-every/run-uptime",
+  "run": {
+    "conclusion": "success",
+    "head_sha": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43516474881",
+    "id": 43516474881,
+    "run_attempt": 2,
+    "status": "completed",
+    "updated_at": "2026-11-13T22:40:34Z"
+  },
+  "rerun_job": {
+    "id": 132209791853,
+    "name": "shards (push-8)",
+    "run_attempt": 2,
+    "status": "completed",
+    "conclusion": "success",
+    "started_at": "2026-11-13T22:27:51Z",
+    "completed_at": "2026-11-13T22:40:24Z",
+    "runner_name": "GitHub Actions 1000323048",
+    "labels": [
+      "ubuntu-24.04"
+    ],
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-13T22:27:52Z",
+        "completed_at": "2026-11-13T22:27:54Z"
+      },
+      {
+        "name": "Set runner-owned browser cache",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-13T22:27:54Z",
+        "completed_at": "2026-11-13T22:27:54Z"
+      },
+      {
+        "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-13T22:27:54Z",
+        "completed_at": "2026-11-13T22:27:58Z"
+      },
+      {
+        "name": "Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-13T22:27:58Z",
+        "completed_at": "2026-11-13T22:27:59Z"
+      },
+      {
+        "name": "Set runner-owned pnpm store",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-13T22:27:59Z",
+        "completed_at": "2026-11-13T22:28:00Z"
+      },
+      {
+        "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-13T22:28:00Z",
+        "completed_at": "2026-11-13T22:28:05Z"
+      },
+      {
+        "name": "Check edition source lock freshness",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-13T22:28:05Z",
+        "completed_at": "2026-11-13T22:28:06Z"
+      },
+      {
+        "name": "Cache runner-owned dependencies and browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-13T22:28:06Z",
+        "completed_at": "2026-11-13T22:28:11Z"
+      },
+      {
+        "name": "Run pnpm install --frozen-lockfile",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-11-13T22:28:11Z",
+        "completed_at": "2026-11-13T22:28:17Z"
+      },
+      {
+        "name": "Run pnpm exec rer install",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-13T22:28:17Z",
+        "completed_at": "2026-11-13T22:28:22Z"
+      },
+      {
+        "name": "Prepare runner-owned browser and apt caches",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-13T22:28:22Z",
+        "completed_at": "2026-11-13T22:28:22Z"
+      },
+      {
+        "name": "Install browsers and probe bundled engines",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-13T22:28:22Z",
+        "completed_at": "2026-11-13T22:28:24Z"
+      },
+      {
+        "name": "Download this run's shared verification build",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-11-13T22:28:24Z",
+        "completed_at": "2026-11-13T22:28:25Z"
+      },
+      {
+        "name": "Validate and restore the exact build",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-11-13T22:28:25Z",
+        "completed_at": "2026-11-13T22:28:25Z"
+      },
+      {
+        "name": "Prepare canonical temporary directory",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-11-13T22:28:25Z",
+        "completed_at": "2026-11-13T22:28:25Z"
+      },
+      {
+        "name": "Run this shard",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-11-13T22:28:25Z",
+        "completed_at": "2026-11-13T22:40:20Z"
+      },
+      {
+        "name": "Retain browser suite logs of a failed shard",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 17,
+        "started_at": "2026-11-13T22:40:20Z",
+        "completed_at": "2026-11-13T22:40:20Z"
+      },
+      {
+        "name": "Post Cache runner-owned dependencies and browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 31,
+        "started_at": "2026-11-13T22:40:20Z",
+        "completed_at": "2026-11-13T22:40:20Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 32,
+        "started_at": "2026-11-13T22:40:20Z",
+        "completed_at": "2026-11-13T22:40:20Z"
+      },
+      {
+        "name": "Post Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 33,
+        "started_at": "2026-11-13T22:40:20Z",
+        "completed_at": "2026-11-13T22:40:20Z"
+      },
+      {
+        "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 34,
+        "started_at": "2026-11-13T22:40:20Z",
+        "completed_at": "2026-11-13T22:40:20Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 35,
+        "started_at": "2026-11-13T22:40:20Z",
+        "completed_at": "2026-11-13T22:40:20Z"
+      }
+    ]
+  },
+  "github_commands_used": 8,
+  "github_budget": 10,
+  "polling": "One observer; actual UTC calls are in github-calls.txt. Status reads were separated by at least 300 seconds; initial job details, the one job-rerun request, one log request and final job details were separate read/action operations. No bare watcher or API polling loop was used.",
+  "classification": "Original failure unreproduced in single authorized shard retry and in one original-command local probe each on failed head and main. No flake/product/known-infrastructure cause established.",
+  "source_changes": 0,
+  "product_ready": "not applicable",
+  "aggregate_verify_job": 132215572665,
+  "carried_successes": "Attempt-2 jobs endpoint re-exposes prior successes with new IDs and original attempt-1 timestamps/runners; they were not rerun by this task. Only shard push-8 and downstream proof/aggregate jobs have fresh execution times."
+}

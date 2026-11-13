@@ -1,0 +1,23 @@
+{
+  "source": "CONTRACT.md clause status table",
+  "main_sha": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "total": 115,
+  "clause_status_changes": [],
+  "tests_added": 0,
+  "tests_removed": 0,
+  "tests_edited": 0,
+  "product_commits": 0,
+  "product_pushes": 0,
+  "pr": null,
+  "notes": "No suite-wide test count audit or suite execution; test registrations unchanged."
+}

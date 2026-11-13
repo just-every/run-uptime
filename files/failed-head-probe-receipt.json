@@ -1,0 +1,18 @@
+{
+  "label": "failed-head",
+  "head": "e6b5aab6aeaa68f6b6317e1701f157e0405961ca",
+  "command": [
+    "node",
+    "tests/tls-auth.mjs"
+  ],
+  "started_at": "2026-11-13T22:31:58Z",
+  "completed_at": "2026-11-13T22:33:49Z",
+  "exit_code": 0,
+  "node": "v22.20.0",
+  "pnpm": "10.12.4",
+  "canonical_temp": true,
+  "private_home": false,
+  "same_github_runner": false,
+  "probe_log": "failed-head-probe.log",
+  "redirect_receipt": "failed-head-redirect-receipt.json"
+}
