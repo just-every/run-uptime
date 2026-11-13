@@ -1,0 +1,132 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:4700) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+PROBE OPS-001 stale-coverage: owner overview after assigned runner loss -> Stale contact and Unknown target, Incomplete coverage, original denominator and observation identity; zero new target requests
+PROBE OPS-001 persisted-restart: same D1 and clock, restarted Worker -> identical stale contact and signed history, no trigger, recovery or replacement traffic
+PROBE OPS-001 resumed-due-runner: production runner signed due result -> Fresh contact and Healthy Complete coverage, exactly one new check, retained original history, no alert events
+PROBE OPS-001 healthy-digest-accepted: signed scheduled Healthy evidence and Fresh contact -> one accepted provider digest with durable window and attempt, no duplicate across repeated schedules and persistent restart; unchanged history, incidents and target traffic
+PROBE OPS-001 healthy-digest-interrupted: stop Worker after provider observation before acceptance, restart past saved lease within same window and fresh contact and health -> original attempt uncertain without replay, unchanged target evidence and incidents
+PROBE OPS-001 healthy-digest-empty: independent untouched installation and window -> no healthy digest or digest attempt across schedules and restart; unchanged history, incidents and target traffic
+PROBE OPS-001 healthy-digest-paused: independent untouched installation and window -> no healthy digest or digest attempt across schedules and restart; unchanged history, incidents and target traffic
+PROBE OPS-001 healthy-digest-stale-contact: independent untouched installation and window -> no healthy digest or digest attempt across schedules and restart; one legitimate stale-contact notice; unchanged history, incidents and target traffic
+PROBE OPS-001 healthy-digest-unknown: independent untouched installation and window -> no healthy digest or digest attempt across schedules and restart; unchanged history, incidents and target traffic
+PROBE OPS-001 healthy-digest-nonpassing: independent untouched installation and window -> no healthy digest or digest attempt across schedules and restart; unchanged history, incidents and target traffic
+PROBE STARTUP-001 acceptance-1 UPTIME_CONTROL_ORIGIN missing: private-runner command -> nonzero, named value-free diagnostic, zero traffic, unchanged database and empty custody
+PROBE STARTUP-001 acceptance-2 UPTIME_CONTROL_ORIGIN missing: corrected command in the same directory -> authenticated enrollment 200, idle claim 200, clean exit 0, no target work
+PROBE STARTUP-001 acceptance-1 UPTIME_CONTROL_ORIGIN malformed: private-runner command -> nonzero, named value-free diagnostic, zero traffic, unchanged database and empty custody
+PROBE STARTUP-001 acceptance-2 UPTIME_CONTROL_ORIGIN malformed: corrected command in the same directory -> authenticated enrollment 200, idle claim 200, clean exit 0, no target work
+PROBE STARTUP-001 acceptance-1 UPTIME_RUNNER_KEY missing: private-runner command -> nonzero, named value-free diagnostic, zero traffic, unchanged database and empty custody
+PROBE STARTUP-001 acceptance-2 UPTIME_RUNNER_KEY missing: corrected command in the same directory -> authenticated enrollment 200, idle claim 200, clean exit 0, no target work
+PROBE STARTUP-001 acceptance-1 UPTIME_RUNNER_KEY malformed: private-runner command -> nonzero, named value-free diagnostic, zero traffic, unchanged database and empty custody
+PROBE STARTUP-001 acceptance-2 UPTIME_RUNNER_KEY malformed: corrected command in the same directory -> authenticated enrollment 200, idle claim 200, clean exit 0, no target work
+Resilience watch: fresh authenticated contact confirmed; stopping Worker
+Runner discovery poll failed (local error); polling again.
+Runner notification operation failed (local error); the next poll retries it.
+Resilience watch: Worker stopped; waiting for independent notices
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Resilience watch: accepted retry and repeat confirmed; restarting persisted Worker
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Runner poll failed; watching independently for loss of contact.
+Runner notification operation failed (local error); the next poll retries it.
+Resilience watch: persisted Worker ready; waiting for recovery notice
+Resilience watch: accepted recovery confirmed
+Resilience watch: joining runner and disposing resumed Worker
+Resilience watch: runner settled; disposing resumed Worker
+Resilience watch: closing fixture and notice receiver
+Resilience watch: all owned resources closed
+# Subtest: Recover monitoring across runner and Worker crashes without replaying uncertain sends
+ok 1 - Recover monitoring across runner and Worker crashes without replaying uncertain sends
+  ---
+  duration_ms: 81954.347954
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 81959.381126

@@ -1,0 +1,65 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-c-f174",
+  "head": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+  "checks": [
+    {
+      "name": "watches",
+      "command": [
+        "timeout",
+        "-k",
+        "10",
+        "1200",
+        "node",
+        "tests/resilience/watches.mjs"
+      ],
+      "head": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+      "exit": 0,
+      "seconds": 83.196,
+      "log": "watches.log",
+      "sha256": "b46af3a7adae0a64345a21e83c78db27a17ab05401ad54c70cb4f3ec609192c6"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "pnpm",
+        "run",
+        "typecheck"
+      ],
+      "head": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+      "exit": 0,
+      "seconds": 7.851,
+      "log": "typecheck.log",
+      "sha256": "0833c1417ab4a7db95f27de41372494fe09f6a5140ed353b7cc65b8c03159464"
+    },
+    {
+      "name": "source-lock",
+      "command": [
+        "node",
+        "scripts/edition-authoring/cli.mjs",
+        "check"
+      ],
+      "head": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+      "exit": 0,
+      "seconds": 0.422,
+      "log": "source-lock.log",
+      "sha256": "5589fec6bdf48f57b27ff1c1f9a16b6cc2037351b138dc84ebc321d9e712e2ac"
+    },
+    {
+      "name": "first-party",
+      "command": [
+        "npx",
+        "-y",
+        "@runeditrun/rer",
+        "check",
+        "--profile",
+        "first-party"
+      ],
+      "head": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+      "exit": 0,
+      "seconds": 1.075,
+      "log": "first-party.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

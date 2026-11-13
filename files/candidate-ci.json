@@ -1,0 +1,34 @@
+{
+  "head": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+  "observed_at_epoch": 1794609186.2222607,
+  "gh_calls": 6,
+  "runs": [
+    {
+      "id": 43519460798,
+      "name": "Verify",
+      "status": "completed",
+      "conclusion": "failure",
+      "event": "push",
+      "head_sha": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43519460798"
+    }
+  ],
+  "discovery": [
+    {
+      "id": 43519460798,
+      "name": "Verify",
+      "status": "queued",
+      "conclusion": null,
+      "event": "push",
+      "head_sha": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43519460798"
+    }
+  ],
+  "classification": "expected generated-view freshness failure; guarded lander regenerates views",
+  "failed_jobs": [
+    132209861028,
+    132210130880
+  ],
+  "new_proof_run_in_ci": false,
+  "exact_head_local_checks_passed": true
+}

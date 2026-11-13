@@ -1,0 +1,12 @@
+[
+  {
+    "file": "ci-build-failed.log",
+    "filter": "GitHub log environment block omitted; command and actual failure output retained",
+    "retained_sha256": "35860fe0c88bdf3d0458b56bbd22dfc6ba24a1b7938a5648ae6b568109b3a10d"
+  },
+  {
+    "file": "ci-aggregate-failed.log",
+    "filter": "GitHub log environment block omitted; command and actual failure output retained",
+    "retained_sha256": "4929afb6021646d623391658e729385d936273fd8083f1a2fafc705683c2cdde"
+  }
+]

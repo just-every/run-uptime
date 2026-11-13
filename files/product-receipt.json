@@ -1,0 +1,51 @@
+{
+  "head": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+  "base": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "files": {
+    "CONTRACT.md": {
+      "sha256": "15145d9425bbeedd7716aaa06134e91aedbcc8f76c0ef93847220175fc4f9ca5",
+      "bytes": 319805
+    },
+    "sources.lock.json": {
+      "sha256": "1238522bb506e389db6810eb5f75d7c28b6f3e5313d0192409372ccb412be804",
+      "bytes": 420652
+    },
+    "tests/ops-healthy-digest-support.mjs": {
+      "sha256": "d9e17209946c20a03458c50004580e27491736aaa723b228d832f99b25ecd6d9",
+      "bytes": 18023
+    },
+    "tests/resilience/watches.mjs": {
+      "sha256": "b5023e81d46ac928ef998d6d4729fd807c916042584e1df29f00314520c57515",
+      "bytes": 14921
+    }
+  },
+  "protected_files_unchanged": [
+    "src/domain/monitoring-watch.server.ts",
+    "src/domain/auxiliary-execution.server.ts",
+    "src/server.ts",
+    "src/domain/attempts.server.ts",
+    "management/integration/deployment-spec.json",
+    "tests/signed-runner-runtime.mjs",
+    "tests/signed-runner-routing.mjs",
+    "tests/mfa-auth-support.mjs",
+    "tests/auth-test-support.mjs"
+  ],
+  "status_table_unchanged": true,
+  "generated_views_restored": true,
+  "registration_count_before": 1,
+  "registration_count_after": 1,
+  "journey_commands_before": 47,
+  "journey_commands_after": 47,
+  "clause_counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clause_counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "publication_scan": "not run in cloud; guarded lander responsibility",
+  "pr": null
+}

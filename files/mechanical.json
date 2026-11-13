@@ -1,0 +1,77 @@
+{
+  "head": "7340cf3ec4d99c9b6c20d3b3940e7c01e5a9353e",
+  "checks": [
+    {
+      "name": "views-write",
+      "command": [
+        "node",
+        "src/base/contract-docs.mjs",
+        "write"
+      ],
+      "exit": 0,
+      "log": "views-write.log",
+      "sha256": "df91012bf66fb476e9cd1a30c002829398beb55f869e07cc7be477197fa5a276"
+    },
+    {
+      "name": "views-check",
+      "command": [
+        "node",
+        "src/base/contract-docs.mjs",
+        "check"
+      ],
+      "exit": 0,
+      "log": "views-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "name": "views-restore",
+      "command": [
+        "git",
+        "checkout",
+        "origin/main",
+        "--",
+        "ACCEPTANCE.md",
+        "docs/CLAIMS.md"
+      ],
+      "exit": 0,
+      "log": "views-restore.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lock-write",
+      "command": [
+        "node",
+        "scripts/edition-authoring/cli.mjs",
+        "lock"
+      ],
+      "exit": 0,
+      "log": "lock-write.log",
+      "sha256": "dade295d8f1c010215149565b1541751be7e29fc068a148ae6c5df0f1fa3ea51"
+    },
+    {
+      "name": "lock-check",
+      "command": [
+        "node",
+        "scripts/edition-authoring/cli.mjs",
+        "check"
+      ],
+      "exit": 0,
+      "log": "lock-check.log",
+      "sha256": "5589fec6bdf48f57b27ff1c1f9a16b6cc2037351b138dc84ebc321d9e712e2ac"
+    },
+    {
+      "name": "restored-main-views-check",
+      "command": [
+        "node",
+        "src/base/contract-docs.mjs",
+        "check"
+      ],
+      "exit": 1,
+      "expected": 1,
+      "log": "restored-views.log"
+    }
+  ],
+  "migration_ledger": "not applicable; no migration added or edited",
+  "product_tree_clean": true,
+  "generated_views_committed": false
+}
