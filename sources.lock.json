@@ -9447,6 +9447,14 @@
       "sha256": "b829d72d3cd8230286b86d1f1e408db4d907aa94d81a6a50fcdcf4b70efcd68e",
       "executable": false
     },
+    "tests/network-rebinding-routing.mjs": {
+      "sha256": "fcb1dfda23f964ebae0b797f8c1aeeb980a8fb62d44563b215b4b170e9af1b06",
+      "executable": false
+    },
+    "tests/network-rebinding-support.mjs": {
+      "sha256": "ce819895796029acf3161dc1eca6e48069c3b380f5b29c8ca054b4295daef1c1",
+      "executable": false
+    },
     "tests/network-redirect-cycle-routing.mjs": {
       "sha256": "4f3b9d9dce92592d857c0cfe916d47927f118e07a1f59845cff15105416474fd",
       "executable": false
