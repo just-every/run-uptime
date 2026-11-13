@@ -1,9 +1,11 @@
 // DEPENDENCY-002: the live check that runs before a catalog entry is followed. The owner's runner (or, in a hosted demo,
 // the Worker) reads each source address the catalog names with the catalog's status-source reader (reader/read.mjs) and
 // reports derived facts only: whether the source answered, whether it still has the shape the catalog expects, what it states
-// now, and the provider's own id for a component or product. No body, header or address other than the catalog's own leaves it.
+// now, and the provider's own id for a component or product. The sole owner-data exception is the reviewed Auth0 tenant
+// query (authorization.mjs). No raw body, header or owner-supplied destination leaves the reader.
 import {CATALOG_VERSION, catalogEntry, needsProviderId, targetsFor} from './index.mjs';
 import {readParts} from './parts.mjs';
+import {validateAuth0Spec} from './authorization.mjs';
 import {CHECK_PROBLEMS, statusSourceReader} from './reader/read.mjs';
 export {CHECK_PROBLEMS};
 // The owner's selection as a job spec: only the catalog entry and which of its parts, never an address.
@@ -16,6 +18,15 @@ export function catalogSpec(input) {
   return spec;
 }
 export async function checkCatalogSource(spec, {transport, signal, now = Date.now}) {
+  if (spec?.entry === 'auth0') {
+    const disclosure = validateAuth0Spec(spec, CATALOG_VERSION), started = now();
+    const document = await statusSourceReader({transport, signal})(disclosure.url, 'rss');
+    // Transport and feed shape can be checked; no Auth0 status semantic is qualified.
+    // Even an empty feed or one saying Operational cannot authorize a follow.
+    return {entry: 'auth0', catalogVersion: CATALOG_VERSION, checkedAt: now(), ok: false,
+      problem: document.problem ?? 'shape', detail: document.detail ?? (document.result ? 'Auth0 status interpretation is not qualified. The provider status remains Unknown; nothing was followed.' : 'The source answered without a usable RSS feed. The provider status remains Unknown.'),
+      requests: 1, durationMs: now() - started, targets: [], authorization: spec.authorization};
+  }
   const started = now(), entry = catalogEntry(spec.entry), targets = targetsFor(entry, spec), reader = statusSourceReader({transport, signal});
   let requests = 0;
   const outcome = await readParts(entry, targets, (...document) => { requests++; return reader(...document); });
@@ -28,10 +39,15 @@ const text = (value, max) => value === null || typeof value === 'string' && valu
 // What the Worker accepts back from a runner for a catalog check.
 export function validateCatalogCheck(value, spec) {
   const bad = where => { throw Error(`Invalid catalog check result: ${where}`); };
-  if (!plain(value) || Object.keys(value).sort().join() !== KEYS.slice().sort().join()) bad('fields');
+  if (!plain(value) || Object.keys(value).sort().join() !== [...KEYS, ...(spec.entry === 'auth0' ? ['authorization'] : [])].sort().join()) bad('fields');
   if (value.entry !== spec.entry || value.catalogVersion !== CATALOG_VERSION) bad('entry or catalog version');
   if (!Number.isSafeInteger(value.checkedAt) || !Number.isInteger(value.requests) || value.requests < 0 || value.requests > 13 || !Number.isInteger(value.durationMs) || value.durationMs < 0) bad('counts');
   if (typeof value.ok !== 'boolean' || !(value.problem === null || CHECK_PROBLEMS.includes(value.problem)) || (value.problem === null) !== value.ok || !text(value.detail, 200) || (value.ok ? value.detail !== null : !value.detail)) bad('outcome');
+  if (spec.entry === 'auth0') {
+    validateAuth0Spec(spec, CATALOG_VERSION);
+    if (value.ok || value.requests !== 1 || !Array.isArray(value.targets) || value.targets.length || JSON.stringify(value.authorization) !== JSON.stringify(spec.authorization)) bad('Auth0 reviewed binding or unqualified status');
+    return value;
+  }
   const entry = catalogEntry(spec.entry), wanted = targetsFor(entry, spec);
   if (!Array.isArray(value.targets) || value.targets.length !== (value.ok ? wanted.length : 0)) bad('targets');
   for (const [index, target] of value.targets.entries()) {

@@ -11,7 +11,7 @@ function showHeartbeatKey(m,result){
  let token=result.token;
  const dialog=document.createElement('dialog');dialog.className='editor notification-dialog secret-dialog heartbeat-key-dialog';dialog.setAttribute('aria-labelledby','heartbeat-key-title');
  const title=document.createElement('h2');title.id='heartbeat-key-title';title.textContent=`Heartbeat key · ${m.definition.name}`;
- const note=document.createElement('p');note.textContent=`Shown once. Save this key privately. It replaces every previous key and starts revision ${result.revision}; send increasing sequences starting at 1.`;
+ const note=document.createElement('p');note.textContent=`Shown once. Save this key privately. It replaces every previous key and clears earlier receipts. Send increasing sequences starting at 1.`;
  const label=document.createElement('p');label.textContent='Heartbeat key';
  const key=document.createElement('code');key.className='one-time-secret';key.textContent=token;
  const command=document.createElement('pre');command.className='one-time-secret';command.tabIndex=0;command.setAttribute('aria-label','Heartbeat command');

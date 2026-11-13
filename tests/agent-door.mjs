@@ -1,10 +1,12 @@
 import {proveAgentRevocationAudit} from './agent-revocation-audit-support.mjs';
 import {proveDestinationNameEffects} from './agent-destination-name-support.mjs';
+import {proveCommentEditing} from './agent-comment-edit-support.mjs';
 import {proveCommentDeletion} from './agent-comment-delete-support.mjs';
 import {checkAgentArtifacts} from '../src/base/modules/agent-door/index.ts';
 import {uptimeAgentArtifacts} from '../src/agent-door/erasure.server.ts';
 import {proveSavedEmailDestinationFacts} from './agent-destination-facts-support.mjs';
 import {proveManualDebt} from './agent-manual-debt-support.mjs';
+import {proveManualMultiCleanup} from './agent-manual-multicleanup-support.mjs';
 import {proveAgentSurfaceDiscovery} from './agent-surface-discovery.mjs';
 import {provePolicyEntry} from './agent-policy-entry-support.mjs';
 import {nativeDoorBrowser} from './agent-door-browser.mjs';
@@ -229,6 +231,7 @@ try{
  // through the native sign-in and second-factor doors before owner role writes.
  cookie=await emailSignIn(origin,{bindings});c.person.cookie=cookie;
  await proveCommentDeletion({c,native,db,proof,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
+ await proveCommentEditing({c,native,db,providerRequests,reviewer:{id:reviewerId,sub:reviewerSub,cookie:reviewerCookie}});
  await proveSavedEmailDestinationFacts({c,native,db,sponsorId:sponsor.id});
  const destination=await native('/api/notifications/destinations',{name:'Checkout incident webhook',kind:'webhook',url:'https://notifications.example.com/checkout'});
  const notificationArgs={id:destination.id,idempotency_key:randomUUID()};
@@ -315,6 +318,7 @@ try{
  assert.deepEqual((await result('uptime.evidence.witness')).result.structuredContent,erasedWitness);
  console.log('PASS BASE-AGENT-012.uptime.deleted-target-current-admission');
  await proveManualDebt({c,db,origin,cookie,proof});
+ await proveManualMultiCleanup({c,db,origin,cookie,proof,providerRequests});
  await proof.capture('agents-final','/agents');await proof.close();proof=null;
  const pullClaims=()=>({v:1,iss:issuer,aud:origin,sub:installationId,business,after:0,limit:200,iat:seconds(),exp:seconds()+60,jti:randomUUID()});
  const pull=async(claims=pullClaims(),privateKey=pair.privateKey)=>call('/api/rer/agent-decisions',{pull:await signJws(privateKey,kid,'rer-agent-decisions+jwt',claims)});

@@ -1,3 +1,4 @@
+import {keyUsage} from './key-usage.js';
 import {authenticatorEnrollment} from './authenticator-enrollment.js';
 const reasons={
  invalid_factor_response:"That code didn't match. Use the newest code from your app.",
@@ -78,8 +79,10 @@ export function securityControls(host,transport){
  host.addEventListener('submit',event=>place(event.target.querySelector('button')),true);
  const outcome=(text,block='nearest')=>{status.textContent=text;status.scrollIntoView({block})};
  const error=problem=>{outcome(problem.readable?problem.message:'This action could not finish. Try again.')};
- const run=async action=>{if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
- const shownOnce=(title,value)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,done);once.scrollIntoView({block:'nearest'});done.focus()};
+ // Startup reads must finish before an action runs, without consuming the
+ // mutation guard and silently discarding a click on an already visible control.
+ const run=async action=>{await initialized;if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
+ const shownOnce=(title,value,help)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,...(help?[help]:[]),done);once.scrollIntoView({block:'nearest'});done.focus()};
  const showCodes=result=>{if(result.recoveryCodes)shownOnce('Save these ten recovery codes once',result.recoveryCodes)};
  const continueEnrollment=async result=>{if(!pendingAction)return;if(result.recoveryCodes){once.querySelector('button').onclick=()=>{once.replaceChildren();void run(verified)}}else await verified()};
  async function factorState(){
@@ -123,7 +126,7 @@ export function securityControls(host,transport){
  const scopeLabel=scopes=>scopes.includes('monitoring:read')?'Monitoring read':scopes.includes('definitions:apply')?'CI preview and apply':'CI preview';
  const fields=()=>{const ci=keyForm.elements.scope.value!=='monitoring:read';if(ci)keyForm.elements.mode.value='selection';keyForm.elements.mode.disabled=ci;const selected=keyForm.elements.mode.value==='selection';host.querySelector('[data-monitor-selection]').hidden=ci||!selected;host.querySelector('[data-tag-selection]').hidden=!ci||!selected;host.querySelector('[data-ci-environment]').hidden=!ci};
  keyForm.elements.scope.onchange=fields;keyForm.elements.mode.onchange=fields;fields();
- keyForm.onsubmit=event=>{event.preventDefault();const v=keyForm.elements;const ci=v.scope.value!=='monitoring:read',input={name:v.name.value,scopes:ci?v.scope.value==='ci-apply'?['definitions:preview','definitions:apply']:['definitions:preview']:['monitoring:read'],expiresAt:new Date(v.expiry.value).getTime(),resources:{mode:v.mode.value,monitorIds:ci||v.mode.value==='workspace'?[]:Array.from(keyForm.querySelectorAll('[name=monitorIds]:checked'),o=>o.value),tags:v.mode.value==='workspace'?[]:ci?lines(v.tags.value):[]},...(ci?{environment:v.environment.value}:{})};void run(()=>fresh(async()=>{const result=await api('/api/credentials','POST',input);shownOnce('Copy this key once',result.token);status.textContent='Key created. The token cannot be read again.';await keyList()}))};
+ keyForm.onsubmit=event=>{event.preventDefault();const v=keyForm.elements;const ci=v.scope.value!=='monitoring:read',input={name:v.name.value,scopes:ci?v.scope.value==='ci-apply'?['definitions:preview','definitions:apply']:['definitions:preview']:['monitoring:read'],expiresAt:new Date(v.expiry.value).getTime(),resources:{mode:v.mode.value,monitorIds:ci||v.mode.value==='workspace'?[]:Array.from(keyForm.querySelectorAll('[name=monitorIds]:checked'),o=>o.value),tags:v.mode.value==='workspace'?[]:ci?lines(v.tags.value):[]},...(ci?{environment:v.environment.value}:{})};void run(()=>fresh(async()=>{const result=await api('/api/credentials','POST',input);shownOnce('Copy this key once',result.token,keyUsage(ci));status.textContent='Key created. The token cannot be read again.';await keyList()}))};
  async function keyList(){
   const list=host.querySelector('[data-key-list]');
   try{if(!owner){list.textContent='Only the owner manages keys.';return}const keys=await api('/api/credentials');if(!host.isConnected)return;list.replaceChildren();
@@ -134,6 +137,7 @@ export function securityControls(host,transport){
    }
   }catch(problem){list.textContent=problem.readable?problem.message:'Keys could not be loaded. Refresh and try again.'}
  }
- void run(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()}).then(()=>{if(new URLSearchParams(location.search).get('enroll')==='authenticator'){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.click()}});
+ const initialized=(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()})().catch(error);
+ void initialized.then(()=>{if(new URLSearchParams(location.search).get('enroll')==='authenticator'){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.click()}});
  return {request:async(path,method,body)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;return new Promise((resolve,reject)=>{void fresh(async()=>{try{resolve(await api(path,method,body))}catch(error){reject(error)}}).catch(reject)})}}};
 }

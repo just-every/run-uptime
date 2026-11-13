@@ -1,3 +1,4 @@
+import {archiveTransfer} from './domain/archive-transfer.server.ts'
 import {scheduledDrills} from './domain/alert-drill-scheduler.server.ts'
 import {drillReminderInbox,saveDrillConsent,revokeDrillConsent,drillScheduleView,declineDrillProposal} from './domain/alert-drill-schedules.server.ts'
 import {expireReplayCalls} from './base/modules/agent-door/index.ts'
@@ -116,6 +117,7 @@ import {session,overview,save,get,claim,complete,history,revisions,archive,resto
 import {checkInput,InputError} from './domain/request-boundary.ts'
 const api=new Hono<{Bindings:Bindings;Variables:{requestText:string;input:any;runner:Runner;access:Access;systemBindings:Bindings}}> ()
 api.get('/health',c=>health(c.env))
+api.all('/api/archive-transfer/*',async c=>archiveTransfer(c.env,c.req.raw))
 api.use('/api/*',async(c,next)=>{c.set('systemBindings',c.env);c.header('cache-control','no-store');const origin=c.req.header('origin');if(c.env.UPTIME_LOCAL_REVIEW!=='true'&&['POST','PATCH','DELETE'].includes(c.req.method)&&!c.req.path.startsWith('/api/runner/')&&!c.req.path.startsWith('/api/heartbeats/')&&origin!==c.env.UPTIME_ORIGIN)return c.json({error:'Same origin required'},403);if(c.req.header('sec-fetch-site')==='cross-site'||(origin&&origin!==new URL(c.req.url).origin))return c.json({error:'Same origin required'},403);if(Number(c.req.header('content-length')??0)>2*1024*1024)return c.json({error:'Payload too large'},413);if(['POST','PATCH'].includes(c.req.method)&&!c.req.path.startsWith('/api/heartbeats/')&&c.req.header('content-type')!=='application/json'&&!(c.req.path==='/api/definitions/recognise'&&c.req.header('content-type')==='text/csv'))return c.json({error:'JSON required'},415);if(['POST','PATCH'].includes(c.req.method)){const reader=c.req.raw.body?.getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let size=0,text='';if(reader){try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>(c.req.path.startsWith('/api/heartbeats/')?10240:2*1024*1024)){return c.json({error:'Payload too large'},413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}catch(error){if(error instanceof TypeError)return c.json({error:'Invalid UTF-8 request body'},400);throw error}finally{reader.releaseLock()}}c.set('requestText',text)}await next()})
 // Every route's path, query and body schema, once the caller's authority is known and before any service (request-boundary.ts).
 // Heartbeats carry their own token, so their input is checked before their handler.
@@ -302,7 +304,7 @@ api.get('/api/monitors/:id/report-schedules/:scheduleId',async c=>{const report=
 api.delete('/api/monitors/:id/report-schedules/:scheduleId',async c=>c.json(await cancelScheduledReport(c.env,c.req.param('id'),c.req.param('scheduleId'))))
 api.post('/api/discoveries',async c=>c.json(await createDiscovery(c.env,c.get('requestText'),c.get('access')),201))
 api.get('/api/service-catalog',async c=>c.json(await catalogDocument(c.env,c.req.query('q')??'')))
-api.post('/api/service-catalog/checks',async c=>c.json(await createCatalogCheck(c.env,c.get('requestText')),201))
+api.post('/api/service-catalog/checks',async c=>{const check=await createCatalogCheck(c.env,c.get('requestText'),c.get('access'));return c.json(check,'id' in check?201:200)})
 api.post('/api/service-follows',async c=>c.json(await followServices(c.env,c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id}),201))
 api.post('/api/followed-services/:id/review',async c=>c.json(await reviewFollowed(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 api.post('/api/followed-services/:id/links',async c=>c.json(await linkDependency(c.env,c.req.param('id'),c.get('requestText'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))

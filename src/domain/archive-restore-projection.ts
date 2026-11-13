@@ -1,3 +1,4 @@
+import {TRANSFER_BYTES,TRANSFER_ROWS} from './archive-transfer-limits.ts'
 import {restoreMentions} from './incident-work/mention-archive.ts'
 import {restoreAuxiliary} from './auxiliary-archive.ts'
 import {restoreDiscoverySources} from './discovery-sources-archive.ts'
@@ -9,7 +10,7 @@ const inactiveState=JSON.stringify({state:'Unknown',confirmedFailure:false,notif
 /** Plan the complete portable result before generating credentials or SQL writes.
  * The same rows are then installed and exported; sanitized originals are flat,
  * content-addressed history, including records already paused or quarantined. */
-export async function projectRestore(input:Tables,migrations:any[],now=Date.now()){
+export async function projectRestore(input:Tables,migrations:any[],now=Date.now(),options:{transfer?:boolean}={}){
  const t:Tables=structuredClone(input);
  const history=new Map(t.archive_history.map(row=>[row.id,row]));
  const currentMigrations=new Map(migrations.map(row=>[row.version,row]));
@@ -49,10 +50,10 @@ export async function projectRestore(input:Tables,migrations:any[],now=Date.now(
  // A restored discovery source reads nothing until the receiving owner authorizes it again.
  restoreDiscoverySources(t);
  t.archive_history=[...history.values()];
- for(const name of TABLES)if(t[name].length>ARCHIVE_ROWS)throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);
+ for(const name of TABLES)if(t[name].length>(options.transfer?TRANSFER_ROWS:ARCHIVE_ROWS))throw Error(`Archive row bound exceeded: ${name} (${ARCHIVE_ROWS})`);
  // Reserve the largest allowed export timestamp and the CLI's final newline.
  // Bounds include extension metadata, every new revision, and all history.
- const projected=await portableArchive(t,Number.MAX_SAFE_INTEGER);assertBytes(projected,1);
- await validateArchive(projected);
+ const projected=await portableArchive(t,Number.MAX_SAFE_INTEGER);assertBytes(projected,1,options.transfer?TRANSFER_BYTES:undefined);
+ await validateArchive(projected,options);
  return t;
 }

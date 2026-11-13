@@ -8,6 +8,8 @@ const list=names=>names.length<2?names.join(''):`${names.slice(0,-1).join(', ')}
 const clause=(key,tone,text,fix='')=>`<p class="ui-callout${tone?' '+tone:''} alert-clause" data-key="clause-${escape(key)}"><span>${text}${fix?` ${fix}`:''}</span></p>`;
 export function clausesMarkup(notes,readUnavailable){
  const blocked=cannotSend(notes),email=blocked.filter(b=>b.reason==='email').map(b=>escape(b.destination.name)),lines=[];
+ if(notes.mailSuppressed)lines.push(clause('simulated-email','','Development email is simulated. No email leaves this machine, including test messages and incident alerts.'));
+ if(notes.demo)lines.push(clause('simulated-messages','','Demo messages are simulated. No email or other notification leaves this machine.'));
  if(email.length)lines.push(clause('email','warning',`Email is not set up, so ${list(email)} cannot send.`,setupEmail));
  else if(!notes.mailConfigured&&!notes.demo&&!notes.mailSuppressed)lines.push(clause('email','warning','Email is not set up.',setupEmail));
  // With destinations but none enabled the count shows 1; with none at all the empty Destinations card says so instead.
