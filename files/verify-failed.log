@@ -1,0 +1,60 @@
+Actual failed-step output; environment header blocks removed from the archive log. No assertions or errors removed.
+shards (push-5)	Run this shard	﻿2026-11-13T22:21:10.9173157Z ##[group]Run node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-5)	Run this shard	2026-11-13T22:21:10.9173497Z node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-5)	Run this shard	2026-11-13T22:21:10.9190586Z shell: /usr/bin/bash -e {0}
+shards (push-5)	Run this shard	2026-11-13T22:21:11.0102103Z > node tests/notification-fallback.mjs
+shards (push-5)	Run this shard	2026-11-13T22:21:11.9090382Z (node:2713) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-5)	Run this shard	2026-11-13T22:21:11.9091174Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-5)	Run this shard	2026-11-13T22:22:22.5008643Z DEPENDENCY_FALLBACK {"scenario":"delayed","delayMinutes":1,"sends":1,"workerElapsedMs":61166}
+shards (push-5)	Run this shard	2026-11-13T22:23:32.1156432Z DEPENDENCY_FALLBACK {"scenario":"primary-accepted","delayMinutes":1,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-13T22:23:41.0660675Z DEPENDENCY_FALLBACK {"scenario":"zero","delayMinutes":0,"sends":1,"workerElapsedMs":773}
+shards (push-5)	Run this shard	2026-11-13T22:23:50.3140376Z DEPENDENCY_FALLBACK {"scenario":"quiet","delayMinutes":0,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-13T22:23:58.0108012Z DEPENDENCY_FALLBACK {"scenario":"recovered","delayMinutes":1,"sends":0,"workerElapsedMs":null}
+shards (push-5)	Run this shard	2026-11-13T22:23:58.0733862Z > node tests/mail-journey.mjs
+shards (push-5)	Run this shard	2026-11-13T22:25:46.6378409Z PASS MAIL-001 owner configuration, signed native protocols, per-step incidents, receiver confirmation and synthetic-only removal
+shards (push-5)	Run this shard	2026-11-13T22:25:46.6977882Z > node tests/agent-erasure.mjs
+shards (push-5)	Run this shard	2026-11-13T22:25:54.9721800Z PASS agent-door custody names no erased person after operator erasure; the other person's agent records are intact.
+shards (push-5)	Run this shard	2026-11-13T22:25:55.0354373Z > node tests/udp-monitors.mjs
+shards (push-5)	Run this shard	2026-11-13T22:26:39.9051997Z UDP-001 PASS: signed scheduled match/mismatch/timeout/recovery, immutable facts, destination rejection, one-packet/rate/size caps, cancellation, portable settings and revoked authority.
+shards (push-5)	Run this shard	2026-11-13T22:26:39.9627356Z > node tests/operator-security.mjs
+shards (push-5)	Run this shard	2026-11-13T22:26:51.1987866Z ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.
+shards (push-5)	Run this shard	2026-11-13T22:26:58.3782791Z ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6233462Z node:internal/modules/run_main:123
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6233961Z     triggerUncaughtException(
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6234313Z     ^
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6234461Z 
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6234823Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6235188Z 
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6235299Z 409 !== 200
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6235410Z 
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6235787Z     at proveDestinationStepUp (file:///home/runner/work/run-uptime/run-uptime/tests/destination-stepup-support.mjs:36:31)
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6236401Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6237037Z     at async proveSecurityControls (file:///home/runner/work/run-uptime/run-uptime/tests/security-controls-browser-support.mjs:40:4)
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6237657Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/operator-security.mjs:59:2 {
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6238022Z   generatedMessage: true,
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6238231Z   code: 'ERR_ASSERTION',
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6238759Z   actual: 409,
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6238944Z   expected: 200,
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6239132Z   operator: 'strictEqual',
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6239334Z   diff: 'simple'
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6239513Z }
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6239597Z 
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6239675Z Node.js v22.20.0
+shards (push-5)	Run this shard	2026-11-13T22:27:09.6778225Z ##[error]Process completed with exit code 1.
+verify	Require the selected coverage and its proof	﻿2026-11-13T22:35:39.6503965Z ##[group]Run set -euo pipefail
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6504931Z set -euo pipefail
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6505624Z test "$PLAN" = success
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6506475Z case "$PUSH_PROOF:$NIGHTLY_PROOF" in
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6507379Z   *failure*|*cancelled*) exit 1 ;;
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6508437Z esac
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6509214Z case "$COVERAGE" in
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6510119Z   reuse) test "$SKIP" = true && test "$SHARDS" = skipped && test "$LIGHT" = skipped ;;
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6511291Z   light) test "$SKIP" = false && test "$LIGHT" = success && test "$SHARDS" = skipped ;;
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6512759Z   full) test "$LIGHT" = skipped && { test "$SHARDS" = success || { test "$HAS_SHARDS" = false && test "$SHARDS" = skipped; }; } ;;
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6513905Z   *) exit 1 ;;
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6514545Z esac || exit 1
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6515144Z 
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6516056Z if [ "$HAS_SHARDS" = true ]; then test "$BUILD" = success; else test "$BUILD" = skipped; fi
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6517525Z if [ "$COVERAGE" = full ] && [ "$TIER" != nightly ]; then test "$PREPARE" = success; else test "$PREPARE" = skipped; fi
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6751790Z shell: /usr/bin/bash -e {0}
+verify	Require the selected coverage and its proof	2026-11-13T22:35:39.6974493Z ##[error]Process completed with exit code 1.

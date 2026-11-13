@@ -1,0 +1,9 @@
+{
+  "conclusion": "failure",
+  "head_sha": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/43518362117",
+  "status": "completed",
+  "id": 43518362117,
+  "observed_at_utc": "2026-11-13T22:39:57Z",
+  "github_api_calls": 9
+}

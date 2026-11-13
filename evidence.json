@@ -1,0 +1,106 @@
+{
+  "files": [
+    {
+      "blob": "b97b84df0e07b763b01e7f9a89b6f60c92a06fd6",
+      "bytes": 10321,
+      "path": "REPORT.md",
+      "sha256": "af89fc2535126c2413f03adb95dd396aea010630606f4e045abea96ecd7129f5"
+    },
+    {
+      "blob": "9c495824167d65dd99e5ff87579af748e6a74263",
+      "bytes": 211,
+      "path": "candidate-runs-discovery.json",
+      "sha256": "803855fcdd91bb4e849a93a8dcfc71b5aa784fdfee23fcdd9be97b5cbeb5b713"
+    },
+    {
+      "blob": "1f5e70aec723f01c4eb88b81e0d9b124163a6503",
+      "bytes": 287,
+      "path": "candidate-verify-final.json",
+      "sha256": "9a6390d418ed18840ca6527655fa8e083452682b9f0338534bc2498d4f762053"
+    },
+    {
+      "blob": "bfd448a81ec2f088e145738e18daa3724f74703a",
+      "bytes": 911,
+      "path": "ci-watch.log",
+      "sha256": "1956cfec334e59311906187c01e07467af62f7383c2bfd94de4d03dcad321e2e"
+    },
+    {
+      "blob": "b3e52a587e95d7a17c1505596cd10699f4f1429b",
+      "bytes": 2189,
+      "path": "dependency-install.log",
+      "sha256": "5317da83f35e9d6339fc94c72506b0b9ac952d38e79252f36a28818fbf96b1e4"
+    },
+    {
+      "blob": "55bfeff023c4ae17dc59e12f86f446b1960e6b53",
+      "bytes": 85,
+      "path": "identity.log",
+      "sha256": "148bad84b5b174568017df50d58e073566703d43c6c9fe7fa6f1af04420adf55"
+    },
+    {
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "path": "metadata-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "blob": "9edd0324c65d4fb3a13a733bd0acea9b9efa0bcb",
+      "bytes": 196,
+      "path": "metadata-consistency.log",
+      "sha256": "84d7b74fd1771df038f00471f81425409f241547b0b06b61b85fca7168b8ed42"
+    },
+    {
+      "blob": "6f12b162d0d1696380ec51f45fef0d5725bfc546",
+      "bytes": 947,
+      "path": "product-push.log",
+      "sha256": "129db1845197f4a554a721f6592afeb6de9d26cf45bf75da98394d8ff1e3ce97"
+    },
+    {
+      "blob": "70008ffb9ce53afbad07b6b84172a75452c4337f",
+      "bytes": 13671,
+      "path": "product.patch",
+      "sha256": "6379821b0d4fa7d264e66ca0c7bbacfef51e70278cc824856a4c78f24b459634"
+    },
+    {
+      "blob": "2a17aa00915600a3d8d5eebb9120792e9f637b3e",
+      "bytes": 5332,
+      "path": "receipt.json",
+      "sha256": "4b0edd09e5c66fad277e4d2cbadadc14bf47ea2673c6d4a54581dcd2156b5d65"
+    },
+    {
+      "blob": "72f3bd8529c686892a1eef085ee309925efb53c7",
+      "bytes": 83,
+      "path": "remote-product-ref.txt",
+      "sha256": "e38fa11780b605d1e1c289265d6ea0d69e8dc6120e423398ae810032ebce2212"
+    },
+    {
+      "blob": "06341f1a40b756d061173e03cec14493e5a97b4b",
+      "bytes": 420504,
+      "path": "source-lock-check.json",
+      "sha256": "366d6490ae6c768fa60702573b799a67aad00a527b18dd0d7bf928abeaedbf6d"
+    },
+    {
+      "blob": "13f52a60d27a9a13d46385bde00f1299715c26e7",
+      "bytes": 420490,
+      "path": "source-lock-write.json",
+      "sha256": "7f6dbc18c6e1ff1e916f3f48a360ea38a73f4b3483ab977b76fa6266ab9bde54"
+    },
+    {
+      "blob": "b6a335bf4be91bfa795ff1d2ea31b1f91245489c",
+      "bytes": 293,
+      "path": "typecheck.log",
+      "sha256": "b873114883e79b60e576d0fdbea6fd23a3f33f9aeb93c301aec7e0be88ff1d20"
+    },
+    {
+      "blob": "0afe803c17d0ac071e192620f1a9bd38d48c37ff",
+      "bytes": 7298,
+      "path": "verify-failed.log",
+      "sha256": "e5bdbff9543bd1b43c8177da508d558be2ec99e6c6e9cb1e536c97877d7f0188"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-release-0-5-12",
+  "product_head": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+  "ref": "refs/heads/evidence/sd-uptime-release-0-5-12",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-release-0-5-12"
+}

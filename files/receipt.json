@@ -1,0 +1,172 @@
+{
+  "tag": "sd-uptime-release-0-5-12",
+  "repository": "just-every/run-uptime",
+  "observed_at_utc": "2026-11-13T22:41:46Z",
+  "branch": "cloud/sd-uptime-release-0-5-12",
+  "head": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+  "base_main": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "product_push": {
+    "status": "success",
+    "attempts": 1,
+    "command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/sd-uptime-release-0-5-12",
+    "log": "product-push.log"
+  },
+  "version": {
+    "before": "0.5.11",
+    "after": "0.5.12",
+    "previousVersion": "0.5.11",
+    "source_pin_before": "0.2.113",
+    "source_pin_after": "0.2.113",
+    "previous_release_source_pin": "0.2.108"
+  },
+  "paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "diff": {
+    "files": 7,
+    "insertions": 39,
+    "deletions": 13
+  },
+  "checks": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit": 0,
+      "log": "dependency-install.log"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "pnpm exec rer check --profile first-party",
+      "exit": 0,
+      "log": "metadata-check.log",
+      "note": "Successful command emitted no output"
+    },
+    {
+      "command": "python3 /tmp/check-uptime-metadata.py",
+      "exit": 0,
+      "log": "metadata-consistency.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "log": "source-lock-write.json"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "log": "source-lock-check.json"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    },
+    {
+      "command": "git log origin/main..HEAD --format=\"%an <%ae>%n%cn <%ce>%n%(trailers:only,unfold)\"",
+      "exit": 0,
+      "log": "identity.log",
+      "note": "Every candidate commit audited, including side parents; fleet author/committer, no trailers"
+    }
+  ],
+  "toolchain": {
+    "node_observed": "24.19.0",
+    "repository_node_pin": "22.20.0",
+    "pnpm": "10.12.4",
+    "note": "Provided cloud setup retains an already newer Node; pnpm emitted an unsupported-engine warning; exact-SHA CI uses pinned Node 22.20.0"
+  },
+  "ci_main": [
+    {
+      "id": 43512704887,
+      "name": "Verify",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 43515950428,
+      "name": "Verify",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 43515951257,
+      "name": "Run site",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "candidate_verify": {
+    "conclusion": "failure",
+    "head_sha": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43518362117",
+    "status": "completed",
+    "id": 43518362117,
+    "observed_at_utc": "2026-11-13T22:39:57Z",
+    "github_api_calls": 10
+  },
+  "github_api_calls_so_far": 10,
+  "github_api_budget": 10,
+  "before_counts": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "after_counts": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clause_status_changes": [],
+  "test_registrations_added": 0,
+  "test_registrations_removed": 0,
+  "pr_url": null,
+  "publication_scan": "Deferred to fleet Mac, unavailable in this cloud; no remote scan attempted",
+  "release_status": "metadata candidate only; no tag, producer, signing, Release publication or deploy performed",
+  "latest_public_release_observed": {
+    "tag": "v0.5.11",
+    "url": "https://github.com/just-every/run-uptime/releases/tag/v0.5.11",
+    "published_at": "2026-11-13T15:41:29Z",
+    "draft": false
+  },
+  "v0_5_12_preflight": {
+    "release": "absent, REST HTTP 404",
+    "tag": "absent via git ls-remote",
+    "matching_cloud_release_branch": "absent via git ls-remote"
+  },
+  "blockers": [
+    "Exact-SHA Verify 43518362117 completed/failure: shards (push-5), proveDestinationStepUp at tests/destination-stepup-support.mjs:36 received 409 rather than 200 while DELETEing notification destinations during cleanup. The failure is in unchanged product/test code; fixing it exceeds the metadata-only lease."
+  ],
+  "remote_product_ref_verified": "7364b5f3dd7fcf29b533d3139315ad1701d0653e\trefs/heads/cloud/sd-uptime-release-0-5-12",
+  "clean_product_worktree": true,
+  "custody": "BLOCKED",
+  "failed_log_command": {
+    "command": "gh run view 43518362117 --repo just-every/run-uptime --log-failed",
+    "exit": 0,
+    "calls": 1,
+    "note": "One archive read returned failed shard and aggregate job output; no job-ID lookup remained within budget",
+    "log": "verify-failed.log",
+    "sanitization": "Environment header blocks removed before evidence selection"
+  },
+  "ci_failure": {
+    "job_name": "shards (push-5)",
+    "function": "proveDestinationStepUp",
+    "path": "tests/destination-stepup-support.mjs",
+    "line": 36,
+    "actual": 409,
+    "expected": 200,
+    "operation": "DELETE notification destinations during test cleanup",
+    "product_and_test_diff_from_main": "empty",
+    "build": "success",
+    "prepare": "success",
+    "rerun_or_dispatch": false
+  }
+}
