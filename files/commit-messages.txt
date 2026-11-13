@@ -1,0 +1,6 @@
+18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8
+Preserve exact receipt assertions through the details disclosure
+
+777770f7187cffd0a453f5c1068b23c363840732
+Name monitors in maintenance plans and erasure receipts
+

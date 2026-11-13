@@ -60,6 +60,10 @@ Final product branch: `cloud/main-uptime-readable-receipts-1`.
 Final product SHA: `18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8`.
 First product commit: `777770f7187cffd0a453f5c1068b23c363840732` (Verify `43363865657`, queued when observed; superseded by the final candidate).
 Second product commit: `18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8`, retaining published ancestry and adapting the existing step-up receipt checks to their disclosure.
-Final exact-SHA Verify: `43364308126`, currently in progress.
+Final exact-SHA Verify: [`43364308126`](https://github.com/just-every/run-uptime/actions/runs/43364308126), completed/success on `18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8`. The exact REST response is `CI-final.json`; all scheduled observations are `CI-polls.jsonl`. Five of the ten allowed GitHub calls were used. No failed job or rerun was needed.
 Both product pushes succeeded on their first guard attempt. The product tree is clean. No PR was required or created; this seed has a pre-main push Verify and the fleet owns landing.
-Evidence publication is separate from product readiness and landing. The packet is selected as regular files only, screened for injected values, and published only on `refs/heads/evidence/main-uptime-readable-receipts-1`. The full publication scan is intentionally deferred to the fleet Mac lander. CI status and evidence transport are finalized below.
+Evidence publication is separate from product readiness and landing. The packet is selected as regular files only, screened for injected values, and published only on `refs/heads/evidence/main-uptime-readable-receipts-1`. The full publication scan is intentionally deferred to the fleet Mac lander. The initial packet was successfully published as evidence commit `cba30b652516a52443a53a4b0a44656227984831` while Verify was pending. This final packet replaces that report tree through an ordinary child evidence commit and includes the completed exact-SHA result, complete checked non-secret command output, actual receipt files, provenance and browser proof. The terminal EVIDENCE line names the final published evidence commit.
+
+No blockers remain. Product readiness is supported by exact-SHA Verify success; it does not claim acceptance, landing, a release, a main push or the fleet Mac publication scan. The pushed scratch checkout is removed after the final evidence publication, while this packet remains outside it.
+
+READY branch=cloud/main-uptime-readable-receipts-1 head=18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8

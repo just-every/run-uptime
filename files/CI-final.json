@@ -1,7 +1,7 @@
 {
   "runId": 43364308126,
-  "conclusion": null,
+  "conclusion": "success",
   "head_sha": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8",
   "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364308126",
-  "status": "in_progress"
+  "status": "completed"
 }

@@ -72,9 +72,10 @@
   },
   "exactShaVerify": {
     "runId": 43364308126,
-    "status": "in_progress",
-    "conclusion": null,
-    "head": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8"
+    "conclusion": "success",
+    "head_sha": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364308126",
+    "status": "completed"
   },
   "publicationScan": "Deferred to the fleet Mac lander as required by cloud instructions.",
   "operatorSecurity": {
@@ -85,5 +86,9 @@
     "777770f7187cffd0a453f5c1068b23c363840732",
     "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8"
   ],
-  "cleanProductTree": true
+  "cleanProductTree": true,
+  "githubCalls": 5,
+  "blockers": [],
+  "terminalStatus": "READY",
+  "productRemoteHeadVerified": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8"
 }

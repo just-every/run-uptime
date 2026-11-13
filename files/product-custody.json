@@ -1,0 +1,14 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-readable-receipts-1",
+  "head": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8",
+  "remoteHead": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8",
+  "remoteRef": "refs/heads/cloud/main-uptime-readable-receipts-1",
+  "cleanWorktree": true,
+  "observedAt": 1794544093.1828132,
+  "productPushes": 2,
+  "forcePushes": 0,
+  "defaultBranchWrites": 0,
+  "commitIdentities": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "coauthorTrailers": []
+}
