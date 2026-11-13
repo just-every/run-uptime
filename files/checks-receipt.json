@@ -1,0 +1,54 @@
+{
+  "head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "branch": "cloud/sd-uptime-c-f173",
+  "productChanges": [],
+  "countsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "countsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clauses": 115,
+  "checks": [
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "pnpm exec rer check --profile first-party",
+      "exit": 0,
+      "log": "first-party-check.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0,
+      "log": "views-write.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "log": "views-check.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "log": "source-lock-check.log"
+    }
+  ],
+  "generatedViewsRestoredFrom": "origin/main",
+  "sourceLockRegenerated": false,
+  "reasonNoRegeneration": "No source, test or contract changes remain; current source lock passes.",
+  "migrationLedger": "not applicable; no migration changes",
+  "productCommits": 0,
+  "productPush": false,
+  "pr": null,
+  "ciRunIds": [],
+  "githubApiCalls": 0,
+  "publicationScan": "not run; no product candidate; guarded lander responsibility",
+  "pendingCommands": false
+}

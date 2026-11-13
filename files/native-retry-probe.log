@@ -1,0 +1,23 @@
+rer toolchain: node v24.19.0 pnpm 10.12.4 (pins 22.20.0 / 10.12.4)
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+{"schema":1,"tag":"sd-uptime-c-f173","door":"POST /api/monitors","role":"owner","selectedCell":{"type":"api","probes":1,"cleanupSteps":1,"monitorRetries":1},"requested":{"expectedStatus":200,"actualStatus":400,"body":{"error":"Invalid API transactions cannot automatically replay writes"}},"changedTables":[],"nativeDataUnchanged":true,"providerRequests":0,"mailDelta":0,"zeroRetryControl":{"created":true,"savedRetries":0,"probes":["local-a"],"cleanupSteps":1,"openDebts":0,"limit":3},"selectedCellReachable":false}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: one monitor retry must be accepted through owner creation to establish the requested saved retry-debt cell
+
+400 !== 200
+
+    at file:///home/agent/rer-consolidation/work/sd-uptime-c-f173/packet/native-retry-probe.mjs:54:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 400,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

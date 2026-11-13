@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "tag": "sd-uptime-c-f173",
+  "door": "POST /api/monitors",
+  "role": "owner",
+  "selectedCell": {
+    "type": "api",
+    "probes": 1,
+    "cleanupSteps": 1,
+    "monitorRetries": 1
+  },
+  "requested": {
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "body": {
+      "error": "Invalid API transactions cannot automatically replay writes"
+    }
+  },
+  "changedTables": [],
+  "nativeDataUnchanged": true,
+  "providerRequests": 0,
+  "mailDelta": 0,
+  "zeroRetryControl": {
+    "created": true,
+    "savedRetries": 0,
+    "probes": [
+      "local-a"
+    ],
+    "cleanupSteps": 1,
+    "openDebts": 0,
+    "limit": 3
+  },
+  "selectedCellReachable": false
+}

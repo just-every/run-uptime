@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "tag": "sd-uptime-c-f173",
+  "head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "branch": "cloud/sd-uptime-c-f173",
+  "started": "2026-11-13T22:19:06Z",
+  "completed": "2026-11-13T22:19:13Z",
+  "command": [
+    "bash",
+    "-c",
+    ". /tmp/rer-cloud-toolchain.sh; cloud_run timeout 180 \"$HOME/.rer/node/node-v22.20.0-linux-x64/bin/node\" \"$HOME/rer-consolidation/work/sd-uptime-c-f173/packet/native-retry-probe.mjs\" \"$PWD\" \"$HOME/rer-consolidation/work/sd-uptime-c-f173/packet/native-retry-receipt.json\""
+  ],
+  "exit": 1,
+  "expectedFailure": "AssertionError: one monitor retry must be accepted through owner creation to establish the requested saved retry-debt cell; 400 !== 200",
+  "nativeStatus": 400,
+  "logSha256": "45e6f702356c1d40ff99f84f99132588fb8b16c911693407cf1c868dda34e1dd",
+  "receiptSha256": "d9c652ee5b3f88e93550b435f89b5a22a7d7a90d9ae7f872a0604777a76c495b"
+}
