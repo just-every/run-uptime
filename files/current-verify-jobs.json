@@ -1,0 +1,92 @@
+[
+  {
+    "id": 132044596396,
+    "name": "plan",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "conclusion": "success"
+      },
+      {
+        "name": "Check reusable workflow permissions",
+        "conclusion": "success"
+      },
+      {
+        "name": "Look up complete nightly marker",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Run node .github/scripts/verify-ci.mjs --plan",
+        "conclusion": "success"
+      },
+      {
+        "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "conclusion": "success"
+      },
+      {
+        "name": "Complete job",
+        "conclusion": "success"
+      }
+    ]
+  },
+  {
+    "id": 132044705269,
+    "name": "verify",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "conclusion": "success"
+      },
+      {
+        "name": "Require the selected coverage and its proof",
+        "conclusion": "success"
+      },
+      {
+        "name": "Complete job",
+        "conclusion": "success"
+      }
+    ]
+  },
+  {
+    "id": 132044705686,
+    "name": "prepare",
+    "conclusion": "skipped",
+    "steps": []
+  },
+  {
+    "id": 132044707152,
+    "name": "full-push-proof",
+    "conclusion": "skipped",
+    "steps": []
+  },
+  {
+    "id": 132044707172,
+    "name": "shards (${{ matrix.name }})",
+    "conclusion": "skipped",
+    "steps": []
+  },
+  {
+    "id": 132044707174,
+    "name": "light",
+    "conclusion": "skipped",
+    "steps": []
+  },
+  {
+    "id": 132044707329,
+    "name": "nightly-proof",
+    "conclusion": "skipped",
+    "steps": []
+  },
+  {
+    "id": 132044707381,
+    "name": "build",
+    "conclusion": "skipped",
+    "steps": []
+  }
+]

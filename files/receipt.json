@@ -1,0 +1,78 @@
+{
+  "tag": "gr-mt-uptime-ci-3",
+  "repository": "just-every/run-uptime",
+  "head": "83b2f2692149c9171a12cba0d7397734a1e8096b",
+  "branch": "cloud/gr-mt-uptime-ci-3",
+  "product_changed": false,
+  "product_pushed": false,
+  "pr": null,
+  "observed_at": "2026-11-13T21:53:28.994363+00:00",
+  "checks": [
+    {
+      "command": "node --check tests/definitions-journey.mjs",
+      "exit_code": 0,
+      "output": "local-check-1.log"
+    },
+    {
+      "command": "node --check tests/signed-runner.mjs",
+      "exit_code": 0,
+      "output": "local-check-2.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0,
+      "output": "local-check-3.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit_code": 0,
+      "output": "local-check-4.log"
+    },
+    {
+      "command": "git merge-base --is-ancestor 6fbac75825bf66fca559d56be822fd31d3b7aafa HEAD",
+      "exit_code": 0,
+      "output": "local-check-5.log"
+    },
+    {
+      "command": "git diff --exit-code origin/main HEAD",
+      "exit_code": 0,
+      "output": "local-check-6.log"
+    },
+    {
+      "command": "git status --porcelain",
+      "exit_code": 0,
+      "output": "local-check-7.log"
+    }
+  ],
+  "github_calls": 6,
+  "historical_run": 39058311379,
+  "historical_failed_job": 117470816508,
+  "historical_log": {
+    "command": "gh run view 39058311379 --repo just-every/run-uptime --job 117470816508 --log-failed",
+    "exit_code": 0,
+    "stdout_bytes": 0,
+    "stderr_bytes": 0,
+    "reason": "The archive request succeeded but returned no log text; no historical assertion text is claimed."
+  },
+  "ci_runs": {
+    "full_branch_verify": 43461700458,
+    "main_verify": 43471590109,
+    "main_run_site": 43471590153
+  },
+  "prior_fix": "6fbac75825bf66fca559d56be822fd31d3b7aafa",
+  "counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clause_changes": [],
+  "local_runtime_tests": "not run: no product changes; full exact-SHA CI already successful",
+  "typecheck": "not run locally: no product changes; included in successful full CI browser-suites task"
+}

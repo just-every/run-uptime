@@ -1,0 +1,16 @@
+{
+  "run_id": 39058311379,
+  "job_id": 117470816508,
+  "job_name": "shards (installer, true)",
+  "conclusion": "failure",
+  "failed_step": {
+    "name": "Run this shard",
+    "number": 12
+  },
+  "source_command": "gh api repos/just-every/run-uptime/actions/runs/39058311379/jobs",
+  "downstream_failed_job": {
+    "id": 117471795785,
+    "name": "verify",
+    "step": "Require every shard and the inert artifact"
+  }
+}

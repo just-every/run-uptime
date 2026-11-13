@@ -1,0 +1,7 @@
+{
+  "status": "no-change",
+  "sha": "83b2f2692149c9171a12cba0d7397734a1e8096b",
+  "summary": "Current main already passes full exact-SHA Verify 43461700458 and main Verify 43471590109; the reported installer label failure was fixed by ancestor 6fbac75825bf66fca559d56be822fd31d3b7aafa.",
+  "tests": "Syntax checks for definitions-journey and signed-runner, source lock check, contract docs check, prior-fix ancestry and unchanged-tree checks passed; full exact-SHA CI eight shards and build passed. No local runtime suite or typecheck rerun because no product changes.",
+  "security": true
+}
