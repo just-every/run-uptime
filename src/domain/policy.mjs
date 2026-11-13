@@ -133,7 +133,10 @@ export function evaluate(def, observations, previous = {}, now = Date.now(), adv
     const retryComplete=observation?.retryComplete!==false;
     const canary=observation?.canary;
     const canaryFresh=canary?(canary.outcome==='pass'&&canary.completedAt<=evidenceThrough&&now-canary.completedAt<=def.freshnessMs):!def.assignments?.[probe]?.canaryUrl;
-    const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && (def.type!=='heartbeat'||observation.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs+(def.heartbeat.graceMs??0)&&(!observation.heartbeatJob||heartbeatEvaluation(def,observation.heartbeatJob,now).outcome==='pass'))) && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= evidenceThrough && !['runner_error','interrupted'].includes(observation.outcome);
+    // Current job snapshots own their cron/period deadline and duration rule.
+    // Legacy receipts have only a period age; they cannot prove a cron window.
+    const heartbeatFresh=def.type!=='heartbeat'||observation?.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&(observation.heartbeatJob?heartbeatEvaluation(def,observation.heartbeatJob,now).outcome==='pass':!def.heartbeat.cron&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs+(def.heartbeat.graceMs??0)));
+    const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && heartbeatFresh && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= evidenceThrough && !['runner_error','interrupted'].includes(observation.outcome);
     return { probe, networkLabel:def.assignments?.[probe]?.networkLabel??'owner-network', canaryPassed:Boolean(canary&&canaryFresh),terminal:Boolean(observation)&&retryComplete&&(observation.outcome!=='target_failure'||observation.attempt===def.retries), state:!fresh?'Unknown':observation.outcome==='pass'?'Healthy':'Failing', observationId:observation?.id??null,observedAt:observation?.completedAt??null };
   });
   const fails=regions.filter(r=>r.state==='Failing').length,unknown=regions.filter(r=>r.state==='Unknown').length;

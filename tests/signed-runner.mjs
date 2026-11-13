@@ -234,6 +234,8 @@ try{
  try{
   const advance=at=>{assert.ok(at>=clock);clock=at};
   await proveHeartbeatConsole({origin,cookie,api,runner,advance});
+  // The daily cron journey advances beyond the credential step-up window.
+  await completeApiSecondFactor(origin,cookie,api);
   await proveHeartbeatRevisionIsolation({api,runner,db,advance});
   await proveImportedHeartbeatJobs({api,runner,origin,cookie,advance});
  }finally{Date.now=wallNow;clock=undefined}
