@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "tag": "sd-uptime-security-wait-1-pc1",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-security-wait-1-pc1",
+  "head": "8e0b5af47df91cf6d05eabb6eba587329b4056a7",
+  "tree": "ce0eeb9ebf1d5f2bbcfa931a17be4fbbdb6b87ec",
+  "preserved_starting_head": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+  "upstream_main": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+  "changed_product_files": [
+    "sources.lock.json",
+    "tests/security-controls-browser-support.mjs"
+  ],
+  "checks": [
+    {
+      "name": "setup",
+      "command": "cloud_run npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit_code": 0,
+      "raw_output": "private, not selected for publication"
+    },
+    {
+      "name": "build",
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit_code": 0,
+      "log": "build.log"
+    },
+    {
+      "name": "saved journey",
+      "command": "cloud_run timeout 300 node --import ../browser-diagnostics.mjs tests/operator-security.mjs",
+      "head": "e46b7145c4d4ff255e30f5669b5c4394917807c4",
+      "exit_code": 0,
+      "completed_at": "2026-11-13T11:48:16Z",
+      "log": "before-journey.log"
+    },
+    {
+      "name": "original journey reproduction",
+      "command": "cloud_run timeout 300 node --import ../browser-diagnostics.mjs tests/operator-security.mjs",
+      "security_helper_from": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+      "exit_code": 1,
+      "completed_at": "2026-11-13T11:52:21Z",
+      "log": "original-journey.log",
+      "failure": "real console asset 429 followed by unchanged 30000ms credential-row timeout"
+    },
+    {
+      "name": "candidate journey",
+      "command": "cloud_run timeout 300 node --import ../browser-diagnostics.mjs tests/operator-security.mjs",
+      "exit_code": 0,
+      "completed_at": "2026-11-13T11:55:18Z",
+      "log": "after-journey.log",
+      "source_sha256": "0292353350324c828593807f6a048a6c203963fe5d0425d98cfce2165fe1d90a",
+      "source_matches_committed_head": true
+    },
+    {
+      "name": "candidate typecheck",
+      "command": "cloud_run pnpm run typecheck",
+      "exit_code": 0,
+      "completed_at": "2026-11-13T11:53:41Z",
+      "node": "22.20.0",
+      "log": "typecheck-candidate.log"
+    },
+    {
+      "name": "source lock",
+      "commands": [
+        "node scripts/edition-authoring/cli.mjs lock",
+        "node scripts/edition-authoring/cli.mjs check"
+      ],
+      "exit_code": 0,
+      "receipt": "lock-receipt.json"
+    },
+    {
+      "name": "candidate diff hygiene",
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "name": "all candidate identities and trailers",
+      "command": "git log origin/main..HEAD --format=\"%an <%ae>%n%cn <%ce>%n%(trailers:only,unfold)\"",
+      "exit_code": 0,
+      "log": "identity.log",
+      "commits": [
+        "8e0b5af47df91cf6d05eabb6eba587329b4056a7",
+        "e46b7145c4d4ff255e30f5669b5c4394917807c4"
+      ]
+    }
+  ],
+  "product_push": {
+    "exit_code": 0,
+    "attempts": 1,
+    "completed_at": "2026-11-13T11:56:43Z",
+    "ref": "refs/heads/cloud/sd-uptime-security-wait-1-pc1",
+    "head": "8e0b5af47df91cf6d05eabb6eba587329b4056a7"
+  },
+  "counts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "affected_existing_journeys_before": 1,
+    "affected_existing_journeys_after": 1,
+    "permanent_registration_delta": 0
+  },
+  "clause_status_changes": [],
+  "pr": null,
+  "publication_scan": "fleet Mac gate; unavailable in this cloud by task design",
+  "verify": {
+    "run_id": 43421074831,
+    "conclusion": null,
+    "head_sha": "8e0b5af47df91cf6d05eabb6eba587329b4056a7",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43421074831",
+    "status": "in_progress",
+    "observed_at": "2026-11-13T12:02:21Z"
+  },
+  "github_invocations_used": 6
+}

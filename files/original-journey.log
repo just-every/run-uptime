@@ -1,0 +1,82 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.
+BROWSER_DOCUMENT 20127 /login
+ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.
+BROWSER_DOCUMENT 26284 /app/settings/people
+BROWSER_DOCUMENT 26589 /app/settings/people
+BROWSER_RESPONSE 27164 GET /api/credentials 200
+BROWSER_DOCUMENT 27548 /app/settings/alerts
+BROWSER_DOCUMENT 27692 /app/settings/alerts
+BROWSER_RESPONSE 28704 POST /api/notifications/destinations 403
+BROWSER_DOCUMENT 28818 /app/settings/people
+BROWSER_DOCUMENT 29029 /app/settings/people
+BROWSER_RESPONSE 29348 GET /api/credentials 200
+BROWSER_RESPONSE 32921 POST /api/access/mfa/totp/confirm 400
+BROWSER_RESPONSE 33289 POST /api/notifications/destinations 403
+BROWSER_RESPONSE 33382 POST /api/access/mfa/totp/verify 400
+BROWSER_RESPONSE 33539 POST /api/notifications/destinations 403
+BROWSER_DOCUMENT 34091 /app/settings/people
+BROWSER_DOCUMENT 34215 /app/settings/people
+BROWSER_RESPONSE 34673 GET /api/credentials 200
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+BROWSER_RESPONSE 35579 POST /api/credentials 201
+BROWSER_RESPONSE 35599 GET /api/credentials 200
+BROWSER_DOCUMENT 35764 /app/settings/people
+BROWSER_RESPONSE 36371 GET /api/credentials 200
+BROWSER_RESPONSE 37104 POST /api/access/mfa/totp/confirm 400
+BROWSER_RESPONSE 37482 GET /api/overview 401
+BROWSER_DOCUMENT 37506 /login
+BROWSER_DOCUMENT 37674 /login
+BROWSER_DOCUMENT 37723 /auth/confirm
+BROWSER_RESPONSE 37858 GET /setup 403
+BROWSER_DOCUMENT 37865 /setup
+BROWSER_RESPONSE 38013 GET /app/settings/backup 403
+BROWSER_DOCUMENT 38024 /app/settings/backup
+BROWSER_RESPONSE 38250 POST /api/access/mfa/totp/verify 400
+BROWSER_DOCUMENT 38382 /app/settings/backup
+BROWSER_DOCUMENT 38487 /app/settings/backup
+BROWSER_DOCUMENT 38994 /app/settings/people
+BROWSER_RESPONSE 39114 GET /api/credentials 200
+BROWSER_RESPONSE 39626 POST /api/credentials 400
+BROWSER_RESPONSE 39890 POST /api/credentials 201
+BROWSER_RESPONSE 39908 GET /api/credentials 200
+BROWSER_DOCUMENT 40024 /docs/read-api
+BROWSER_DOCUMENT 40198 /docs/read-api
+BROWSER_RESPONSE 40506 POST /api/credentials 201
+BROWSER_RESPONSE 40527 GET /api/credentials 200
+BROWSER_DOCUMENT 40674 /app/settings/people
+BROWSER_DOCUMENT 40786 /app/settings/people
+BROWSER_RESPONSE 40887 GET /report-render.js 429
+BROWSER_REQUEST_FAILED 40888 /report-render.js net::ERR_ABORTED
+BROWSER_RESPONSE 40894 GET /settings-save.js 429
+BROWSER_REQUEST_FAILED 40894 /settings-save.js net::ERR_ABORTED
+BROWSER_RESPONSE 40895 GET /settings-view.js 429
+BROWSER_REQUEST_FAILED 40896 /settings-view.js net::ERR_ABORTED
+BROWSER_RESPONSE 40898 GET /slow-policy.js 429
+BROWSER_REQUEST_FAILED 40898 /slow-policy.js net::ERR_ABORTED
+BROWSER_RESPONSE 40899 GET /transaction-panel.js 429
+BROWSER_REQUEST_FAILED 40899 /transaction-panel.js net::ERR_ABORTED
+BROWSER_RESPONSE 40907 GET /favicon.svg 429
+BROWSER_RESPONSE 41111 GET /assets/app.monitors.new-E_AB7uLb.js 429
+BROWSER_REQUEST_FAILED 41111 /assets/app.monitors.new-E_AB7uLb.js net::ERR_ABORTED
+BROWSER_RESPONSE 41111 GET /assets/step-up.js 429
+BROWSER_REQUEST_FAILED 41111 /assets/step-up.js net::ERR_ABORTED
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#security-controls').locator('[data-credential-id="400a9a9d-b80a-4a0c-b806-9e43cbe51fe8"]') to be visible[22m
+
+    at proveSecurityControls (/home/agent/rer-consolidation/work/sd-uptime-security-wait-1-pc1/run-uptime/tests/security-controls-browser-support.mjs:91:80)
+    at async file:///home/agent/rer-consolidation/work/sd-uptime-security-wait-1-pc1/run-uptime/tests/operator-security.mjs:59:2 {
+  log: [
+    `  - waiting for locator('#security-controls').locator('[data-credential-id="400a9a9d-b80a-4a0c-b806-9e43cbe51fe8"]') to be visible`
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.20.0

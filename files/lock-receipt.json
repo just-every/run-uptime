@@ -1,0 +1,13 @@
+{
+  "commands": [
+    "node scripts/edition-authoring/cli.mjs lock",
+    "node scripts/edition-authoring/cli.mjs check"
+  ],
+  "ok": true,
+  "source_file": "tests/security-controls-browser-support.mjs",
+  "source_sha256": "0292353350324c828593807f6a048a6c203963fe5d0425d98cfce2165fe1d90a",
+  "lock_sha256": "63862ae78f582a68e21b85b9230adb9edc24bbec8eeb466c09e9442fc8ca4822",
+  "changed_lock_entries": [
+    "tests/security-controls-browser-support.mjs"
+  ]
+}

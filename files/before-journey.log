@@ -1,0 +1,76 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.
+BROWSER_DOCUMENT 23237 /login
+ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.
+BROWSER_DOCUMENT 29804 /app/settings/people
+BROWSER_DOCUMENT 30062 /app/settings/people
+BROWSER_RESPONSE 30742 GET /api/credentials 200
+BROWSER_DOCUMENT 31025 /app/settings/alerts
+BROWSER_DOCUMENT 31138 /app/settings/alerts
+BROWSER_RESPONSE 32193 POST /api/notifications/destinations 403
+BROWSER_DOCUMENT 32316 /app/settings/people
+BROWSER_DOCUMENT 32499 /app/settings/people
+BROWSER_RESPONSE 33028 GET /api/credentials 200
+BROWSER_RESPONSE 37303 POST /api/access/mfa/totp/confirm 400
+BROWSER_RESPONSE 37753 POST /api/notifications/destinations 403
+BROWSER_RESPONSE 37850 POST /api/access/mfa/totp/verify 400
+BROWSER_RESPONSE 38055 POST /api/notifications/destinations 403
+BROWSER_DOCUMENT 38889 /app/settings/people
+BROWSER_DOCUMENT 39107 /app/settings/people
+BROWSER_RESPONSE 39672 GET /api/credentials 200
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+BROWSER_RESPONSE 40857 POST /api/credentials 201
+BROWSER_RESPONSE 40884 GET /api/credentials 200
+BROWSER_DOCUMENT 41098 /app/settings/people
+BROWSER_RESPONSE 41645 GET /api/credentials 200
+BROWSER_RESPONSE 42115 POST /api/access/mfa/totp/confirm 400
+BROWSER_RESPONSE 42785 GET /api/overview 401
+BROWSER_DOCUMENT 42827 /login
+BROWSER_DOCUMENT 43127 /login
+BROWSER_DOCUMENT 43201 /auth/confirm
+BROWSER_RESPONSE 43373 GET /setup 403
+BROWSER_DOCUMENT 43387 /setup
+BROWSER_RESPONSE 43505 GET /app/settings/backup 403
+BROWSER_DOCUMENT 43512 /app/settings/backup
+BROWSER_RESPONSE 43751 POST /api/access/mfa/totp/verify 400
+BROWSER_DOCUMENT 43888 /app/settings/backup
+BROWSER_DOCUMENT 44040 /app/settings/backup
+BROWSER_DOCUMENT 45039 /app/settings/people
+BROWSER_RESPONSE 45178 GET /api/credentials 200
+BROWSER_RESPONSE 45766 POST /api/credentials 400
+BROWSER_RESPONSE 46057 POST /api/credentials 201
+BROWSER_RESPONSE 46078 GET /api/credentials 200
+BROWSER_DOCUMENT 46252 /docs/read-api
+BROWSER_DOCUMENT 46447 /docs/read-api
+BROWSER_RESPONSE 46787 POST /api/credentials 201
+BROWSER_RESPONSE 46807 GET /api/credentials 200
+BROWSER_DOCUMENT 94485 /app/settings/people
+BROWSER_DOCUMENT 94596 /app/settings/people
+BROWSER_RESPONSE 95135 GET /api/credentials 200
+BROWSER_RESPONSE 95486 GET /api/credentials 200
+BROWSER_RESPONSE 95606 POST /auth/invite 403
+BROWSER_RESPONSE 96774 GET /api/credentials 200
+BROWSER_DOCUMENT 155160 /app/settings/people
+BROWSER_DOCUMENT 155480 /app/settings/people
+BROWSER_RESPONSE 156190 GET /api/credentials 200
+BROWSER_RESPONSE 157068 POST /api/access/mfa/totp/confirm 400
+BROWSER_DOCUMENT 157333 /app/settings/people
+BROWSER_DOCUMENT 159778 /app/settings/people
+BROWSER_DOCUMENT 159992 /app/settings/people
+BROWSER_RESPONSE 160534 GET /api/credentials 200
+ACCESS-003/READAPI-001 Settings 1440 PASS: owner/member TOTP, recovery once, CDP passkey, stale policy/key step-up, hash-only restricted monitoring/CI issuance, usage and immediate revocation, live member refusal, factor removal, axe/reflow. Existing-document member proof; initial narrowed-role shell entry remains held.
+BROWSER_DOCUMENT 167255 /app/settings/backup
+BROWSER_DOCUMENT 167598 /app/settings/backup
+BROWSER_RESPONSE 168529 POST /api/operator/import/uploads 403
+BROWSER_RESPONSE 168742 POST /api/operator/import/uploads 403
+BROWSER_DOCUMENT 169195 /app/monitors/152737d2-1b60-4523-8724-43abd515173a
+BROWSER_DOCUMENT 169339 /app/monitors/152737d2-1b60-4523-8724-43abd515173a
+BROWSER_DOCUMENT 169820 /app/monitors/152737d2-1b60-4523-8724-43abd515173a/edit
+BROWSER_DOCUMENT 169960 /app/monitors/152737d2-1b60-4523-8724-43abd515173a/edit
+BROWSER_RESPONSE 170210 POST /api/monitors/152737d2-1b60-4523-8724-43abd515173a/erase 403
+BROWSER_DOCUMENT 170939 /app/monitors
+BROWSER_DOCUMENT 171051 /app/monitors
+Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, per-table receipt equal to storage and later backup.
+OPERATOR-SECURITY completed one owner-to-runner lifecycle
