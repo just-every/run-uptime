@@ -1,10 +1,11 @@
-import {escape,ago,humaneDuration} from './console-format.js';
+import {escape,ago} from './console-format.js';
 import {httpRules,httpType,responseTime,agreementRule,locationNamer} from './monitor-rules.js';
 import {latestAttempts,jsonActual} from './monitor-status.js';
 import {isProtocol,protocolExpectations} from './protocol-panel.js';
 import {isFlow,flowSummary} from './flow-panel.js';
 import {mailSummary} from './mail-panel.js';
 import {transactionSummary} from './transaction-panel.js';
+import {heartbeatRules} from './heartbeat-rules.js';
 // The monitor page's "Up or down" table (U15): a row per Up when rule with its expected value as a chip, a column per location
 // the monitor checks from, and in each cell what that location saw on the newest complete scheduled check of the current
 // revision (the page's `seen.newest`, from its history read). Under it the two numbers of Down when and Back up after, as
@@ -50,7 +51,7 @@ function ruleRows(m){
  const d=m.definition,can=editing(d),latencyRow=()=>({key:'latencyMs',assertion:'latency',label:'Responds within',value:responseTime(d.assertions.latencyMs),edit:can.latency,remove:can.latency,whole:true});
  if(httpType(d))return httpRules(d).map(rule=>({...rule,edit:can.rules,remove:can.rules&&rule.key!=='status'}));
  if(isProtocol(d))return [...protocolExpectations(d).filter(([label])=>label!=='Slowest answer').map(([label,value,mono],i)=>({key:`expect-${i}`,label,value,mono,whole:true})),...(d.assertions?.latencyMs!==undefined?[latencyRow()]:[])];
- if(d.type==='heartbeat'){const h=d.heartbeat??{};return [{key:'period',label:'Success period + grace',value:humaneDuration((h.maxAgeMs??0)+(h.graceMs??0)),whole:true},...(h.maxRunDurationMs?[{key:'run',label:'Maximum run duration',value:humaneDuration(h.maxRunDurationMs),whole:true}]:[])]}
+ if(d.type==='heartbeat')return heartbeatRules(d.heartbeat).map(rule=>({...rule,whole:true}));
  const summary=d.type==='mail'?mailSummary(d):d.type==='api'?transactionSummary(d):isFlow(d)?flowSummary(d):'';
  return [summary?{key:'summary',html:summary,whole:true}:{key:'passes',label:'The check passes',value:'',whole:true}];
 }

@@ -1,12 +1,14 @@
 import {escape} from './console-format.js';
 import {firstMount} from './dom-patch.js';
 import {installationZone,zoneChoices} from './installation-zone.js';
+import {heartbeatRuleDetails} from './heartbeat-rules.js';
 
 export function heartbeatJobsPanel(m){
  if(m.definition.type!=='heartbeat')return '';
  const h=m.definition.heartbeat??{};
  return `<section class="ui-card panel" id="heartbeat-jobs" data-owned="${escape(m.id)}:${m.revision}" aria-labelledby="heartbeat-jobs-title"><h2 id="heartbeat-jobs-title">Job schedule and runs</h2>
- <p>A success is expected each period, with the grace below. A start measures duration; failure requests an immediate scheduled evaluation. Only signed scheduled results change health.</p>
+ <dl class="heartbeat-details ui-dl">${heartbeatRuleDetails(h)}</dl>
+ <p>A start measures duration; failure requests an immediate scheduled evaluation. Only signed scheduled results change health.</p>
  <form id="heartbeat-job-settings"><label for="job-mode">Schedule type<select id="job-mode" name="mode"><option value="period" ${h.cron?'':'selected'}>Expected period</option><option value="cron" ${h.cron?'selected':''}>Cron in a time zone</option></select></label>
  <label for="job-cron">Five-field cron expression<input id="job-cron" name="cron" value="${escape(h.cron??'0 2 * * *')}" maxlength="120"></label>
  <label for="job-zone">IANA time zone<input id="job-zone" name="zone" list="job-zones" value="${escape(h.timeZone??installationZone())}"></label><datalist id="job-zones">${zoneChoices().map(z=>`<option value="${escape(z)}">`).join('')}</datalist>

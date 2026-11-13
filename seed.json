@@ -1579,6 +1579,14 @@
         "environment": "all"
       },
       {
+        "path": "/heartbeat-rules.js",
+        "match": "exact",
+        "kind": "asset",
+        "class": "assets",
+        "authentication": "None; emitted static resource only.",
+        "environment": "all"
+      },
+      {
         "path": "/catalog.js",
         "match": "exact",
         "kind": "asset",
