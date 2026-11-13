@@ -18,7 +18,7 @@
 .maintenance-preview p { margin-block: 10px; }
 .maintenance-occurrences { padding-left: 22px; max-height: 300px; overflow: auto; }
 .maintenance-occurrences li { padding-block: 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
-.maintenance-utc { display: block; font-size: 12px; margin-top: 4px; }
+.maintenance-utc { display: block; font-size: 13px; margin-top: 4px; }
 .maintenance-windows { padding: 0; list-style: none; }
 .maintenance-windows li { padding-block: 14px; border-top: 1px solid var(--line); }
 .maintenance-windows p, .maintenance-panel > p { margin-block: 8px; overflow-wrap: anywhere; }

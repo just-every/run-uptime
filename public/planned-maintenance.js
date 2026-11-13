@@ -32,7 +32,7 @@ export function openMaintenanceDialog({monitors,api,action}){
  const start=localDateTime(Date.now()+3600000,timeZone),fromDate=start.slice(0,10);
  const untilDate=new Date(Date.parse(fromDate+'T00:00:00Z')+28*86400000).toISOString().slice(0,10);
  const dialog=createDialog('Plan maintenance','plan-maintenance');
- dialog.innerHTML+=`<p>Applies to ${selection.length} selected monitor${selection.length===1?'':'s'}:</p><ul class="maintenance-scope" tabindex="0" aria-label="Selected monitors">${selection.map(m=>`<li>${escape(m.definition.name)} <code>${escape(m.id)}</code></li>`).join('')}</ul>
+ dialog.innerHTML+=`<p>Applies to ${selection.length} selected monitor${selection.length===1?'':'s'}:</p><ul class="maintenance-scope" tabindex="0" aria-label="Selected monitors">${selection.map(m=>`<li>${escape(m.definition.name)}</li>`).join('')}</ul>
  <form id="maintenance-form">${plannerFields(timeZone,start,fromDate,untilDate)}<p class="form-error" role="alert" id="maintenance-error"></p>
  <section id="maintenance-preview" class="maintenance-preview" aria-labelledby="maintenance-preview-heading" hidden></section>
  <div class="buttons"><button type="button" id="maintenance-close">Cancel</button><button type="submit" id="maintenance-preview-button">Preview occurrences</button><button type="button" class="primary" id="maintenance-apply" disabled>Apply maintenance</button></div></form>`;

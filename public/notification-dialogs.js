@@ -55,7 +55,37 @@ export function showSecret(secret,destinationName){
  dialog.append(title,explanation,code,copy,status,help,close);document.body.append(dialog);containModalKeyboard(dialog);dialog.showModal();
 }
 
-export function showErasureReceipt(receipt,{onClose=()=>{}}={}){
+function showMonitorErasureReceipt(receipt,{name,onClose}){
+ const dialog=document.createElement('dialog');dialog.className='editor notification-dialog erasure-receipt monitor-erasure-receipt';dialog.setAttribute('aria-labelledby','erasure-receipt-heading');
+ const heading=document.createElement('h2');heading.id='erasure-receipt-heading';heading.textContent='Erasure complete';
+ const description=document.createElement('p');description.textContent=name?`“${name}” was erased.`:'The monitor was erased.';
+ const scope=document.createElement('p');scope.textContent='Its saved settings, check results, incident history, and related alert and heartbeat records were removed. The anonymous audit and this receipt remain.';
+ // A readable reference preserves every bit of the stored receipt ID. The
+ // original receipt, including its ID and exact table counts, is never changed.
+ const referenceValue='ER-'+receipt.id.replaceAll('-','').toUpperCase().match(/.{1,8}/g).join('-');
+ const reference=document.createElement('p');reference.className='erasure-reference';reference.append('Receipt reference');
+ const value=document.createElement('span');value.className='erasure-reference-value';value.textContent=referenceValue;reference.append(value);
+ const copy=document.createElement('button');copy.textContent='Copy reference';
+ const feedback=document.createElement('p');feedback.className='copy-feedback';feedback.setAttribute('role','status');
+ copy.onclick=async()=>{try{await navigator.clipboard.writeText(referenceValue);if(dialog.isConnected){feedback.dataset.state='success';feedback.textContent='Receipt reference copied.'}}catch{if(dialog.isConnected){feedback.dataset.state='error';feedback.textContent='Copy could not complete. Select and copy the reference above.'}}};
+ const download=document.createElement('button');download.textContent='Download receipt';
+ download.onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(receipt,null,2)+'\n'],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download=`uptime-erasure-${referenceValue}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),0)};
+ const actions=document.createElement('div');actions.className='erasure-receipt-actions';actions.append(copy,download);
+ const details=document.createElement('details');details.className='erasure-receipt-details';
+ const summary=document.createElement('summary');summary.textContent='Receipt details';
+ const completed=document.createElement('time');completed.dateTime=new Date(receipt.completedAt).toISOString();completed.textContent=new Date(receipt.completedAt).toLocaleString();
+ const completion=document.createElement('p');completion.append('Completed ',completed,'.');
+ const original=document.createElement('p');original.textContent=`Stored receipt ID: ${receipt.id}`;
+ const counts=document.createElement('dl');
+ for(const [table,count] of Object.entries(receipt.counts).sort((a,b)=>b[1]-a[1])){const row=document.createElement('div'),label=document.createElement('dt'),total=document.createElement('dd');row.dataset.erasureTable=table;label.textContent=table.replaceAll('_',' ').replace(/^./,c=>c.toUpperCase());total.textContent=String(count);row.append(label,total);counts.append(row)}
+ const limits=document.createElement('p');limits.textContent='Downloaded backups and messages already sent are unchanged. Requests already in progress cannot be recalled.';
+ details.append(summary,completion,original,counts,limits);
+ const close=document.createElement('button');close.className='primary';close.textContent='Close receipt';close.onclick=()=>dialog.close();dialog.onclose=()=>{dialog.remove();onClose()};
+ dialog.append(heading,description,scope,reference,actions,feedback,details,close);document.body.append(dialog);containModalKeyboard(dialog);dialog.showModal();heading.tabIndex=-1;heading.focus();dialog.scrollTop=0;
+}
+
+export function showErasureReceipt(receipt,{name,onClose=()=>{}}={}){
+ if(receipt.entityKind==='monitor')return showMonitorErasureReceipt(receipt,{name,onClose});
  const dialog=document.createElement('dialog');dialog.className='editor notification-dialog erasure-receipt';dialog.setAttribute('aria-labelledby','erasure-receipt-heading');
  const heading=document.createElement('h2');heading.id='erasure-receipt-heading';heading.textContent='Erasure complete';
  const description=document.createElement('p'),completed=document.createElement('time');completed.dateTime=new Date(receipt.completedAt).toISOString();completed.textContent=new Date(receipt.completedAt).toLocaleString();description.append(`${receipt.entityKind} erased at `,completed,'.');

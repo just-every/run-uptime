@@ -1,5 +1,6 @@
 import {assertPlainMonitorText,provePlainMonitorEvidence} from './plain-monitor-text-support.mjs';
 import {provePasteImport} from './import-paste-browser-support.mjs';
+import {proveReadableMaintenanceAndErasure} from './readable-maintenance-erasure-support.mjs';
 import {browserSignIn,testAuthBindings} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -220,6 +221,7 @@ try{
    await tabTo(page,page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await page.getByRole('heading',{name:'Destinations',exact:true}).waitFor();await audit(page,`notifications-${width}`);
    await page.getByRole('link',{name:'Backup and files',exact:true}).click();await page.waitForURL(origin+'/app/settings/backup');await ready(page);await page.getByRole('button',{name:'Download backup'}).waitFor();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
+   await proveReadableMaintenanceAndErasure(page,origin,monitor);
    await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();assert.equal((await page.request.get(origin+'/api/overview')).status(),401);assert.deepEqual(errors,[],'browser exceptions');
   }finally{await context.close()}
  }

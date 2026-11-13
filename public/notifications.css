@@ -187,7 +187,14 @@
 .drill-schedule input, .drill-schedule select { min-width:0; max-width:100%; }
 @media(max-width:480px) { .drill-schedule .webhook-pair { grid-template-columns:minmax(0,1fr); } }
 
-/* Monitor receipts retain one compact row for every table in the stored receipt. */
+/* Monitor receipt details retain every table in the stored receipt. */
+.monitor-erasure-receipt > p { margin-block: 12px; }
+.erasure-reference-value { display: block; margin-top: 4px; font-weight: 600; overflow-wrap: anywhere; user-select: all; }
+.erasure-receipt-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.erasure-receipt-details { margin-block: 20px; }
+.erasure-receipt-details summary { min-height: 44px; align-content: center; cursor: pointer; }
+.erasure-receipt-details p { overflow-wrap: anywhere; }
+@media (max-width: 480px) { .erasure-receipt-actions > button { width: 100%; } }
 .erasure-receipt [data-erasure-table] { display: flex; justify-content: space-between; gap: 16px; padding-block: 5px; font-size: 14px; }
 .erasure-receipt [data-erasure-table] dt { min-width: 0; overflow-wrap: anywhere; }
 .erasure-receipt [data-erasure-table] dd { margin: 0; flex: none; font-variant-numeric: tabular-nums; }

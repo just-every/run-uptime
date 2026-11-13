@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Planned maintenance names the selected monitors in its planner and preview. Monitor erasure completion names the erased monitor, explains what was removed, and offers a copyable receipt reference. Exact per-table counts and the original receipt ID remain under **Receipt details** and in the downloadable receipt; stored receipts and maintenance behavior are unchanged.
+
 ## 0.5.9 — 2026-11-12
 
 Maintenance release from `main`; previous version 0.5.8. There are no application behavior changes since 0.5.8. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.

@@ -14,7 +14,7 @@ export function mountErase(form,{id,name,message}){
   try{({confirmErasure,showErasureReceipt}=await confirmDialog())}catch{message.textContent='Couldn’t open the erase confirmation. Try again.';message.setAttribute('data-error','');return}
   confirmErasure({kind:'monitor',name,onConfirm:async typed=>{
    button.disabled=true;message.removeAttribute('data-error');message.textContent='Erasing monitor…';
-   try{const {receipt}=await api(`/api/monitors/${encodeURIComponent(id)}/erase`,'POST',{name:typed},{stepUp:true});message.textContent=`Erased ${name}.`;showErasureReceipt(receipt,{onClose:()=>{sessionStorage.setItem('uptime-notice',`Erased ${name}.`);location.assign('/app/monitors')}})}
+   try{const {receipt}=await api(`/api/monitors/${encodeURIComponent(id)}/erase`,'POST',{name:typed},{stepUp:true});message.textContent=`Erased ${name}.`;showErasureReceipt(receipt,{name,onClose:()=>{sessionStorage.setItem('uptime-notice',`Erased ${name}.`);location.assign('/app/monitors')}})}
    catch(error){message.textContent=error.message;message.setAttribute('data-error','');button.disabled=false;button.focus({preventScroll:true});message.scrollIntoView({block:'nearest'})}
   }});
  };
