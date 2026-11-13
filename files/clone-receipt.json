@@ -1,0 +1,52 @@
+{
+  "tag": "gr-mt-uptime-dep-1",
+  "repository": "just-every/run-uptime",
+  "command": "git clone --filter=blob:none https://github.com/just-every/run-uptime.git /home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-1/repo",
+  "authentication": "Only the launcher-decrypted bundle through cloud-git-credential.py; no alternative credential used.",
+  "attempts": [
+    {
+      "attempt": 1,
+      "exit": 128,
+      "http_status": "unknown (not supplied by Git)",
+      "diagnostic": "remote: Invalid username or token. Password authentication is not supported for Git operations.\nfatal: Authentication failed for 'https://github.com/just-every/run-uptime.git/'",
+      "backoff_before_seconds": 0,
+      "launcher_refresh_exit": 0
+    },
+    {
+      "attempt": 2,
+      "exit": 128,
+      "http_status": "unknown (not supplied by Git)",
+      "diagnostic": "remote: Invalid username or token. Password authentication is not supported for Git operations.\nfatal: Authentication failed for 'https://github.com/just-every/run-uptime.git/'",
+      "backoff_before_seconds": 15,
+      "launcher_refresh_exit": 0
+    },
+    {
+      "attempt": 3,
+      "exit": 128,
+      "http_status": "unknown (not supplied by Git)",
+      "diagnostic": "remote: Invalid username or token. Password authentication is not supported for Git operations.\nfatal: Authentication failed for 'https://github.com/just-every/run-uptime.git/'",
+      "backoff_before_seconds": 45,
+      "launcher_refresh_exit": 0
+    },
+    {
+      "attempt": 4,
+      "exit": 0,
+      "http_status": "unknown (not supplied by Git)",
+      "diagnostic": "Clone completed successfully: 2402 files checked out.",
+      "backoff_before_seconds": 90,
+      "launcher_refresh_exit": 0
+    }
+  ],
+  "status": "success",
+  "product_head": "83b2f2692149c9171a12cba0d7397734a1e8096b",
+  "product_branch_created": true,
+  "product_push_attempted": false,
+  "github_api_calls": 1,
+  "ci_run_ids": [
+    43471590109,
+    43471590153,
+    43461700458
+  ],
+  "publication_scan": "NOT RUN: no new product tree or product push; no-change result.",
+  "tests": "PASS: full manifest/lockfile resolution inspection; see dependency-receipt.json."
+}

@@ -1,0 +1,7 @@
+{
+  "status": "no-change",
+  "sha": "83b2f2692149c9171a12cba0d7397734a1e8096b",
+  "summary": "Current main already resolves @tanstack/react-start 1.168.60 and @tanstack/start-server-core 1.169.39; all targeted lockfile resolutions and dependency edges meet the advisory fix thresholds.",
+  "tests": "PASS: parsed manifest and full root pnpm lockfile with the repository YAML parser; checked all target packages, snapshots, and three server-core edges; manifest/importer agree; tracked tree equals origin/main. Existing exact-SHA Verify 43471590109 and Run site 43471590153 completed/success. Install/build/typecheck/product tests not rerun because no product changes were necessary.",
+  "security": true
+}
