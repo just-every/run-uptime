@@ -109,11 +109,23 @@ export async function proveManualMultiProbe({c,db,origin,cookie,proof,providerRe
   assert.ok(observation,'one open debt refers to retained signed production evidence');
 
   const checkRelay=relaySnapshotGuard(c.business);
+  let admissionBaseline;
+  const retainedAdmission=new Set(['agent_door_audit','agent_door_calls','agent_door_approvals',
+   'agent_door_reviews','agent_door_events','agent_door_usage']);
   const snapshot=async()=>{
    const tables=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf*' ORDER BY name").all()).results.map(row=>row.name);
    const rows=await db.batch(tables.map(name=>db.prepare('SELECT * FROM "'+name.replaceAll('"','""')+'"')));
    const state=Object.fromEntries(tables.map((name,index)=>[name,ordered(rows[index].results)]));
    checkRelay(state);
+   if(admissionBaseline){
+    for(const table of retainedAdmission){
+     const key=row=>table==='agent_door_calls'?row.agent+' '+row.key:row.id??row.decision_id;
+     const current=new Map(state[table].map(row=>[key(row),row]));
+     for(const row of admissionBaseline[table])assert.deepEqual(current.get(key(row)),row,table+': pre-existing admission row remains exact');
+    }
+    const stableAgent=({window,requests,...row})=>row;
+    assert.deepEqual(state.agent_door_agents.map(stableAgent),admissionBaseline.agent_door_agents.map(stableAgent),'admission changes counters but no agent authority');
+   }else admissionBaseline=structuredClone(state);
    return Object.fromEntries(Object.entries(state).filter(([name])=>!bookkeeping.has(name)&&name!=='agent_door_relay'));
   };
   const unchanged=(before,after,label)=>{
@@ -125,8 +137,10 @@ export async function proveManualMultiProbe({c,db,origin,cookie,proof,providerRe
    slots:(await db.prepare('SELECT * FROM slots WHERE manual=0 ORDER BY id').all()).results,
    observations:(await db.prepare('SELECT * FROM observations ORDER BY id').all()).results,
    high:await http.json('/api/monitors/'+monitor.id+'/incidents'),
+   health:(await http.send('/health')).status,
   });
   const baseline=await scheduled(),traffic=structuredClone(providerRequests),wire=[...calls],mail=allDeliveredMessages().length;
+  assert.equal(baseline.health,200);
   const noTraffic=()=>{
    assert.deepEqual(providerRequests,traffic,'agent admission sends no Worker provider request');
    assert.deepEqual(calls,wire,'agent admission never executes a target fixture');
@@ -239,6 +253,7 @@ export async function proveManualMultiProbe({c,db,origin,cookie,proof,providerRe
   assert.deepEqual(await debts(monitor.id),open,'no manual slot was dispatched and no debt was resolved');
   assert.equal((await debts(low.monitor.id)).open.length,0);
   noTraffic();
+  console.log(`TRAFFIC SURFACE-006 multiprobe: target=${wire.length} baseline, delta=${calls.length-wire.length}; provider=${traffic.length} baseline, delta=${providerRequests.length-traffic.length}; mail=${mail} baseline, delta=${allDeliveredMessages().length-mail}`);
   console.log('PASS SURFACE-006 independent two-probe cleanup boundary through native owner, signed production runner, both policies and both MCP protocols');
  }finally{
   restore?.();if(server?.listening){server.closeAllConnections();await new Promise(resolve=>server.close(resolve))}
