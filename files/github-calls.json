@@ -1,0 +1,42 @@
+{
+  "budget": 10,
+  "used": 6,
+  "calls": [
+    {
+      "call": 1,
+      "command": "gh api repos/just-every/run-uptime/actions/runs/43518362117",
+      "purpose": "Initial run attempt and status",
+      "result": "completed/failure attempt 1 exact failed head; 2026-11-13T22:55:32Z"
+    },
+    {
+      "call": 2,
+      "command": "gh run view 43518362117 --repo just-every/run-uptime --job 132206445155 --log-failed",
+      "purpose": "Read failed assertion once",
+      "result": "success; archive read once; no transport rejection"
+    },
+    {
+      "call": 3,
+      "command": "gh api repos/just-every/run-uptime/actions/runs/43518362117/attempts/1/jobs?per_page=100",
+      "purpose": "Confirm attempt-1 jobs and runner",
+      "result": "one failing shard push-5 plus aggregate verify failure; ubuntu-24.04"
+    },
+    {
+      "call": 4,
+      "command": "gh api --method POST repos/just-every/run-uptime/actions/jobs/132206445155/rerun --include",
+      "purpose": "Authorized single-job retry",
+      "result": "HTTP/2.0 201 Created; Date Fri, 13 Nov 2026 22:56:11 GMT"
+    },
+    {
+      "call": 5,
+      "command": "gh api repos/just-every/run-uptime/actions/runs/43518362117",
+      "purpose": "Only post-retry run-status observation",
+      "result": "completed/success attempt 2 exact head; observed 2026-11-13T23:05:24Z; prior status read >300 seconds earlier"
+    },
+    {
+      "call": 6,
+      "command": "gh api repos/just-every/run-uptime/actions/runs/43518362117/attempts/2/jobs?per_page=100",
+      "purpose": "Capture retry job IDs and prove other shards retained original execution timestamps",
+      "result": "push-5 job 132222564613 success; verify job 132226368915 success; full-push-proof 132226329074 success"
+    }
+  ]
+}

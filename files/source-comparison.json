@@ -1,0 +1,64 @@
+{
+  "failed_head": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+  "main": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "changed_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "numstat": "26\t0\tCHANGELOG.md\n1\t1\tREADME.md\n3\t3\tRELEASE.json\n1\t1\tRELEASE.md\n1\t1\tpackage.json\n1\t1\tseed.json\n6\t6\tsources.lock.json",
+  "selected_file_comparison": [
+    {
+      "path": "tests/destination-stepup-support.mjs",
+      "identical": true,
+      "failed_head_sha256": "8ea50cac6fc58fea7b11e7fce53e5ce7b632626fde6dad77b9b796461a37bf94",
+      "main_sha256": "8ea50cac6fc58fea7b11e7fce53e5ce7b632626fde6dad77b9b796461a37bf94"
+    },
+    {
+      "path": "tests/operator-security.mjs",
+      "identical": true,
+      "failed_head_sha256": "7fd9f16e8a67284869ae707bf941ff02d96611cc877236ab33ed4d948b54f46c",
+      "main_sha256": "7fd9f16e8a67284869ae707bf941ff02d96611cc877236ab33ed4d948b54f46c"
+    },
+    {
+      "path": "tests/security-controls-browser-support.mjs",
+      "identical": true,
+      "failed_head_sha256": "0292353350324c828593807f6a048a6c203963fe5d0425d98cfce2165fe1d90a",
+      "main_sha256": "0292353350324c828593807f6a048a6c203963fe5d0425d98cfce2165fe1d90a"
+    },
+    {
+      "path": "src/domain/erasure.server.ts",
+      "identical": true,
+      "failed_head_sha256": "4fce9fe38dde371e8a5c00d88d7e78e868728145fca9753935d37255c01e5af3",
+      "main_sha256": "4fce9fe38dde371e8a5c00d88d7e78e868728145fca9753935d37255c01e5af3"
+    },
+    {
+      "path": "src/server.ts",
+      "identical": true,
+      "failed_head_sha256": "54148bc3dc413387c30c7efcf43f09d6b645f1da8a40595acf4a4401e7c75405",
+      "main_sha256": "54148bc3dc413387c30c7efcf43f09d6b645f1da8a40595acf4a4401e7c75405"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "identical": true,
+      "failed_head_sha256": "58eadd853b841a12b49886ae6a08faf81d6e59ed07cef3a11ab1f19a73020e86",
+      "main_sha256": "58eadd853b841a12b49886ae6a08faf81d6e59ed07cef3a11ab1f19a73020e86"
+    },
+    {
+      "path": ".github/workflows/verify.yml",
+      "identical": true,
+      "failed_head_sha256": "f21afe50cbece771e186965c2bb9c3c5c034baccc2e73543d856d239491dac96",
+      "main_sha256": "f21afe50cbece771e186965c2bb9c3c5c034baccc2e73543d856d239491dac96"
+    }
+  ],
+  "tracked_status": "",
+  "product_changes_made": false,
+  "product_commits_made": 0,
+  "product_pushes": 0,
+  "main_rechecked_at_probe": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "main_recheck_matches_initial": true
+}

@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-11-13T23:12:33Z",
+  "terminal_head": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+  "terminal_branch": "",
+  "tracked_status": "",
+  "identity_command": "git log origin/main..HEAD --format=\"%an <%ae>%n%cn <%ce>%n%(trailers:only,unfold)\"",
+  "candidate_identity_and_trailers": "Run Edit Run fleet <fleet@runeditrun.com>\nRun Edit Run fleet <fleet@runeditrun.com>",
+  "no_product_commit_or_push": true,
+  "hooks_active": "/home/agent/rer-consolidation/work/sd-uptime-release0512-ci-triage-1/run-uptime/.git/fleet-cloud-hooks",
+  "owned_browser_and_workerd_processes_at_completion": [],
+  "cleanup_plan": "Remove owned clone and node_modules only after successful evidence publication and exact-head fetch verification. Retain packet outside clone."
+}

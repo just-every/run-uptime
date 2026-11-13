@@ -1,0 +1,57 @@
+{
+  "tag": "sd-uptime-release0512-ci-triage-1",
+  "result": "UNREPRODUCED",
+  "repository": "just-every/run-uptime",
+  "candidate_branch": "cloud/sd-uptime-release-0-5-12",
+  "candidate_head": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+  "main_head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "ci": {
+    "run": 43518362117,
+    "initial_attempt": 1,
+    "initial_failed_shard_job": 132206445155,
+    "retry_requests": 1,
+    "retry_http_status": 201,
+    "final_attempt": 2,
+    "retried_job": 132222564613,
+    "aggregate_job": 132226368915,
+    "status": "completed",
+    "conclusion": "success",
+    "exact_head_verified": true,
+    "before_failing_shards": 1,
+    "after_failing_shards": 0,
+    "github_calls_used": 6,
+    "github_call_budget": 10
+  },
+  "probes": {
+    "command": "node tests/operator-security.mjs",
+    "candidate_exit": 0,
+    "main_exit": 0,
+    "candidate_destination_cleanup": "PASS",
+    "main_destination_cleanup": "PASS",
+    "cause_established": false,
+    "runs_per_head": 1
+  },
+  "changes": {
+    "product_commits": 0,
+    "product_pushes": 0,
+    "product_branch_created": false,
+    "pr_created": false,
+    "source_or_test_changes": false,
+    "clause_status_changes": [],
+    "test_registrations_added_or_removed": 0,
+    "full_target_before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "full_target_after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "blockers": [],
+  "next_action": "Root routes unchanged metadata candidate through supported lander using exact-SHA green attempt 2; no repair lease without demonstrated reproduction; retain release lock."
+}

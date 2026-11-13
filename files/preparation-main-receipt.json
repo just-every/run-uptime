@@ -1,0 +1,8 @@
+{
+  "head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "command": "cloud_run npx -y @runeditrun/rer build",
+  "exit_code": 0,
+  "completion_marker": "build: complete (exit 0)",
+  "dependencies_reused": true,
+  "reason": "Identical pnpm lockfile and dependency pins; separate build before main probe."
+}

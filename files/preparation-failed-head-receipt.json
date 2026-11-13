@@ -1,0 +1,8 @@
+{
+  "head": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+  "command": "cloud_run npx -y @runeditrun/rer build",
+  "exit_code": 0,
+  "completion_marker": "build: complete (exit 0)",
+  "build_log_published": false,
+  "reason": "Retain concise preparation receipt; setup settings and raw installer logs are private and not selected for publication."
+}

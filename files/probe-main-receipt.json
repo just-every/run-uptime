@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "scope": "read-only public-door probe",
+  "command": "cloud_run node tests/operator-security.mjs",
+  "head": "954353ad135f144d54f8e37013d6341a19a98e16",
+  "exit_code": 0,
+  "output_file": "probe-main.log",
+  "last_output_at": "2026-11-13T23:11:12Z",
+  "completion_observed_at": "2026-11-13T23:11:12Z",
+  "destination_cleanup_result": "PASS; existing status-200 assertions passed; original 409 not reproduced",
+  "test_file_modified": false,
+  "environment": {
+    "os": "Debian GNU/Linux 13 (trixie)",
+    "node": "24.19.0",
+    "pnpm": "10.12.4",
+    "playwright": "1.64.1",
+    "chromium": "154.0.8037.57 Debian system browser",
+    "executable": "/usr/bin/chromium",
+    "browser_flags": "--no-sandbox --use-mock-keychain --password-store=basic",
+    "viewport": "1440x1000 for destination journey",
+    "CI": "true",
+    "build_preparation": "Same dependency installation and toolchain as candidate; separate cloud_run npx -y @runeditrun/rer build on exact main before probe.",
+    "test_state": "test-owned temporary Miniflare/D1 directory; existing teardown; only loopback routes and test network-edge fixture",
+    "comparison_limits": "CI ran Node 22.20.0 on GitHub Ubuntu 24.04 and bundled browser; this VM direct node command used Node 24.19.0 after provided toolchain sourcing. Build uses rer pinned runtime. Not same-runner evidence."
+  },
+  "started_at": "2026-11-13T23:08:51Z",
+  "diagnostic": "After the import/erase pass, workerd logged disconnected: write(): Connection reset by peer (os error 104). The original command continued to OPERATOR-SECURITY completion and exited 0. No retry was performed."
+}

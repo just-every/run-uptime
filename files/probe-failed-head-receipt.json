@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "repository": "just-every/run-uptime",
+  "scope": "read-only public-door probe",
+  "command": "cloud_run node tests/operator-security.mjs",
+  "head": "7364b5f3dd7fcf29b533d3139315ad1701d0653e",
+  "exit_code": 0,
+  "output_file": "probe-failed-head.log",
+  "last_output_at": "2026-11-13T23:08:12Z",
+  "completion_observed_at": "2026-11-13T23:08:21Z",
+  "destination_cleanup_result": "PASS; existing status-200 assertions passed; original 409 not reproduced",
+  "test_file_modified": false,
+  "environment": {
+    "os": "Debian GNU/Linux 13 (trixie)",
+    "node": "24.19.0",
+    "pnpm": "10.12.4",
+    "playwright": "1.64.1",
+    "chromium": "154.0.8037.57 Debian system browser",
+    "executable": "/usr/bin/chromium",
+    "browser_flags": "--no-sandbox --use-mock-keychain --password-store=basic",
+    "viewport": "1440x1000 for destination journey",
+    "CI": "true",
+    "build_preparation": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive, then npx -y @runeditrun/rer build, both through cloud_run",
+    "test_state": "test-owned temporary Miniflare/D1 directory; existing teardown; only loopback routes and test network-edge fixture",
+    "comparison_limits": "CI ran Node 22.20.0 on GitHub Ubuntu 24.04 and bundled browser; this VM direct node command used Node 24.19.0 after provided toolchain sourcing. Build uses rer pinned runtime. Not same-runner evidence."
+  }
+}
