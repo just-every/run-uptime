@@ -1,0 +1,72 @@
+{
+  "journey": "COMMAND-JOURNEY local invitation and sign-in truth",
+  "checks": [
+    {
+      "screen": "signed-out",
+      "width": 1440,
+      "matchingHandoff": true,
+      "privateAPI": 401
+    },
+    {
+      "screen": "lobby",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "screen": "login",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "screen": "lobby",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "screen": "login",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "screen": "people",
+      "role": "member",
+      "width": 1440,
+      "HTTP": 202,
+      "recorded": true,
+      "delivered": false,
+      "pending": true
+    },
+    {
+      "screen": "people",
+      "role": "responder",
+      "width": 1440,
+      "HTTP": 202,
+      "recorded": true,
+      "delivered": false,
+      "pending": true
+    },
+    {
+      "screen": "people-proof",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "screen": "people-proof",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "screen": "local-picker",
+      "existingDoor": true,
+      "invitedAccountAccepted": true
+    }
+  ],
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-local-signin-truth-1",
+  "head": "fb6da95ae60e4b37f5df44ac4f6ad848a3485d5e",
+  "fixture_emails": [
+    "synthetic-uptime-821@example.test",
+    "synthetic-uptime-822@example.test"
+  ],
+  "candidate_capture": true
+}

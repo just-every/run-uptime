@@ -1,0 +1,63 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "fb6da95ae60e4b37f5df44ac4f6ad848a3485d5e",
+  "command": "gh api repos/just-every/run-uptime/actions/runs?head_sha=fb6da95ae60e4b37f5df44ac4f6ad848a3485d5e&per_page=100",
+  "attempts": [
+    {
+      "attempt": 1,
+      "HTTP": 401,
+      "error": "gh: Bad credentials (HTTP 401)"
+    },
+    {
+      "attempt": 2,
+      "delay": 15,
+      "HTTP": 401,
+      "error": "gh: Bad credentials (HTTP 401)"
+    },
+    {
+      "attempt": 3,
+      "delay": 45,
+      "at": "2026-11-13T04:16:46.188806+00:00",
+      "refresh_exit": 0,
+      "git_setup_exit": 0,
+      "exit": 1,
+      "HTTP": 401,
+      "error": "gh: Bad credentials (HTTP 401)",
+      "body": {
+        "message": "Bad credentials",
+        "documentation_url": "https://docs.github.com/rest",
+        "status": "401"
+      }
+    },
+    {
+      "attempt": 4,
+      "delay": 90,
+      "at": "2026-11-13T04:18:17.838300+00:00",
+      "refresh_exit": 0,
+      "git_setup_exit": 0,
+      "exit": 0,
+      "response": {
+        "workflow_runs": [
+          {
+            "conclusion": null,
+            "head_sha": "fb6da95ae60e4b37f5df44ac4f6ad848a3485d5e",
+            "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364177836",
+            "id": 43364177836,
+            "name": "Verify",
+            "status": "in_progress"
+          }
+        ]
+      }
+    }
+  ],
+  "api_calls": 4,
+  "exact_sha_verify": "discovered",
+  "run": {
+    "conclusion": null,
+    "head_sha": "fb6da95ae60e4b37f5df44ac4f6ad848a3485d5e",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43364177836",
+    "id": 43364177836,
+    "name": "Verify",
+    "status": "in_progress"
+  }
+}

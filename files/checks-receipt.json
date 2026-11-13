@@ -1,0 +1,104 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-local-signin-truth-1",
+  "head": "fb6da95ae60e4b37f5df44ac4f6ad848a3485d5e",
+  "baseline": "36779a7228727cb38d7180b26c5b5aa656ca1056",
+  "at": "2026-11-13T04:14:38.632928+00:00",
+  "checks": [
+    {
+      "check": "typecheck",
+      "command": "pnpm run typecheck",
+      "result": "passed",
+      "exit": 0,
+      "log_sha256": "725b7e3f3e9ca4145fe3e6ac64bbd07078bc2745c99e07e9d129d01323401f2a"
+    },
+    {
+      "check": "build",
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "result": "passed",
+      "exit": 0,
+      "log_sha256": "e108b073090bf81be79d2501493624eb0a22a958548374f6be02a0a1fcbcfb3b"
+    },
+    {
+      "check": "command-journey",
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/command-journey.mjs",
+      "result": "passed",
+      "exit": 0,
+      "log_sha256": "91a51bd4b1e29fc62db23655136618645de2d95286b2375124aaa4aa306d915c"
+    },
+    {
+      "check": "hosted-auth",
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/hosted-auth-browser.mjs",
+      "result": "passed",
+      "exit": 0,
+      "log_sha256": "d9725581367682b0b7d9d8d3eb254b2e04423574bcef3e0c2cc78b1697d2167e"
+    },
+    {
+      "check": "access-matrix",
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/access-matrix.mjs",
+      "result": "passed",
+      "exit": 0,
+      "log_sha256": "18e35ea68b8c48e13ab2613c644c1f590c5228e71e1426ebf64ea182511608d5"
+    },
+    {
+      "check": "spec",
+      "command": "pnpm run spec:check",
+      "result": "passed",
+      "exit": 0,
+      "log_sha256": "d7454dbe1a022c44dfe1debda119d5a8ca7d0f09068041fc955096df07516293"
+    },
+    {
+      "check": "contract-docs",
+      "command": "node src/base/contract-docs.mjs check",
+      "result": "passed",
+      "exit": 0,
+      "log_sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "check": "source-lock",
+      "command": "node scripts/edition-authoring/cli.mjs lock; node scripts/edition-authoring/cli.mjs check",
+      "result": "passed",
+      "exit": 0,
+      "manifest": "ed5842243ba4062b8330710558dda64f596e60a53de3aac5bc014b0ae89f4809"
+    }
+  ],
+  "generated_views_changed": false,
+  "contract_status_changes": 0,
+  "journey_commands_before": 47,
+  "journey_commands_after": 47,
+  "new_registrations": 0,
+  "findings_before": 2,
+  "findings_after": 0,
+  "progress_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "progress_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "local_adjustments": [
+    "Build initially refused while the task-owned dev server was running; stopped its recorded PID and reran successfully.",
+    "Access matrix initially lacked the executable override on its second shell command; reran with /usr/bin/chromium and passed.",
+    "Initial typecheck found nullable Base handler response; added null-safe status guard and typecheck passed."
+  ],
+  "candidate_browser_replayed": true,
+  "candidate_browser_summary": "candidate-browser.log",
+  "committed_tree": "5318681b5c340254934340fcbce5607e05ba71f1",
+  "changed_files": [
+    "base-copies.json",
+    "public/assets/access-member-controls.js",
+    "sources.lock.json",
+    "src/base/lobby.ts",
+    "src/domain/access-members.server.ts",
+    "src/domain/operator-auth.server.ts",
+    "tests/command-journey.mjs",
+    "tests/local-signin-truth-support.mjs"
+  ],
+  "worktree_clean": true,
+  "publication_scan": "Full publication scan is reserved to the fleet Mac lander under the cloud brief; scoped diff and packet checks passed."
+}

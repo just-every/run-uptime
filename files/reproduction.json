@@ -1,0 +1,38 @@
+{
+  "main": "36779a7228727cb38d7180b26c5b5aa656ca1056",
+  "invitationHTTP": 202,
+  "invitationResult": {
+    "status": "accepted"
+  },
+  "notice": "Invitation sent to synthetic-uptime-801@example.test.",
+  "rows": [
+    "Ownerfleet@runeditrun.com · Owner · YouRoleOwnerAdminEditorResponderRead-onlyService scope (blank = all)Team scope (blank = all)Save assignmentRemove member",
+    "Synthetic inviteesynthetic-uptime-801@example.test · Responder · InvitedRoleAdminEditorResponderRead-onlyService scope (blank = all)Team scope (blank = all)Save assignmentRemove member"
+  ],
+  "signedOut": [
+    {
+      "width": 1440,
+      "path": "/",
+      "landed": "/",
+      "text": "Uptime\n\nThe owner is set up. Sign in to continue.\n\nSign in\n\nChoose a local persona on the sign-in page, or run rer dev --as owner from the project folder.\n\nPowered by Uptime, free and open source"
+    },
+    {
+      "width": 1440,
+      "path": "/login",
+      "landed": "/__dev/key",
+      "text": "Uptime\n\nOpening the local app\n\nOpen the RER_OPEN link that rer prints on this computer."
+    },
+    {
+      "width": 390,
+      "path": "/",
+      "landed": "/",
+      "text": "Uptime\n\nThe owner is set up. Sign in to continue.\n\nSign in\n\nChoose a local persona on the sign-in page, or run rer dev --as owner from the project folder.\n\nPowered by Uptime, free and open source"
+    },
+    {
+      "width": 390,
+      "path": "/login",
+      "landed": "/__dev/key",
+      "text": "Uptime\n\nOpening the local app\n\nOpen the RER_OPEN link that rer prints on this computer."
+    }
+  ]
+}
