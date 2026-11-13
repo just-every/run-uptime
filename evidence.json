@@ -1,0 +1,100 @@
+{
+  "files": [
+    {
+      "blob": "f3988d0168c15a63c656aed6de8849c14d57d8ae",
+      "bytes": 2028,
+      "path": "PLAN.md",
+      "sha256": "d4a06aeadada195424e2ef4ad0c34da7438d9d8c03ded8c4617a8e113fca2297"
+    },
+    {
+      "blob": "80a81e7e15cf1912a2470a0cb93f0f280e7fe3b4",
+      "bytes": 12087,
+      "path": "REPORT.md",
+      "sha256": "c9e922dcd19e3ef34b81b194a4e91c16f04b4997b1bc27822d205e776cf06638"
+    },
+    {
+      "blob": "48c39960c78c3c3f269d02c2c75124663c97f962",
+      "bytes": 398,
+      "path": "candidate-ci.jsonl",
+      "sha256": "8d8a2424d5ba99d4224a1be95a586eded392f99037ee6a241e6f60a8273b7231"
+    },
+    {
+      "blob": "45887a35a8d4903bc009985393fab67b8e6e1c9b",
+      "bytes": 2717,
+      "path": "checks-receipt.json",
+      "sha256": "5e499ecb1cf8ec35d6118661ddc64d5ed179f7c6930b3a6cd2dd9b61348de58c"
+    },
+    {
+      "blob": "2d4da423604331fae54d664511012821501767ad",
+      "bytes": 2401,
+      "path": "ci-aggregate-failure.log",
+      "sha256": "048b2ff06d00f84efde89ada0926e7df36a309cb54b8ed81b8349af981a9965a"
+    },
+    {
+      "blob": "2949026d11153af16344aa56f29215ff83adf421",
+      "bytes": 833,
+      "path": "ci-build-failure.log",
+      "sha256": "7857e592fb2322a7499f56926aa3dfbeb43bc604e064eca930b123033628d2de"
+    },
+    {
+      "blob": "7400d1166539edc329e25e141ffc74cfcac87fe8",
+      "bytes": 768,
+      "path": "ci-jobs.jsonl",
+      "sha256": "fb8a51c80719638db2aae9e946ee9a1bbd5f9da4614ad872b9cebea0ecdd5667"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "contract-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "d4d1e60ea7fdc565c576421664992b40e47a816e",
+      "bytes": 28,
+      "path": "contract-write.log",
+      "sha256": "df91012bf66fb476e9cd1a30c002829398beb55f869e07cc7be477197fa5a276"
+    },
+    {
+      "blob": "f8fb7de399b357a41cd1de544d1d265113cf1483",
+      "bytes": 105,
+      "path": "expected-view-check.log",
+      "sha256": "9cf3c390ca9f5f8c7bb13f4dd1f4058d66f2e74d194584038d85eaf0d4767d1e"
+    },
+    {
+      "blob": "ab8de221505e9f0f1b4888d372b3fc79c76eae7e",
+      "bytes": 1148,
+      "path": "main-ci.jsonl",
+      "sha256": "c349ae042a588e3c9fbfcc6d6172211944b121419c51e19ad1e73a46629a549e"
+    },
+    {
+      "blob": "e7419e6892c727666fc1f6790a8c252df7d0c62a",
+      "bytes": 25194,
+      "path": "rebinding-receipt.json",
+      "sha256": "fe438368f6e74e8f5c5a0f66dfc4ed4831ec66079db9a6402c3b243b010f658f"
+    },
+    {
+      "blob": "e6f02c99de9bc9637dbf9e8653a9c72b3f848ad5",
+      "bytes": 1394,
+      "path": "terminal-receipt.json",
+      "sha256": "c748278e23494dada103a5362f898a2638593c694de1913f2c7aa2fa6c68a6bb"
+    },
+    {
+      "blob": "f6bca399ad4203378f9d67d64bc6553125ffed80",
+      "bytes": 2978,
+      "path": "tls-auth.log",
+      "sha256": "9c57d20b7142fa425447d06669a2593057b67f64ab59fb9d9ffc69d52db0bfcd"
+    },
+    {
+      "blob": "85e84b44684b46f3e1929dc2ce03d848f4f932c4",
+      "bytes": 179,
+      "path": "typecheck.log",
+      "sha256": "ab5721f201660440032a7314d0ae78d1e02b7d2a730c81ba2dfa06fdd565796b"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-c-f171",
+  "product_head": "9cdbb05777027f20ba11462562fa2b5a07772469",
+  "ref": "refs/heads/evidence/sd-uptime-c-f171",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-c-f171"
+}

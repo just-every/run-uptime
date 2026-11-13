@@ -1,0 +1,84 @@
+{
+  "head": "9cdbb05777027f20ba11462562fa2b5a07772469",
+  "branch": "cloud/sd-uptime-c-f171",
+  "runtime": "Node 22.20.0",
+  "checks": [
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "typecheck.log",
+      "timing": "final source bytes, before candidate commit"
+    },
+    {
+      "command": "npx -y @runeditrun/rer check --profile first-party",
+      "exit": 0,
+      "timing": "final source bytes, before candidate commit"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0,
+      "log": "contract-write.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "log": "contract-check.log"
+    },
+    {
+      "command": "git checkout origin/main -- ACCEPTANCE.md docs/CLAIMS.md",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "timing": "exact committed candidate"
+    },
+    {
+      "command": "timeout --kill-after=10s 1200 node tests/tls-auth.mjs",
+      "exit": 0,
+      "timing": "exact pushed candidate under Node 22.20.0",
+      "log": "tls-auth.log",
+      "receipt": "rebinding-receipt.json"
+    }
+  ],
+  "migration_ledger": "not applicable; no migrations changed",
+  "source_sha256": {
+    "CONTRACT.md": "c2dc58d86b49f7c39b5177d9090886906affd58c95b6714a969cf6e0351fdb0f",
+    "tests/network-rebinding-support.mjs": "05556c3a2c6c94a6b9747694061a21c4da09d7447cd462a4c55ae2d3e3ddea2b",
+    "tests/network-rebinding-routing.mjs": "fcb1dfda23f964ebae0b797f8c1aeeb980a8fb62d44563b215b4b170e9af1b06",
+    "tests/tls-auth.mjs": "e0fac0a4b7c5c6eb1327abc8c7182bcca8dc051decd4e0391dc549e4abe53def",
+    "sources.lock.json": "4d833ba70463e79ba18501286a52ff91fbeca2c90de25d35d5f1e65e736d7b83"
+  },
+  "status_table_equal_to_main": true,
+  "counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "journey_commands_before": 47,
+  "journey_commands_after": 47,
+  "new_registrations": 0,
+  "existing_assertions_removed_or_weakened": false,
+  "protected_production_or_shared_helpers_changed": false,
+  "publication_scan": "NOT RUN: guarded Mac lander duty",
+  "candidate_run_site": "NOT RUN: guarded Mac lander duty",
+  "github_api_calls_so_far": 6,
+  "clean_product_checkout": true,
+  "ci_poll_interval_seconds": 300,
+  "proof_scope": "only NETWORK-001 acceptance 1 pre-connection DNS rebinding; clause remains partial"
+}

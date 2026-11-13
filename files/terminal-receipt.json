@@ -1,0 +1,39 @@
+{
+  "head": "9cdbb05777027f20ba11462562fa2b5a07772469",
+  "branch": "cloud/sd-uptime-c-f171",
+  "product_push": "success",
+  "pr": null,
+  "verify": {
+    "id": 43500098201,
+    "event": "push",
+    "conclusion": "failure",
+    "head_sha": "9cdbb05777027f20ba11462562fa2b5a07772469",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43500098201",
+    "status": "completed",
+    "classification": "expected generated-view-only failure; dependent shards skipped",
+    "exception_applies": true,
+    "build_job": 132143407361,
+    "aggregate_job": 132143726097
+  },
+  "failed_job_archive_commands": [
+    {
+      "command": "gh run view 43500098201 --repo just-every/run-uptime --job 132143407361 --log-failed",
+      "exit": 0
+    },
+    {
+      "command": "gh run view 43500098201 --repo just-every/run-uptime --job 132143726097 --log-failed",
+      "exit": 0
+    }
+  ],
+  "reproduction": {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit": 1,
+    "failure": "Contract prose: 0 errors, 0 warnings.\nACCEPTANCE.md: generated content differs; run contract-docs write.\n",
+    "changed_product_files": false
+  },
+  "github_call_budget_used": 6,
+  "runtime_journey_exact_sha_exit": 0,
+  "publication_scan": "guarded lander pending",
+  "candidate_run_site": "guarded lander pending",
+  "custody": "READY under explicit generated-view exception; branch only"
+}

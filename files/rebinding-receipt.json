@@ -1,0 +1,917 @@
+{
+  "journey": "proveNetworkRebinding",
+  "revision": 1,
+  "definition": {
+    "name": "Pinned public HTTPS through DNS rebinding",
+    "type": "http",
+    "network": "public",
+    "url": "https://rebinding.sanity.test/health",
+    "method": "GET",
+    "probes": [
+      "local-a"
+    ],
+    "assignments": {
+      "local-a": {
+        "runnerId": "self-619cd783-76a6-4036-b52e-59b72c259e86",
+        "networkLabel": "Golden Brook",
+        "canaryUrl": "https://canary.rebinding.sanity.test/canary"
+      }
+    },
+    "assertions": {
+      "status": 200,
+      "bodyIncludes": "synthetic-uptime-171"
+    },
+    "intervalMs": 5000,
+    "timeoutMs": 2000,
+    "retries": 0,
+    "failureQuorum": 1,
+    "confirmSlots": 1,
+    "recoverSlots": 1,
+    "freshnessMs": 180000,
+    "enabled": true,
+    "maintenanceUntil": 0,
+    "externalCheck": "own"
+  },
+  "forbiddenCounterQualified": true,
+  "wire": [
+    {
+      "phase": "allowed",
+      "events": [
+        {
+          "sequence": 1,
+          "event": "dispatch",
+          "canary": true,
+          "destination": "93.184.216.34",
+          "numeric": "93.184.216.34",
+          "answer": "93.184.216.34",
+          "host": "canary.rebinding.sanity.test",
+          "sni": "canary.rebinding.sanity.test",
+          "verified": true,
+          "identityCheck": true,
+          "trustOverride": false
+        },
+        {
+          "sequence": 2,
+          "event": "tls-verified",
+          "canary": true,
+          "destination": "93.184.216.34",
+          "authorized": true,
+          "authorizationError": null,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 41073
+        },
+        {
+          "sequence": 3,
+          "event": "dns",
+          "answer": "93.184.216.34",
+          "witness": false
+        },
+        {
+          "sequence": 4,
+          "event": "dispatch",
+          "canary": false,
+          "destination": "93.184.216.34",
+          "numeric": "93.184.216.34",
+          "answer": "93.184.216.34",
+          "host": "rebinding.sanity.test",
+          "sni": "rebinding.sanity.test",
+          "verified": true,
+          "identityCheck": true,
+          "trustOverride": false
+        },
+        {
+          "sequence": 5,
+          "event": "tls-verified",
+          "canary": false,
+          "destination": "93.184.216.34",
+          "authorized": true,
+          "authorizationError": null,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 45715
+        }
+      ],
+      "before": {
+        "allowed": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "forbidden": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "canary": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        }
+      },
+      "after": {
+        "allowed": {
+          "connections": 1,
+          "handshakes": 1,
+          "requests": 1
+        },
+        "forbidden": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "canary": {
+          "connections": 1,
+          "handshakes": 1,
+          "requests": 1
+        }
+      },
+      "observation": {
+        "id": "63d2ab70-49ba-4ba5-9e70-2c98d8343b22",
+        "probe": "local-a",
+        "startedAt": 1794601127653,
+        "completedAt": 1794601127666,
+        "durationMs": 13,
+        "runnerVersion": "uptime-node/0.1.0",
+        "outcome": "pass",
+        "status": 200,
+        "bytes": 20,
+        "checks": [
+          {
+            "assertion": "status",
+            "pass": true,
+            "reason": "HTTP status matches expected status or range"
+          },
+          {
+            "assertion": "body",
+            "pass": true,
+            "reason": "Body contains required text"
+          }
+        ],
+        "attempt": 0,
+        "canary": {
+          "id": "5649f77f-2598-41be-bfe2-abf06ea2c734",
+          "probe": "local-a",
+          "startedAt": 1794601127644,
+          "completedAt": 1794601127652,
+          "durationMs": 8,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 0,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            }
+          ],
+          "attempt": 0
+        }
+      }
+    },
+    {
+      "phase": "rebind",
+      "events": [
+        {
+          "sequence": 1,
+          "event": "dispatch",
+          "canary": true,
+          "destination": "93.184.216.34",
+          "numeric": "93.184.216.34",
+          "answer": "93.184.216.34",
+          "host": "canary.rebinding.sanity.test",
+          "sni": "canary.rebinding.sanity.test",
+          "verified": true,
+          "identityCheck": true,
+          "trustOverride": false
+        },
+        {
+          "sequence": 2,
+          "event": "tls-verified",
+          "canary": true,
+          "destination": "93.184.216.34",
+          "authorized": true,
+          "authorizationError": null,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 41073
+        },
+        {
+          "sequence": 3,
+          "event": "dns",
+          "answer": "93.184.216.34",
+          "witness": false
+        },
+        {
+          "sequence": 4,
+          "event": "validated-dispatch-boundary",
+          "destination": "93.184.216.34"
+        },
+        {
+          "sequence": 5,
+          "event": "answer-changed",
+          "answer": "10.0.0.1"
+        },
+        {
+          "sequence": 6,
+          "event": "dns",
+          "answer": "10.0.0.1",
+          "witness": true
+        },
+        {
+          "sequence": 7,
+          "event": "dispatch",
+          "canary": false,
+          "destination": "93.184.216.34",
+          "numeric": "93.184.216.34",
+          "answer": "10.0.0.1",
+          "host": "rebinding.sanity.test",
+          "sni": "rebinding.sanity.test",
+          "verified": true,
+          "identityCheck": true,
+          "trustOverride": false
+        },
+        {
+          "sequence": 8,
+          "event": "tls-verified",
+          "canary": false,
+          "destination": "93.184.216.34",
+          "authorized": true,
+          "authorizationError": null,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 45715
+        }
+      ],
+      "before": {
+        "allowed": {
+          "connections": 1,
+          "handshakes": 1,
+          "requests": 1
+        },
+        "forbidden": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "canary": {
+          "connections": 1,
+          "handshakes": 1,
+          "requests": 1
+        }
+      },
+      "after": {
+        "allowed": {
+          "connections": 2,
+          "handshakes": 2,
+          "requests": 2
+        },
+        "forbidden": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "canary": {
+          "connections": 2,
+          "handshakes": 2,
+          "requests": 2
+        }
+      },
+      "observation": {
+        "id": "cf271dbc-7b90-4c81-a437-17444ebe0093",
+        "probe": "local-a",
+        "startedAt": 1794601132936,
+        "completedAt": 1794601132949,
+        "durationMs": 13,
+        "runnerVersion": "uptime-node/0.1.0",
+        "outcome": "pass",
+        "status": 200,
+        "bytes": 20,
+        "checks": [
+          {
+            "assertion": "status",
+            "pass": true,
+            "reason": "HTTP status matches expected status or range"
+          },
+          {
+            "assertion": "body",
+            "pass": true,
+            "reason": "Body contains required text"
+          }
+        ],
+        "attempt": 0,
+        "canary": {
+          "id": "811550e0-cca9-4edd-af49-7fea1d30d46a",
+          "probe": "local-a",
+          "startedAt": 1794601132927,
+          "completedAt": 1794601132935,
+          "durationMs": 8,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 0,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            }
+          ],
+          "attempt": 0
+        }
+      }
+    },
+    {
+      "phase": "forbidden",
+      "events": [
+        {
+          "sequence": 1,
+          "event": "dispatch",
+          "canary": true,
+          "destination": "93.184.216.34",
+          "numeric": "93.184.216.34",
+          "answer": "10.0.0.1",
+          "host": "canary.rebinding.sanity.test",
+          "sni": "canary.rebinding.sanity.test",
+          "verified": true,
+          "identityCheck": true,
+          "trustOverride": false
+        },
+        {
+          "sequence": 2,
+          "event": "tls-verified",
+          "canary": true,
+          "destination": "93.184.216.34",
+          "authorized": true,
+          "authorizationError": null,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 41073
+        },
+        {
+          "sequence": 3,
+          "event": "dns",
+          "answer": "10.0.0.1",
+          "witness": false
+        }
+      ],
+      "before": {
+        "allowed": {
+          "connections": 2,
+          "handshakes": 2,
+          "requests": 2
+        },
+        "forbidden": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "canary": {
+          "connections": 2,
+          "handshakes": 2,
+          "requests": 2
+        }
+      },
+      "after": {
+        "allowed": {
+          "connections": 2,
+          "handshakes": 2,
+          "requests": 2
+        },
+        "forbidden": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "canary": {
+          "connections": 3,
+          "handshakes": 3,
+          "requests": 3
+        }
+      },
+      "observation": {
+        "id": "9307e4b2-3248-4b07-9551-a1fafb6636f3",
+        "probe": "local-a",
+        "startedAt": 1794601138292,
+        "completedAt": 1794601138295,
+        "durationMs": 3,
+        "runnerVersion": "uptime-node/0.1.0",
+        "outcome": "runner_error",
+        "checks": [
+          {
+            "assertion": "network",
+            "pass": false,
+            "reason": "Probe network check failed"
+          }
+        ],
+        "attempt": 0,
+        "canary": {
+          "id": "677ad552-9eef-4ac4-bf56-4813609b6aa8",
+          "probe": "local-a",
+          "startedAt": 1794601138282,
+          "completedAt": 1794601138291,
+          "durationMs": 9,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 0,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            }
+          ],
+          "attempt": 0
+        }
+      }
+    },
+    {
+      "phase": "restored",
+      "events": [
+        {
+          "sequence": 1,
+          "event": "dispatch",
+          "canary": true,
+          "destination": "93.184.216.34",
+          "numeric": "93.184.216.34",
+          "answer": "93.184.216.34",
+          "host": "canary.rebinding.sanity.test",
+          "sni": "canary.rebinding.sanity.test",
+          "verified": true,
+          "identityCheck": true,
+          "trustOverride": false
+        },
+        {
+          "sequence": 2,
+          "event": "tls-verified",
+          "canary": true,
+          "destination": "93.184.216.34",
+          "authorized": true,
+          "authorizationError": null,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 41073
+        },
+        {
+          "sequence": 3,
+          "event": "dns",
+          "answer": "93.184.216.34",
+          "witness": false
+        },
+        {
+          "sequence": 4,
+          "event": "dispatch",
+          "canary": false,
+          "destination": "93.184.216.34",
+          "numeric": "93.184.216.34",
+          "answer": "93.184.216.34",
+          "host": "rebinding.sanity.test",
+          "sni": "rebinding.sanity.test",
+          "verified": true,
+          "identityCheck": true,
+          "trustOverride": false
+        },
+        {
+          "sequence": 5,
+          "event": "tls-verified",
+          "canary": false,
+          "destination": "93.184.216.34",
+          "authorized": true,
+          "authorizationError": null,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 45715
+        }
+      ],
+      "before": {
+        "allowed": {
+          "connections": 2,
+          "handshakes": 2,
+          "requests": 2
+        },
+        "forbidden": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "canary": {
+          "connections": 3,
+          "handshakes": 3,
+          "requests": 3
+        }
+      },
+      "after": {
+        "allowed": {
+          "connections": 3,
+          "handshakes": 3,
+          "requests": 3
+        },
+        "forbidden": {
+          "connections": 0,
+          "handshakes": 0,
+          "requests": 0
+        },
+        "canary": {
+          "connections": 4,
+          "handshakes": 4,
+          "requests": 4
+        }
+      },
+      "observation": {
+        "id": "de20def9-12d6-4b0a-b9cd-a1d3eefa8d6a",
+        "probe": "local-a",
+        "startedAt": 1794601143604,
+        "completedAt": 1794601143616,
+        "durationMs": 12,
+        "runnerVersion": "uptime-node/0.1.0",
+        "outcome": "pass",
+        "status": 200,
+        "bytes": 20,
+        "checks": [
+          {
+            "assertion": "status",
+            "pass": true,
+            "reason": "HTTP status matches expected status or range"
+          },
+          {
+            "assertion": "body",
+            "pass": true,
+            "reason": "Body contains required text"
+          }
+        ],
+        "attempt": 0,
+        "canary": {
+          "id": "8aefb67f-05fd-488f-ae6d-6c69c9c84a0c",
+          "probe": "local-a",
+          "startedAt": 1794601143594,
+          "completedAt": 1794601143603,
+          "durationMs": 9,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 0,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            }
+          ],
+          "attempt": 0
+        }
+      }
+    }
+  ],
+  "history": [
+    {
+      "id": "14e73cc8-b053-4710-a65a-83fc19003d52:1:1794601143292",
+      "monitor_id": "14e73cc8-b053-4710-a65a-83fc19003d52",
+      "revision": 1,
+      "due_at": 1794601143292,
+      "status": "complete",
+      "definition": {
+        "name": "Pinned public HTTPS through DNS rebinding",
+        "type": "http",
+        "network": "public",
+        "url": "https://rebinding.sanity.test/health",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-619cd783-76a6-4036-b52e-59b72c259e86",
+            "networkLabel": "Golden Brook",
+            "canaryUrl": "https://canary.rebinding.sanity.test/canary"
+          }
+        },
+        "assertions": {
+          "status": 200,
+          "bodyIncludes": "synthetic-uptime-171"
+        },
+        "intervalMs": 5000,
+        "timeoutMs": 2000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 180000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "externalCheck": "own"
+      },
+      "lease_owner": "",
+      "lease_until": 1794601173569,
+      "missed_count": 0,
+      "manual": 0,
+      "observations": [
+        {
+          "id": "de20def9-12d6-4b0a-b9cd-a1d3eefa8d6a",
+          "probe": "local-a",
+          "startedAt": 1794601143604,
+          "completedAt": 1794601143616,
+          "durationMs": 12,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 20,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            },
+            {
+              "assertion": "body",
+              "pass": true,
+              "reason": "Body contains required text"
+            }
+          ],
+          "attempt": 0,
+          "canary": {
+            "id": "8aefb67f-05fd-488f-ae6d-6c69c9c84a0c",
+            "probe": "local-a",
+            "startedAt": 1794601143594,
+            "completedAt": 1794601143603,
+            "durationMs": 9,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 0,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              }
+            ],
+            "attempt": 0
+          }
+        }
+      ],
+      "externalChecks": {
+        "local-a": "https://canary.rebinding.sanity.test/canary"
+      }
+    },
+    {
+      "id": "14e73cc8-b053-4710-a65a-83fc19003d52:1:1794601137936",
+      "monitor_id": "14e73cc8-b053-4710-a65a-83fc19003d52",
+      "revision": 1,
+      "due_at": 1794601137936,
+      "status": "complete",
+      "definition": {
+        "name": "Pinned public HTTPS through DNS rebinding",
+        "type": "http",
+        "network": "public",
+        "url": "https://rebinding.sanity.test/health",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-619cd783-76a6-4036-b52e-59b72c259e86",
+            "networkLabel": "Golden Brook",
+            "canaryUrl": "https://canary.rebinding.sanity.test/canary"
+          }
+        },
+        "assertions": {
+          "status": 200,
+          "bodyIncludes": "synthetic-uptime-171"
+        },
+        "intervalMs": 5000,
+        "timeoutMs": 2000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 180000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "externalCheck": "own"
+      },
+      "lease_owner": "",
+      "lease_until": 1794601168259,
+      "missed_count": 0,
+      "manual": 0,
+      "observations": [
+        {
+          "id": "9307e4b2-3248-4b07-9551-a1fafb6636f3",
+          "probe": "local-a",
+          "startedAt": 1794601138292,
+          "completedAt": 1794601138295,
+          "durationMs": 3,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "runner_error",
+          "checks": [
+            {
+              "assertion": "network",
+              "pass": false,
+              "reason": "Probe network check failed"
+            }
+          ],
+          "attempt": 0,
+          "canary": {
+            "id": "677ad552-9eef-4ac4-bf56-4813609b6aa8",
+            "probe": "local-a",
+            "startedAt": 1794601138282,
+            "completedAt": 1794601138291,
+            "durationMs": 9,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 0,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              }
+            ],
+            "attempt": 0
+          }
+        }
+      ],
+      "externalChecks": {
+        "local-a": "https://canary.rebinding.sanity.test/canary"
+      }
+    },
+    {
+      "id": "14e73cc8-b053-4710-a65a-83fc19003d52:1:1794601132653",
+      "monitor_id": "14e73cc8-b053-4710-a65a-83fc19003d52",
+      "revision": 1,
+      "due_at": 1794601132653,
+      "status": "complete",
+      "definition": {
+        "name": "Pinned public HTTPS through DNS rebinding",
+        "type": "http",
+        "network": "public",
+        "url": "https://rebinding.sanity.test/health",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-619cd783-76a6-4036-b52e-59b72c259e86",
+            "networkLabel": "Golden Brook",
+            "canaryUrl": "https://canary.rebinding.sanity.test/canary"
+          }
+        },
+        "assertions": {
+          "status": 200,
+          "bodyIncludes": "synthetic-uptime-171"
+        },
+        "intervalMs": 5000,
+        "timeoutMs": 2000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 180000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "externalCheck": "own"
+      },
+      "lease_owner": "",
+      "lease_until": 1794601162906,
+      "missed_count": 0,
+      "manual": 0,
+      "observations": [
+        {
+          "id": "cf271dbc-7b90-4c81-a437-17444ebe0093",
+          "probe": "local-a",
+          "startedAt": 1794601132936,
+          "completedAt": 1794601132949,
+          "durationMs": 13,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 20,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            },
+            {
+              "assertion": "body",
+              "pass": true,
+              "reason": "Body contains required text"
+            }
+          ],
+          "attempt": 0,
+          "canary": {
+            "id": "811550e0-cca9-4edd-af49-7fea1d30d46a",
+            "probe": "local-a",
+            "startedAt": 1794601132927,
+            "completedAt": 1794601132935,
+            "durationMs": 8,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 0,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              }
+            ],
+            "attempt": 0
+          }
+        }
+      ],
+      "externalChecks": {
+        "local-a": "https://canary.rebinding.sanity.test/canary"
+      }
+    },
+    {
+      "id": "14e73cc8-b053-4710-a65a-83fc19003d52:1:1794601127329",
+      "monitor_id": "14e73cc8-b053-4710-a65a-83fc19003d52",
+      "revision": 1,
+      "due_at": 1794601127329,
+      "status": "complete",
+      "definition": {
+        "name": "Pinned public HTTPS through DNS rebinding",
+        "type": "http",
+        "network": "public",
+        "url": "https://rebinding.sanity.test/health",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-619cd783-76a6-4036-b52e-59b72c259e86",
+            "networkLabel": "Golden Brook",
+            "canaryUrl": "https://canary.rebinding.sanity.test/canary"
+          }
+        },
+        "assertions": {
+          "status": 200,
+          "bodyIncludes": "synthetic-uptime-171"
+        },
+        "intervalMs": 5000,
+        "timeoutMs": 2000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 180000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "externalCheck": "own"
+      },
+      "lease_owner": "",
+      "lease_until": 1794601157620,
+      "missed_count": 0,
+      "manual": 0,
+      "observations": [
+        {
+          "id": "63d2ab70-49ba-4ba5-9e70-2c98d8343b22",
+          "probe": "local-a",
+          "startedAt": 1794601127653,
+          "completedAt": 1794601127666,
+          "durationMs": 13,
+          "runnerVersion": "uptime-node/0.1.0",
+          "outcome": "pass",
+          "status": 200,
+          "bytes": 20,
+          "checks": [
+            {
+              "assertion": "status",
+              "pass": true,
+              "reason": "HTTP status matches expected status or range"
+            },
+            {
+              "assertion": "body",
+              "pass": true,
+              "reason": "Body contains required text"
+            }
+          ],
+          "attempt": 0,
+          "canary": {
+            "id": "5649f77f-2598-41be-bfe2-abf06ea2c734",
+            "probe": "local-a",
+            "startedAt": 1794601127644,
+            "completedAt": 1794601127652,
+            "durationMs": 8,
+            "runnerVersion": "uptime-node/0.1.0",
+            "outcome": "pass",
+            "status": 200,
+            "bytes": 0,
+            "checks": [
+              {
+                "assertion": "status",
+                "pass": true,
+                "reason": "HTTP status matches expected status or range"
+              }
+            ],
+            "attempt": 0
+          }
+        }
+      ],
+      "externalChecks": {
+        "local-a": "https://canary.rebinding.sanity.test/canary"
+      }
+    }
+  ],
+  "incidents": [],
+  "restartPreserved": true
+}

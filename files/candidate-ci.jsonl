@@ -1,0 +1,2 @@
+{"conclusion":null,"event":"push","head_sha":"9cdbb05777027f20ba11462562fa2b5a07772469","html_url":"https://github.com/just-every/run-uptime/actions/runs/43500098201","id":43500098201,"name":"Verify","status":"queued"}
+{"conclusion":"failure","head_sha":"9cdbb05777027f20ba11462562fa2b5a07772469","html_url":"https://github.com/just-every/run-uptime/actions/runs/43500098201","status":"completed"}
