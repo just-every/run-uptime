@@ -75,7 +75,7 @@ function showMonitorErasureReceipt(receipt,{name,onClose}){
  const summary=document.createElement('summary');summary.textContent='Receipt details';
  const completed=document.createElement('time');completed.dateTime=new Date(receipt.completedAt).toISOString();completed.textContent=new Date(receipt.completedAt).toLocaleString();
  const completion=document.createElement('p');completion.append('Completed ',completed,'.');
- const original=document.createElement('p');original.textContent=`Stored receipt ID: ${receipt.id}`;
+ const original=document.createElement('p');original.textContent=`Stored ${receipt.entityKind} receipt ID: ${receipt.id}`;
  const counts=document.createElement('dl');
  for(const [table,count] of Object.entries(receipt.counts).sort((a,b)=>b[1]-a[1])){const row=document.createElement('div'),label=document.createElement('dt'),total=document.createElement('dd');row.dataset.erasureTable=table;label.textContent=table.replaceAll('_',' ').replace(/^./,c=>c.toUpperCase());total.textContent=String(count);row.append(label,total);counts.append(row)}
  const limits=document.createElement('p');limits.textContent='Downloaded backups and messages already sent are unchanged. Requests already in progress cannot be recalled.';

@@ -2976,7 +2976,7 @@
       "executable": false
     },
     "public/notification-dialogs.js": {
-      "sha256": "de46c668c792bc803f1f3c31b0d2a53d1d1802c3ce1cc29a12833bf96c0c72c6",
+      "sha256": "c5be0a36e8b2038e4ade77cb1a9030cd2d3bde575e02780bb5e41fcd08cde8d4",
       "executable": false
     },
     "public/notifications.css": {
@@ -9420,7 +9420,7 @@
       "executable": false
     },
     "tests/monitor-stepup-support.mjs": {
-      "sha256": "b85249d513dc962251e52756ce1a6fad7cdbb85ef34926898c5764cad0a9a062",
+      "sha256": "9a258c0300e004e162da4dd5d666af3d8b1e7f776d65d8354cd147e2ef01a5cb",
       "executable": false
     },
     "tests/network-diagnostics-support.mjs": {
