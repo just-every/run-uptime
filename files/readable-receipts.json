@@ -1,0 +1,20 @@
+{
+  "journey": "proveReadableMaintenanceAndErasure",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "monitorName": "Local practice",
+  "selectionNamed": true,
+  "previewNamed": true,
+  "rawMonitorIdsVisible": false,
+  "rawReceiptIdVisible": false,
+  "inventoryRowsVisible": 0,
+  "inventoryRowsRetained": 42,
+  "receiptDownloadEqualsServer": true,
+  "clipboardEqualsDisplay": true,
+  "reviewedWindowUnchanged": true,
+  "pausedMonitorStayedPaused": true,
+  "monitorErased": true
+}

@@ -1,0 +1,3 @@
+{"call": 1, "time": 1794543104.1530714, "key": "verify", "args": ["api", "repos/just-every/run-uptime/actions/runs?head_sha=777770f7187cffd0a453f5c1068b23c363840732&per_page=100", "--jq", ".workflow_runs[] | {id,name,status,conclusion,head_sha,html_url}"]}
+{"call": 2, "time": 1794543413.7843232, "key": "verify", "args": ["api", "repos/just-every/run-uptime/actions/runs?head_sha=18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8&per_page=100", "--jq", ".workflow_runs[] | {id,name,status,conclusion,head_sha,html_url}"]}
+{"call": 3, "time": 1794543713.812993, "key": "verify", "args": ["api", "repos/just-every/run-uptime/actions/runs/43364308126", "--jq", "{status,conclusion,head_sha,html_url}"]}

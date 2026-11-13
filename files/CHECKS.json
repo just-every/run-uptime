@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "productBranch": "cloud/main-uptime-readable-receipts-1",
+  "productHead": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8",
+  "mainAtReproduction": "36779a7228727cb38d7180b26c5b5aa656ca1056",
+  "publicDoorJourney": {
+    "name": "proveReadableMaintenanceAndErasure",
+    "path": "tests/operator-browser.mjs",
+    "status": "passed",
+    "assertionWidth": 1440,
+    "proofWidths": [
+      1440,
+      390
+    ]
+  },
+  "typecheck": {
+    "command": "pnpm run typecheck",
+    "exit": 0
+  },
+  "build": {
+    "command": "npx -y @runeditrun/rer build",
+    "exit": 0
+  },
+  "sourceLock": {
+    "command": "node scripts/edition-authoring/cli.mjs check",
+    "ok": true
+  },
+  "specGenerate": {
+    "command": "pnpm run spec:generate",
+    "changedTrackedFiles": false
+  },
+  "contractDocuments": {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit": 0,
+    "changes": false
+  },
+  "configuredJourneyCommands": {
+    "before": 47,
+    "after": 47
+  },
+  "newTestRegistrations": 0,
+  "contractSummary": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "clauseStatusChanges": [],
+  "productPush": {
+    "status": "success",
+    "attempt": 1,
+    "branch": "cloud/main-uptime-readable-receipts-1",
+    "head": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8",
+    "pushes": 2,
+    "allAttempts": 1
+  },
+  "enclosingBrowserSuite": {
+    "exit": 0,
+    "operator": true,
+    "recovery": true,
+    "operatorAccessibilityReflowChecks": 13,
+    "head": "777770f7187cffd0a453f5c1068b23c363840732",
+    "note": "Final follow-up changes only the stored-kind label inside receipt details and adapts the separate step-up test. The targeted owner proof was rerun on the final SHA."
+  },
+  "exactShaVerify": {
+    "runId": 43364308126,
+    "status": "in_progress",
+    "conclusion": null,
+    "head": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8"
+  },
+  "publicationScan": "Deferred to the fleet Mac lander as required by cloud instructions.",
+  "operatorSecurity": {
+    "exit": 0,
+    "head": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8"
+  },
+  "productCommits": [
+    "777770f7187cffd0a453f5c1068b23c363840732",
+    "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8"
+  ],
+  "cleanProductTree": true
+}

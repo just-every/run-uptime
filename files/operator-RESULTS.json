@@ -1,0 +1,99 @@
+{
+  "checks": [
+    {
+      "label": "editor-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 53,
+      "textInspected": true
+    },
+    {
+      "label": "healthy-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 316,
+      "state": "Healthy",
+      "textInspected": true
+    },
+    {
+      "label": "unavailable-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 323,
+      "state": "Unknown",
+      "textInspected": true
+    },
+    {
+      "label": "action-error-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 364,
+      "state": "Healthy",
+      "textInspected": true
+    },
+    {
+      "label": "assertion-refusal-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 264,
+      "textInspected": true
+    },
+    {
+      "label": "stale-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 306,
+      "state": "Unknown",
+      "textInspected": true
+    },
+    {
+      "label": "rule-edit-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 251,
+      "textInspected": true
+    },
+    {
+      "label": "rule-edit-1440",
+      "revision": 2,
+      "judgedBy": 3000
+    },
+    {
+      "label": "notifications-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 159,
+      "textInspected": true
+    },
+    {
+      "label": "archive-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 145,
+      "textInspected": true
+    },
+    {
+      "label": "phone-console-390",
+      "violations": 0,
+      "documentWidth": 390,
+      "accessibilityNodes": 63,
+      "textInspected": true
+    },
+    {
+      "label": "phone-editor-390",
+      "violations": 0,
+      "documentWidth": 390,
+      "accessibilityNodes": 57,
+      "textInspected": true
+    },
+    {
+      "label": "phone-notifications-390",
+      "violations": 0,
+      "documentWidth": 390,
+      "accessibilityNodes": 164,
+      "textInspected": true
+    }
+  ],
+  "workflow": "Desktop owner monitoring and one 390 phone smoke; real healthy and naturally stale scheduled evidence; failed reads show Unknown with historical time; keyboard actions/navigation; failed actions survive polling; controls excluded through reconciliation; assertion edits preserve checks and reject overrides without writes; immutable history/focus retained; native export and signout; computed accessibility trees, axe and reflow",
+  "externalNetwork": false
+}

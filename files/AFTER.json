@@ -1,0 +1,14 @@
+{
+  "productHead": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8",
+  "phase": "after",
+  "passed": true,
+  "journey": "proveReadableMaintenanceAndErasure",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "monitorName": "Local practice",
+  "errors": [],
+  "externalNetwork": false
+}

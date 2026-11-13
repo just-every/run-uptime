@@ -1,0 +1,27 @@
+{
+  "productHead": "18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8",
+  "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/operator-security.mjs",
+  "exit": 0,
+  "summaries": [
+    "ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.",
+    "ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.",
+    "Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.",
+    "ACCESS-003/READAPI-001 Settings 1440 PASS: owner/member TOTP, recovery once, CDP passkey, stale policy/key step-up, hash-only restricted monitoring/CI issuance, usage and immediate revocation, live member refusal, factor removal, axe/reflow. Existing-document member proof; initial narrowed-role shell entry remains held.",
+    "Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, per-table receipt equal to storage and later backup."
+  ],
+  "touchedHelper": "tests/monitor-stepup-support.mjs#proveImportEraseStepUp",
+  "assertionsRetained": [
+    "expired proof refusal",
+    "cancelled preview retains chosen file",
+    "unchanged upload retry",
+    "typed erasure confirmation retained",
+    "original receipt identity and completion time in details",
+    "every count equals response and durable storage",
+    "later archive carries exact receipt"
+  ],
+  "newAssertions": [
+    "completion names monitor",
+    "raw receipt identity initially hidden",
+    "per-table inventory initially closed"
+  ]
+}

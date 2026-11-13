@@ -1,0 +1,11 @@
+{
+  "phase": "before",
+  "main": "36779a7228727cb38d7180b26c5b5aa656ca1056",
+  "monitorName": "Local practice",
+  "selectionHasRawMonitorId": true,
+  "previewHasRawMonitorId": true,
+  "completionNamesMonitor": false,
+  "completionHasRawReceiptId": true,
+  "visibleInventoryRows": 42,
+  "errors": []
+}
