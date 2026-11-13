@@ -43,14 +43,14 @@ const accentStyle = (identity: EditionIdentity) => identity.accentColor ? `:root
  * The Lobby document for one state. Identity and state shape it; `loginHint`,
  * the claimed owner's email on a local instance only, rides on the Sign in link
  * as ?login_hint= so the sign-in form opens with it filled in. The local
- * request host enables local persona guidance, even without a sole owner email.
+ * request host enables local terminal-handoff guidance, even without a sole owner email.
  */
 export function lobbyHtml(identity: EditionIdentity, state: SetupState, loginHint?: string, local = false, signedIn = false): string {
   checkIdentity(identity)
   const claimed = state === 'claimed', product = escape(identity.product)
   const line = claimed ? signedIn ? 'You’re signed in. Continue to your workspace.' : 'The owner is set up. Sign in to continue.' : `This ${product} is waiting for its owner.`
   const action = claimed ? signedIn ? `<a class="btn" href="/app">Open app${ARROW}</a>` : `<a class="btn" href="${escape(identity.signInPath)}${loginHint ? `?login_hint=${encodeURIComponent(loginHint)}` : ''}">Sign in${ARROW}</a>` : `<a class="btn" href="/setup">Finish setup${ARROW}</a>`
-  const ownerHelp = claimed && local && !signedIn ? '<p class="credit">Choose a local persona on the sign-in page, or run <code>rer dev --as owner</code> from the project folder.</p>' : ''
+  const ownerHelp = claimed && local && !signedIn ? '<p class="credit">On this computer, open the private <code>RER_OPEN</code> link printed by <code>rer dev</code>. Keep that link private; it gives access to this local install.</p>' : ''
   const credit = claimed
     ? `<p class="credit">Powered by <a href="${escape(identity.runSite)}">${product}</a>, free and open source</p>`
     : identity.manualSetupTokenClaim ? '<p class="credit">You’ll need the setup token from your install.</p>' : ''

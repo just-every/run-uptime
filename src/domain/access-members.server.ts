@@ -1,4 +1,4 @@
-import {operatorAuth,type AuthBindings} from './operator-auth.server.ts'
+import {operatorAuth,invitationResult,type AuthBindings} from './operator-auth.server.ts'
 import {permission,type Access,type Scope,AccessError} from './access.server.ts'
 import {mutationGuard} from './audit.server.ts'
 import {authorizedDatabase} from './access-database.server.ts'
@@ -45,7 +45,7 @@ export async function accessMembers(env:AuthBindings,request:Request,input?:any)
   const email=input.email.trim().toLowerCase()
   const db=authorizedDatabase(env,actor,statements=>{const token=statements.find(s=>s.sql.includes('INSERT INTO oa_tokens')&&s.sql.includes("'invite'"));return token?assignments(env,"email=? AND status='invited' AND EXISTS(SELECT 1 FROM oa_tokens t WHERE t.id=? AND t.operator_id=oa_operators.id AND t.consumed_at IS NULL AND t.revoked_at IS NULL)",[email,token.values[0]],value):[]})
   const result=await operatorAuth({...env,DB:db}).invite(request,{email,displayName:input.displayName,role:baseRole(value.role),returnTo:input.returnTo})
-  return Response.json(result,{status:202,headers})
+  return Response.json(invitationResult(env,result),{status:202,headers})
  }
  const match=/^\/api\/access\/members\/([^/]+)$/.exec(path)
  if(!match)throw Object.assign(Error('Not found'),{status:404})

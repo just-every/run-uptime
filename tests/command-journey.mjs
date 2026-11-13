@@ -1,5 +1,6 @@
 import {completeSecondFactor,completeBrowserSecondFactor,factorRequest} from './mfa-auth-support.mjs';
 import {emailSignIn} from './auth-test-support.mjs';
+import {proveLocalSignInTruth} from './local-signin-truth-support.mjs';
 import {testMailOptions} from './mail-provider-fixture.mjs';
 import assert from 'node:assert/strict';
 import { readFile, readdir, stat, writeFile, mkdir } from 'node:fs/promises';
@@ -134,6 +135,7 @@ try {
  await monitorHydration(page, origin, scratch.root);
  await definitionsJourney(page, origin);
  await completeBrowserSecondFactor(page,origin);
+ await proveLocalSignInTruth({browser,page,origin,key:devKey});
  const before = await page.request.get(origin + '/api/archive'); assert.equal(before.status(), 200);
  let expected = await before.json();
  for (const group of await descendantGroups(dev.pid)) groups.add(group);
