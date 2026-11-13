@@ -69,11 +69,15 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
  invite.onsubmit=async event=>{
   event.preventDefault();if(!invite.reportValidity())return;
   const email=invite.elements.email.value.trim(),displayName=invite.elements.displayName.value.trim(),role=invite.elements.role.value;
-  send.disabled=true;say('Sending invite…',helper);
+  send.disabled=true;say('Recording invitation…',helper);
   try{
-   if(role==='member')await request('/auth/invite','POST',{email,displayName,role:'member',returnTo:'/'});
-   else await request('/api/access/invitations','POST',{email,displayName,role,scopes:scopes(invite),returnTo:'/app'});
-   invite.reset();showScopes();await load(`Invitation sent to ${email}.`);
+   const result=role==='member'
+    ?await request('/auth/invite','POST',{email,displayName,role:'member',returnTo:'/'})
+    :await request('/api/access/invitations','POST',{email,displayName,role,scopes:scopes(invite),returnTo:'/app'});
+   const message=result.delivery==='not_sent'
+    ?`Invitation recorded for ${email}. No email was sent. ${result.local?'On this computer, open the private RER_OPEN link printed by rer dev, then visit /signin and choose the invited account. Keep that link private; it gives access to this local install.':'Use the demo sign-in page to choose the invited account.'}`
+    :`Invitation sent to ${email}.`;
+   invite.reset();showScopes();await load(message);
   }catch(error){say(`Not sent: ${refused(error).replace(/\.$/,'')}.`,helper)}
   finally{send.disabled=false}
  };
