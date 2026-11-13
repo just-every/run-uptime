@@ -30,10 +30,11 @@ export function heartbeatDeadline(def,job){const anchor=job.receivedAt??job.base
 export function heartbeatEvaluation(def,job,at){
  validateHeartbeatJob(job);
  const check=(outcome,reason,cause)=>({outcome,cause,checks:[{assertion:'heartbeat',pass:outcome==='pass',reason}]});
+ const window=def.heartbeat.cron?'scheduled time plus grace':'expected period plus grace';
  if(job.baselineAt>at||job.receivedAt!==null&&job.receivedAt>at||job.startedAt!==null&&job.startedAt>at||job.failure&&job.failure.at>at)return check('runner_error','Heartbeat snapshot is ahead of evaluation time','clock');
  if(job.failure){const code=job.failure.exitCode===null?'':` (exit code ${job.failure.exitCode})`;return check('target_failure',`Job reported failure${code}${job.failure.output?': '+job.failure.output.replace(/\s+/g,' ').slice(0,180):''}`,'failed')}
  if(job.startedAt!==null&&def.heartbeat.maxRunDurationMs&&at>=job.startedAt+def.heartbeat.maxRunDurationMs)return check('target_failure',`Job running too long; maximum duration ${def.heartbeat.maxRunDurationMs/1000} seconds exceeded`,'running-too-long');
- if(at>=heartbeatDeadline(def,job))return check('target_failure',job.startedAt===null?'Job missed: no success by the expected period plus grace':'Job missed: start received without a success before the deadline','missed');
- if(job.receivedAt===null)return check('runner_error','Waiting for the first job success; expected period plus grace has not elapsed','pending');
- return check('pass',job.late?'Late job success received; scheduled recovery evidence is fresh':'Job success received within the expected period plus grace',job.late?'late-success':'success');
+ if(at>=heartbeatDeadline(def,job))return check('target_failure',job.startedAt===null?`Job missed: no success by the ${window}`:'Job missed: start received without a success before the deadline','missed');
+ if(job.receivedAt===null)return check('runner_error',`Waiting for the first job success; ${window} has not elapsed`,'pending');
+ return check('pass',job.late?'Late job success received; scheduled recovery evidence is fresh':`Job success received within the ${window}`,job.late?'late-success':'success');
 }

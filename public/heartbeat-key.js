@@ -1,6 +1,7 @@
-import {escape,humaneDuration} from './console-format.js';
+import {escape} from './console-format.js';
 import {firstMount} from './dom-patch.js';
 import {confirmDestination} from './notification-dialogs.js';
+import {heartbeatRuleDetails} from './heartbeat-rules.js';
 
 // POSIX single quoting: each value reaches the command as one literal word, whatever characters a monitor id holds.
 const shellQuote=value=>`'${String(value).replaceAll("'","'\\''")}'`;
@@ -39,10 +40,9 @@ export function bindHeartbeatKey(area,m,{api,action}){
 // reload offers explicit rotation instead of recovering or persisting authority.
 export function heartbeatCheckInPanel(m){
  if(m.definition.type!=='heartbeat')return '';
- const h=m.definition.heartbeat;
- const deadline=h.cron?`the scheduled time (${h.cron}, ${h.timeZone}) plus ${humaneDuration(h.graceMs)} grace`:`${humaneDuration(h.maxAgeMs)} plus ${humaneDuration(h.graceMs)} grace`;
  return `<section class="ui-card panel heartbeat-checkin" id="heartbeat-checkin" data-owned="${escape(m.id)}:${m.revision}" aria-labelledby="heartbeat-checkin-heading"><h2 id="heartbeat-checkin-heading">Connect your job</h2>
- <p>Send a check-in after your job succeeds. The next scheduled check marks it up. If no success arrives within ${escape(deadline)}, a scheduled check marks it down. Until the first success, it stays Unknown. A private runner must be running.</p>
+ <p>Send a check-in after your job succeeds. If no success arrives by its deadline, a scheduled check marks it down. A start measures run duration. Only signed scheduled checks change health. A private runner must be running.</p>
+ <dl class="heartbeat-details ui-dl">${heartbeatRuleDetails(m.definition.heartbeat)}</dl>
  <div id="heartbeat-checkin-secret" hidden><label>Check-in URL<input id="heartbeat-checkin-url" class="ui-mono" readonly autocomplete="off" spellcheck="false"></label><button type="button" id="copy-heartbeat-url">Copy check-in URL</button>
  <p>Add this line to the end of your job, after it succeeds:</p><pre id="heartbeat-checkin-command" tabindex="0" aria-label="Job check-in command"></pre><button type="button" id="copy-heartbeat-line">Copy command</button>
  <p>Save it privately now; the URL is shown only for this visit. Anyone with it can send repeated check-ins. It is replay-unprotected. Replacing it retires the old URL and key.</p></div>

@@ -96,8 +96,44 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   const events=(await api('/api/overview')).data.alerts.filter(a=>a.monitor_id===id);assert.ok(events.some(a=>a.kind==='trigger'&&/Job missed/.test(a.event.explanation)));
   advance(anchor+33000);const recovered=await api(new URL(url).pathname,undefined,{cookie:''},'GET');assert.equal(recovered.status,200);assert.equal(recovered.data.late,true);
   assert.equal(await state(id),'Failing','late ingress alone cannot recover');await runner();await refreshState(id,'Healthy');
+  // Saving a calendar schedule replaces every period rule, including the
+  // health projection after the old period has elapsed.
+  const cronFold=page.locator('details#heartbeat');if(!await cronFold.evaluate(e=>e.open))await cronFold.locator(':scope > summary').click();
+  await page.locator('#job-period').fill('60');
+  await page.locator('#job-mode').selectOption('cron');
+  await page.locator('#job-cron').fill('0 2 * * *');
+  await page.locator('#job-zone').fill('America/New_York');
+  await page.locator('#job-grace').fill('900');
+  await page.locator('#job-maximum').fill('1800');
+  const configured=page.waitForResponse(r=>new URL(r.url()).pathname===`/api/monitors/${id}/heartbeat-settings`&&r.request().method()==='POST');
+  await page.getByRole('button',{name:'Save job settings',exact:true}).click();assert.equal((await configured).status(),200);
+  await page.reload();await page.locator('#rules-card').waitFor();
+  if(!await cronFold.evaluate(e=>e.open))await cronFold.locator(':scope > summary').click();
+  const panels=[page.locator('#rules-card'),page.locator('.heartbeat[aria-labelledby="heartbeat-heading"]'),page.locator('#heartbeat-checkin'),page.locator('#heartbeat-jobs > dl')];
+  const summaries=await Promise.all(panels.map(panel=>panel.innerText()));
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'cron summary reflows at the assertion width');
+  await shot('cron-job-rules');
+  const schedule=(await api(`/api/monitors/${id}/heartbeat-runs`)).data.schedule;
+  const newKey=await api(`/api/monitors/${id}/heartbeat-key`,{});assert.equal(newKey.status,200);
+  const cronPath=newKey.data.capabilityPath;
+  const successAt=schedule.upcoming[0].expectedAt;advance(successAt);
+  assert.equal((await api(cronPath,undefined,{cookie:''},'GET')).status,200);await runner();assert.equal(await state(id),'Healthy');
+  advance(successAt+schedule.maxAgeMs+schedule.graceMs+1);await runner();
+  const afterOldPeriod=await state(id);
+  if(output)await writeFile(join(output,'cron-rules-observed.json'),JSON.stringify({summaries,afterOldPeriod,periodMs:schedule.maxAgeMs,graceMs:schedule.graceMs,maximumMs:schedule.maxRunDurationMs},null,2)+'\n');
+  for(const summary of summaries){
+   assert.ok(summary.includes(schedule.cron)&&summary.includes(schedule.timeZone),'each rule shows the saved cron and zone');
+   assert.match(summary,/15\s*min/i,'each rule shows the saved grace');
+   assert.match(summary,/30\s*min/i,'each rule shows the saved maximum duration');
+   assert.doesNotMatch(summary,/success (?:period|age limit)|expected period/i,'cron rules never describe the old period');
+  }
+  assert.equal(afterOldPeriod,'Healthy','a cron success remains healthy after the unused period plus grace');
+  const next=(await api(`/api/monitors/${id}/heartbeat-runs`)).data.schedule.upcoming[0];
+  advance(next.deadlineAt-1);await runner();assert.notEqual(await state(id),'Failing','cron cannot fail before its deadline');
+  advance(next.deadlineAt);await runner();assert.equal(await state(id),'Failing','cron fails at scheduled time plus grace');
+  advance(next.deadlineAt+1);assert.equal((await api(cronPath,undefined,{cookie:''},'GET')).data.late,true);await runner();assert.equal(await state(id),'Healthy');
   assert.deepEqual(errors,[]);
-  const receipt={journey:'proveHeartbeatConsole',result:'passed',width:1440,proofWidths:output?[1440,390]:[],createdThroughForm:true,copyUrl:true,copyCommand:true,realInstallUrl:true,ingressState:'Unknown',scheduledState:'Healthy',periodMs:30000,graceMs:2000,beforeDeadline:'not Failing',atDeadline:'Failing',lateRecovery:'Healthy',secretsInStorage:false};
+  const receipt={journey:'proveHeartbeatConsole',result:'passed',width:1440,proofWidths:output?[1440,390]:[],createdThroughForm:true,copyUrl:true,copyCommand:true,realInstallUrl:true,ingressState:'Unknown',scheduledState:'Healthy',periodMs:30000,graceMs:2000,beforeDeadline:'not Failing',atDeadline:'Failing',lateRecovery:'Healthy',cronSettingsSavedThroughForm:true,cronRulePanels:panels.length,cronAfterOldPeriod:afterOldPeriod,cronBeforeDeadline:'not Failing',cronAtDeadline:'Failing',cronLateRecovery:'Healthy',secretsInStorage:false};
   if(output)await writeFile(join(output,'heartbeat-console.json'),JSON.stringify(receipt,null,2)+'\n');
   assert.equal((await api(`/api/monitors/${id}`,{...(await read(id)).definition,enabled:false},{},'PATCH')).status,200);
   console.log('Heartbeat console passed: create, copy real URL/command, actual check-in, signed Healthy, grace, exact-deadline Failing and late recovery.');
