@@ -1,0 +1,29 @@
+{
+  "run": {
+    "conclusion": "failure",
+    "event": "push",
+    "head_sha": "42ce67bec629576802bdce86a8d883e38890075f",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43499931557",
+    "id": 43499931557,
+    "status": "completed"
+  },
+  "build_job": 132142832461,
+  "aggregate_job": 132143140145,
+  "prepare": "success",
+  "shards": "skipped",
+  "only_failed_substantive_step": "node src/base/contract-docs.mjs check",
+  "permitted_generated_view_failure": true,
+  "workflow_rerun": false,
+  "gh_calls": 5,
+  "failed_job_archive_command": "gh run view 43499931557 --repo just-every/run-uptime --job 132142832461 --log-failed",
+  "archive_exit": 0,
+  "reproduction": {
+    "head": "42ce67bec629576802bdce86a8d883e38890075f",
+    "job": 132142832461,
+    "command": "node src/base/contract-docs.mjs check",
+    "test": "generated contract view freshness",
+    "exit": 1,
+    "failure": "ACCEPTANCE.md: generated content differs; run contract-docs write."
+  },
+  "product_repair_rounds": 0
+}

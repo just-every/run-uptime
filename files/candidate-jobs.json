@@ -1,0 +1,260 @@
+{
+  "jobs": [
+    {
+      "conclusion": "success",
+      "id": 132142724560,
+      "name": "plan",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Check reusable workflow permissions",
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Look up complete nightly marker",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run node .github/scripts/verify-ci.mjs --plan",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "conclusion": "failure",
+      "id": 132142832461,
+      "name": "build",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Set runner-owned browser cache",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Set runner-owned pnpm store",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Cache runner-owned dependencies",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run node scripts/edition-authoring/cli.mjs check",
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Run node src/base/contract-docs.mjs check",
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Run pnpm exec rer install",
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Build exact verification checkout once",
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Bind shared output to this source and run",
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Share verification output with this run's shards",
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Cache runner-owned dependencies",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "conclusion": "success",
+      "id": 132142832499,
+      "name": "prepare",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install and package without credential environment",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Retain inert deployment artifact and digest",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "conclusion": "skipped",
+      "id": 132142835453,
+      "name": "light",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "skipped",
+      "id": 132143023013,
+      "name": "shards (${{ matrix.name }})",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "skipped",
+      "id": 132143024337,
+      "name": "nightly-proof",
+      "status": "completed",
+      "steps": []
+    },
+    {
+      "conclusion": "failure",
+      "id": 132143140145,
+      "name": "verify",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Require the selected coverage and its proof",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "conclusion": "skipped",
+      "id": 132143141938,
+      "name": "full-push-proof",
+      "status": "completed",
+      "steps": []
+    }
+  ],
+  "total_count": 8
+}

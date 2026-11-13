@@ -1,0 +1,11 @@
+# sd-uptime-c-f172 work plan
+
+Scope: SURFACE-006 acceptance 4, only the enabled API definition with two saved probes, one cleanup step and native zero retries. Retain the MISSING judgment and every existing assertion and helper. No other target is released by the supplied extract.
+
+1. Read the clause, launcher and repository guidance, supplied rulings and DONE riders. Map existing single-probe and multiple-cleanup proof to the selected missing two-probe cell.
+2. Count saved cleanup steps across selected probes in the agent manual-check classifier. Preserve the setup requirement, zero-retry qualification, no-fixture exclusion and below-boundary rule.
+3. Add one independent helper mounted once in the registered native admission journey. Use owner doors to create two enabled definitions and enroll two runners per definition. Run the production probe at both vantages, sign native intake and independently read the saved definition, one retained debt and native limit.
+4. Under both policies and protocols prove external measure two, boundary live facts and affected-monitor summary, selective named-person approval with no slot, exact-summary approval releasing one undispatched slot and custody, effect-free replay, blocked live refusal and a zero-open counterpart without live. Count target, provider and mail traffic; compare durable native rows, scheduled evidence and health; enumerate permitted admission writes.
+5. Run the touched journey and typecheck, first-party check, contract generation write and check, restore generated views, regenerate the source lock last and check it. Keep acceptance sentences and Status rows unchanged.
+6. Preserve the first real commit on the named cloud branch, merge newer main after publication, then publish a final candidate without a skip marker. Inspect all candidate identities and trailers before every push. Discover exact-SHA Verify through the declared repository REST door and report its real status within the call budget.
+7. Save complete non-secret results and actual receipts here and publish only selected packet files through the separate evidence ref. Product landing, publication scanning, generated-view commits and candidate Run site stay with the guarded lander. Claim only the bounded progress; the full clause remains incomplete.

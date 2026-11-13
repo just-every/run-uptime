@@ -1,0 +1,20 @@
+{
+  "head": "42ce67bec629576802bdce86a8d883e38890075f",
+  "lock": {
+    "command": "node scripts/edition-authoring/cli.mjs lock; node scripts/edition-authoring/cli.mjs check",
+    "exit": 0,
+    "check_ok": true
+  },
+  "views": {
+    "command": "node src/base/contract-docs.mjs write; node src/base/contract-docs.mjs check",
+    "exit": 0,
+    "check_output": "Contract prose: 0 errors, 0 warnings.\nContract documents are current.",
+    "generated_files_restored_from": "origin/main",
+    "generated_files_committed": false
+  },
+  "ledger": {
+    "command": null,
+    "exit": 0,
+    "reason": "No migration changed."
+  }
+}

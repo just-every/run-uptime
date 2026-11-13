@@ -1,0 +1,9 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PROBE SURFACE-006 4-multiprobe autonomous 2026-07-28: saved two-probe one-cleanup API with one signed open debt -> 1 + 2 = 3, named live approval with no slot, native person approval queues exactly one undispatched slot, replay has no effect; live-blocked refuses; zero-open counterpart stays external under selective and blocked policies; unrelated durable state and all traffic unchanged
+PROBE SURFACE-006 4-multiprobe autonomous 2025-11-25: saved two-probe one-cleanup API with one signed open debt -> 1 + 2 = 3, named live approval with no slot, native person approval queues exactly one undispatched slot, replay has no effect; live-blocked refuses; zero-open counterpart stays external under selective and blocked policies; unrelated durable state and all traffic unchanged
+PROBE SURFACE-006 4-multiprobe held 2026-07-28: saved two-probe one-cleanup API with one signed open debt -> 1 + 2 = 3, named live approval with no slot, native person approval queues exactly one undispatched slot, replay has no effect; live-blocked refuses; zero-open counterpart stays external under selective and blocked policies; unrelated durable state and all traffic unchanged
+PROBE SURFACE-006 4-multiprobe held 2025-11-25: saved two-probe one-cleanup API with one signed open debt -> 1 + 2 = 3, named live approval with no slot, native person approval queues exactly one undispatched slot, replay has no effect; live-blocked refuses; zero-open counterpart stays external under selective and blocked policies; unrelated durable state and all traffic unchanged
+TRAFFIC SURFACE-006 multiprobe: target=8 baseline, delta=0; provider=0 baseline, delta=0; mail=1 baseline, delta=0
+PASS SURFACE-006 independent two-probe cleanup boundary through native owner, signed production runner, both policies and both MCP protocols

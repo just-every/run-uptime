@@ -1,0 +1,13 @@
+{
+  "command": "timeout 1200 node tests/agent-door.mjs",
+  "head": "42ce67bec629576802bdce86a8d883e38890075f",
+  "exit": 0,
+  "started_at": "2026-11-13T20:15:46Z",
+  "finished_at": "2026-11-13T20:33:39.323017+00:00",
+  "log": "agent-door.log",
+  "browser": "/usr/bin/chromium",
+  "viewports": [
+    1440,
+    390
+  ]
+}

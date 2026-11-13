@@ -1,0 +1,4 @@
+Actual relevant failed-job archive output; environment boilerplate omitted.
+build	Run node src/base/contract-docs.mjs check	2026-11-13T20:16:22.1642300Z Contract prose: 0 errors, 0 warnings.
+build	Run node src/base/contract-docs.mjs check	2026-11-13T20:16:22.2328458Z ACCEPTANCE.md: generated content differs; run contract-docs write.
+build	Run node src/base/contract-docs.mjs check	2026-11-13T20:16:22.2437963Z ##[error]Process completed with exit code 1.

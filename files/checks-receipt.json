@@ -1,0 +1,131 @@
+{
+  "tag": "sd-uptime-c-f172",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-c-f172",
+  "head": "42ce67bec629576802bdce86a8d883e38890075f",
+  "base_main": "83b2f2692149c9171a12cba0d7397734a1e8096b",
+  "status_rows_unchanged": true,
+  "counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "registered_journeys_before": 47,
+  "registered_journeys_after": 47,
+  "candidate_source_sha256": {
+    "CONTRACT.md": "aca8a5e83df71feb47e6146168f04f3fc42ea3b329f5cc35bacbdec76ae2247b",
+    "src/agent-door/manual-check-effects.server.ts": "3da6e2ff94908b0fbbc83bddf480fe49bae3d4d0ec924c27a668cc39591583f2",
+    "tests/agent-door.mjs": "eb4673b5db66a091d385ec6f96a61a423c4a7a61ea1c10a280e1694e6401a258",
+    "tests/agent-manual-multiprobe-support.mjs": "2e6ffe0db05866393ccdc2966a33e275e0b3d4d2d81b99df633cb31be7e277fa",
+    "sources.lock.json": "97aea5f81b8f06cec56bc7ad5efb7e0eacf5dfcceb0153af264ce921e0d671c7"
+  },
+  "push": {
+    "status": "success",
+    "command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/sd-uptime-c-f172",
+    "force": false
+  },
+  "pr": null,
+  "local_checks": [
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0,
+      "note": "Product source unchanged between build and candidate."
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "npx -y @runeditrun/rer check --profile first-party",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git checkout origin/main -- ACCEPTANCE.md docs/CLAIMS.md",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "timeout 1200 node /tmp/f172-focused.mjs",
+      "exit": 0,
+      "note": "Temporary direct public-door probe of the exact candidate helper; not an additional permanent registration."
+    },
+    {
+      "command": "timeout 1200 node tests/agent-door.mjs",
+      "head": "42ce67bec629576802bdce86a8d883e38890075f",
+      "exit": 0,
+      "started_at": "2026-11-13T20:15:46Z",
+      "finished_at": "2026-11-13T20:33:39.323017+00:00",
+      "log": "agent-door.log",
+      "browser": "/usr/bin/chromium",
+      "viewports": [
+        1440,
+        390
+      ]
+    }
+  ],
+  "migration_ledger": {
+    "command": null,
+    "reason": "No migration changed."
+  },
+  "publication_scan": {
+    "status": "not_run",
+    "reason": "Guarded lander duty under the cloud adaptation."
+  },
+  "candidate_run_site": {
+    "status": "not_run",
+    "reason": "Guarded lander duty on main."
+  },
+  "main_equals_candidate": false,
+  "claim": "PARTIAL",
+  "contract_judgment_before": "missing",
+  "contract_judgment_after": "missing",
+  "policy_default": null,
+  "invariants": {
+    "protected_attempts_source_unchanged": true,
+    "deployment_specification_unchanged": true,
+    "workflow_unchanged": true,
+    "single_probe_helper_unchanged": true,
+    "multiple_cleanup_helper_unchanged": true,
+    "new_helper_imports": 1,
+    "new_helper_mounts": 1,
+    "new_source_email_shaped_strings": 0,
+    "policy_defaults_added": 0,
+    "product_commits": [
+      "60f0774234db2092a939edbb77b0a129fca32207",
+      "42ce67bec629576802bdce86a8d883e38890075f"
+    ],
+    "published_history_rewritten": false,
+    "generated_views_committed": false,
+    "contract_acceptance_sentences_unchanged": true,
+    "contract_status_gap_and_evidence_cells_unchanged": true
+  },
+  "traffic": {
+    "target_baseline": 8,
+    "provider_baseline": 0,
+    "mail_baseline": 41,
+    "target_admission_delta": 0,
+    "provider_admission_delta": 0,
+    "mail_admission_delta": 0
+  },
+  "ci_receipt": "ci-receipt.json"
+}
