@@ -1,0 +1,106 @@
+{
+  "files": [
+    {
+      "blob": "11c441301b91529140581338c702e9a3c49174ba",
+      "bytes": 2923,
+      "path": "PLAN.md",
+      "sha256": "896985688b9a3a67fd1b0e7101a893a7d2ef4ff2712b5e095dcedf961e389af1"
+    },
+    {
+      "blob": "e2d526d4b027dc4f6b6df6a030bb124234ed09f0",
+      "bytes": 10450,
+      "path": "REPORT.md",
+      "sha256": "6081bd98e3ab23b5a4a1b8cfb2df21f6451205ab476ea2b80110e24c69aadda0"
+    },
+    {
+      "blob": "b6ddfaa56a49a70c6f30f5bacd99bd08c196c72f",
+      "bytes": 1408,
+      "path": "base-ci-receipt.json",
+      "sha256": "9defed4bafc64730ac7f8fe4af6960a10fa7feeb06c254d12c0e00bddf442ec3"
+    },
+    {
+      "blob": "14544e28aa54483bf5f265452f55d5bb7d5012ca",
+      "bytes": 217,
+      "path": "candidate-ci-receipt.json",
+      "sha256": "c38350113363477668121444b046965fe33d94c4d6257e1967bbebf40ac7b479"
+    },
+    {
+      "blob": "c2ae489700073a3d32727e2e2fd086f1fbcd553e",
+      "bytes": 3133,
+      "path": "changes-since-v0.5.9.txt",
+      "sha256": "455565da8b22fffc992ae510ed700bbf7b4a8ed85b13d7577505fb041d6f88a8"
+    },
+    {
+      "blob": "22d21276e999d00df53c98faa7730b9de1007dee",
+      "bytes": 2189,
+      "path": "dependency-install.txt",
+      "sha256": "3657f3ce85eb42f40b4e9b1c804672030692b8ce09ef75431c3afcf98bf59d9a"
+    },
+    {
+      "blob": "9d18bda3fb500496ecfbee1e280857d5e1a3ac46",
+      "bytes": 7547,
+      "path": "github-calls.jsonl",
+      "sha256": "988ef8649f967fd2b46e1261b32a7aa784ee5be399b47920577a62921e433d67"
+    },
+    {
+      "blob": "0c8a568705142ce4ecfc90e9852fedc933ef0b2d",
+      "bytes": 379,
+      "path": "identity-check.json",
+      "sha256": "692cfd5aa37315e456816725b90a2c7728c953641497ee7de6a3df7f379d9f77"
+    },
+    {
+      "blob": "bf036dbc107b5d7fff11048bd5942ac08c3bf731",
+      "bytes": 453,
+      "path": "metadata-check.json",
+      "sha256": "019655aa5f83bb5603bab14d3b1699a55ff420fed2d46783ffd349b0f2bdf738"
+    },
+    {
+      "blob": "27e96bbf70efe912647979921b21db39c65cc6a3",
+      "bytes": 24,
+      "path": "node-pin-install.txt",
+      "sha256": "0084a2467ddcb7209a9d3143448e657c43875f2b05b5c0c5e89ed25ab6b9a3dd"
+    },
+    {
+      "blob": "410fab75320c6592b0f60f316e1b525697b7c1e3",
+      "bytes": 947,
+      "path": "product-push.txt",
+      "sha256": "c0c03c955cc082c8a12a6b58029317abd4c6eec049483dce1cf1ab598829db41"
+    },
+    {
+      "blob": "d82eca7edce37ce3366142c4942affb0deb72d5b",
+      "bytes": 2727,
+      "path": "product-receipt.json",
+      "sha256": "668ec254f3f66ec765e795bdf20b090ccb8473f64699f5f3134517479885ce9c"
+    },
+    {
+      "blob": "db8dd84b06f5933a78a19d39248caa2467eea119",
+      "bytes": 13640,
+      "path": "product.patch",
+      "sha256": "cb914968408019858e0dbb0acb772f00d5a14ca3105c3d3d1313257bbc946790"
+    },
+    {
+      "blob": "17f1f838633cbbdc36eadcd02b82921c1ee70247",
+      "bytes": 5081,
+      "path": "release-notes.md",
+      "sha256": "af370a58a2d419f3e4f2ad28da7c424127e1741233d2afd233d9c0963d113f55"
+    },
+    {
+      "blob": "8c51ec2e29d6d2a1ea9e3163d95b3c2fa4842527",
+      "bytes": 1038,
+      "path": "source-lock-receipt.json",
+      "sha256": "2085f3b299d836d76ab6885dced2801e74bb238193853b9e374a67616e366ebf"
+    },
+    {
+      "blob": "c30bcecef442fec8b9a7cfab8dc3b8131fbcf0de",
+      "bytes": 384,
+      "path": "typecheck-receipt.json",
+      "sha256": "9747a84b9d61cca4366cb0be3ebc13504289ba8d03cdf230297e31d41f592b26"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-release-0-5-10",
+  "product_head": "bd7b21317cae0ae0082fa88127cef6842c377504",
+  "ref": "refs/heads/evidence/sd-uptime-release-0-5-10",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-release-0-5-10"
+}

@@ -1,0 +1,104 @@
+{
+  "tag": "sd-uptime-release-0-5-10",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-10",
+  "head": "bd7b21317cae0ae0082fa88127cef6842c377504",
+  "base": "36779a7228727cb38d7180b26c5b5aa656ca1056",
+  "previousTag": "v0.5.9",
+  "previousTagCommit": "88c586f6fabdaed6768ddc8072af2340310a7ace",
+  "versionBefore": "0.5.9",
+  "versionAfter": "0.5.10",
+  "rerBefore": "0.2.108",
+  "rerAfter": "0.2.108",
+  "productPush": "success",
+  "cleanCheckout": true,
+  "pr": null,
+  "countsBefore": {
+    "core": {
+      "done": 37,
+      "partial": 47,
+      "missing": 11,
+      "total": 95
+    },
+    "agent": {
+      "done": 0,
+      "partial": 11,
+      "missing": 8,
+      "total": 19
+    },
+    "later": {
+      "done": 0,
+      "partial": 0,
+      "missing": 1,
+      "total": 1
+    },
+    "full": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "clauseChanges": [],
+  "testsAdded": 0,
+  "testsRemoved": 0,
+  "testsModified": 0,
+  "sourceLock": {
+    "exit": 0,
+    "ok": true,
+    "files": 2384,
+    "sha256": "ffbb82f2dd5792ee43688b33a82c3b37747cfaf2897115d39a2c9c3ef7716de6"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "diffStat": "CHANGELOG.md      | 31 +++++++++++++++++++++++++++++++\n README.md         |  2 +-\n RELEASE.json      |  6 +++---\n package.json      |  2 +-\n seed.json         |  2 +-\n sources.lock.json | 10 +++++-----\n 6 files changed, 42 insertions(+), 11 deletions(-)",
+  "stamp": "2026-11-13T04:18:54.896672+00:00",
+  "countsAfter": {
+    "core": {
+      "done": 37,
+      "partial": 47,
+      "missing": 11,
+      "total": 95
+    },
+    "agent": {
+      "done": 0,
+      "partial": 11,
+      "missing": 8,
+      "total": 19
+    },
+    "later": {
+      "done": 0,
+      "partial": 0,
+      "missing": 1,
+      "total": 1
+    },
+    "full": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "preservedSha256": {
+    "CONTRACT.md": "0b70cec7f900fbc59542b6ae32afec508997695edda128142db3e88c8b770221",
+    "ACCEPTANCE.md": "76bb5e51d4779cbd95b39b2238d25cce13d1be428e8918604601e06ab9c5ca05",
+    "docs/CLAIMS.md": "adb3ad37ab113c2061ed4365767d2c347281a807acfa51eb712305959ad02b54",
+    "pnpm-lock.yaml": "0ca0021a01c48e4e1a30b11794b5de1bfb896a175a6f4efb2242905b5757583e"
+  },
+  "ci": {
+    "id": 43362380050,
+    "conclusion": "success",
+    "head_sha": "bd7b21317cae0ae0082fa88127cef6842c377504",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43362380050",
+    "status": "completed"
+  },
+  "terminalStatus": "READY",
+  "githubCallsUsed": 8,
+  "blockers": []
+}

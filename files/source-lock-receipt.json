@@ -1,0 +1,38 @@
+[
+  {
+    "command": [
+      "node",
+      "scripts/edition-authoring/cli.mjs",
+      "lock"
+    ],
+    "start": "2026-11-13T03:57:23.844374+00:00",
+    "end": "2026-11-13T03:57:24.547907+00:00",
+    "exit": 0,
+    "ok": true,
+    "lockSha256": "ffbb82f2dd5792ee43688b33a82c3b37747cfaf2897115d39a2c9c3ef7716de6",
+    "fileCount": 2384,
+    "toolchain": {
+      "id": "runeditrun/edition-authoring",
+      "version": "1.1.0",
+      "sha256": "8d25b7528ba7c5301de349b51b7e6ca44d6b87478f27b5685a5c07b567612e13"
+    }
+  },
+  {
+    "command": [
+      "node",
+      "scripts/edition-authoring/cli.mjs",
+      "check"
+    ],
+    "start": "2026-11-13T03:57:24.548664+00:00",
+    "end": "2026-11-13T03:57:25.001211+00:00",
+    "exit": 0,
+    "ok": true,
+    "lockSha256": "ffbb82f2dd5792ee43688b33a82c3b37747cfaf2897115d39a2c9c3ef7716de6",
+    "fileCount": 2384,
+    "toolchain": {
+      "id": "runeditrun/edition-authoring",
+      "version": "1.1.0",
+      "sha256": "8d25b7528ba7c5301de349b51b7e6ca44d6b87478f27b5685a5c07b567612e13"
+    }
+  }
+]

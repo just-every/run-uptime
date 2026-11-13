@@ -1,0 +1,30 @@
+36779a7228727cb38d7180b26c5b5aa656ca1056 Merge current main with archive transfer checks
+14974ad7a1d6871d010876b8118d70419df45373 Merge current main into Auth0 timeout proof candidate
+920a3a8359cb5e34aac27f0eda2e20a62eb87d61 Regenerate contract views from CONTRACT.md
+c88701c229fc9c3f9714b8c35d6d0eb7dcc35d6b Prove mandatory mail sender startup refusal and restart
+5664348b4131854d1fb6bce8abe472d1c7416c1c Regenerate contract views from CONTRACT.md
+d37671187cf6bd05ffb4c8e7551cb0be74198847 Prove Auth0 checks disclose only the reviewed tenant and transport headers
+d061f7b67e8925f08bf1b78403df38398346b84d Require reviewed Auth0 tenant egress for bounded source checks [skip ci]
+2955e521327313bbf1b894540a4d503db11511fe Preserve private transfer denial and artifact archive checks
+d3b2ea3b7733c05cdf142b0e1ace7fd52b69fbef Merge remote-tracking branch 'origin/main' into cloud/sd-uptime-c-f169
+a716f79fc169e2f2a744fd700c4f583d1a0a89ae Restore statusless redirect snapshots on the rebased head
+c1957bb733e8a080460cab2c974df33430d0f206 Restore saved f164 ancestry and the tested snapshot repair
+28201516fb28a80d67d2e676b046c4c6f6646c76 Preserve incident facts while quiet-window elapsed time advances [skip ci]
+8c60cbb5c55609832fbe0e30fb1f4822b676b911 Add redirect-cycle qualification journey exposing intake refusal [skip ci]
+60aad3f699e8d556677c04ebdb971818e72333d7 Fix statusless redirect snapshots and complete the native cycle journey
+df7d9c75c13ca67d88fbb5677b8187a92f640627 Preserve read-only compatibility and resume refusals [skip ci]
+07ec9f70b9f2a533f61d89741e87f47ee01d4cb9 Merge current main and regenerate the Auth0 candidate source lock
+8f05a112745c3bcff8b060022631091abba127c0 Regenerate contract views from CONTRACT.md
+3a707c0a1497306b2de901b46d0dce6d8774a217 Count saved API cleanup steps for manual-check live effects
+e2ea1d6d8689e6bffc6f8b262c13cc39ca0e939a Record bounded Auth0 source-check proof and retained provider limits
+dc2ac3dc461e48a1e9acfbe731ab6566c7b0983d Prove Auth0 status-source deadlines close unfinished reads [skip ci]
+e92916f3cd06008fd35faba36a78c2bcfd8d2245 Preserve large archive rows and complete erasure journals across resume
+f50e1d9b82e22a40066ae89ed56cdfd347086dc0 Regenerate contract views from CONTRACT.md
+a7288b7e958d4d84109e028c8792acbae121a56c Include newly tracked archive modules in source lock [skip ci]
+2a13fb51be92bcdedeaa1b2282b9a33263ee1180 Add chunk manifests and durable archive transfer resume [skip ci]
+85980bece32b579723fa2b3598381595857124b6 Prove Auth0 checks disclose only the reviewed tenant and transport headers
+923b17846cfbce74cbcb8f4945967b1d7621fb9a Qualify mention-free MCP edits under current native authority
+179f338e401a977148802ae1e1e0ee85df64ac1d Require reviewed Auth0 tenant egress for bounded source checks [skip ci]
+80c0d7ca2300f35c2352dc350884f0788bf3c97f Add synchronous MCP comment editing and bounded journey [skip ci]
+a6a189444625c60b680a1805d354a61d13cf1675 Preserve incident facts while quiet-window elapsed time advances [skip ci]
+397ce9b0bcdf546803c7e1dee267dc44bd0fc589 Add redirect-cycle qualification journey exposing intake refusal [skip ci]

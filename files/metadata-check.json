@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "version": "0.5.10",
+  "previousVersion": "0.5.9",
+  "rerPin": "0.2.108",
+  "changedPaths": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "unchanged": [
+    "pnpm-lock.yaml",
+    "CONTRACT.md",
+    "ACCEPTANCE.md",
+    "docs/CLAIMS.md"
+  ],
+  "historicalChangelogPreserved": true,
+  "screenshot": ".github/assets/release/uptime-0.4.0-monitor-1440.png"
+}
