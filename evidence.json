@@ -1,0 +1,214 @@
+{
+  "files": [
+    {
+      "blob": "721c2c5bd99f45b21a32e1611b552d4030a8b7b4",
+      "bytes": 1587,
+      "path": "PLAN.md",
+      "sha256": "de3453b33708a8907b41776b2695de689c2e607ff334e1bf21705c52e66578ec"
+    },
+    {
+      "blob": "ca564d0ef536498b0447f7aea81fe8c59380f319",
+      "bytes": 6496,
+      "path": "REPORT.md",
+      "sha256": "2bce0579309cb4ffcf72b627b40be7e257bf66856f06d6042b139a64cd4e7a1c"
+    },
+    {
+      "blob": "1ebbf02c2beea13db7f12578ab0cd4f7db72250e",
+      "bytes": 316773,
+      "path": "browser/cron-job-rules-1440.png",
+      "sha256": "c6e9d0b30d4d0aa9f4c65751a302a442aa61cff5ca4297d4b107f165c2ea45ef"
+    },
+    {
+      "blob": "7838954a3d09d5c93b670408d7d6920eb74462c4",
+      "bytes": 287043,
+      "path": "browser/cron-job-rules-390.png",
+      "sha256": "0cb0b1cd8cbb68a3781efe29654f4a5b62097f0661514752659f048b3ff3e0d3"
+    },
+    {
+      "blob": "c367464c0c01bc56f3d20a855df7c0bd75dbb8fa",
+      "bytes": 1280,
+      "path": "browser/cron-rules-observed.json",
+      "sha256": "d729682d341d66b6be92b8cd7854588f3f4d338129953ab4e2b1191c430ab0dd"
+    },
+    {
+      "blob": "aa93cdb0d90c5a2d5f4a631c2df594289a782777",
+      "bytes": 641,
+      "path": "browser/heartbeat-console.json",
+      "sha256": "c694d975fadbb89f3f9d9c6e44654dad70a1fcbd882040421d2f9e6ba0274225"
+    },
+    {
+      "blob": "2ca306cdb1bb9ae97ba9a6e4df36c0e225c76870",
+      "bytes": 42955,
+      "path": "browser/heartbeat-output-redacted-1440.png",
+      "sha256": "98475ab69846105e113e8d402400ec42dc5b26c2eab17f810ef594ab95e20d63"
+    },
+    {
+      "blob": "ecb394e454c11fc11f75de9cc8ac066c964f7fc4",
+      "bytes": 42535,
+      "path": "browser/heartbeat-output-redacted-390.png",
+      "sha256": "7ee961b31b7a4387b13c8ad6cd68d957ef34b55e0b7c3a2443706cf58a245897"
+    },
+    {
+      "blob": "d4c5f30fd4ec1a68f992741d46e7b506ad647afc",
+      "bytes": 259,
+      "path": "browser/heartbeat-redaction.json",
+      "sha256": "3ef5920ca3b21ff3b43b82bb5eaff1f8c441d79acbecd3509e0af149f65c369a"
+    },
+    {
+      "blob": "f6a17542a2ae037f89d4fd92ba41320831bf341b",
+      "bytes": 285476,
+      "path": "browser/imported-job-summary-1440.png",
+      "sha256": "9416877a8cbfd5667f7c31c522fd477e388f5f34332f3db7dfc1eb61a65c3c0c"
+    },
+    {
+      "blob": "2f1cc0a01d7b781b9c36a791355f91e05ab8905a",
+      "bytes": 256870,
+      "path": "browser/imported-job-summary-390.png",
+      "sha256": "cc6f9e75bf38c96c73fea022c4523e8a4ecf8b39ae37e00e267c9db61c610475"
+    },
+    {
+      "blob": "dd26b06dc3eb7a2727021a4c1f0f65dee9704887",
+      "bytes": 315977,
+      "path": "browser/job-checkin-ready-1440.png",
+      "sha256": "907e03fc99805f8a32da3735380579eff2f46e8344aa2b67665050a26de7e1cc"
+    },
+    {
+      "blob": "477aaf565019b752e1c8812d8636b51d3465b800",
+      "bytes": 287110,
+      "path": "browser/job-checkin-ready-390.png",
+      "sha256": "f216892892a5a3f9193d3daff5032aea1e4dee5c28c5763843c5c666f2aa4325"
+    },
+    {
+      "blob": "ff9affaed0c7b08cecd06b6f78f60c87f71b842c",
+      "bytes": 326767,
+      "path": "browser/job-missed-1440.png",
+      "sha256": "f1809dcaf075b03d56bfb95b801cec2a47ee251cfa1a3bb076031098030aff7a"
+    },
+    {
+      "blob": "d8559327bb6c4f3b184e8a71040d36337168ee7b",
+      "bytes": 295578,
+      "path": "browser/job-missed-390.png",
+      "sha256": "fc0346c6cdb81d8149416a303b5f18538363560bfda666d35bbbaa578dfb7dfe"
+    },
+    {
+      "blob": "e255e572ee7001a92d108d2039a4b07384036c6c",
+      "bytes": 315373,
+      "path": "browser/job-up-1440.png",
+      "sha256": "88656d0dfc6724c8ddc84c138ca95a8383fbe0eae10b0c1e089fac61c5b1e335"
+    },
+    {
+      "blob": "b4c6a9aa104409aae5bc644c8ef0d8324030421c",
+      "bytes": 286602,
+      "path": "browser/job-up-390.png",
+      "sha256": "7a0fe65332adebd029d2140ef5095e5c1f32a95b453d0e4bbe774790aae378cb"
+    },
+    {
+      "blob": "c566db95901ac8c013989543c982ea262cd34493",
+      "bytes": 99216,
+      "path": "browser/scheduled-job-form-1440.png",
+      "sha256": "6a681629596ef6f9e11ba100af6855f1b4b78ca1152590aca35b20e178157c13"
+    },
+    {
+      "blob": "8f1d789cbfdb49a24f771f2602590979b2f055e2",
+      "bytes": 106356,
+      "path": "browser/scheduled-job-form-390.png",
+      "sha256": "dc48b64946558f92bb80075bf02f8af4b93fb0e9c228596e858e70137b214344"
+    },
+    {
+      "blob": "081975e8f85e5ad4a195f91cc1876f0a5a05912c",
+      "bytes": 10313,
+      "path": "build.log",
+      "sha256": "a4159b499e5ef7cd8d4ee80f6a2601269db78afea5a68e6e15c51e3ae77bd3d2"
+    },
+    {
+      "blob": "96637a78e13fbc5cc77611835146bdba0062ad6b",
+      "bytes": 2241,
+      "path": "carry-receipt.json",
+      "sha256": "2a5d1701a2b1a719ab61271540280d7ac45ff5855a8b6cff7e979ece372dee0b"
+    },
+    {
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "path": "ci-cancelled-job.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "blob": "c71e7c9c6dc83d8fb8bc04e564ea2db5f34f528d",
+      "bytes": 868,
+      "path": "ci-diagnostic-receipt.json",
+      "sha256": "8873e3aee89f742c63ee3613b4bf23d1b2fae9e4cfa2585961e67bab56211c3d"
+    },
+    {
+      "blob": "4b1daef01c78b2856f483716e630161c7de82f5f",
+      "bytes": 22799,
+      "path": "ci-jobs.json",
+      "sha256": "6097ec6629662dd4c3822cf4a3108287c13450b1c215ece0d690683a836c2e56"
+    },
+    {
+      "blob": "9968e14fb8b5c103c50b67a516d36928310fcd4c",
+      "bytes": 2842,
+      "path": "ci-observations.json",
+      "sha256": "fbc8c6d38c846f275e284ef061e55758c25ce50c14b50760444f391c95507d44"
+    },
+    {
+      "blob": "30edec1972e95a89db51c55cd45286f240c4896a",
+      "bytes": 247,
+      "path": "ci-retry-watch.log",
+      "sha256": "7e890e2a9e05725067e6940fa4970af93e59d8f9ecb9276e2a7b6a0ef7717be1"
+    },
+    {
+      "blob": "6f613268470c9cf640a59c34d635864169f230fa",
+      "bytes": 533,
+      "path": "ci-retry.json",
+      "sha256": "227b63928a4a6358347cba45a0d3798b5e3d9b9b24907c127dc18c26541b4bdc"
+    },
+    {
+      "blob": "c80ed49ed344bcda082f24a977c615836545025d",
+      "bytes": 234,
+      "path": "ci-run.json",
+      "sha256": "bcd7493e64da754eb49bc8421a46c9960a6ef536cf44ee64873909c11f332f75"
+    },
+    {
+      "blob": "6c3533e3889a6cbb7c881bb52b4baf7423e63b4c",
+      "bytes": 1602,
+      "path": "ci-watch.log",
+      "sha256": "f046773c0cc9de7a29134ce6fdbb1a3d4523c6581675f940ed07ee01327fdbbc"
+    },
+    {
+      "blob": "cb740b8a5efca65abdef12bf0462535754a200d8",
+      "bytes": 958,
+      "path": "product-push.log",
+      "sha256": "0bd268311b1be5736260844752962e4a619e600378f40c8383c821adcf131954"
+    },
+    {
+      "blob": "eba96be78fcc4f0e6d5fe7251e780900150b9b97",
+      "bytes": 1592,
+      "path": "signed-runner.log",
+      "sha256": "a2fdaa81c2cdcf423734fc7c8d2efc78a3dc8511f3e14b3f09a53b27ab524289"
+    },
+    {
+      "blob": "ed06514dc204307bf1268d68e699f59d1e1a9fe8",
+      "bytes": 1903,
+      "path": "source-carry-comparison.json",
+      "sha256": "2417373d566109a8ee9d006121d55e0588e44a390a680cfb94910d241a8ced2b"
+    },
+    {
+      "blob": "5e33667ec7e891911cf0fb946a3fdbba28b4a516",
+      "bytes": 161,
+      "path": "source-check.json",
+      "sha256": "36c181e79180ece12732ca3721293d1bb5cdccabdab8592b0977f29d4ba714eb"
+    },
+    {
+      "blob": "33cfca5307aedc12362710d32d3c2639c2932e3f",
+      "bytes": 244,
+      "path": "typecheck.log",
+      "sha256": "da5ede4c85331abff00c12a6f200170528381022a279d90f8cca17258707f755"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-cron-rules-1-c1",
+  "product_head": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+  "ref": "refs/heads/evidence/main-uptime-cron-rules-1-c1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-cron-rules-1-c1"
+}

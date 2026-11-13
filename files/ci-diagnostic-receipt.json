@@ -1,0 +1,28 @@
+{
+  "githubCall": 8,
+  "runId": 43383674178,
+  "jobId": 131747398585,
+  "command": "gh run view 43383674178 --repo just-every/run-uptime --job 131747398585 --log-failed",
+  "exit": 0,
+  "returnedBytes": 0,
+  "job": "shards (push-6)",
+  "step": "Run this shard",
+  "conclusion": "cancelled",
+  "jobStartedAt": "2026-11-13T07:10:10Z",
+  "jobCompletedAt": "2026-11-13T07:30:14Z",
+  "configuredJobTimeoutMinutes": 20,
+  "testAtCancellation": "undetermined; the required failed-step-log request returned no content",
+  "shardJourneys": [
+    "contact-schedules",
+    "incident-work",
+    "private-network",
+    "agent-door",
+    "alert-routes",
+    "archive-roundtrip",
+    "webhook-custom"
+  ],
+  "touchedSignedRunnerShard": "push-3",
+  "touchedSignedRunnerShardConclusion": "success",
+  "operatorSecurityShard": "push-5",
+  "operatorSecurityShardConclusion": "success"
+}

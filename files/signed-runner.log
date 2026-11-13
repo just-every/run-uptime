@@ -1,0 +1,10 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+{"event":"storage_error","method":"GET","route":"/api/overview","operation":null,"class":"schema","status":503,"cause":"D1_ERROR: no such table: runner_contact: SQLITE_ERROR"}
+PRESENCE-001 runner contact: idle and signed-result server receipts, 120-second boundary, refusal and read invariance, persistent restart, unavailable read, independent failing or Unknown targets and inactive restore passed
+Heartbeat console passed: create, copy real URL/command, actual check-in, signed Healthy, grace, exact-deadline Failing and late recovery.
+HEARTBEAT-001 revision isolation passed: settings retire both receipt forms, increasing old sequence refuses without writes, current signed snapshot has no inherited receipt, and only fresh authority plus scheduled signed evaluation establishes Healthy.
+HEARTBEAT-004 saved-document migrations passed: UptimeRobot and Better Stack 60-minute period plus five-minute grace, reviewed paused apply, owner activation and new URL, actual signed deadline failure and retained late recovery; controlled local clock, no hosted timing or live cutover claimed.
+SIGNED-RUNNER results {"tablesCompared":224,"assignedWindowFresh":true,"refusedStatus":403,"acceptedStatus":200,"persistedAttempts":1,"duplicateStatus":200}
+SIGNED-RUNNER completed one owner-to-runner lifecycle: emitted Worker + migrated persistent D1, real Node process restarts, local HTTPS with verified certificates; no real account or public network deployment.

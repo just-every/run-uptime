@@ -1,0 +1,12 @@
+{
+  "summaries": [
+    "Up or down\nRule\nSuccess deadline Next scheduled time (0 2 * * *, America/New_York) plus 15 min grace\nMaximum run duration 30 min\nDOWN WHEN\n1 failed check · fails from Willow Meadow while canary.runner-target.test still loads there\nBACK UP AFTER\n1 passing check",
+    "Heartbeat receipts\nJob\nsynthetic-uptime-701\nSuccess deadline\nNext scheduled time (0 2 * * *, America/New_York) plus 15 min grace\nMaximum run duration\n30 min\nIntegration instructions\nIssue heartbeat key\n\nIssuing a key replaces the previous key and clears its receipts. Save the new key when it appears.",
+    "Connect your job\n\nSend a check-in after your job succeeds. If no success arrives by its deadline, a scheduled check marks it down. A start measures run duration. Only signed scheduled checks change health. A private runner must be running.\n\nSuccess deadline\nNext scheduled time (0 2 * * *, America/New_York) plus 15 min grace\nMaximum run duration\n30 min\nCreate or replace check-in URL…\n\nJob heartbeat instructions",
+    "Success deadline\nNext scheduled time (0 2 * * *, America/New_York) plus 15 min grace\nMaximum run duration\n30 min"
+  ],
+  "afterOldPeriod": "Healthy",
+  "periodMs": 60000,
+  "graceMs": 900000,
+  "maximumMs": 1800000
+}

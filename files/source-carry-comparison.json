@@ -1,0 +1,61 @@
+{
+  "source": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+  "files": [
+    {
+      "path": "public/heartbeat-jobs.js",
+      "sameAsSourceRound": true,
+      "sha256": "71a1258f23c9e011603446e1fffa1a4975d2a1fdfa90f83ae46ccff4509a9351"
+    },
+    {
+      "path": "public/heartbeat-key.js",
+      "sameAsSourceRound": true,
+      "sha256": "ce394b3ea33c1adf4da80d19a0793b878208ce7a50dbd85891671a208ae94d80"
+    },
+    {
+      "path": "public/heartbeat-rules.js",
+      "sameAsSourceRound": true,
+      "sha256": "730decdc0ec0e74519a6d7c65daec8eade8b28b88c57dcc1405b861b96c1c27e"
+    },
+    {
+      "path": "public/monitor-folds.js",
+      "sameAsSourceRound": true,
+      "sha256": "a08b8e225bbc12b76965bab25ea86d1ad5a0fd65804781384193cf3e6914da12"
+    },
+    {
+      "path": "public/monitor-rules-table.js",
+      "sameAsSourceRound": true,
+      "sha256": "d17ff78f1b5d0abafbdfffff6991026f27b1bde80d08d8e8f7a7896354ee4c6b"
+    },
+    {
+      "path": "src/domain/heartbeat-job.mjs",
+      "sameAsSourceRound": true,
+      "sha256": "4b62c9fec158322eb9896931a2b08c9ea60ee786123ab04dc9158b14b6c994b5"
+    },
+    {
+      "path": "src/domain/policy.mjs",
+      "sameAsSourceRound": true,
+      "sha256": "8e1848e307276361c2ed36bd35196260db12989cd0a1f983928105efb2f73ce3"
+    },
+    {
+      "path": "tests/heartbeat-console-support.mjs",
+      "sameAsSourceRound": true,
+      "sha256": "685b469973345ffdd2f4756593bf299adc22e6c75ed1536e2c9830a0ed3e61fa"
+    },
+    {
+      "path": "tests/signed-runner.mjs",
+      "sameAsSourceRound": true,
+      "sha256": "f2c000f25bef3d7011b2e5a9c48f03712961bdcba5a6b3500811b759802da8c2"
+    }
+  ],
+  "seedOnlyAddition": [
+    {
+      "path": "/heartbeat-rules.js",
+      "match": "exact",
+      "kind": "asset",
+      "class": "assets",
+      "authentication": "None; emitted static resource only.",
+      "environment": "all"
+    }
+  ],
+  "sourceLockRegenerated": true
+}

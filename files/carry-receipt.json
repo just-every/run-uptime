@@ -1,0 +1,76 @@
+{
+  "baseline": "fb3fb8b7d7b75136459a57f5c183f8fd1d4e6888",
+  "source": "8dd2213c2c1a74d0d96d04026ddb27a80541f1e3",
+  "contractFilesIdenticalToMain": {
+    "CONTRACT.md": "56c8c7311fe2b63b9b13561ec488a438bfd1e460",
+    "ACCEPTANCE.md": "d95957e4574132a179e80ed40fffa2c778990418",
+    "docs/CLAIMS.md": "1b32e9b65083d7aa85c47dc39473b32d6e43915b"
+  },
+  "contractCountsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contractCountsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "newTestRegistrations": 0,
+  "newTestsBeyondSourceRound": 0,
+  "clauseStatusChanges": [],
+  "head": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+  "branch": "cloud/main-uptime-cron-rules-1-c1",
+  "candidateCommits": 1,
+  "changedFiles": [
+    "public/heartbeat-jobs.js",
+    "public/heartbeat-key.js",
+    "public/heartbeat-rules.js",
+    "public/monitor-folds.js",
+    "public/monitor-rules-table.js",
+    "seed.json",
+    "sources.lock.json",
+    "src/domain/heartbeat-job.mjs",
+    "src/domain/policy.mjs",
+    "tests/heartbeat-console-support.mjs",
+    "tests/signed-runner.mjs"
+  ],
+  "mergeCommits": 0,
+  "carryFixes": [
+    "Regenerated sources.lock.json to resolve the sole squash conflict. No product/test conflict or additional code change."
+  ],
+  "checks": {
+    "setup": 0,
+    "build": 0,
+    "typecheck": 0,
+    "signedRunner": 0,
+    "sourceLock": 0,
+    "contractDocs": 0,
+    "diffCheck": 0
+  },
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "assertionWidth": 1440,
+  "sourceLockSha256": "6c27fefbb1ce346e09e52c80498f793c8cb17557143530bbf222cfd4dd106ed8",
+  "identity": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "trailers": [],
+  "productPush": "success first attempt",
+  "ci": {
+    "conclusion": null,
+    "head_sha": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43383674178",
+    "id": 43383674178,
+    "run_attempt": 2,
+    "status": "in_progress"
+  },
+  "githubCallsUsed": 10,
+  "ciFailedJobsRerunRequests": 1,
+  "terminalProductCustody": "PUSHED",
+  "blockers": [
+    "Exact-SHA Verify is not green after the one authorized untouched-job retry; ten-call GitHub budget exhausted."
+  ]
+}

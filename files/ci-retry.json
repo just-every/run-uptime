@@ -1,0 +1,10 @@
+{
+  "runId": 43383674178,
+  "head": "1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6",
+  "command": "gh run rerun 43383674178 --repo just-every/run-uptime --failed",
+  "exit": 0,
+  "requestedAt": 1794555398.7346032,
+  "diagnostic": "",
+  "githubCallsUsed": 9,
+  "reason": "Untouched push-6 cancelled at Run this shard after about 20 minutes; seven other shards passed, including touched signed-runner in push-3 and prior flaky operator-security in push-5. The required one failed-step-log request returned no text for the cancelled job."
+}

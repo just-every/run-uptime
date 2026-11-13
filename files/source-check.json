@@ -1,0 +1,5 @@
+{
+  "command": "node scripts/edition-authoring/cli.mjs check",
+  "exit": 0,
+  "lockSha256": "6c27fefbb1ce346e09e52c80498f793c8cb17557143530bbf222cfd4dd106ed8"
+}
