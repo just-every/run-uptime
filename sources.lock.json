@@ -9008,7 +9008,7 @@
       "executable": false
     },
     "tests/agent-manual-multiprobe-support.mjs": {
-      "sha256": "5955d9112b3a8a69524c601c790042d4bae266fb07b9ecfbaa3623ba89347514",
+      "sha256": "2e6ffe0db05866393ccdc2966a33e275e0b3d4d2d81b99df633cb31be7e277fa",
       "executable": false
     },
     "tests/agent-monitor-state-support.mjs": {
