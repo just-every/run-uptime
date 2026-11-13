@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "version": "0.5.11",
+  "previousVersion": "0.5.10",
+  "rerPin": "0.2.108",
+  "packageLockPresent": false,
+  "historicalChangelogPreserved": true,
+  "screenshot": ".github/assets/release/uptime-0.4.0-monitor-1440.png"
+}

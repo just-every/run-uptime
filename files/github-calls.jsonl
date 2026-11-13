@@ -1,0 +1,8 @@
+{"time": "2026-11-13T13:36:57Z", "args": ["api", "repos/just-every/run-uptime/releases?per_page=30", "--jq", "[.[]|{tag_name,name,draft,prerelease,published_at,html_url,target_commitish}]"]}
+{"time": "2026-11-13T13:36:58Z", "args": ["api", "repos/just-every/run-uptime/actions/runs?head_sha=8e0b5af47df91cf6d05eabb6eba587329b4056a7&per_page=100", "--jq", "[.workflow_runs[]|{id,name,head_sha,status,conclusion,html_url}]"]}
+{"time": "2026-11-13T13:36:59Z", "args": ["api", "repos/just-every/run-uptime/pulls?state=open&per_page=100", "--jq", "[.[]|{number,title,html_url,head:.head.ref,base:.base.ref}]"]}
+{"time": "2026-11-13T13:41:34Z", "args": ["api", "repos/just-every/run-uptime/actions/runs?head_sha=04016399e1e879e7be3b8e891baf02d975bb3901&per_page=100", "--jq", "[.workflow_runs[]|{id,name,head_sha,status,conclusion,html_url}]"]}
+{"time": "2026-11-13T13:46:35Z", "args": ["api", "repos/just-every/run-uptime/actions/runs/43435854415", "--jq", "{status,conclusion,head_sha,html_url}"]}
+{"time": "2026-11-13T13:51:36Z", "args": ["api", "repos/just-every/run-uptime/actions/runs/43435854415", "--jq", "{status,conclusion,head_sha,html_url}"]}
+{"time": "2026-11-13T13:56:37Z", "args": ["api", "repos/just-every/run-uptime/actions/runs/43435854415", "--jq", "{status,conclusion,head_sha,html_url}"]}
+{"time": "2026-11-13T14:01:38Z", "args": ["api", "repos/just-every/run-uptime/actions/runs/43435854415", "--jq", "{status,conclusion,head_sha,html_url}"]}

@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "writeCommand": "node scripts/edition-authoring/cli.mjs lock",
+  "checkCommand": "node scripts/edition-authoring/cli.mjs check",
+  "writeExit": 0,
+  "checkExit": 0,
+  "lockSha256": "d59b43abeb9653ea06548078e23a8d12b39562d521309a749bd439ecbb3eda0e",
+  "trackedFiles": 2387,
+  "edition": "just-every/uptime-monitor",
+  "stamp": "2026-11-13T13:40:57Z",
+  "changedEntries": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "seed.json"
+  ],
+  "otherSourceIdentitiesPreserved": true
+}

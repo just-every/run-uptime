@@ -1,0 +1,136 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 476a725..39b8217 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -2,7 +2,34 @@
+ 
+ ## Unreleased
+ 
++## 0.5.11 — 2026-11-13
++
++Patch release from `main`; previous version 0.5.10. Maintenance plans and erasure receipts are easier to read, heartbeat summaries follow the saved schedule, and local invitations explain how to sign in without email. No migration, no new required settings, and the pinned `@runeditrun/rer` stays at 0.2.108. Monitors, history, incidents, destinations and private settings are kept on upgrade.
++
++Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.11.
++
++### Maintenance, erasure and heartbeat schedules
++
+ - Planned maintenance names the selected monitors in its planner and preview. Monitor erasure completion names the erased monitor, explains what was removed, and offers a copyable receipt reference. Exact per-table counts and the original receipt ID remain under **Receipt details** and in the downloadable receipt; stored receipts and maintenance behavior are unchanged.
++- **Heartbeat summaries follow the saved schedule.** A cron heartbeat shows its cron expression, time zone and grace period in the check-in instructions, receipts, job schedule and rule table, together with the maximum run duration or **No limit set**. Period heartbeats show the period plus grace. Scheduled health evaluation uses the saved job's cron deadline and duration limit rather than also applying an unrelated period age limit; older receipts without a job snapshot cannot establish a cron heartbeat as healthy. A private runner is still required, and only signed scheduled checks change health.
++
++### Local invitations and sign-in
++
++- **Local invitations explain that no email was sent.** Development and demo installations record the invitation and say how to choose the invited account. Local guidance directs you to the private `RER_OPEN` link printed by `rer dev`, then `/signin`; keep the link private because it gives access to the local installation. The signed-out local Lobby points to the same terminal handoff. Hosted invitation delivery is unchanged.
++
++### Upgrading from 0.5.10
++
++No migration is added and nothing in your settings changes. Update an existing checkout with `pnpm install --frozen-lockfile`, then deploy as usual; a backup is still good practice before any upgrade (see the 0.5.4 notes below for the steps).
++
++### Known issues
++
++- Heartbeat output stored by 0.5.6 or earlier is not rewritten. If earlier job output may have contained a key, rotate it; pattern-based redaction can still miss a secret with no recognizable shape or label that you have not listed under **Output text to mask**.
++- A monitor CSV exported from UptimeRobot still cannot be imported: only the v3 JSON, an event-log CSV and Uptime's own `url` CSV are read.
++- Restoring an installation archive does not bring back the list of erased people. If, after a restore, your Business pairs again and its team list still names a person you had erased, that person could be invited again.
++- A company that has signed an agent policy but has never sent any company settings is treated as running: its decision feed answers with an empty page instead of a refusal. No company token is accepted and no decision is shared in that state.
++- A response body larger than 64 KiB fails the check as a target failure (`body-limit`), even when the status is correct. Point a monitor at a smaller page, such as a health endpoint, until a later release reads large pages.
++- The limits listed under 0.4.0 to 0.5.8 still apply: hosted heartbeat evaluation needs a private runner, hosted Worker checks cannot pin connections, a member who is not the owner and has enrolled a second factor still verifies each new sign-in with the command line, and many features are partial; see the Status table in [CONTRACT.md](CONTRACT.md).
++- Completely bounded-memory archive transfer and restore, operation at 500 monitors with 90 days of history, time-range selection and console controls for chunk transfers remain unestablished or unavailable as described in 0.5.10.
+ 
+ ## 0.5.10 — 2026-11-13
+ 
+diff --git a/README.md b/README.md
+index a308fa0..83c1c65 100644
+--- a/README.md
++++ b/README.md
+@@ -33,7 +33,7 @@
+ 
+ ## Run it on your computer
+ 
+-Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.5.9. This release record is v0.5.10. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
++Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.5.10. This release record is v0.5.11. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
+ 
+ ```sh
+ curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
+diff --git a/RELEASE.json b/RELEASE.json
+index 53bb174..7da1f5a 100644
+--- a/RELEASE.json
++++ b/RELEASE.json
+@@ -1,6 +1,6 @@
+ {
+-  "version": "0.5.10",
+-  "publicReleaseNotes": "Uptime 0.5.10 adds resumable, digest-checked archive transfers and a shared admission limit of 500 monitors. Repeat an interrupted rer export or rer import with the same absolute archive path after verifying a second factor and supplying a current session; changed input files and different installations or owners are refused. Large records and erasure journals travel in chunks. Restored monitors stay paused and delivery quarantined. Chunk transfers accept up to 64 MiB of encoded payload and one million rows per table; the ordinary console JSON archive route keeps its 2 MiB and 10,000-row bounds. These are refusal bounds, not measured capacity: bounded-memory restore and 500 monitors with 90 days of history are not established, and time-range selection and console chunk-transfer controls remain unavailable. Agents can edit internal incident notes with current-version and native permission checks, retaining history without mentions. API manual-check approval now accounts for all saved cleanup steps. Redirect refusals no longer reuse the previous hop's HTTP status in failure snapshots. The owner API can review and explicitly confirm disclosing one named Auth0 tenant domain to its fixed official RSS endpoint for a diagnostic source check; a changed tenant requires a new review. Auth0 status remains Unknown and cannot be followed. No migration or new required settings; monitors, history, incidents, destinations and private settings are kept on upgrade. The pinned @runeditrun/rer stays at 0.2.108; update an existing checkout with pnpm install --frozen-lockfile. Known issues: heartbeat output saved by 0.5.6 or earlier is not rewritten, so rotate a key earlier output may have contained; pattern-based redaction can still miss an unlabelled secret of no recognizable shape that is not listed under Output text to mask. A monitor CSV exported from UptimeRobot still cannot be imported. Restoring an archive does not restore the list of erased people, so pairing again with a Business that still lists them could invite them again. A company with a signed agent policy but no company settings receives an empty decision feed rather than a refusal. Response bodies over 64 KiB still fail the check; monitor a smaller health endpoint. Other earlier release limits remain. The product screenshot was taken on 0.4.0, before the console changes of 0.5.0 through 0.5.8. Product screenshot: .github/assets/release/uptime-0.4.0-monitor-1440.png",
++  "version": "0.5.11",
++  "publicReleaseNotes": "Uptime 0.5.11 makes maintenance plans and monitor erasure receipts easier to read: selected monitors are named, erasure explains what was removed, and the receipt reference can be copied. Exact per-table counts and the original receipt ID remain under Receipt details and in the downloadable receipt. Heartbeat summaries show the saved cron expression, time zone, grace and maximum run duration, or the period plus grace. Scheduled health evaluation follows the saved job's deadline and duration limit instead of also applying an unrelated period age limit; older receipts without a job snapshot cannot establish cron health. A private runner is still required, and only signed scheduled checks change health. Development and demo invitations now explain that no email was sent and how to choose the invited account. Local sign-in guidance points to the private RER_OPEN link printed by rer dev; keep it private because it gives access to the local installation. Hosted invitation delivery is unchanged. No migration or new required settings; monitors, history, incidents, destinations and private settings are kept on upgrade. The pinned @runeditrun/rer stays at 0.2.108; update an existing checkout with pnpm install --frozen-lockfile. Archive transfer bounds and unestablished capacity remain as described in 0.5.10; bounded-memory restore, operation at 500 monitors with 90 days of history, time-range selection and console chunk-transfer controls are not established or remain unavailable. Known issues: heartbeat output saved by 0.5.6 or earlier is not rewritten, so rotate a key earlier output may have contained; pattern-based redaction can still miss an unlabelled secret of no recognizable shape that is not listed under Output text to mask. A monitor CSV exported from UptimeRobot still cannot be imported. Restoring an archive does not restore the list of erased people, so pairing again with a Business that still lists them could invite them again. A company with a signed agent policy but no company settings receives an empty decision feed rather than a refusal. Response bodies over 64 KiB still fail the check; monitor a smaller health endpoint. Other earlier release limits remain. The product screenshot was taken on 0.4.0, before the console changes of 0.5.0 through 0.5.11. Product screenshot: .github/assets/release/uptime-0.4.0-monitor-1440.png",
+   "sourceRepository": "https://github.com/just-every/run-uptime",
+-  "previousVersion": "0.5.9"
++  "previousVersion": "0.5.10"
+ }
+diff --git a/package.json b/package.json
+index 2ce28d1..326209c 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@uptime/uptime-console",
+-  "version": "0.5.10",
++  "version": "0.5.11",
+   "private": true,
+   "type": "module",
+   "engines": {
+diff --git a/seed.json b/seed.json
+index 9eb5d23..263695d 100644
+--- a/seed.json
++++ b/seed.json
+@@ -1,7 +1,7 @@
+ {
+   "id": "uptime",
+   "name": "Uptime",
+-  "version": "0.5.10",
++  "version": "0.5.11",
+   "maturity": "local-installer-and-owner-deploy-implemented-hosted-unverified",
+   "category": "monitoring",
+   "spine": {
+diff --git a/sources.lock.json b/sources.lock.json
+index c7c2994..c6b3d9b 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -520,7 +520,7 @@
+       "executable": false
+     },
+     "CHANGELOG.md": {
+-      "sha256": "9b0776ff5e0924187520952b61130023470239185007dba5bdccd5128621b039",
++      "sha256": "54801633a1ab0cb796dd188c00a61e5d1176a49bd04a36b4d4de98b0ed0cdc35",
+       "executable": false
+     },
+     "CLAUDE.md": {
+@@ -2568,7 +2568,7 @@
+       "executable": false
+     },
+     "package.json": {
+-      "sha256": "657894a379a0ad4e57a0b745c6c33e69add4d1db9cd660a99d44b644c3050017",
++      "sha256": "7190e19734d02512339aa4cc4051f6dac441e2b79c6c2e37a2ed74afb8e94055",
+       "executable": false
+     },
+     "patches/README.md": {
+@@ -3088,11 +3088,11 @@
+       "executable": false
+     },
+     "README.md": {
+-      "sha256": "fea4ebfad576667a341f6642ff6d17c7bba9b0b528a0fac4b218e10184068899",
++      "sha256": "52c9d14b06fdfff8337665a2143d5e557fab5a0d77dab096fbd6b2772bd867a3",
+       "executable": false
+     },
+     "RELEASE.json": {
+-      "sha256": "66853979fa089698dac3e40856f9206b95f9769b2542463c90b84e5eaeb3643b",
++      "sha256": "fc66caec0a19a7ebae62b9c547407c6d71c1f5ce42754d64bfd7c688234e7c9e",
+       "executable": false
+     },
+     "RELEASE.md": {
+@@ -4528,7 +4528,7 @@
+       "executable": false
+     },
+     "seed.json": {
+-      "sha256": "e40d042d0806e153d62aad24afc2ef35dfcb40b8c2844bd0aa7fcc53bb3ce354",
++      "sha256": "6683864c580c2486f81098c8f310393d3acc6ce91be0bb33e79ae70a7c4fbab1",
+       "executable": false
+     },
+     "src/agent-door/authority.server.ts": {

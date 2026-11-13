@@ -1,0 +1,46 @@
+{
+  "head": "04016399e1e879e7be3b8e891baf02d975bb3901",
+  "stamp": "2026-11-13T13:43:34Z",
+  "checks": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit": 0,
+      "log": "dependency-install.log"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "pnpm exec rer check --profile first-party",
+      "exit": 0,
+      "log": "metadata-check.log",
+      "stdout": "empty"
+    },
+    {
+      "command": "node /tmp/release-metadata-check.mjs",
+      "exit": 0,
+      "receipt": "release-metadata-check.json"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "receipt": "source-lock-receipt.json"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "receipt": "source-lock-receipt.json"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    },
+    {
+      "command": "git rebase origin/main",
+      "exit": 0,
+      "result": "already up to date"
+    }
+  ]
+}

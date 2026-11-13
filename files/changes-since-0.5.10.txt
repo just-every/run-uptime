@@ -1,0 +1,22 @@
+8e0b5af47df91cf6d05eabb6eba587329b4056a7
+Await credential API and row readiness after console navigation
+
+e46b7145c4d4ff255e30f5669b5c4394917807c4
+Wait for the real asset window before credential reloads
+
+1bf4132ecfaba4a94a34202bbd33a1de2b5e4ba6
+Describe saved cron heartbeat deadlines in every rule summary
+
+fb3fb8b7d7b75136459a57f5c183f8fd1d4e6888
+Merge current main into readable maintenance and erasure receipts
+Preserve the Unreleased readable-receipt note and main's 0.5.10 release notes. Regenerate the edition source lock; contract rows, generated claims and Verify remain unchanged.
+
+303a0ea7d938402238946564a43b98bb5f917c12
+Explain local invitation non-delivery and sign-in handoff
+
+18bdd8c3b9ccc1e0e6a4c057208d06310c7ac0c8
+Preserve exact receipt assertions through the details disclosure
+
+777770f7187cffd0a453f5c1068b23c363840732
+Name monitors in maintenance plans and erasure receipts
+
