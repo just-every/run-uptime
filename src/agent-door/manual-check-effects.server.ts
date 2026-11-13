@@ -2,10 +2,10 @@ import type {Bindings} from '../domain/control.server.ts'
 // @ts-ignore Native debt policy is shared JavaScript, unchanged by the agent door.
 import {CLEANUP_DEBT_LIMIT} from '../domain/cleanup-debt.mjs'
 
-/** Qualified native boundary: one API fixture sequence, one probe, no retry. */
+/** Saved API cleanup steps can each leave one debt at every selected probe. */
 export async function manualCheckEffects(env:Bindings,monitor:{id:string;definition:any}){
- const definition=monitor.definition,steps=definition.api?.steps??[],possible=steps.filter((step:any)=>step.phase==='cleanup').length
- if(definition.type!=='api'||definition.probes.length!==1||definition.retries!==0||
+ const definition=monitor.definition,steps=definition.api?.steps??[],possible=steps.filter((step:any)=>step.phase==='cleanup').length*definition.probes.length
+ if(definition.type!=='api'||definition.retries!==0||
   !steps.some((step:any)=>step.phase==='setup')||possible===0)return null
  const debts=(await env.DB.prepare("SELECT id FROM cleanup_debt WHERE monitor_id=? AND state='open' ORDER BY id").bind(monitor.id).all<{id:string}>()).results
  const open=debts.length
