@@ -50,3 +50,7 @@ Pushed once through the cloud guard on its first attempt. The remote cloud/main-
 ## CI watcher
 
 Verify run 43559709154 belongs to exact candidate d47a432be0b9d6b1115de8579e23115b7a123646: https://github.com/just-every/run-uptime/actions/runs/43559709154. One REST watcher reads at intervals of at least 300 seconds, including discovery, and records every call in CI.json. Final conclusion is recorded there and in the final message.
+
+## Initial CI outcome and recovery
+
+Verify 43559709154 attempt 1 completed with GitHub conclusion cancelled. Build and credential-free packaging passed; seven of eight shards passed. Job 132340647810, shards (push-6), was cancelled at Run this shard; aggregate job 132345842300 failed at Require the selected coverage and its proof because coverage was incomplete. Push-6 selects contact-schedules, incident-work, private-network, agent-door, alert-routes, archive-roundtrip and webhook-custom, none of this round's touched journeys. CI-JOBS.json contains the actual job/step receipt. There was no reported product assertion failure to diagnose in that cancelled job. GitHub accepted the one failed-job-only retry under the brief's recovery rule (gh run rerun 43559709154 --repo just-every/run-uptime --failed, exit 0). The cancelled shard ran for 1,217 seconds, consistent with its declared 20-minute timeout. The changed installation and reporting journeys belong to push-3 and push-7 respectively, both of which passed on this exact SHA. Final retry status is in CI.json; no READY claim is made without completed/success.

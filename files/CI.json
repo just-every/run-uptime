@@ -19,6 +19,44 @@
       "at": "2026-11-14T05:14:16.535249+00:00",
       "path": "repos/just-every/run-uptime/actions/runs/43559709154",
       "exit": 0
+    },
+    {
+      "number": 4,
+      "at": "2026-11-14T05:19:17.051307+00:00",
+      "path": "repos/just-every/run-uptime/actions/runs/43559709154",
+      "exit": 0
+    },
+    {
+      "number": 5,
+      "at": "2026-11-14T05:24:17.539062+00:00",
+      "path": "repos/just-every/run-uptime/actions/runs/43559709154",
+      "exit": 0
+    },
+    {
+      "number": 6,
+      "at": "2026-11-14T05:29:18.021832+00:00",
+      "path": "repos/just-every/run-uptime/actions/runs/43559709154",
+      "exit": 0
+    },
+    {
+      "number": 7,
+      "at": "2026-11-14T05:34:19.887525+00:00",
+      "path": "repos/just-every/run-uptime/actions/runs/43559709154/jobs?per_page=100",
+      "exit": 0
+    },
+    {
+      "number": 8,
+      "at": "2026-11-14T05:39:22.582325+00:00",
+      "command": [
+        "gh",
+        "run",
+        "rerun",
+        "43559709154",
+        "--repo",
+        "just-every/run-uptime",
+        "--failed"
+      ],
+      "exit": 0
     }
   ],
   "runs": [
@@ -32,8 +70,13 @@
       "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559709154"
     }
   ],
-  "status": "in_progress",
+  "status": "rerun_requested",
   "run_id": 43559709154,
-  "conclusion": null,
-  "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559709154"
+  "conclusion": "cancelled",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559709154",
+  "retry": {
+    "command": "gh run rerun 43559709154 --repo just-every/run-uptime --failed",
+    "exit": 0,
+    "cause": "Only push-6 Run this shard was cancelled; build, prepare and seven other shards succeeded. Push-6 contains no touched journey."
+  }
 }
