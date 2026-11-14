@@ -1,0 +1,63 @@
+{
+  "journey": "Native invited read-only and owner; real signed HTTP failure and incident; stale-screen write refusal",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "readOnlyWriteControls": 0,
+  "ownerControlsRetained": true,
+  "refusal": "You have read-only access.",
+  "HTTP": 403,
+  "manualChecksAfterRefusal": 0,
+  "screens": [
+    {
+      "role": "readonly",
+      "screen": "list",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "role": "readonly",
+      "screen": "monitor",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "role": "readonly",
+      "screen": "list",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "role": "readonly",
+      "screen": "monitor",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "role": "owner",
+      "screen": "list",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "role": "owner",
+      "screen": "monitor",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "role": "owner",
+      "screen": "list",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "role": "owner",
+      "screen": "monitor",
+      "width": 390,
+      "overflow": false
+    }
+  ]
+}

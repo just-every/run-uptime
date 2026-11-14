@@ -1,0 +1,78 @@
+{
+  "tag": "sd-uptime-access001-followup-1",
+  "repository": "just-every/run-uptime",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit": 0
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/access-matrix.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run spec:generate",
+      "exit": 0,
+      "trackedChanges": 0
+    },
+    {
+      "command": "pnpm run spec:check",
+      "exit": 0
+    }
+  ],
+  "browserAssertionWidth": 1440,
+  "browserProofWidths": [
+    1440,
+    390
+  ],
+  "screenInspection": {
+    "roles": [
+      "read-only",
+      "owner"
+    ],
+    "screens": [
+      "monitor list",
+      "monitor page with an open incident"
+    ],
+    "screenshots": 8,
+    "overflow": false,
+    "newIconOnlyControls": 0,
+    "newBorders": 0,
+    "readableText": true
+  },
+  "contractBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contractAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clauseChanges": [],
+  "ACCESS-001": "partial",
+  "points": "none"
+}

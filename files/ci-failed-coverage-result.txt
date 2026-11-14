@@ -1,0 +1,3 @@
+Command: gh run view 43638851184 --repo just-every/run-uptime --job 132587385046 --log-failed
+Selected actual failure messages (environment blocks excluded):
+##[error]Process completed with exit code 1.

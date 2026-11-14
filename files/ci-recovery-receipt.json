@@ -1,0 +1,32 @@
+{
+  "run_id": 43638851184,
+  "head_sha": "e14489c79dbd6e087dd463a09e731aab67cf9145",
+  "firstAttempt": {
+    "status": "completed",
+    "conclusion": "cancelled",
+    "cancelledShard": "push-6",
+    "cancelledJob": 132581825052,
+    "failedCoverageJob": 132587385046,
+    "successfulShards": 7,
+    "totalShards": 8,
+    "build": "success"
+  },
+  "failureArchiveCommand": "gh run view 43638851184 --repo just-every/run-uptime --job 132587385046 --log-failed",
+  "failureArchiveCommandExit": 0,
+  "failureMessage": "Process completed with exit code 1.",
+  "rerunCommand": "gh api --method POST repos/just-every/run-uptime/actions/runs/43638851184/rerun-failed-jobs",
+  "rerunCommandExit": 0,
+  "rerunResponse": {},
+  "rerunRequested": true,
+  "GitHubCallsUsed": 10,
+  "GitHubCallBudget": 10,
+  "finalStatusRead": {
+    "conclusion": null,
+    "head_sha": "e14489c79dbd6e087dd463a09e731aab67cf9145",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43638851184",
+    "run_attempt": 2,
+    "status": "in_progress",
+    "run_id": 43638851184
+  },
+  "custody": "PUSHED"
+}

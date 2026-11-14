@@ -1,0 +1,10 @@
+{"call": 1, "at": 1794688917.315497, "args": ["api", "repos/just-every/run-uptime/actions/runs?head_sha=e14489c79dbd6e087dd463a09e731aab67cf9145&per_page=100", "--jq", ".workflow_runs | map({id,name,status,conclusion,head_sha,html_url,event})"]}
+{"call": 2, "at": 1794689217.8525205, "args": ["api", "repos/just-every/run-uptime/actions/runs/43638851184", "--jq", "{status,conclusion,head_sha,html_url}"]}
+{"call": 3, "at": 1794689518.3864985, "args": ["api", "repos/just-every/run-uptime/actions/runs/43638851184", "--jq", "{status,conclusion,head_sha,html_url}"]}
+{"call": 4, "at": 1794689818.913139, "args": ["api", "repos/just-every/run-uptime/actions/runs/43638851184", "--jq", "{status,conclusion,head_sha,html_url}"]}
+{"call": 5, "at": 1794690119.4398355, "args": ["api", "repos/just-every/run-uptime/actions/runs/43638851184", "--jq", "{status,conclusion,head_sha,html_url}"]}
+{"call": 6, "at": 1794690419.9730637, "args": ["api", "repos/just-every/run-uptime/actions/runs/43638851184", "--jq", "{status,conclusion,head_sha,html_url}"]}
+{"call": 7, "at": 1794690720.5006325, "args": ["api", "repos/just-every/run-uptime/actions/runs/43638851184/jobs?per_page=100", "--jq", ".jobs | map({id,name,status,conclusion,steps: [.steps[] | {name,status,conclusion}]})"]}
+{"call": 8, "at": 1794691021.0214286, "args": ["run", "view", "43638851184", "--repo", "just-every/run-uptime", "--job", "132587385046", "--log-failed"]}
+{"call": 9, "at": 1794691321.5500667, "args": ["api", "--method", "POST", "repos/just-every/run-uptime/actions/runs/43638851184/rerun-failed-jobs"]}
+{"call": 10, "at": 1794691622.0892189, "args": ["api", "repos/just-every/run-uptime/actions/runs/43638851184", "--jq", "{status,conclusion,head_sha,html_url,run_attempt}"]}
