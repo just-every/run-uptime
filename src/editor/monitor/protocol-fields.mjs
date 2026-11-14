@@ -1,3 +1,5 @@
+import {fillMail,syncMail} from './mail-fields.mjs';
+import {fillApi,syncApi} from './api-fields.mjs';
 import {optionalSecondsToMilliseconds} from './units.mjs';
 import {showTlsFields} from './tls-fields.mjs';
 // The TCP, DNS, TLS and domain fields of the monitor form. The check type selects one group of fields; the others are
@@ -30,13 +32,14 @@ export function showType(root,type){
  const privateGroup=root.querySelector('[data-private-network]'),privateField=control(root,'privateGrantRef');
  if(privateGroup){const shown=['http','tcp'].includes(type)&&control(root,'networkScope').value==='private';privateGroup.hidden=!shown;privateField.disabled=!shown;privateField.required=shown}
  showTlsFields(root);
+ if(control(root,'mailProtocol')){syncMail(root);syncApi(root)}
  if(heartbeat)for(const field of root.querySelectorAll('[data-heartbeat-hide] input,[data-heartbeat-hide] select,[data-heartbeat-hide] textarea'))field.disabled=true;
 }
 export function fillProtocol(root,definition){
  const set=(name,value)=>{const field=control(root,name);if(field)field.value=value??''};
  set('heartbeatPeriod',(definition.heartbeat?.maxAgeMs??86400000)/1000);set('heartbeatGrace',(definition.heartbeat?.graceMs??900000)/1000);
- set('mailSettings',JSON.stringify(definition.mail??{protocol:'smtp',host:'mail.example.com',security:'starttls'},null,2));
- set('apiUrl',definition.type==='api'?definition.url:'');set('apiCredentialRef',definition.type==='api'?definition.request?.credentialRef:'');set('apiSettings',JSON.stringify(definition.api??{variables:{},steps:[{name:'Health requirement',phase:'request',url:'https://sandbox.example.com/health',method:'GET',assertions:{status:200}}]},null,2));
+ fillMail(root,definition.mail);
+ set('apiUrl',definition.type==='api'?definition.url:'');set('apiCredentialRef',definition.type==='api'?definition.request?.credentialRef:'');fillApi(root,definition.api);
  set('networkScope',definition.network==='private'?'private':'public');set('privateGrantRef',definition.privateGrantRef);
  const ping=definition.ping??{};set('pingHost',ping.host);set('pingFamily',ping.family??4);set('pingPackets',ping.packets??3);set('pingLoss',ping.maxLossPercent??0);set('pingRtt',ping.maxRttMs??1000);
  const udp=definition.udp??{};set('udpHost',udp.host);set('udpPort',udp.port);set('udpPayload',udp.payloadHex);set('udpExpected',udp.expectedHex);set('udpMatch',udp.match??'exact');
