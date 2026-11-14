@@ -1,0 +1,30 @@
+HTTP 403 /api/monitors/8ac8166b-5eae-4f6a-8881-e8a7473c1ca2/run
+HTTP 429 /monitor-timeline.js
+HTTP 429 /notification-dialogs.js
+HTTP 429 /pagespeed-panel.js
+HTTP 429 /pagespeed-rum.js
+HTTP 429 /planned-maintenance.js
+HTTP 429 /protocol-panel.js
+HTTP 429 /report-jobs.js
+HTTP 429 /report-render.js
+HTTP 429 /settings-save.js
+HTTP 429 /settings-view.js
+HTTP 429 /slow-policy.js
+HTTP 429 /transaction-panel.js
+HTTP 429 /favicon.svg
+HTTP 429 /assets/step-up.js
+{
+  screen: 'read-only-console',
+  role: 'read-only',
+  scopes: [],
+  revision: 1,
+  monitorVisible: true,
+  reloadVisible: true,
+  checkHistoryReadable: true,
+  checkRows: 7,
+  observations: 13,
+  reportReadable: true,
+  consoleWrite: 403,
+  apiWrites: 403,
+  revisionsUnchanged: true
+}

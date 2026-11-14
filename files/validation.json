@@ -1,0 +1,125 @@
+{
+  "task": "main-uptime-readonly-console-1",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-readonly-console-1",
+  "reproduction": {
+    "door": "People invitation -> private development gate -> /signin picker -> monitor list -> reload",
+    "beforeSelf": 200,
+    "beforeOverview": 403,
+    "role": "read-only",
+    "scopes": [],
+    "revision": 1,
+    "reproducedOnReload": true
+  },
+  "afterDevelopment": {
+    "screen": "read-only-console",
+    "role": "read-only",
+    "scopes": [],
+    "revision": 1,
+    "monitorVisible": true,
+    "reloadVisible": true,
+    "checkHistoryReadable": true,
+    "checkRows": 7,
+    "observations": 13,
+    "reportReadable": true,
+    "consoleWrite": 403,
+    "apiWrites": 403,
+    "revisionsUnchanged": true
+  },
+  "afterProduction": {
+    "screen": "read-only-console",
+    "role": "read-only",
+    "scopes": [],
+    "revision": 1,
+    "monitorVisible": true,
+    "reloadVisible": true,
+    "checkHistoryReadable": true,
+    "checkRows": 1,
+    "observations": 0,
+    "reportReadable": true,
+    "consoleWrite": 403,
+    "apiWrites": 403,
+    "revisionsUnchanged": true
+  },
+  "localChecks": {
+    "accessMatrix": {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/access-matrix.mjs",
+      "exit": 0
+    },
+    "typecheck": {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    "build": {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    "contractViews": {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    "sourceLock": {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    "commandJourney": {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/command-journey.mjs",
+      "exit": 0
+    },
+    "deploymentSpec": {
+      "commands": [
+        "pnpm run spec:generate",
+        "pnpm run spec:check"
+      ],
+      "exit": 0,
+      "generatedDiff": false
+    }
+  },
+  "counts": {
+    "topLevelPushAssertionScripts": {
+      "before": 47,
+      "after": 47
+    },
+    "contract": {
+      "before": {
+        "done": 37,
+        "partial": 58,
+        "missing": 20,
+        "total": 115
+      },
+      "after": {
+        "done": 37,
+        "partial": 58,
+        "missing": 20,
+        "total": 115
+      }
+    },
+    "clausesChanged": 0
+  },
+  "proof": {
+    "assertionWidth": 1440,
+    "captureWidths": [
+      1440,
+      390
+    ],
+    "productionScreens": [
+      "monitor list",
+      "check details",
+      "period report"
+    ],
+    "developmentScreens": [
+      "monitor list",
+      "check details",
+      "period report"
+    ]
+  },
+  "baseChanged": false,
+  "rerChanged": false,
+  "generatedViewsCommitted": false,
+  "publicationScan": {
+    "status": "fleet-owned at landing",
+    "reason": "The cloud adaptation explicitly reserves the publication scan to the fleet Mac."
+  },
+  "productHead": "594574662a8a692ff6d3311718c968f43363892c",
+  "baseHead": "c14aafe38f2a5c754a550251593170404f1363a5"
+}

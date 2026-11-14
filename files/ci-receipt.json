@@ -1,0 +1,117 @@
+{
+  "head": "594574662a8a692ff6d3311718c968f43363892c",
+  "run_id": 43560095485,
+  "status": "in_progress",
+  "conclusion": null,
+  "calls": [
+    {
+      "number": 1,
+      "time": "2026-11-14T05:09:21.573410+00:00",
+      "monotonic": 1501.174514356,
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs?head_sha=594574662a8a692ff6d3311718c968f43363892c&per_page=100",
+        "--jq",
+        ".workflow_runs | map({id,name,status,conclusion,head_sha,html_url,created_at})"
+      ],
+      "exit": 0,
+      "response": [
+        {
+          "conclusion": null,
+          "created_at": "2026-11-14T05:08:52Z",
+          "head_sha": "594574662a8a692ff6d3311718c968f43363892c",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/43560095485",
+          "id": 43560095485,
+          "name": "Verify",
+          "status": "in_progress"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "time": "2026-11-14T05:14:21.531718+00:00",
+      "monotonic": 1801.175091489,
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43560095485",
+        "--jq",
+        "{id,name,status,conclusion,head_sha,html_url}"
+      ],
+      "exit": 0,
+      "response": {
+        "conclusion": null,
+        "head_sha": "594574662a8a692ff6d3311718c968f43363892c",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43560095485",
+        "id": 43560095485,
+        "name": "Verify",
+        "status": "in_progress"
+      }
+    },
+    {
+      "number": 3,
+      "time": "2026-11-14T05:19:21.514881+00:00",
+      "monotonic": 2101.175359902,
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43560095485",
+        "--jq",
+        "{id,name,status,conclusion,head_sha,html_url}"
+      ],
+      "exit": 0,
+      "response": {
+        "conclusion": null,
+        "head_sha": "594574662a8a692ff6d3311718c968f43363892c",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43560095485",
+        "id": 43560095485,
+        "name": "Verify",
+        "status": "in_progress"
+      }
+    },
+    {
+      "number": 4,
+      "time": "2026-11-14T05:24:21.518689+00:00",
+      "monotonic": 2401.175896136,
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43560095485",
+        "--jq",
+        "{id,name,status,conclusion,head_sha,html_url}"
+      ],
+      "exit": 0,
+      "response": {
+        "conclusion": null,
+        "head_sha": "594574662a8a692ff6d3311718c968f43363892c",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43560095485",
+        "id": 43560095485,
+        "name": "Verify",
+        "status": "in_progress"
+      }
+    },
+    {
+      "number": 5,
+      "time": "2026-11-14T05:29:21.508869+00:00",
+      "monotonic": 2701.178247979,
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43560095485",
+        "--jq",
+        "{id,name,status,conclusion,head_sha,html_url}"
+      ],
+      "exit": 0,
+      "response": {
+        "conclusion": null,
+        "head_sha": "594574662a8a692ff6d3311718c968f43363892c",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43560095485",
+        "id": 43560095485,
+        "name": "Verify",
+        "status": "in_progress"
+      }
+    }
+  ],
+  "githubCalls": 5
+}

@@ -1,0 +1,22 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-readonly-console-1",
+  "head": "594574662a8a692ff6d3311718c968f43363892c",
+  "originMain": "c14aafe38f2a5c754a550251593170404f1363a5",
+  "push": {
+    "command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/main-uptime-readonly-console-1",
+    "exit": 0,
+    "attempts": 1,
+    "result": "PUSH_OK branch=cloud/main-uptime-readonly-console-1"
+  },
+  "remoteAdvertisedHead": "594574662a8a692ff6d3311718c968f43363892c",
+  "identityCheck": {
+    "candidateCommits": 1,
+    "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "trailers": [],
+    "allSideParentsChecked": true
+  },
+  "cleanWorktree": true,
+  "pullRequest": null
+}

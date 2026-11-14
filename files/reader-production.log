@@ -1,0 +1,19 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+HTTP 403 /api/monitors/b0d4b843-6822-418e-b27c-495f7469521a/run
+{
+  screen: 'read-only-console',
+  role: 'read-only',
+  scopes: [],
+  revision: 1,
+  monitorVisible: true,
+  reloadVisible: true,
+  checkHistoryReadable: true,
+  checkRows: 1,
+  observations: 0,
+  reportReadable: true,
+  consoleWrite: 403,
+  apiWrites: 403,
+  revisionsUnchanged: true
+}

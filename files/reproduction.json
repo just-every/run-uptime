@@ -1,0 +1,17 @@
+{
+  "stage": "before",
+  "self": {
+    "status": 200,
+    "role": "read-only",
+    "scopes": [],
+    "revision": 1
+  },
+  "overview": {
+    "status": 403,
+    "body": {
+      "error": "Product permission required"
+    }
+  },
+  "consoleFailed": true,
+  "reloadFailed": true
+}
