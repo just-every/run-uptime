@@ -1,0 +1,89 @@
+{
+  "tag": "gr-mt-uptime-ci-4",
+  "repository": "just-every/run-uptime",
+  "recorded_at": "2026-11-14T08:58:16.539254+00:00",
+  "product": {
+    "branch": "cloud/gr-mt-uptime-ci-4",
+    "head": "d47a432be0b9d6b1115de8579e23115b7a123646",
+    "origin_main": "d47a432be0b9d6b1115de8579e23115b7a123646",
+    "working_tree_clean": true,
+    "new_commits": 0,
+    "changed_files": 0,
+    "product_pushed": false,
+    "pr": null
+  },
+  "historical_failure": {
+    "run_id": 40065737952,
+    "head": "2f664621e9b71f5531b8159e509b319ef4958279",
+    "status": "completed",
+    "conclusion": "failure",
+    "failed_job_id": 120788528953,
+    "failed_job_name": "shards (resilience, false)",
+    "failed_step": "Run this shard",
+    "step_number": 12,
+    "shards_passed": 27,
+    "shards_failed": 1
+  },
+  "failed_log_attempt": {
+    "command": "gh run view 40065737952 --repo just-every/run-uptime --job 120788528953 --log-failed",
+    "invocations": 1,
+    "exit_code": 0,
+    "stdout_bytes": 0,
+    "stderr_bytes": 0,
+    "limitation": "GitHub CLI returned no failed-job log text. No failed assertion or historical root cause is claimed."
+  },
+  "current_ci": {
+    "full_verify": 43559709154,
+    "full_verify_conclusion": "success",
+    "full_verify_shards_passed": 8,
+    "full_verify_shards_failed": 0,
+    "main_verify": 43565906841,
+    "main_verify_conclusion": "success",
+    "run_site": 43565906738,
+    "run_site_conclusion": "success",
+    "exact_sha": "d47a432be0b9d6b1115de8579e23115b7a123646",
+    "resilience_plan": [
+      {
+        "name": "push-4",
+        "commands": [
+          "node tests/resilience/watches.mjs"
+        ]
+      }
+    ]
+  },
+  "local_checks": [
+    {
+      "command": "git diff --exit-code origin/main",
+      "result": "pass; no differences"
+    },
+    {
+      "command": "git status --porcelain=v1",
+      "result": "empty; clean tree"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "result": "pass; ok=true"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "result": "pass; 0 errors, 0 warnings; contract documents current"
+    },
+    {
+      "command": "git log origin/main..HEAD --format=\"%an <%ae>%n%cn <%ce>%n%(trailers:only,unfold)\"",
+      "result": "empty; no candidate product commits"
+    }
+  ],
+  "local_tests": "No local application suite or typecheck run: no product files changed; current exact-SHA full Verify supplies the existing full wall.",
+  "clause_changes": [],
+  "test_registrations_added": 0,
+  "test_registrations_removed": 0,
+  "github_api_budget": {
+    "allowed": 10,
+    "used_for_investigation": 7,
+    "failed_log_archive_invocations": 1
+  },
+  "publication": {
+    "product_scan": "not run; no product commit or product push",
+    "evidence": "explicit report/receipt selection; no product tree included"
+  }
+}
