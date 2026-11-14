@@ -2568,7 +2568,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "aa9686b12548dbe9fcd6447cf1c0e8734c4223880176dee52b7662c10560c536",
+      "sha256": "6ca55545592f4623e39d9108dc4625721cde2c089695442ececbe59f33429818",
       "executable": false
     },
     "patches/README.md": {
@@ -2576,7 +2576,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "54fea65550f32516fd70c5f1bdae5422468d940e8449318ccb996182c7d5d1a0",
+      "sha256": "235e4cbe43c4200dd53d44c44e0332e40eba1fda1b300c825abd1f11f6822184",
       "executable": false
     },
     "public/action-feedback.mjs": {
