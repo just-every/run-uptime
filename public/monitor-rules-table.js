@@ -19,8 +19,8 @@ const PROBES=['local-a','local-b','local-c'];
 const locationLimit=type=>type==='flow'?2:PROBES.length;
 // What the page may change in place: HTTP and keyword rules, a protocol check's response time and the two numbers. Browser
 // flows and heartbeats stay read-only here, and a followed service's rule is its provider's claim.
-function editing(d){
- const fixed=isFlow(d)||d.type==='heartbeat';
+function editing(d,monitoringOnly=false){
+ const fixed=monitoringOnly||isFlow(d)||d.type==='heartbeat';
  return {rules:!fixed&&httpType(d)&&!d.tags?.includes('dependency'),latency:!fixed&&['tcp','udp','dns','tls'].includes(d.type),numbers:!fixed,locations:!fixed};
 }
 // A measured time as the table shows it: "480 ms", "2.1 s".
@@ -47,8 +47,8 @@ function cell(rule,o){
 const OVERALL={pass:['passed','Passed'],target_failure:['failed','Failed'],runner_error:['unknown','Couldn’t run']};
 // The rules: a row each, with the editor fields its chip opens. Other types list today's expectations; only a response time
 // is theirs to change here. A row that `whole` takes the table's width: it has no cell per location.
-function ruleRows(m){
- const d=m.definition,can=editing(d),latencyRow=()=>({key:'latencyMs',assertion:'latency',label:'Responds within',value:responseTime(d.assertions.latencyMs),edit:can.latency,remove:can.latency,whole:true});
+function ruleRows(m,monitoringOnly){
+ const d=m.definition,can=editing(d,monitoringOnly),latencyRow=()=>({key:'latencyMs',assertion:'latency',label:'Responds within',value:responseTime(d.assertions.latencyMs),edit:can.latency,remove:can.latency,whole:true});
  if(httpType(d))return httpRules(d).map(rule=>({...rule,edit:can.rules,remove:can.rules&&rule.key!=='status'}));
  if(isProtocol(d))return [...protocolExpectations(d).filter(([label])=>label!=='Slowest answer').map(([label,value,mono],i)=>({key:`expect-${i}`,label,value,mono,whole:true})),...(d.assertions?.latencyMs!==undefined?[latencyRow()]:[])];
  if(d.type==='heartbeat')return heartbeatRules(d.heartbeat).map(rule=>({...rule,whole:true}));
@@ -119,7 +119,7 @@ function addRule(d){
 // ui: the page's editing state ({adding, errors}); newest: the newest complete scheduled slot of the current revision;
 // earlier: the newest complete scheduled slot of any revision; fit: how the table last measured ({mode, spans}).
 export function rulesTable(m,{data,newest,earlier,ui,fit}){
- const d=m.definition,can=editing(d),heartbeat=d.type==='heartbeat',cols=heartbeat?[]:columns(m,data,newest,earlier),rows=ruleRows(m);
+ const d=m.definition,can=editing(d,data.access?.monitoringOnly),heartbeat=d.type==='heartbeat',cols=heartbeat?[]:columns(m,data,newest,earlier),rows=ruleRows(m,data.access?.monitoringOnly);
  if(ui.adding&&can.rules&&!rows.some(rule=>rule.key===ui.adding))rows.push({key:ui.adding,assertion:null,label:ADDABLE[ui.adding],value:'',edit:true,remove:false,draft:true});
  const perRule=httpType(d)&&!heartbeat,picker=can.locations&&!heartbeat;
  const head=`<thead><tr><th scope="col" class="rule-head">Rule</th>${cols.map(column=>headCell(column,{picker,overall:!perRule})).join('')}</tr></thead>`;

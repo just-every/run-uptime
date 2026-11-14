@@ -83,7 +83,7 @@ function draw(page){
  bindHeartbeatCheckIn(area,page.m,deps(page));
  const incidents=area.querySelector('#monitor-incidents');
  if(firstMount(incidents)){bindIncidentWork(incidents,page.api);bindIncidentSnapshots(incidents,page.api,(probe,row)=>locationNamer(page.seen.revisions?.find(revision=>revision.revision===row.revision)?.definition??page.m.definition,page.data.runner.runners)(probe))}
- if(seen.incidents)patch(incidents,incidentMarkup(seen.incidents,page.name,{slots:seen.slots,revisions:seen.revisions,runners:page.data.runner.runners}));
+ if(seen.incidents)patch(incidents,incidentMarkup(seen.incidents,page.name,{slots:seen.slots,revisions:seen.revisions,runners:page.data.runner.runners,monitoringOnly:page.data.access?.monitoringOnly}));
  const history=area.querySelector('#raw-history');
  if(firstMount(history)&&seen.timeline)patch(history,historyMarkup(seen.timeline,page.m,page.data.runner.runners??[]));
  const flowHistory=area.querySelector('#flow-revisions');if(flowHistory&&seen.revisions)patch(flowHistory,flowRevisions(seen.revisions));
@@ -143,10 +143,11 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  patch(header,titleBlock(m,readUnavailable));
  header.monitorPage=page;
  if(firstMount(header))header.addEventListener('click',event=>{const link=event.target.closest('a.header-chip');if(link&&link.hash===location.hash){header.monitorPage.ui.hash=linkTarget();followLink(header.monitorPage)}});
- patch(actions,actionButtons(m));
+ patch(actions,data.access?.monitoringOnly?'':actionButtons(m));
  draw(page);
  mountFolds(area,page.folds,page.ui.mounted,deps(page));
  loadPage(page);page.ui.started=true;
+ if(data.access?.monitoringOnly)return;
  const d=m.definition,where=joinNames([...new Set((d.probes??[]).map(page.name))])||'your locations';
  actions.querySelector('#run-monitor').onclick=()=>action(async()=>{const queued=await api(`/api/monitors/${m.id}/run`,'POST',{});return await waitForCheck({api,id:m.id,slotId:queued.slotId,name:page.name})},{pending:`Checking from ${where}…`,success:outcome=>outcome??'Check queued. Its result will appear in Recent checks.'});
  if(!isFlow(d)&&d.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit'};

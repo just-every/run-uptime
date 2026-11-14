@@ -15,7 +15,7 @@ export function listSummary(data,readUnavailable){
  const shown=data.monitors.map(m=>shownState(m,readUnavailable)),places=[...new Set(activeLocations(data).map(r=>r.networkLabel))];
  const parts=[`${shown.length} ${shown.length===1?'monitor':'monitors'}`,...STATES.map(([state,word])=>[shown.filter(s=>s===state).length,word]).filter(([count])=>count).map(([count,word])=>`${count} ${word}`)];
  if(places.length)parts.push(`from ${joinNames(places)}`);
- return escape(parts.join(' · '))+(places.length<2?' · <a href="/app/locations">Add a location</a>':'');
+ return escape(parts.join(' · '))+(places.length<2&&!data.access?.monitoringOnly?' · <a href="/app/locations">Add a location</a>':'');
 }
 
 // What a monitor checks, as its line starts: the address without its scheme, after the kind unless it is a plain
@@ -64,9 +64,9 @@ function day(metrics,enabled){
 }
 
 // The tick is named for its job; aria-describedby adds which monitor. Healthy is a quiet dot, any other state its pill.
-export function monitorRow(m,{runners,readUnavailable,selected}){
+export function monitorRow(m,{runners,readUnavailable,selected,monitoringOnly=false}){
  const d=m.definition,state=shownState(m,readUnavailable),id=escape(m.id),href=escape(monitorHref(m.id));
  const mark=state==='Healthy'?'<span class="monitor-dot"><span class="ui-visually-hidden">Healthy</span></span>':'',pill=state==='Healthy'?'':`<span class="ui-pill state ${escape(state.toLowerCase())}">${escape(state)}</span>`;
- const warning=m.configurationWarning?`<a class="ui-link monitor-warning" href="${href}/edit">Needs a second location or an external check</a>`:'';
- return `<li class="monitor-row${selected?' is-selected':''}" data-key="${id}"><input type="checkbox" id="catalog-select-${id}" data-monitor-select="${id}" ${tip('Select monitor',{describedBy:`monitor-link-${id}`})}${selected?' checked':''}><div class="monitor-main"><div class="monitor-title">${mark}<a class="monitor-link" id="monitor-link-${id}" href="${href}"><span class="monitor-name">${escape(d.name)}</span></a>${pill}</div>${meta(m,state,runners)}${warning}</div>${day(m.availability?.last24h,d.enabled)}</li>`;
+ const warning=m.configurationWarning&&!monitoringOnly?`<a class="ui-link monitor-warning" href="${href}/edit">Needs a second location or an external check</a>`:'';
+ return `<li class="monitor-row${selected?' is-selected':''}${monitoringOnly?' monitoring-only':''}" data-key="${id}">${monitoringOnly?'':`<input type="checkbox" id="catalog-select-${id}" data-monitor-select="${id}" ${tip('Select monitor',{describedBy:`monitor-link-${id}`})}${selected?' checked':''}>`}<div class="monitor-main"><div class="monitor-title">${mark}<a class="monitor-link" id="monitor-link-${id}" href="${href}"><span class="monitor-name">${escape(d.name)}</span></a>${pill}</div>${meta(m,state,runners)}${warning}</div>${day(m.availability?.last24h,d.enabled)}</li>`;
 }

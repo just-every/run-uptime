@@ -10,7 +10,7 @@ export type Scope={kind:'service'|'team';value:string}
 export type Access={session:NonNullable<Awaited<ReturnType<typeof authenticatedSession>>>;role:string;revision:number;scopes:Scope[];action:string;monitorIds:string[];fresh?:boolean}
 // A delegated person has native account authority, never a manufactured browser session.
 export type AgentAccess={proofReference?:string;kind:'agent';operatorId:string;operatorVersion:number;nativeRole:string;role:string;revision:number;scopes:Scope[];action:string;monitorIds:string[]}
-export class AccessError extends Error {status:number;constructor(status=403){super(status===401?'Owner session required':'Product permission required');this.status=status}}
+export class AccessError extends Error {status:number;constructor(status=403,message?:string){super(message??(status===401?'Owner session required':'Product permission required'));this.status=status}}
 // One product authorization door. Base re-reads status, role, version and session
 // revocation on every call; edition authority never comes from request claims.
 export async function permission(env:AuthBindings,request:Request,input?:unknown,override?:{action:string;workspace:boolean;monitorIds?:string[]}) :Promise<Access>{
@@ -39,7 +39,7 @@ export async function permission(env:AuthBindings,request:Request,input?:unknown
   if(!incident)throw new AccessError(404)
   wanted.monitorIds=[incident.monitor_id]
  }
- if(!(wanted.action==='evidence'||permitted(row.role,wanted.action))||(scopes.length&&wanted.workspace))throw new AccessError()
+ if(!(wanted.action==='evidence'||permitted(row.role,wanted.action))||(scopes.length&&wanted.workspace))throw new AccessError(403,row.role==='read-only'?'You have read-only access.':undefined)
  const ids=[...(wanted.monitorIds??[])]
  if(!['owner','admin'].includes(row.role)&&wanted.action==='check_write'){
   const definition=(wanted as any).definition

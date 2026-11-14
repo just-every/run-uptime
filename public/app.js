@@ -133,12 +133,12 @@ function renderLocations(){patch(area,locationsMarkup(data));patch(right,addPane
 // pending draw of a Settings area whose module is still loading.
 function render(){if(!data||document.querySelector('dialog[open]'))return;
  // With no monitors yet, the list opens the new-monitor form instead of an empty table.
- if(view==='monitors'&&!readUnavailable&&!data.monitors.length){if(!redirecting){redirecting=true;location.replace('/app/monitors/new')}return}
+ if(view==='monitors'&&!data.access?.monitoringOnly&&!readUnavailable&&!data.monitors.length){if(!redirecting){redirecting=true;location.replace('/app/monitors/new')}return}
  const screen=view==='settings'?'settings/'+settingsArea:view;
  if(screen!==shown){area.replaceChildren();right.replaceChildren();shown=screen}right.hidden=sideHidden();
  markCurrent();showAlertCount();let drawn;
  if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable});
- else{const buttons=viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons;summary.hidden=view!=='monitors';
+ else{const buttons=view==='monitors'&&data.access?.monitoringOnly?'':viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons;summary.hidden=view!=='monitors';
   setHeading();
   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');
   if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')drawn=renderSettings(settingsArea,{area,right,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,showing:requested=>!closed&&shown==='settings/'+requested,readUnavailable})}

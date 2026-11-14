@@ -69,6 +69,7 @@ export function createCatalog({ api, action }) {
         host.querySelector('.catalog-tools').hidden = ticked;
         for (const part of host.querySelectorAll('#catalog-select-visible,.catalog-bulk-actions,#catalog-clear-selection'))
             part.hidden = !ticked;
+        if (!box) return;
         box.checked = visible.length > 0 && visibleSelected === visible.length;
         box.indeterminate = visibleSelected > 0 && visibleSelected < visible.length;
         text(host.querySelector('.catalog-selected'), ticked ? `${count} selected${count > visibleSelected ? ` (${count - visibleSelected} outside these results)` : ''}` : '');
@@ -112,14 +113,14 @@ export function createCatalog({ api, action }) {
     function rows() {
         const { data, readUnavailable } = current, list = host.querySelector('.catalog-rows');
         visible = data.monitors.filter(matches);
-        patch(list, visible.map(m => monitorRow(m, { runners: data.runner.runners, readUnavailable, selected: selected.has(m.id) })).join(''));
+        patch(list, visible.map(m => monitorRow(m, { runners: data.runner.runners, readUnavailable, selected: selected.has(m.id), monitoringOnly: data.access?.monitoringOnly })).join(''));
         list.hidden = !visible.length;
         host.querySelector('.catalog-no-results').hidden = visible.length > 0 || !data.monitors.length;
         chips();
         selection();
     }
     function mount(area) {
-        area.innerHTML = `<div class="catalog-console"><div class="catalog-toolbar"><div class="catalog-tools"><label class="catalog-search"><span class="ui-visually-hidden">Search monitors</span>${icon('search')}<input id="catalog-search" name="catalog-search" type="search" placeholder="Search monitors" value="${escape(values.search)}"></label><button type="button" id="catalog-filter" aria-expanded="false" aria-controls="catalog-filters">${icon('funnel')}Filter<span class="catalog-filter-count" hidden></span></button></div><input id="catalog-select-visible" type="checkbox" ${tip('Select all monitors')} hidden><span class="catalog-selected" role="status"></span><div class="catalog-bulk-actions" hidden>${bulk.map(([kind, label]) => `<button type="button" class="ui-compact" data-bulk="${kind}">${label}</button>`).join('')}</div><button type="button" class="ui-link" id="catalog-clear-selection" hidden>Clear</button></div><div class="catalog-filters" id="catalog-filters" role="group" aria-label="Filters" hidden>${filters.map(key => `<label>${names[key]}<select id="catalog-filter-${key}" name="catalog-${key}"></select></label>`).join('')}</div><div class="catalog-chips"></div><div class="catalog-batch ui-callout" role="status" hidden></div><ul class="catalog-rows" aria-label="Monitors"></ul><p class="catalog-no-results ui-empty" hidden>No monitors match these filters.</p></div>`;
+        area.innerHTML = `<div class="catalog-console"><div class="catalog-toolbar"><div class="catalog-tools"><label class="catalog-search"><span class="ui-visually-hidden">Search monitors</span>${icon('search')}<input id="catalog-search" name="catalog-search" type="search" placeholder="Search monitors" value="${escape(values.search)}"></label><button type="button" id="catalog-filter" aria-expanded="false" aria-controls="catalog-filters">${icon('funnel')}Filter<span class="catalog-filter-count" hidden></span></button></div>${current.data.access?.monitoringOnly?'':`<input id="catalog-select-visible" type="checkbox" ${tip('Select all monitors')} hidden><span class="catalog-selected" role="status"></span><div class="catalog-bulk-actions" hidden>${bulk.map(([kind, label]) => `<button type="button" class="ui-compact" data-bulk="${kind}">${label}</button>`).join('')}</div><button type="button" class="ui-link" id="catalog-clear-selection" hidden>Clear</button>`}</div><div class="catalog-filters" id="catalog-filters" role="group" aria-label="Filters" hidden>${filters.map(key => `<label>${names[key]}<select id="catalog-filter-${key}" name="catalog-${key}"></select></label>`).join('')}</div><div class="catalog-chips"></div><div class="catalog-batch ui-callout" role="status" hidden></div><ul class="catalog-rows" aria-label="Monitors"></ul><p class="catalog-no-results ui-empty" hidden>No monitors match these filters.</p></div>`;
         host = area.querySelector('.catalog-console');
         const search = host.querySelector('#catalog-search'), filter = host.querySelector('#catalog-filter'), selectAll = host.querySelector('#catalog-select-visible');
         // The toolbar row's first control: Filter, or the select-all box while monitors are ticked.
@@ -165,45 +166,49 @@ export function createCatalog({ api, action }) {
             const left = host.querySelectorAll('[data-remove-filter]');
             (left[Math.min(index, left.length - 1)] ?? lead()).focus();
         };
-        host.querySelector('#catalog-clear-selection').onclick = () => {
-            selected.clear();
-            remember();
-            selection();
-            search.focus();
-        };
-        selectAll.onchange = event => {
-            for (const m of visible)
-                if (event.target.checked)
-                    selected.add(m.id);
-                else
-                    selected.delete(m.id);
-            remember();
-            selection();
-            if (!selected.size)
+        if (selectAll) {
+            host.querySelector('#catalog-clear-selection').onclick = () => {
+                selected.clear();
+                remember();
+                selection();
                 search.focus();
-        };
-        host.querySelector('.catalog-rows').onchange = event => {
-            const tick = event.target.closest('[data-monitor-select]');
-            if (!tick)
-                return;
-            if (tick.checked)
-                selected.add(tick.dataset.monitorSelect);
-            else
-                selected.delete(tick.dataset.monitorSelect);
-            remember();
-            selection();
-        };
-        for (const button of host.querySelectorAll('[data-bulk]'))
-            button.onclick = () => button.dataset.bulk === 'maintenance' ? openMaintenanceDialog({ monitors: chosen(), api, action }) : open(button.dataset.bulk);
+            };
+            selectAll.onchange = event => {
+                for (const m of visible)
+                    if (event.target.checked)
+                        selected.add(m.id);
+                    else
+                        selected.delete(m.id);
+                remember();
+                selection();
+                if (!selected.size)
+                    search.focus();
+            };
+            host.querySelector('.catalog-rows').onchange = event => {
+                const tick = event.target.closest('[data-monitor-select]');
+                if (!tick)
+                    return;
+                if (tick.checked)
+                    selected.add(tick.dataset.monitorSelect);
+                else
+                    selected.delete(tick.dataset.monitorSelect);
+                remember();
+                selection();
+            };
+            for (const button of host.querySelectorAll('[data-bulk]'))
+                button.onclick = () => button.dataset.bulk === 'maintenance' ? openMaintenanceDialog({ monitors: chosen(), api, action }) : open(button.dataset.bulk);
+        }
         showFilters(filtersOpen);
         showBatch();
     }
     return { render({ area, data, readUnavailable }) {
+            const accessChanged = current?.data.access?.monitoringOnly !== data.access?.monitoringOnly;
             current = { data, readUnavailable };
+            if (data.access?.monitoringOnly) selected.clear();
             for (const id of selected)
                 if (!data.monitors.some(m => m.id === id))
                     selected.delete(id);
-            if (!host?.isConnected || !area.contains(host))
+            if (accessChanged || !host?.isConnected || !area.contains(host))
                 mount(area);
             options();
             rows();
