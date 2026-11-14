@@ -1,0 +1,1 @@
+{"command": "node tests/operator-security.mjs", "exit_code": 0}

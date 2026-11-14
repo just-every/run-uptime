@@ -1,0 +1,84 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-readable-details-1-c1",
+  "head": "f4f3a25390b2a931737e286ce4e777ef68ed0b34",
+  "checks": {
+    "typecheck": {
+      "exit_code": 0,
+      "command": "pnpm typecheck"
+    },
+    "build": {
+      "exit_code": 0,
+      "command": "npx -y @runeditrun/rer build"
+    },
+    "source_lock": {
+      "exit_code": 0,
+      "command": "node scripts/edition-authoring/cli.mjs check"
+    },
+    "contract_docs": {
+      "exit_code": 0,
+      "command": "node src/base/contract-docs.mjs check"
+    },
+    "browser-suites-result": {
+      "command": "node tests/browser-suites.mjs",
+      "exit_code": 0
+    },
+    "operator-security-result": {
+      "command": "node tests/operator-security.mjs",
+      "exit_code": 0
+    },
+    "signed-runner-result": {
+      "command": "node tests/signed-runner.mjs",
+      "exit_code": 0
+    },
+    "public_door_before_after": {
+      "command": "node /tmp/uptime-readable-probe.mjs",
+      "exit_code": 0
+    }
+  },
+  "assertion_width": 1440,
+  "proof_widths": [
+    1440,
+    390
+  ],
+  "public_door_journeys_before": 47,
+  "public_door_journeys_after": 47,
+  "added_registrations": 0,
+  "contract_status_edits": 0,
+  "publication_scan": "Mac lander only; unavailable in cloud by task contract",
+  "browser_proof": {
+    "inspected": true,
+    "screens": [
+      "after-heartbeat-check-details-1440.png",
+      "after-heartbeat-check-details-390.png",
+      "after-erasure-receipt-details-1440.png",
+      "after-erasure-receipt-details-390.png"
+    ],
+    "before_after": {
+      "before": {
+        "rawHeartbeatJson": true,
+        "rawReceiptUuid": true,
+        "internalStorageLabels": true
+      },
+      "after": {
+        "rawHeartbeatJson": false,
+        "rawReceiptUuid": false,
+        "internalStorageLabels": false
+      },
+      "assertionWidth": 1440,
+      "proofWidths": [
+        1440,
+        390
+      ],
+      "candidate": "f4f3a25390b2a931737e286ce4e777ef68ed0b34"
+    },
+    "axe_violations": 0
+  },
+  "ci": {
+    "run_id": 43596225498,
+    "conclusion": null,
+    "head_sha": "f4f3a25390b2a931737e286ce4e777ef68ed0b34",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43596225498",
+    "status": "in_progress"
+  }
+}

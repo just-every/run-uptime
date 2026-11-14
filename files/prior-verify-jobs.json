@@ -1,0 +1,15 @@
+{"conclusion":"success","id":132349728114,"name":"plan","steps":[]}
+{"conclusion":"success","id":132349776155,"name":"build","steps":[]}
+{"conclusion":"success","id":132349776165,"name":"prepare","steps":[]}
+{"conclusion":"skipped","id":132349777074,"name":"light","steps":[]}
+{"conclusion":"success","id":132349931130,"name":"shards (push-7)","steps":[]}
+{"conclusion":"cancelled","id":132349931143,"name":"shards (push-6)","steps":[]}
+{"conclusion":"success","id":132349931155,"name":"shards (push-2)","steps":[]}
+{"conclusion":"success","id":132349931157,"name":"shards (push-5)","steps":[]}
+{"conclusion":"success","id":132349931176,"name":"shards (push-3)","steps":[]}
+{"conclusion":"success","id":132349931184,"name":"shards (push-1)","steps":[]}
+{"conclusion":"success","id":132349931185,"name":"shards (push-4)","steps":[]}
+{"conclusion":"failure","id":132349931190,"name":"shards (push-8)","steps":[{"name":"Run this shard","number":16}]}
+{"conclusion":"failure","id":132354782985,"name":"verify","steps":[{"name":"Require the selected coverage and its proof","number":2}]}
+{"conclusion":"skipped","id":132354783411,"name":"full-push-proof","steps":[]}
+{"conclusion":"skipped","id":132354783913,"name":"nightly-proof","steps":[]}

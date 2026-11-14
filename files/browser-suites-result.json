@@ -1,0 +1,1 @@
+{"command": "node tests/browser-suites.mjs", "exit_code": 0}

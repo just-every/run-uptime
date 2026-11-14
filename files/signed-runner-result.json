@@ -1,0 +1,1 @@
+{"command": "node tests/signed-runner.mjs", "exit_code": 0}

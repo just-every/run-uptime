@@ -1,0 +1,18 @@
+{
+  "before": {
+    "rawHeartbeatJson": true,
+    "rawReceiptUuid": true,
+    "internalStorageLabels": true
+  },
+  "after": {
+    "rawHeartbeatJson": false,
+    "rawReceiptUuid": false,
+    "internalStorageLabels": false
+  },
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "candidate": "f4f3a25390b2a931737e286ce4e777ef68ed0b34"
+}

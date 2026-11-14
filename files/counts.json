@@ -1,0 +1,22 @@
+{
+  "before": {
+    "publicDoorJourneys": 47,
+    "clauses": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "after": {
+    "publicDoorJourneys": 47,
+    "clauses": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "addedRegistrations": 0,
+  "statusCellEdits": 0
+}

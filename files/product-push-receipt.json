@@ -1,0 +1,13 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-readable-details-1-c1",
+  "head": "f4f3a25390b2a931737e286ce4e777ef68ed0b34",
+  "guard": "python3 /home/agent/rer-consolidation/.tools/cloud-push.py origin cloud/main-uptime-readable-details-1-c1",
+  "guard_result": "PUSH_OK",
+  "attempts": 1,
+  "remote_ref_verified": true,
+  "unpublished_candidate_commits": 1,
+  "fleet_author_and_committer": true,
+  "coauthor_trailers": [],
+  "product_worktree_clean": true
+}
