@@ -64,6 +64,13 @@ list recipients; they are therefore workspace operations. This edition does
 not substitute an unfiltered list for a scoped list. Scoped console navigation
 and member-management UI are not yet built; use the bounded APIs.
 
+Workspace-wide read-only operators can open the monitor list and monitor details
+in the console, including recent checks, immutable revision history, incidents
+and period reports. The console overview carries the same effective role,
+scopes and assignment revision as `/api/access/self`. Monitoring-only responses
+omit notification destinations, delivery configuration and runner grants.
+Configuration and all mutations keep their existing permission checks.
+
 ## Public operator doors
 
 All calls require a native authenticated Base session and the normal same-origin

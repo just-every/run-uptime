@@ -548,7 +548,7 @@
       "executable": false
     },
     "docs/access.md": {
-      "sha256": "29bb4bcfd74e0ccf06d7d24e7e98deb4c631eb5fea52e1343dbc18ac7f3cd9f5",
+      "sha256": "a35967a9e0afb9e4e5df09ede442745d5a41197f07ed46b52ca980a0a70497ec",
       "executable": false
     },
     "docs/api-keys.md": {
@@ -2932,11 +2932,11 @@
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "ea41ef03188a14e74fd7381452a544f74132db73f495e3f08fe97bd91cbad225",
+      "sha256": "a667ef8712281d7271ebf37e8c9d9537893c0e450025ebb44d3f19040b210118",
       "executable": false
     },
     "public/monitor-reads.js": {
-      "sha256": "5058aca4dd68e2417a24725e336d29951fedb428f3219043d41baaaa0935d52c",
+      "sha256": "2a1a560443eca6d40b4978f65c9abef103013f2180ca531af2f05ffddc31eaa4",
       "executable": false
     },
     "public/monitor-recent-checks.js": {
@@ -2944,7 +2944,7 @@
       "executable": false
     },
     "public/monitor-report.js": {
-      "sha256": "570cc4d23b6dc95df65cc0273be2062f866b27281a9f1cb80f2c17cd8640e574",
+      "sha256": "36ec6ea486ba93ac75c942ba7fbdd1d1837beea15a8504a51b1d86a44b307d57",
       "executable": false
     },
     "public/monitor-rule-edit.js": {
@@ -7312,7 +7312,7 @@
       "executable": false
     },
     "src/domain/control.server.ts": {
-      "sha256": "893dc1e437872c4a9c0bd71de649588ff9a0d24025e4fb3c34f1c28e1600a723",
+      "sha256": "0481b0e182fdedd04f47f44b6a2cc119b279c009ba2de2382508d7e8fc0ff6a5",
       "executable": false
     },
     "src/domain/credential-binding.mjs": {
@@ -8088,7 +8088,7 @@
       "executable": false
     },
     "src/domain/role-permissions.mjs": {
-      "sha256": "f3fa91c612e1c7da952133a5a907bca135263c5e805d886fb4e6032fa09fe6f6",
+      "sha256": "e12cd04293e995468e342d7bc1124956819379d206d26f8f86de0d7ba7a1c4be",
       "executable": false
     },
     "src/domain/rum/beacon-script.ts": {
@@ -8544,7 +8544,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "dcb3d3e72135b235768abea261cbc7d62ea52c8a4df069e3e8a50c72696ac77f",
+      "sha256": "1a1cb73c971c6c2a1a6630a327ed00426e9ee51744f00b1a970d673fcc4b83d6",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8880,7 +8880,7 @@
       "executable": false
     },
     "tests/access-admin-support.mjs": {
-      "sha256": "430239bb23b65da06f78375761b5d4b8ccf74d299168107824ed8ee76a274a48",
+      "sha256": "2bf41aedd83077f91d6c581f4c361b4c9cabaff1b30beca2e4e4e0f38621e755",
       "executable": false
     },
     "tests/access-discovery-job-support.mjs": {
@@ -8896,7 +8896,7 @@
       "executable": false
     },
     "tests/access-member-controls-browser-support.mjs": {
-      "sha256": "1160a099bd449caa344698768f9a9bdd318d17ce23ab91fde95e3ea59f756ab0",
+      "sha256": "ef5dbb7c5e18eb14becbfa5f1199c4c31634961c3dd44ca35d577d9054bdd76a",
       "executable": false
     },
     "tests/access-scope-support.mjs": {
@@ -9388,7 +9388,7 @@
       "executable": false
     },
     "tests/local-signin-truth-support.mjs": {
-      "sha256": "7cd34f79a455fae5f03d09840215ba376b412e35b217cf8e38e13d54bbe1d156",
+      "sha256": "f5ca3ad8785c7972d68d53fa1187de268490993a58ceb93bcf320872b18d2849",
       "executable": false
     },
     "tests/mail-edges.mjs": {

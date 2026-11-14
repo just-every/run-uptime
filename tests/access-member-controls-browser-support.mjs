@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {completeSecondFactor} from './mfa-auth-support.mjs';
+import {completeSecondFactor,completeBrowserSecondFactor} from './mfa-auth-support.mjs';
+import {deliveredLink} from './auth-test-support.mjs';
 import {chromium} from 'playwright';
 export async function proveMemberControls({origin,cookie,accept,call,DB}){
  const browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
@@ -28,7 +29,22 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
     const sent=page.waitForResponse(r=>r.url().endsWith('/api/access/invitations')&&r.request().method()==='POST'&&r.status()===202);let sentOnce;if(role==='admin')sentOnce=await stepup(()=>invite.getByRole('button',{name:'Send invite',exact:true}).click(),'POST','/api/access/invitations',{email,displayName:fixtureName,role,scopes:[],returnTo:'/app'});else await invite.getByRole('button',{name:'Send invite',exact:true}).click();assert.equal((await sent).status(),202);if(sentOnce)sentOnce();
     await panel.getByRole('status').filter({hasText:`Invitation sent to ${email}.`}).waitFor();const person=await accept(email);
     const self=await call('/api/access/self',undefined,{cookie:person.cookie});assert.equal((await self.json()).role,role);
-    if(role==='read-only')reader=person;
+    if(role==='read-only'){
+     reader=person;
+     const created=await call('/api/monitors',{name:'synthetic-uptime-reader-monitor',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie});
+     assert.equal(created.status,201);const monitor=await created.json();
+     assert.equal((await call('/api/monitors/'+monitor.id+'/run',{},{cookie})).status,200);
+     const fresh=await browser.newContext({viewport:{width:1440,height:1000}});
+     try{
+      assert.equal((await call('/auth/magic-link',{email,returnTo:'/app/monitors'})).status,202);
+      const link=await deliveredLink(call,{email});
+      const readerPage=await fresh.newPage();await readerPage.goto(link.href);
+      await readerPage.getByRole('button',{name:/confirm|sign in/i}).click();
+      await readerPage.waitForURL(url=>url.pathname.startsWith('/app'));
+      await completeBrowserSecondFactor(readerPage,origin);
+      await proveReadOnlyConsole({page:readerPage,origin,monitorId:monitor.id});
+     }finally{await fresh.close()}
+    }
    }
    // Reload reads the accepted Base lifecycle, then assign and narrow both scope kinds.
    await page.reload();const row=panel.locator(`[data-member-id="${reader.id}"]`);await row.locator('summary').click();
@@ -44,4 +60,78 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
   }
  }finally{await browser.close()}
  console.log('ACCESS-001 Settings PASS: Base email-link invitations for all four roles, live service/team scope narrowing, no-op save and removal at 1440 with axe/reflow.');
+}
+
+
+// The same invitation-to-monitor journey runs through emitted email-link sign-in
+// and through the real dev account picker. Only the network mail edge is faked.
+export async function proveReadOnlyConsole({page,origin,monitorId,output}){
+ const request=page.context().request;
+ const self=await request.get(origin+'/api/access/self');assert.equal(self.status(),200);
+ const actor=await self.json();assert.equal(actor.role,'read-only');assert.deepEqual(actor.scopes,[]);
+ const response=await request.get(origin+'/api/overview');assert.equal(response.status(),200);
+ const overview=await response.json();
+ assert.deepEqual(overview.access,{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:true},'console and self use the live assignment');
+ assert.equal('notifications' in overview,false,'monitoring reads disclose no destination configuration');
+ assert.equal('grants' in overview.runner,false,'monitoring reads disclose no runner grants');
+ const monitor=overview.monitors.find(m=>!monitorId||m.id===monitorId);assert.ok(monitor,'the invited person can read a workspace monitor');
+ const id=monitor.id,key=encodeURIComponent(id);
+ // A dev module graph and repeated proof captures can spend the public asset
+ // bucket. Honor an observed Retry-After once, rather than disabling its limiter.
+ const screen=async(path,selector,{reload=false}={})=>{
+  let retryAt=0;
+  const rate=response=>{if(response.status()===429&&/\.(?:js|css|svg|woff2)$/.test(new URL(response.url()).pathname)){
+   const seconds=Number(response.headers()['retry-after']);if(Number.isFinite(seconds)&&seconds>=0)retryAt=Math.max(retryAt,Date.now()+seconds*1000);
+  }};
+  page.on('response',rate);
+  const ready=()=>page.locator(selector).first().waitFor();
+  try{
+   if(reload)await page.reload();else await page.goto(origin+path);
+   try{await ready()}catch(error){if(!retryAt)throw error;await page.waitForTimeout(Math.max(0,retryAt-Date.now())+100);await page.reload();await ready()}
+  }finally{page.off('response',rate)}
+ };
+ await screen('/app/monitors','.monitor-link');
+ await page.locator('.monitor-link').filter({hasText:monitor.definition.name}).first().waitFor();
+ await screen('/app/monitors','.monitor-link',{reload:true});
+ await page.locator('.monitor-link').filter({hasText:monitor.definition.name}).first().waitFor();
+ await page.locator('.monitor-link').filter({hasText:monitor.definition.name}).first().click();
+ await page.locator('#monitor-page').waitFor();
+ const reads={};
+ for(const suffix of ['history','revisions','incidents','heartbeat-runs']){
+  const result=await request.get(origin+'/api/monitors/'+key+'/'+suffix);assert.equal(result.status(),200,suffix+' remains a monitoring read');reads[suffix]=await result.json();
+ }
+ assert.ok(reads.revisions.length,'immutable history is readable');
+ assert.ok(reads.history.length,'the queued or completed check remains readable');
+ await page.locator('#all-checks > summary').click();
+ await page.locator('#raw-history .check-list, #raw-history .history-empty').first().waitFor();
+ const before=await request.get(origin+'/api/monitors/'+key+'/revisions'),revisions=await before.json();
+ const denied=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/monitors/'+key+'/run'&&r.request().method()==='POST');
+ await page.getByRole('button',{name:'Run now',exact:true}).click();assert.equal((await denied).status(),403,'console cannot queue a check');
+ for(const [method,path,data] of [
+  ['POST','/api/monitors',{...monitor.definition,name:'synthetic-uptime-refused'}],
+  ['PATCH','/api/monitors/'+key,{...monitor.definition,enabled:!monitor.definition.enabled}],
+  ['POST','/api/monitors/'+key+'/run',{}],
+  ['POST','/api/monitors/'+key+'/heartbeat-key',{}],
+  ['POST','/api/monitors/'+key+'/erase',{name:monitor.definition.name}],
+  ['DELETE','/api/monitors/'+key+'/report-schedules/synthetic-refused',undefined],
+ ]){
+  const result=await request.fetch(origin+path,{method,headers:{origin},...(data===undefined?{}:{data})});assert.equal(result.status(),403,method+' '+path+' refused');
+ }
+ assert.deepEqual(await(await request.get(origin+'/api/monitors/'+key+'/revisions')).json(),revisions,'refused console/API writes create no revision');
+ const shot=async name=>{if(output){await mkdir(output,{recursive:true});await page.screenshot({path:join(output,name),fullPage:true})}};
+ // Behavior is asserted at 1440. Optional proof captures each changed screen
+ // once at desktop and phone width without running a second assertion journey.
+ if(output)for(const width of [1440,390]){
+  await page.setViewportSize({width,height:1000});
+  await screen('/app/monitors','.monitor-link');await shot('after-readonly-list-'+width+'.png');
+  await screen('/app/monitors/'+key,'#monitor-page');await shot('after-readonly-checks-'+width+'.png');
+  await screen('/app/monitors/'+key+'?view=report&period=24h','#report-results .report-snapshot');await shot('after-readonly-report-'+width+'.png');
+ }
+ await page.setViewportSize({width:1440,height:1000});
+ await screen('/app/monitors/'+key+'?view=report&period=24h','#report-results .report-snapshot');
+ assert.equal(await page.locator('#report-error').isVisible(),false,'report does not require configuration authority');
+ const report=await request.get(origin+'/api/v1/monitors/'+key+'/report?period=24h');assert.equal(report.status(),200);
+ const receipt={screen:'read-only-console',role:actor.role,scopes:actor.scopes,revision:actor.revision,monitorVisible:true,reloadVisible:true,checkHistoryReadable:true,checkRows:reads.history.length,observations:reads.history.reduce((n,row)=>n+row.observations.length,0),reportReadable:true,consoleWrite:403,apiWrites:403,revisionsUnchanged:true};
+ if(output)await writeFile(join(output,'readonly-console-receipt.json'),JSON.stringify(receipt,null,2)+'\n');
+ return receipt;
 }

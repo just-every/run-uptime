@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {openGate} from './auth-test-support.mjs';
+import {proveReadOnlyConsole} from './access-member-controls-browser-support.mjs';
 import {completeBrowserSecondFactor} from './mfa-auth-support.mjs';
 
 // Part of COMMAND-JOURNEY's real local installation, with its actual
@@ -49,7 +50,7 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
   await page.setViewportSize({width:1440,height:1000});
   await page.goto(origin+'/app/settings/people');
   const card=page.locator('#people-accounts'),form=card.locator('[data-member-invite]');
-  for(const [index,role] of ['member','responder'].entries()){
+  for(const [index,role] of ['member','responder','read-only'].entries()){
    const email=`synthetic-uptime-${811+index}@example.test`,name=`Synthetic local ${role}`;
    await form.getByLabel('Email',{exact:true}).fill(email);await form.getByLabel('Name',{exact:true}).fill(name);await form.getByLabel('Role',{exact:true}).selectOption(role);
    const path=role==='member'?'/auth/invite':'/api/access/invitations';
@@ -85,6 +86,14 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
    assert.equal((await session.json()).operator.email,'synthetic-uptime-812@example.test','existing local sign-in selects the invited account');
    const people=await(await page.request.get(origin+'/auth/operators')).json();assert.equal(people.find(person=>person.email==='synthetic-uptime-812@example.test')?.status,'active');
    checks.push({screen:'local-picker',existingDoor:true,invitedAccountAccepted:true});
+   // Reuse the documented picker for the role that promises monitoring reads.
+   await p.goto(origin+'/signin');
+   await p.getByRole('link',{name:/Synthetic local read-only/}).click();
+   await p.waitForURL(url=>url.pathname.startsWith('/app'));
+   const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'synthetic-uptime-local-reader',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}}});
+   assert.equal(created.status(),201);const monitor=await created.json();
+   assert.equal((await page.request.post(origin+'/api/monitors/'+monitor.id+'/run',{headers:{origin},data:{}})).status(),200);
+   checks.push(await proveReadOnlyConsole({page:p,origin,monitorId:monitor.id,output}));
   }finally{await invited.close()}
   if(output)await writeFile(join(output,'browser-receipt.json'),JSON.stringify({journey:'COMMAND-JOURNEY local invitation and sign-in truth',checks},null,2)+'\n');
   console.log('LOCAL-SIGNIN-TRUTH PASS: both local invitation doors disclose non-delivery, pending accounts and private handoff; fresh Lobby/login agree; existing gated picker admits invited account.');

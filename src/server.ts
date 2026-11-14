@@ -160,7 +160,7 @@ api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(!a
  await uptimeAgentDoor(c.get('systemBindings')??c.env).emit({type:family.slice(0,-1)+'.updated',uri:`uptime://${family}/${decodeURIComponent(m[2])}`,person:{id:person.id,name:person.displayName,email:person.email,role:access.role,active:true}})
 })
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
-api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
+api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&c.get('access')?.role!=='read-only'&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
 api.get('/api/routing/named-routes',async c=>c.json(await namedAlertRoutes(c.env)))
 api.post('/api/routing/named-routes',async c=>c.json(await saveNamedAlertRoute(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id}),201))
 api.post('/api/catalog/routes/undo',async c=>c.json(await undoCatalogRoutes(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id})))
@@ -192,7 +192,12 @@ api.get('/api/v1/metrics',async c=>{
   return c.body(text,200,{'content-type':'text/plain; version=0.0.4; charset=utf-8'})
  }catch(error){if(error instanceof ReportInputError)return c.json({error:error.message,code:error.code},error.code==='monitor_not_found'?404:400);throw error}
 })
-api.get('/api/overview',async c=>{const zone=c.req.header('x-uptime-time-zone');if(zone)await initializeNotificationTimeZone(c.env,zone);const monitorId=c.req.query('monitor');return c.json(await overview(c.env,monitorId===undefined?{}:{monitorId}))})
+api.get('/api/overview',async c=>{
+ const actor=c.get('access'),readOnly=!['owner','admin'].includes(actor.role),zone=c.req.header('x-uptime-time-zone')
+ if(zone&&!readOnly)await initializeNotificationTimeZone(c.env,zone)
+ const monitorId=c.req.query('monitor')
+ return c.json({...await overview(c.env,{monitorId,readOnly}),access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}})
+})
 for(const [path,preview,apply] of [
  ['/api/catalog/routes',previewCatalogRoutes,applyCatalogRoutes],['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],
 ] as const){

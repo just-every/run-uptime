@@ -46,6 +46,15 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
  const editor=await invite('editor'),responder=await invite('responder'),reader=await invite('read-only',[],true);
  for(const person of [editor,responder,reader]){
   assert.equal(person.baseRole,'member');assert.equal((await call(path,undefined,{cookie:person.cookie})).status,200);
+  const self=await(await call('/api/access/self',undefined,{cookie:person.cookie})).json();
+  const tables=['monitors','revisions','slots','observations','runners','notification_preferences','attempt_checkpoints','evidence_generation'];
+  const snapshot=async()=>Promise.all(tables.map(async table=>(await DB.prepare('SELECT * FROM '+table+' ORDER BY rowid').all()).results));
+  const beforeRead=await snapshot(),read=await call('/api/overview',undefined,{cookie:person.cookie,'x-uptime-time-zone':'Pacific/Auckland'});assert.equal(read.status,200);
+  const summary=await read.json();assert.deepEqual(summary.access,{role:self.role,scopes:self.scopes,revision:self.revision,monitoringOnly:true});
+  assert.ok(summary.monitors.some(m=>m.id===monitor.id));assert.equal('notifications' in summary,false);assert.equal('grants' in summary.runner,false);
+  assert.deepEqual(await snapshot(),beforeRead,'monitoring overview creates no defaults, checkpoints, configuration or work');
+  const head=await fetcher(origin+'/api/overview',{method:'HEAD',headers:{host:new URL(origin).host,origin,cookie:person.cookie}});assert.equal(head.status,200);assert.equal(await head.text(),'');
+  assert.equal((await call('/api/monitors/'+monitor.id+'/revisions',undefined,{cookie:person.cookie})).status,200);
   for(const denied of ['/api/archive','/api/definitions/export','/api/discovery-sources','/api/notifications/destinations'])assert.equal((await call(denied,undefined,{cookie:person.cookie})).status,403);
   assert.equal((await call('/api/access/invitations',{email:'synthetic-denied@example.test',displayName:'Denied',role:'admin'},{cookie:person.cookie})).status,403);
  }
