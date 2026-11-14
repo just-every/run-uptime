@@ -1,0 +1,66 @@
+{
+  "journey": "Public New monitor and edit routes, native owner, real emitted Worker/D1, no application mocks",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "mailProtocols": [
+    "smtp",
+    "pop3",
+    "imap"
+  ],
+  "createdMail": [
+    "8d586956-fc95-411e-b02c-7ebea7e566e6",
+    "a2362186-7eef-4b57-8709-eeb102dd6964",
+    "cb0076d8-04bb-445c-8746-3d52327750b0"
+  ],
+  "createdTransaction": "8cb80525-2276-4634-b7f4-113c919d83d2",
+  "existingMailRetained": true,
+  "existingApiRetained": true,
+  "rawJsonPrimaryInputs": 0,
+  "axeViolations": 0,
+  "screens": [
+    {
+      "label": "mail-connection",
+      "width": 1440,
+      "overflow": 0
+    },
+    {
+      "label": "mail-connection",
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "label": "mail-existing-delivery",
+      "width": 1440,
+      "overflow": 0
+    },
+    {
+      "label": "mail-existing-delivery",
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "label": "api-transaction",
+      "width": 1440,
+      "overflow": 0
+    },
+    {
+      "label": "api-transaction",
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "label": "api-existing",
+      "width": 1440,
+      "overflow": 0
+    },
+    {
+      "label": "api-existing",
+      "width": 390,
+      "overflow": 0
+    }
+  ],
+  "externalNetwork": false
+}

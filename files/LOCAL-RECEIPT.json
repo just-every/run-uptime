@@ -1,0 +1,98 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-protocol-forms-1",
+  "head": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3",
+  "base": "c14aafe38f2a5c754a550251593170404f1363a5",
+  "checks": [
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "TYPECHECK.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node tests/mail-journey.mjs",
+      "exit": 0,
+      "log": "MAIL-TEST.log"
+    },
+    {
+      "command": "npx -y @runeditrun/rer build (through cloud_run)",
+      "exit": 0
+    },
+    {
+      "command": "node tests/api-transaction-journey.mjs",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "log": "API-TEST.log"
+    },
+    {
+      "command": "git diff --check origin/main..HEAD",
+      "exit": 0
+    },
+    {
+      "command": "pnpm spec:generate && pnpm spec:check",
+      "exit": 0,
+      "generatedDiff": false,
+      "log": "SPEC-CHECK.log"
+    }
+  ],
+  "browser": {
+    "test": "tests/protocol-forms-browser-support.mjs#proveProtocolForms",
+    "assertionsWidth": 1440,
+    "proofWidths": [
+      1440,
+      390
+    ],
+    "receipt": "BROWSER-RECEIPT.json",
+    "browser": "/usr/bin/chromium"
+  },
+  "noApplicationMocks": true,
+  "noContractStatusEdits": true,
+  "summaryCounts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "ciJourneyCommands": {
+    "before": 47,
+    "after": 47
+  },
+  "newTestRegistrations": 0,
+  "commits": [
+    "70a4553b3ccfc5eef6274d59de8a75697b95e2a3 Run Edit Run fleet <fleet@runeditrun.com> | Run Edit Run fleet <fleet@runeditrun.com>",
+    "979c663cbdb79d184410c720ceb07ab0abe31d55 Run Edit Run fleet <fleet@runeditrun.com> | Run Edit Run fleet <fleet@runeditrun.com>"
+  ],
+  "productFiles": [
+    "public/editor.css",
+    "sources.lock.json",
+    "src/editor/monitor/api-fields.mjs",
+    "src/editor/monitor/fields.mjs",
+    "src/editor/monitor/form-controls.mjs",
+    "src/editor/monitor/mail-fields.mjs",
+    "src/editor/monitor/protocol-fields.mjs",
+    "src/ui/editor.html",
+    "tests/api-transaction-journey.mjs",
+    "tests/protocol-forms-browser-support.mjs"
+  ],
+  "browserReceiptSha256": "8a92136b61550bafdf64d855d81565fa7713d2be25b837d23373edb20aed6d3a",
+  "productWorktreeClean": true,
+  "terminalProductStatus": "BLOCKED exact-SHA Verify failure",
+  "remoteHeadVerified": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3"
+}

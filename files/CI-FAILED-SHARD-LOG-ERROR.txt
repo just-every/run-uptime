@@ -1,0 +1,3 @@
+Command: gh run view 43559564706 --repo just-every/run-uptime --job 132340168467 --log-failed
+Observed diagnostic: failed to get run log: zip: not a valid zip file
+HTTP status: unknown (not supplied by gh). No blob/archive retry.

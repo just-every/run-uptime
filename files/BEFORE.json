@@ -1,0 +1,17 @@
+{
+  "journey": "New monitor > Fill in the form yourself > What to check",
+  "results": [
+    {
+      "type": "mail",
+      "primaryJson": true,
+      "label": "Mail protocol settings (JSON)",
+      "value": "{\n  \"protocol\": \"smtp\",\n  \"host\": \"mail.example.com\",\n  \"security\": \"starttls\"\n}"
+    },
+    {
+      "type": "api",
+      "primaryJson": true,
+      "label": "Transaction steps (JSON)",
+      "value": "{\n  \"variables\": {},\n  \"steps\": [\n    {\n      \"name\": \"Health requirement\",\n      \"phase\": \"request\",\n      \"url\": \"https://sandbox.example.com/health\",\n      \"method\": \"GET\",\n      \"assertions\": {\n        \"status\": 200\n      }\n    }\n  ]\n}"
+    }
+  ]
+}

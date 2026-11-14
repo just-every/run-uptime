@@ -1,0 +1,11 @@
+fleet Git: removed 0 credential-bearing GitHub URL rewrite sections
+PUSH attempt=1/5 command=git push --porcelain origin HEAD:refs/heads/cloud/main-uptime-protocol-forms-1
+fleet Git: removed 0 credential-bearing GitHub URL rewrite sections
+To https://github.com/just-every/run-uptime
+ 	HEAD:refs/heads/cloud/main-uptime-protocol-forms-1	979c663..70a4553
+Done
+remote: 
+remote: GitHub found 42 vulnerabilities on just-every/run-uptime's default branch (16 high, 22 moderate, 4 low). To find out more, visit:        
+remote:      https://github.com/just-every/run-uptime/security/dependabot        
+remote: 
+PUSH_OK branch=cloud/main-uptime-protocol-forms-1

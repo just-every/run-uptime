@@ -1,0 +1,14 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+Protocol forms PASS: SMTP/POP3/IMAP, TLS/port validation, existing delivery settings, API add/reorder/remove, headers/body/assertions/captures, same-origin refusal, save and reopen.
+✔ API-004 sandbox setup/teardown, cancellation, denied cleanup, retained debt and explicit operator resolution without a live charge (32841.12549ms)
+✔ API-004 browser sandbox checkout runs setup and teardown around the real browser, through cancellation, denied cleanup and the debt limit (9926.00528ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42819.602412

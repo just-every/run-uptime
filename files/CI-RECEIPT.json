@@ -1,0 +1,75 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3",
+  "apiCalls": 4,
+  "observations": [
+    {
+      "time": 1794632577.2241604,
+      "action": "discover",
+      "runs": [
+        {
+          "id": 43559564706,
+          "name": "Verify",
+          "status": "in_progress",
+          "conclusion": null,
+          "head_sha": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3",
+          "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559564706"
+        }
+      ]
+    },
+    {
+      "time": 1794632877.2284951,
+      "action": "poll",
+      "run": {
+        "id": 43559564706,
+        "status": "in_progress",
+        "conclusion": null,
+        "head_sha": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559564706"
+      }
+    },
+    {
+      "time": 1794633177.2316017,
+      "action": "poll",
+      "run": {
+        "id": 43559564706,
+        "status": "in_progress",
+        "conclusion": null,
+        "head_sha": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559564706"
+      }
+    },
+    {
+      "time": 1794633477.2344177,
+      "action": "poll",
+      "run": {
+        "id": 43559564706,
+        "status": "completed",
+        "conclusion": "failure",
+        "head_sha": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559564706"
+      }
+    }
+  ],
+  "diagnosticCalls": 3,
+  "totalCalls": 10,
+  "rerun": {
+    "command": "gh run rerun 43559564706 --repo just-every/run-uptime --failed",
+    "exit": 0,
+    "time": 1794633553.1993577
+  },
+  "retryObservations": [
+    {
+      "time": 1794634154.4712026,
+      "run": {
+        "conclusion": "failure",
+        "head_sha": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559564706",
+        "run_attempt": 2,
+        "status": "completed"
+      }
+    }
+  ],
+  "terminal": "completed/failure on exact head, attempt 2",
+  "diagnosticBlocker": "Failed shard log archive returned zip: not a valid zip file; no archive retry; ten-call budget exhausted."
+}
