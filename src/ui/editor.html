@@ -53,14 +53,36 @@
         <label>Target URL<input disabled name="url" type="url" placeholder="https://www.your-site.example/health" required></label>
        </div>
        <div class="type-fields editor-fields" data-types="mail" hidden>
-        <label>Mail protocol settings (JSON)<textarea disabled name="mailSettings" rows="14" maxlength="12000" spellcheck="false" aria-describedby="mail-settings-help"></textarea></label>
-        <p id="mail-settings-help" class="helper ui-helper">SMTP, POP3 or IMAP; reference runner-local credentials, never a password. Needs a private runner. <a href="/docs/definitions#mail-protocols">Configuration examples</a></p>
+        <label>Mail protocol<select disabled name="mailProtocol"><option value="smtp">SMTP</option><option value="pop3">POP3</option><option value="imap">IMAP</option></select></label>
+        <div class="editor-pair"><label>Mail host<input disabled name="mailHost" maxlength="253" placeholder="mail.example.com" autocapitalize="off" spellcheck="false" required></label><label>Mail port<input disabled name="mailPort" type="number" min="1" max="65535" required></label></div>
+        <label>TLS mode<select disabled name="mailSecurity"><option value="starttls">STARTTLS — upgrade the connection</option><option value="tls">TLS — secure from the start</option><option value="none">No TLS — no authentication</option></select></label>
+        <label>Mail credential reference (optional)<input disabled name="mailCredentialRef" maxlength="80" pattern="[a-zA-Z0-9_-]+" autocomplete="off" aria-describedby="mail-settings-help"></label>
+        <p id="mail-settings-help" class="helper ui-helper">Use the reference of credentials stored on your private runner, never a password. <a href="/docs/runner#request-credentials">Set up runner credentials</a></p>
+        <label class="check-row" data-mail-transaction-toggle><input disabled name="mailTransaction" type="checkbox">Send a synthetic message and confirm delivery</label>
+        <div class="editor-fields mail-transaction" data-mail-transaction hidden>
+         <label class="check-row"><input disabled name="mailDedicated" type="checkbox" required>I use a dedicated synthetic test mailbox</label>
+         <div class="editor-pair"><label>Sender address<input disabled name="mailFrom" type="email" maxlength="254" required></label><label>Recipient address<input disabled name="mailTo" type="email" maxlength="254" required></label></div>
+         <label>Receiving protocol<select disabled name="receiveProtocol"><option value="imap">IMAP</option><option value="pop3">POP3</option></select></label>
+         <div class="editor-pair"><label>Receiving host<input disabled name="receiveHost" maxlength="253" required></label><label>Receiving port<input disabled name="receivePort" type="number" min="1" max="65535" required></label></div>
+         <label>Receiving TLS mode<select disabled name="receiveSecurity"><option value="tls">TLS — secure from the start</option><option value="starttls">STARTTLS — upgrade the connection</option><option value="none">No TLS — no authentication</option></select></label>
+         <label>Receiving credential reference<input disabled name="receiveCredentialRef" maxlength="80" pattern="[a-zA-Z0-9_-]+" autocomplete="off" required></label>
+         <label data-receive-mailbox>IMAP mailbox<input disabled name="receiveMailbox" maxlength="128" required></label>
+         <div class="editor-pair"><label>Wait for delivery (seconds)<input disabled name="mailReceiptSeconds" type="number" min="0.25" max="60" step="0.001" required></label><label>Check mailbox every (seconds)<input disabled name="mailPollSeconds" type="number" min="0.1" max="5" step="0.001" required></label></div>
+         <p class="helper ui-helper">The runner removes only its synthetic message after confirming receipt.</p>
+        </div>
        </div>
        <div class="type-fields editor-fields" data-types="api" hidden>
-        <label>API origin URL<input disabled name="apiUrl" type="url" placeholder="https://sandbox.example.com/"></label>
-        <label>Shared runner credential reference (optional)<input disabled name="apiCredentialRef" maxlength="80" pattern="[a-zA-Z0-9_-]+" autocomplete="off"></label>
-        <label>Transaction steps (JSON)<textarea disabled name="apiSettings" rows="16" maxlength="24000" spellcheck="false" aria-describedby="api-steps-help"></textarea></label>
-        <p id="api-steps-help" class="helper ui-helper">Setup, request and cleanup steps on one origin; use <code>{{variable}}</code> in later steps. Needs a private runner. <a href="/docs/definitions#api-transactions">Configuration example</a></p>
+        <label>API origin URL<input disabled name="apiUrl" type="url" placeholder="https://api.example.com/"></label>
+        <label>Shared runner credential reference (optional)<input disabled name="apiCredentialRef" maxlength="80" pattern="[a-zA-Z0-9_-]+" autocomplete="off" aria-describedby="api-steps-help"></label>
+        <p id="api-steps-help" class="helper ui-helper">Requests stay on this origin. Authentication stays on your private runner. <a href="/docs/runner#request-credentials">Set up runner credentials</a></p>
+        <div class="editor-fields" data-api-builder>
+         <details class="step-options"><summary>Initial variables (optional)</summary><div class="editor-fields"><div data-pairs="variable"></div><button type="button" data-api-action="add-variable">Add variable</button></div></details>
+         <p class="helper ui-helper" data-step-count></p>
+         <section class="editor-fields transaction-phase" aria-labelledby="api-setup-heading"><h3 id="api-setup-heading">Setup <span class="muted">(optional)</span></h3><div class="editor-fields" data-api-phase="setup"></div><button type="button" data-api-action="add-step-setup">Add setup step</button></section>
+         <section class="editor-fields transaction-phase" aria-labelledby="api-request-heading"><h3 id="api-request-heading">Requests</h3><div class="editor-fields" data-api-phase="request"></div><button type="button" data-api-action="add-step-request">Add request step</button></section>
+         <section class="editor-fields transaction-phase" aria-labelledby="api-cleanup-heading"><h3 id="api-cleanup-heading">Cleanup <span class="muted">(optional)</span></h3><div class="editor-fields" data-api-phase="cleanup"></div><button type="button" data-api-action="add-step-cleanup">Add cleanup step</button></section>
+         <p role="status" data-api-feedback class="helper ui-helper"></p>
+        </div>
        </div>
        <div class="type-fields editor-fields" data-types="tcp" hidden>
         <div class="editor-pair"><label>Host<input disabled name="tcpHost" maxlength="253" placeholder="db.your-site.example" autocapitalize="off" spellcheck="false"></label><label>Port<input disabled name="tcpPort" type="number" min="1" max="65535" placeholder="5432"></label></div>

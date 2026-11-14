@@ -1,3 +1,5 @@
+import {readMail} from './mail-fields.mjs';
+import {readApi} from './api-fields.mjs';
 import {fillTlsFields,readTlsFields,showTlsFields} from './tls-fields.mjs';
 import {fillMetadata,readMetadata} from './metadata-fields.mjs';
 import {assembleAssertions,showJsonValue} from './definition.mjs';
@@ -31,8 +33,8 @@ export function readFields(root,definition){
  const privateScope=control(root,'networkScope')?.value==='private'&&['http','tcp'].includes(type);
  const timing={...(privateScope?{network:'private',privateGrantRef:control(root,'privateGrantRef').value.trim()}:{}),...readMetadata(root,definition),name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));
- if(type==='mail')return {...rest,...timing,type,network:'public',mail:JSON.parse(control(root,'mailSettings').value),assertions:{}};
- if(type==='api'){const ref=control(root,'apiCredentialRef').value.trim();return {...rest,...timing,type,network:'public',url:control(root,'apiUrl').value,api:JSON.parse(control(root,'apiSettings').value),...(ref?{request:{credentialRef:ref}}:{}),assertions:{status:200}}}
+ if(type==='mail')return {...rest,...timing,type,network:'public',mail:readMail(root),assertions:{}};
+ if(type==='api'){const ref=control(root,'apiCredentialRef').value.trim();return {...rest,...timing,type,network:'public',url:control(root,'apiUrl').value,api:readApi(root),...(ref?{request:{credentialRef:ref}}:{}),assertions:{status:200}}}
  if(PROTOCOL_TYPES.includes(type)){const {settings,assertions}=readProtocol(root,type);return {...rest,...timing,type,[type]:settings,assertions}}
  if([...PROTOCOL_TYPES,'api','mail','heartbeat'].includes(rest.type))rest.type='http';
  const assertions=assembleAssertions({status:value('status'),body:value('body'),bodyExcludes:value('bodyExcludes'),regexPattern:value('regexPattern'),regexFlags:value('regexFlags'),headerName:value('headerName'),headerValue:value('headerValue'),jsonPath:value('jsonPath'),jsonEquals:value('jsonEquals'),latencyMs:optionalSecondsToMilliseconds(value('latencyMs'))});
