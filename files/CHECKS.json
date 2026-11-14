@@ -78,5 +78,15 @@
     "| Agent surface | 0 | 11 | 8 | 19 |",
     "| Later | 0 | 0 | 1 | 1 |",
     "| Full target | 37 | 58 | 20 | 115 |"
-  ]
+  ],
+  "ci": {
+    "run_id": 43559709154,
+    "run_attempt": 2,
+    "head_sha": "d47a432be0b9d6b1115de8579e23115b7a123646",
+    "status": "in_progress",
+    "conclusion": null,
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559709154"
+  },
+  "terminal_disposition": "PUSHED",
+  "remaining": "Exact-SHA aggregate Verify retry is still in progress."
 }

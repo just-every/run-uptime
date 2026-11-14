@@ -57,6 +57,12 @@
         "--failed"
       ],
       "exit": 0
+    },
+    {
+      "number": 9,
+      "at": "2026-11-14T05:49:24.095441+00:00",
+      "path": "repos/just-every/run-uptime/actions/runs/43559709154",
+      "exit": 0
     }
   ],
   "runs": [
@@ -70,13 +76,15 @@
       "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559709154"
     }
   ],
-  "status": "rerun_requested",
+  "status": "in_progress",
   "run_id": 43559709154,
-  "conclusion": "cancelled",
+  "conclusion": null,
   "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559709154",
   "retry": {
     "command": "gh run rerun 43559709154 --repo just-every/run-uptime --failed",
     "exit": 0,
     "cause": "Only push-6 Run this shard was cancelled; build, prepare and seven other shards succeeded. Push-6 contains no touched journey."
-  }
+  },
+  "run_attempt": 2,
+  "terminal_disposition": "PUSHED: exact-SHA Verify retry remains in progress at the end of the 45-minute wait and remaining call budget is reserved; no success or landing claimed."
 }
