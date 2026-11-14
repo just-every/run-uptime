@@ -9,6 +9,13 @@
       "head_sha": "f4f3a25390b2a931737e286ce4e777ef68ed0b34",
       "html_url": "https://github.com/just-every/run-uptime/actions/runs/43596225498",
       "status": "in_progress"
+    },
+    {
+      "read_at": 1794661491,
+      "conclusion": "success",
+      "head_sha": "f4f3a25390b2a931737e286ce4e777ef68ed0b34",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43596225498",
+      "status": "completed"
     }
   ]
 }

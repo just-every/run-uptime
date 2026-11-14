@@ -7,10 +7,10 @@
       "sha256": "d7289d493c2fa149a275e61bfc4fd743dbdc4959eb2ba1eda65443eaaa8f2e6f"
     },
     {
-      "blob": "fa43726ba9fe132df29120183ab46d2a7b2d8be4",
-      "bytes": 5954,
+      "blob": "a928544c4035b99dbcee4b9af43f871005bd1809",
+      "bytes": 6197,
       "path": "REPORT.md",
-      "sha256": "466165923fc302120d47261d749213b3f5bab830089602c16837b35fc1f8c999"
+      "sha256": "65f59141a3464c06114f2e0d9edb482861f076777dc4038dbee86b7f2eab6d2e"
     },
     {
       "blob": "e7e47508e2471797fef1b75f573914b09d29723c",
@@ -73,16 +73,16 @@
       "sha256": "dd0ddab7234e2cb6aaddf0b84a148055ed21afd6a16d7e7fc63fb477cfc54113"
     },
     {
-      "blob": "ee37ee174b338d737730106ffce97836c454b5a9",
-      "bytes": 183,
+      "blob": "8cd39501c4e33cd7079a9482d0530d613c9deb32",
+      "bytes": 186,
       "path": "ci-status.json",
-      "sha256": "3cc560adab0907205d1a9e205965b2360126e9018a124d70ddb1979d6f670b11"
+      "sha256": "ec6066a9f1e1c9601816536a94a3ce4b2b6a3b82774881b1207856a9e1a6af90"
     },
     {
-      "blob": "b506c097c85912ec300278d6b87c1a41ed52d420",
-      "bytes": 362,
+      "blob": "4e6373c56ef2641ff7f3aeca1c3b78b8ad6fa072",
+      "bytes": 612,
       "path": "ci-watcher-receipt.json",
-      "sha256": "20c6ebedd662ad1c37cbdcfadc0bd9073dd1dafb31cf87b7b3351f4192d6ad39"
+      "sha256": "a2db8225c8fe05be5cc6dc2e6f7f0020b5c545c0a36eab15b1a93e4f0652b510"
     },
     {
       "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
@@ -187,10 +187,10 @@
       "sha256": "60ed0c4b6cef3e62b3d4f691d63c22ca30b27b753872d2f510d6ed1ffee13c26"
     },
     {
-      "blob": "0c97f6536f45a0814d2aed84cd1327a0ecaa6bfa",
-      "bytes": 2266,
+      "blob": "58b3d70ecebd4b90e3ef550131f7582d30a323b6",
+      "bytes": 2327,
       "path": "validation-receipt.json",
-      "sha256": "287ab1478a885a83baec37068b83ba8eb9a73f60164f9fc0271c0d64497f4b61"
+      "sha256": "ba78742330ed1795941c040be6a5e85f09f9dc3f7798ddf9be80081b9267108c"
     }
   ],
   "product_branch": "cloud/main-uptime-readable-details-1-c1",
