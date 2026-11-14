@@ -81,7 +81,8 @@
   "packageManager": "pnpm@10.12.4",
   "pnpm": {
     "overrides": {
-      "miniflare@5.20260926.1-alpha>sharp": "0.35.5"
+      "miniflare@5.20260926.1-alpha>sharp": "0.35.5",
+      "undici": "7.30.1"
     },
     "onlyBuiltDependencies": [
       "esbuild",

@@ -3395,7 +3395,21 @@
         "modules/mail/tests/sendgrid/wire.test.mjs",
         "modules/mail/tests/sendgrid/worker.mjs",
         "modules/mail/tests/unsubscribe/unsubscribe.test.mjs"
-      ]
+      ],
+      "adapted": {
+        "src/base/modules/mail/package.json": "c2efb501cbc148c2aee4d5e1107ebdba81469006",
+        "src/base/modules/mail/pnpm-lock.yaml": "c2efb501cbc148c2aee4d5e1107ebdba81469006"
+      },
+      "acknowledged": {
+        "src/base/modules/mail/package.json": {
+          "sha256": "887d3c7dbbeba0a38c924a17b396966245140642602d047e309cec29645c089f",
+          "mode": "100644"
+        },
+        "src/base/modules/mail/pnpm-lock.yaml": {
+          "sha256": "d522fc5e028ac3daeecb7ef2a83bebb69141a367516c4365b85339eb1a1e35b0",
+          "mode": "100644"
+        }
+      }
     },
     {
       "path": "src/base/modules/operator-auth",
