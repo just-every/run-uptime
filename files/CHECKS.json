@@ -1,0 +1,82 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-install-truth-1",
+  "head": "d47a432be0b9d6b1115de8579e23115b7a123646",
+  "baseline": "c14aafe38f2a5c754a550251593170404f1363a5",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0,
+      "note": "fresh final candidate build"
+    },
+    {
+      "command": "pnpm spec:generate",
+      "exit": 0,
+      "note": "no spec drift"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "node tests/command-journey.mjs",
+      "exit": 0,
+      "note": "fresh setup/build; real browser PDF download; full installed command journey"
+    },
+    {
+      "command": "node tests/reporting.mjs",
+      "exit": 0,
+      "note": "emitted Worker PDF, JSON/CSV, schedule and recurrence coverage; passed before and after"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "public rendered documentation readback at 1440 and 390",
+      "exit": 0,
+      "note": "all six requests HTTP 200; no horizontal overflow"
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "local_code_checks_started_on": "1b91aa8cf49aebdc2d4a01cbb1181d79fe69929a",
+  "final_amendment_changed_only": [
+    "docs/definitions.md",
+    "sources.lock.json"
+  ],
+  "source_code_and_test_bytes_unchanged_by_final_amendment": true,
+  "selected_public_door_journeys_before": 47,
+  "selected_public_door_journeys_after": 47,
+  "new_test_registrations": 0,
+  "contract_status_changes": [],
+  "publication_scan": "Fleet Mac gate; unavailable in this cloud; not claimed",
+  "pdf": {
+    "status": 200,
+    "contentType": "application/pdf",
+    "filename": "uptime-report-1794546048637-1794632448637.pdf",
+    "pages": 2,
+    "title": "Hydration monitor 1440 - Uptime period report",
+    "freshInstallation": true
+  },
+  "contract_source_sha256": "15145d9425bbeedd7716aaa06134e91aedbcc8f76c0ef93847220175fc4f9ca5",
+  "contract_source_equals_origin_main": true,
+  "acceptance_summary_before_and_after": [
+    "| Tier | Done | Partial | Missing | Total |",
+    "| --- | ---: | ---: | ---: | ---: |",
+    "| Core | 37 | 47 | 11 | 95 |",
+    "| Agent surface | 0 | 11 | 8 | 19 |",
+    "| Later | 0 | 0 | 1 | 1 |",
+    "| Full target | 37 | 58 | 20 | 115 |"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "repository": "just-every/run-uptime",
+  "head_sha": "d47a432be0b9d6b1115de8579e23115b7a123646",
+  "calls": [
+    {
+      "number": 1,
+      "at": "2026-11-14T05:04:15.552853+00:00",
+      "path": "repos/just-every/run-uptime/actions/runs?head_sha=d47a432be0b9d6b1115de8579e23115b7a123646&per_page=100",
+      "exit": 0
+    },
+    {
+      "number": 2,
+      "at": "2026-11-14T05:09:16.062586+00:00",
+      "path": "repos/just-every/run-uptime/actions/runs?head_sha=d47a432be0b9d6b1115de8579e23115b7a123646&per_page=100",
+      "exit": 0
+    },
+    {
+      "number": 3,
+      "at": "2026-11-14T05:14:16.535249+00:00",
+      "path": "repos/just-every/run-uptime/actions/runs/43559709154",
+      "exit": 0
+    }
+  ],
+  "runs": [
+    {
+      "id": 43559709154,
+      "name": "Verify",
+      "event": "push",
+      "head_sha": "d47a432be0b9d6b1115de8579e23115b7a123646",
+      "status": "in_progress",
+      "conclusion": null,
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559709154"
+    }
+  ],
+  "status": "in_progress",
+  "run_id": 43559709154,
+  "conclusion": null,
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559709154"
+}

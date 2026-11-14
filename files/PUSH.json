@@ -1,0 +1,14 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-install-truth-1",
+  "head": "d47a432be0b9d6b1115de8579e23115b7a123646",
+  "remote_head": "d47a432be0b9d6b1115de8579e23115b7a123646",
+  "push_command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/main-uptime-install-truth-1",
+  "push_exit": 0,
+  "push_attempts": 1,
+  "all_candidate_author_and_committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "candidate_trailers": [],
+  "product_push_count": 1,
+  "default_branch_pushed": false,
+  "pr_created": false
+}

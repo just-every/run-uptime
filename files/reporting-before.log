@@ -1,0 +1,8 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:1762) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+REPORT-001 scheduled API/CLI PASS: same period/zone/denominator figures, authorized email/Slack, due gating across restart, durable uncertain/failed outcomes and no duplicate sends.
+REPORT-001 recurring API/CLI PASS: daily/weekly/monthly IANA DST and month-end times, per-monitor/service shared denominators and CSV/JSON reads, due snapshots, single sends across restart, durable failures, cancellation, destination revocation and initiating-owner narrowing.
+REPORT-001 / READAPI-002 passed: owner period reports, full immutable coverage and incident overlap, SLA denominator, exact CSV/API/console figures, location latency percentiles at every resolution, Chicago DST validation, and oversized raw-series refusal.
