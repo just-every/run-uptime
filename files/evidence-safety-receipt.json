@@ -1,0 +1,27 @@
+{
+  "credential_match_count": 0,
+  "selected_files_checked": [
+    "PLAN.md",
+    "REPORT.md",
+    "bundle-receipt.json",
+    "candidate-receipt.json",
+    "ci-receipt.json",
+    "command-journey-receipt.json",
+    "dependency-receipt.json",
+    "evidence-initial-verification.json",
+    "evidence-safety-receipt.json",
+    "github-call-receipt.json",
+    "identity-receipt.json",
+    "installed-vite.json",
+    "local-checks.json",
+    "publication-scan-initial.json",
+    "publication-scan-invocation.json",
+    "publication-scan.json",
+    "push-receipt.json",
+    "result.json"
+  ],
+  "environment_dump_in_packet": false,
+  "product_commit_unchanged": true,
+  "incident": "An erroneous extra env invocation printed environment values, including the launcher decryption key, to the task tool transcript. It was outside the redirected evidence log. The explicit packet files contain no matching GitHub token or launcher key. No environment dump was committed or published. Rotate the launcher decryption key through the fleet owner; this task has no key-rotation interface.",
+  "checked_all_injected_values_with_at_least_20_characters": true
+}

@@ -1,0 +1,7 @@
+{
+  "status": "done",
+  "sha": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+  "summary": "Upgraded only Vite 8.2.2 to patched 8.2.4 and its peer references, refreshed the source lock, and preserved main's Zod 4.6.6 fix; exact-head Verify and publication scan passed.",
+  "tests": "Node 22.20.0 / pnpm 10.12.4: frozen install, noninteractive setup, npx -y @runeditrun/rer build, pnpm typecheck, spec generation/check, source lock/check, contract-doc check, git diff --check and existing command-journey passed. Base publication scan COMPLETE/PASS with zero findings. Exact-SHA Verify 43584666832 completed/success.",
+  "security": true
+}

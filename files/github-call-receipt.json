@@ -1,0 +1,51 @@
+{
+  "calls_used": 8,
+  "budget": 10,
+  "calls": [
+    {
+      "call": 1,
+      "purpose": "Read Gitleaks 8.30.1 release asset metadata"
+    },
+    {
+      "call": 2,
+      "purpose": "Download Gitleaks 8.30.1 release asset via gh api"
+    },
+    {
+      "call": 3,
+      "time": 1794651098.1340868,
+      "purpose": "gh api",
+      "endpoint": "graphql"
+    },
+    {
+      "call": 4,
+      "time": 1794651492.8012004,
+      "purpose": "gh api",
+      "endpoint": "graphql"
+    },
+    {
+      "call": 5,
+      "time": 1794651545.7246346,
+      "purpose": "gh api",
+      "endpoint": "repos/just-every/run-uptime/actions/runs?head_sha=28c0bb130a0ec6b045bcbebc44ee05d787c76acb&per_page=100"
+    },
+    {
+      "call": 6,
+      "time": 1794651845.7357337,
+      "purpose": "gh api",
+      "endpoint": "repos/just-every/run-uptime/actions/runs/43584666832"
+    },
+    {
+      "call": 7,
+      "time": 1794652145.739394,
+      "purpose": "gh api",
+      "endpoint": "repos/just-every/run-uptime/actions/runs/43584666832"
+    },
+    {
+      "call": 8,
+      "time": 1794652445.7452123,
+      "purpose": "gh api",
+      "endpoint": "repos/just-every/run-uptime/actions/runs/43584666832"
+    }
+  ],
+  "polling_interval_seconds": 300
+}

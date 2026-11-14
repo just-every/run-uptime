@@ -7,10 +7,10 @@
       "sha256": "4b5b098167e7d67ad82c7a0bfb8bc1e5379acb60a5f48574fbc54ad643630fea"
     },
     {
-      "blob": "be095d18dfec50feac5a8426ad4676a8e329c3ec",
-      "bytes": 5649,
+      "blob": "7f32203474d6de348fec2705473a12f2ec832443",
+      "bytes": 7488,
       "path": "REPORT.md",
-      "sha256": "388e19e2954398ef5f8da739424707d07d87b1ee497c1d760f0c91e00cabe182"
+      "sha256": "2b821d28cbdb8f112b8b9f22db9f6cf8c00965e1a20de8fc8039e15c080b10f4"
     },
     {
       "blob": "72920e8b7992e633589f77455db804d297d0f2f4",
@@ -25,10 +25,10 @@
       "sha256": "70bdb66cd901e9bfe7dc79d5746e26e73c8307b576a7f01d54aa3c22cfdcf918"
     },
     {
-      "blob": "663567ac61a3804a9acd651bdbe2fc7fe3ea1c88",
-      "bytes": 972,
+      "blob": "4be3765baed28b65edb26d3cd8d223014bf6ae41",
+      "bytes": 1758,
       "path": "ci-receipt.json",
-      "sha256": "a63abde73d90558d170efe3b0a3710112c4411cc9c0449dcf42ab4b919d7db96"
+      "sha256": "54a45b358a8e1ccf5b46e5f4e68954fccd5c9ba0f2e61c6672071b2260873b59"
     },
     {
       "blob": "3f7671917c3bd5d24daa99775fd970a210d6dbc9",
@@ -41,6 +41,24 @@
       "bytes": 1072,
       "path": "dependency-receipt.json",
       "sha256": "9ff97af9074ec274be39d8c6fc79d41b03dba4eb955deae0e0c74426669a933c"
+    },
+    {
+      "blob": "94580407960b5119ca6cb5928c12a82e5e09d428",
+      "bytes": 509,
+      "path": "evidence-initial-verification.json",
+      "sha256": "fc8d5574f669814a7fd675ccf13cebff995bc2a11657d047c527ba85e2dffd95"
+    },
+    {
+      "blob": "20797b64fc77fd4e172571c5c5ea3442b85c0c18",
+      "bytes": 1146,
+      "path": "evidence-safety-receipt.json",
+      "sha256": "247dee73175bc485518b3516d504624a143efcb42decdf014b0774cb617a963d"
+    },
+    {
+      "blob": "e3387d77480949cbf3730b78682fa3016f818590",
+      "bytes": 1226,
+      "path": "github-call-receipt.json",
+      "sha256": "46e57ef1fec1b69a50b44015dd5058ba1b8bdffa3300613be1017c36142787e1"
     },
     {
       "blob": "698eb3046d41eeca501c4065c9d759b9816f3adb",
@@ -83,6 +101,12 @@
       "bytes": 1197,
       "path": "push-receipt.json",
       "sha256": "3bd9b323b02b7691d037ee22203f66945a59ea38b985233e38f77c1449b7052c"
+    },
+    {
+      "blob": "0991071069808e9a76dceaf674a7e88cc8d84ee7",
+      "bytes": 636,
+      "path": "result.json",
+      "sha256": "7451241657da0c26e646d02071f2305fd2a226ba682210284a267041beb06e1a"
     }
   ],
   "product_branch": "cloud/gr-mt-uptime-dep-5",

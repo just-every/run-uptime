@@ -1,0 +1,10 @@
+{
+  "ref": "refs/heads/evidence/gr-mt-uptime-dep-5",
+  "head": "eed047c31db6883f28b3f43f1d0e8c9c924713fc",
+  "status": "restored",
+  "manifest_sha256": "a155a811ee471b11786a1bc9b0da5a8e8240a4d6536329431b537cc825efba57",
+  "product_head": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+  "file_count": 14,
+  "credential_match_count": 0,
+  "scope": "Initial published evidence snapshot fetched by exact head; manifest and file hashes verified; packet contains no matching injected bundle values or launcher key"
+}

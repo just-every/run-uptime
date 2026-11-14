@@ -1,5 +1,7 @@
 # gr-mt-uptime-dep-5
 
+Product result: DONE. Branch pushed; exact-SHA Verify 43584666832 completed/success. Publication scan COMPLETE/PASS with zero new findings. Owner follow-up: rotate the launcher decryption key exposed only in the tool transcript; no matching credential value was committed or published.
+
 Repository: just-every/run-uptime
 Product branch: cloud/gr-mt-uptime-dep-5
 Candidate: 28c0bb130a0ec6b045bcbebc44ee05d787c76acb
@@ -29,7 +31,7 @@ Vite: 8.2.2 -> 8.2.4. Distinct vulnerable Vite resolutions: 1 -> 0. Unrelated pa
 
 ## Custody and remaining checks
 
-Publication scan, product push and exact-SHA Verify receipts are added below when complete. The fleet owns independent publication checks and landing; this cloud never moves main. Evidence publication is separate from product readiness and contains no credentials, private installation settings, environment dumps, held-out gate material or symlinks.
+Publication scan, product push and exact-SHA Verify receipts are complete and retained in this packet. The fleet owns independent publication checks and landing; this cloud never moves main. Evidence publication is separate from product readiness and contains no credentials, private installation settings, environment dumps, held-out gate material or symlinks.
 
 The initial Base publication scan returned INCOMPLETE with scan.deadline-exceeded at the default 300 seconds. Its actual receipt is publication-scan-initial.json. A second invocation uses the scanner-supported 1800-second deadline on a clean worktree of the same committed candidate, not the private installation checkout. Gitleaks 8.30.1 was obtained through gh api from its official release.
 
@@ -40,3 +42,9 @@ Final publication scan: COMPLETE/PASS, zero findings, exact commit 28c0bb130a0ec
 Product custody: guarded push succeeded on attempt 1 to cloud/gr-mt-uptime-dep-5 at 28c0bb130a0ec6b045bcbebc44ee05d787c76acb. No main push, PR, tag or release was created. Push diagnostics reported existing default-branch Dependabot alerts; they are outside this Vite-only change. The clean publication worktree was removed after scanning; the product clone and independently verified recovery bundle remain available.
 
 Exact-SHA CI: push Verify run 43584666832 was discovered in_progress for 28c0bb130a0ec6b045bcbebc44ee05d787c76acb at https://github.com/just-every/run-uptime/actions/runs/43584666832. One watcher performs REST observations at least 300 seconds apart; ci-receipt.json retains the actual discovery and polling responses. A result from another SHA is never accepted.
+
+Security incident: while preparing the first report-only publication command, an erroneous extra env invocation printed environment values, including the launcher decryption key, to the task tool transcript. That output was outside the evidence command redirection and never entered product Git or the explicitly selected evidence files. Checked every packet file against the actual GitHub token and launcher key in memory: zero matches. The fleet owner should rotate the launcher decryption key; this cloud has no key-rotation interface. No key value or environment dump is included in this packet.
+
+Final CI result: Verify 43584666832 completed/success for 28c0bb130a0ec6b045bcbebc44ee05d787c76acb. 8 of ten GitHub calls used, with one watcher and REST polls at least 300 seconds apart. No failing run or job-log download. No product blocker remains. No PR was required or created. Clause counts remain 37 done / 58 partial / 20 missing / 115 total, with no status or acceptance-text changes. The full plan is PLAN.md, detailed command outcomes are local-checks.json, and result.json is the requested maintenance return.
+
+Evidence transport: the first report-only snapshot at eed047c31db6883f28b3f43f1d0e8c9c924713fc was independently fetched by exact head and its manifest and every file hash verified. Its public bytes contained zero matching injected values or launcher key. The final packet adds the terminal CI/result receipts and explicit incident note. Evidence does not establish landing or replace the fleet's independent gates.
