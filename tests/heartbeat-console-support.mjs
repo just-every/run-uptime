@@ -84,6 +84,10 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   // Read the updated page without reloading: polling must keep its one-time URL.
   await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:15000});
   assert.equal(await urlField.inputValue(),url,'polling keeps the URL available for this visit');
+  const checkDetails=page.locator('details#details');await checkDetails.locator(':scope > summary').click();
+  assert.equal(await checkDetails.locator('pre').count(),0,'scheduled evidence is readable without raw JSON');
+  assert.doesNotMatch(await checkDetails.innerText(),/HTTP|\b200\b|[{}]/,'heartbeat evidence never shows an HTTP assertion');
+  assert.ok((await checkDetails.innerText()).includes('Healthy'),'signed scheduled health appears in check details');
   await shot('job-up');
   const anchor=received.data.receivedAt;
   advance(anchor+30000);await runner();assert.notEqual(await state(id),'Failing','the grace period still applies');
@@ -109,7 +113,8 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   await page.getByRole('button',{name:'Save job settings',exact:true}).click();assert.equal((await configured).status(),200);
   await page.reload();await page.locator('#rules-card').waitFor();
   if(!await cronFold.evaluate(e=>e.open))await cronFold.locator(':scope > summary').click();
-  const panels=[page.locator('#rules-card'),page.locator('.heartbeat[aria-labelledby="heartbeat-heading"]'),page.locator('#heartbeat-checkin'),page.locator('#heartbeat-jobs > dl')];
+  await checkDetails.locator(':scope > summary').click();
+  const panels=[checkDetails,page.locator('#rules-card'),page.locator('.heartbeat[aria-labelledby="heartbeat-heading"]'),page.locator('#heartbeat-checkin'),page.locator('#heartbeat-jobs > dl')];
   const summaries=await Promise.all(panels.map(panel=>panel.innerText()));
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'cron summary reflows at the assertion width');
   await shot('cron-job-rules');
