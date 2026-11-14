@@ -1,10 +1,21 @@
 {
   "repository": "just-every/run-uptime",
   "branch": "cloud/main-uptime-readable-details-1",
-  "head": "d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d",
+  "head": "4487112e58139713fb0bf4fb482de68778588d3d",
   "base": "c14aafe38f2a5c754a550251593170404f1363a5",
   "productPush": "success",
-  "productPushAttempts": 1,
+  "productPushAttempts": [
+    {
+      "head": "d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d",
+      "attempts": 1,
+      "result": "success"
+    },
+    {
+      "head": "4487112e58139713fb0bf4fb482de68778588d3d",
+      "attempts": 1,
+      "result": "success"
+    }
+  ],
   "workingTreeClean": true,
   "assertionWidth": 1440,
   "browserProofWidths": [
@@ -54,7 +65,7 @@
     {
       "command": "node scripts/edition-authoring/cli.mjs check",
       "exit": 0,
-      "logSha256": "fd8dc46361817df1cb36d7b6589614a5c8e4f012171c90e90fc505bf229a7179"
+      "logSha256": "deaf001f58b449621b15bc4b00b3fc9fe98194aaa3de49cf9b631d17fe735f74"
     },
     {
       "command": "node src/base/contract-docs.mjs check",
@@ -63,6 +74,17 @@
     {
       "command": "git diff --check",
       "exit": 0
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/browser-suites.mjs",
+      "exit": 0,
+      "scope": "Full desktop operator journey, 390 phone smoke and recovery after correction."
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium UPTIME_SCREENSHOTS=<packet> cloud_run node /tmp/uptime-readable-checks.mjs",
+      "exit": 0,
+      "head": "4487112e58139713fb0bf4fb482de68778588d3d",
+      "scope": "Candidate proof recaptured after final product push."
     }
   ],
   "visualReview": {
@@ -77,11 +99,20 @@
     "No hosted-provider, human screen-reader, VPAT or whole-clause completion claim."
   ],
   "ci": {
-    "runId": 43559246813,
     "conclusion": null,
-    "head_sha": "d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d",
-    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559246813",
+    "event": "push",
+    "head_branch": "cloud/main-uptime-readable-details-1",
+    "head_sha": "4487112e58139713fb0bf4fb482de68778588d3d",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43562712656",
+    "id": 43562712656,
+    "name": "Verify",
     "status": "in_progress",
-    "githubCallsUsed": 2
-  }
+    "githubCallsUsed": 10,
+    "budget": 10,
+    "terminalCustody": "PUSHED",
+    "initialFailedRun": 43559246813,
+    "initialFailure": "Obsolete nested UI assertion required the removed raw JSON disclosure; replaced with readable UI and exact raw API preservation.",
+    "failedJobsRerunRequestedOnce": true
+  },
+  "productPushes": 2
 }

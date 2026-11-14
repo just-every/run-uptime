@@ -1,0 +1,10 @@
+{
+  "conclusion": null,
+  "event": "push",
+  "head_branch": "cloud/main-uptime-readable-details-1",
+  "head_sha": "4487112e58139713fb0bf4fb482de68778588d3d",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/43562712656",
+  "id": 43562712656,
+  "name": "Verify",
+  "status": "in_progress"
+}

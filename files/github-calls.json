@@ -1,0 +1,100 @@
+{
+  "calls": [
+    {
+      "at": 1794632331.0302575,
+      "args": [
+        "api",
+        "repos/just-every/run-uptime/actions/runs?head_sha=d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d&per_page=100",
+        "--jq",
+        "[.workflow_runs[] | {id,name,status,conclusion,head_sha,html_url,event,head_branch}]"
+      ]
+    },
+    {
+      "at": 1794632632.0544245,
+      "args": [
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43559246813",
+        "--jq",
+        "{status,conclusion,head_sha,html_url}"
+      ]
+    },
+    {
+      "at": 1794632933.0857844,
+      "args": [
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43559246813",
+        "--jq",
+        "{status,conclusion,head_sha,html_url}"
+      ]
+    },
+    {
+      "at": 1794633234.1148024,
+      "args": [
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43559246813",
+        "--jq",
+        "{status,conclusion,head_sha,html_url}"
+      ]
+    },
+    {
+      "at": 1794633535.1429293,
+      "args": [
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43559246813",
+        "--jq",
+        "{status,conclusion,head_sha,html_url}"
+      ]
+    },
+    {
+      "at": 1794633836.1714709,
+      "args": [
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43559246813",
+        "--jq",
+        "{status,conclusion,head_sha,html_url}"
+      ]
+    },
+    {
+      "at": 1794633847.3676188,
+      "args": [
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43559246813/jobs?per_page=100",
+        "--jq",
+        "[.jobs[] | {id,name,status,conclusion,steps:[.steps[] | select(.conclusion == \"failure\" or .conclusion == \"cancelled\") | {name,conclusion,number}]}]"
+      ]
+    },
+    {
+      "at": 1794633859.7526116,
+      "args": [
+        "run",
+        "view",
+        "43559246813",
+        "--repo",
+        "just-every/run-uptime",
+        "--job",
+        "132339209192",
+        "--log-failed"
+      ]
+    },
+    {
+      "at": 1794633941.5279117,
+      "args": [
+        "run",
+        "rerun",
+        "43559246813",
+        "--repo",
+        "just-every/run-uptime",
+        "--failed"
+      ]
+    },
+    {
+      "at": 1794634929.8835866,
+      "args": [
+        "api",
+        "repos/just-every/run-uptime/actions/runs?head_sha=4487112e58139713fb0bf4fb482de68778588d3d&per_page=100",
+        "--jq",
+        "[.workflow_runs[] | {id,name,status,conclusion,head_sha,html_url,event,head_branch}]"
+      ]
+    }
+  ]
+}

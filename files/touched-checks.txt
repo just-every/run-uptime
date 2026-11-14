@@ -1,4 +1,4 @@
-Focused public-door browser journey and second-factor erasure
+Final candidate focused browser proof
 Command exit: 0
 ▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
 
@@ -6,6 +6,15 @@ Command exit: 0
 PASS proveReadableMaintenanceAndErasure: imported heartbeat criteria, public erasure receipt, unchanged download, all counts, clipboard, axe, 1440 assertions and 1440/390 proof.
 Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, plain counted receipt with unchanged storage and later backup.
 PASS proveMonitorStepUp: native step-up, stored receipt and backup preservation.
+
+Full browser suite after correction
+Command exit: 0
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+Running tests/operator-browser.mjs
+Running tests/recovery-browser.mjs
+Browser integration passed; owned runtime groups stopped and temporary grant/state removed. Private evidence: /workspace/run-uptime/data/browser-suites-evidence-KOJcOT
 
 Signed production-runner lifecycle and heartbeat console
 Command exit: 0
@@ -20,7 +29,7 @@ HEARTBEAT-004 saved-document migrations passed: UptimeRobot and Better Stack 60-
 SIGNED-RUNNER results {"tablesCompared":224,"assignedWindowFresh":true,"refusedStatus":403,"acceptedStatus":200,"persistedAttempts":1,"duplicateStatus":200}
 SIGNED-RUNNER completed one owner-to-runner lifecycle: emitted Worker + migrated persistent D1, real Node process restarts, local HTTPS with verified certificates; no real account or public network deployment.
 
-Typecheck
+Final correction typecheck
 Command exit: 0
  WARN  Unsupported engine: wanted: {"node":"22.20.0"} (current: {"node":"v24.19.0","pnpm":"10.12.4"})
 
@@ -28,7 +37,7 @@ Command exit: 0
 > tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
 
 
-Contract generated-documents check
+Contract documents
 Command exit: 0
 Contract prose: 0 errors, 0 warnings.
 Contract documents are current.

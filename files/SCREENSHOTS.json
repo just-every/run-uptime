@@ -1,5 +1,5 @@
 {
-  "productHead": "d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d",
+  "productHead": "4487112e58139713fb0bf4fb482de68778588d3d",
   "assertionWidth": 1440,
   "proofWidths": [
     1440,
@@ -28,23 +28,23 @@
     },
     {
       "file": "after-heartbeat-check-details-1440.png",
-      "bytes": 289732,
-      "sha256": "182f20f5a53876d81ac2a3d794e4b59df1dbfd52701712b11b7b3e74d857b249"
+      "bytes": 290150,
+      "sha256": "1ca7b98062d585b9917e5f22b87c9ca81ebc267a7025fb42d2d8ee21c446e5e4"
     },
     {
       "file": "after-heartbeat-check-details-390.png",
-      "bytes": 261360,
-      "sha256": "1ce15118774ad9a17bb754bfbf9947d5d1b023ebfde7b45584fcc96bede2a23c"
+      "bytes": 261554,
+      "sha256": "58093e5eb1c5e6743f8a2384e30cdcb11471f44ea8c47c0982e8782b8fc9a21c"
     },
     {
       "file": "after-erasure-receipt-details-1440.png",
-      "bytes": 151524,
-      "sha256": "1cfd48d770e5b0712d7256afa5535f414a744c42048f07fcdbe2c1ba11bfea12"
+      "bytes": 152058,
+      "sha256": "977a04b9cf04e1daf3cd1c693ac70d34e29543a1d173db6221f214a2c965f37c"
     },
     {
       "file": "after-erasure-receipt-details-390.png",
-      "bytes": 114806,
-      "sha256": "2bc5cdb0a0bf35402e20b024ca51ab7ad693a8470ccd79d14cd4d402f365c3dd"
+      "bytes": 115160,
+      "sha256": "62d6d93663675d6f464d448f839b55b2778b015eefa9bde341f6ae6c76443802"
     }
   ]
 }

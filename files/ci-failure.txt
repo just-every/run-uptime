@@ -1,0 +1,69 @@
+Failed run: 43559246813; head d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d
+Failed job: shards (push-8), 132339209192; step Run this shard.
+Command: gh run view 43559246813 --repo just-every/run-uptime --job 132339209192 --log-failed
+shards (push-8)	Run this shard	2026-11-14T05:00:35.9941676Z > node tests/browser-suites.mjs
+shards (push-8)	Run this shard	2026-11-14T05:00:43.0594510Z Running tests/operator-browser.mjs
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8359572Z node:internal/modules/run_main:123
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8360698Z     triggerUncaughtException(
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8361277Z     ^
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8361529Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8362811Z AssertionError [ERR_ASSERTION]: tests/operator-browser.mjs: failed at tests/operator-browser.mjs:216:18; inspect its private suite.log
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8363986Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8364265Z 1 !== 0
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8364505Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8364950Z     at runSuite (file://[REDACTED]/tests/browser-suites.mjs:163:10)
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8365796Z     at async file://[REDACTED]/tests/browser-suites.mjs:235:3 {
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8366443Z   generatedMessage: false,
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8366978Z   code: 'ERR_ASSERTION',
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8367457Z   actual: 1,
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8367878Z   expected: 0,
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8368309Z   operator: 'strictEqual',
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8368736Z   diff: 'simple'
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8369131Z }
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8369329Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8369528Z Node.js v22.20.0
+shards (push-8)	Run this shard	2026-11-14T05:02:16.8843903Z  ELIFECYCLE  Command failed with exit code 1.
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9659528Z Verifying application: exit 1, signal none.
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9660432Z Command: pnpm
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9660784Z Last output (up to 40 lines):
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9661259Z       "files": 1
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9661620Z     }
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9661946Z   ],
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9662268Z   "drift": [],
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9662653Z   "unrecordedCopies": [],
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9663077Z   "adapted": [
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9663418Z     {
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9663840Z       "path": ".github/workflows/verify.yml",
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9664563Z       "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9"
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9665146Z     },
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9665456Z     {
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9665799Z       "path": "src/base/lobby.ts",
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9666564Z       "revision": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf"
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9666936Z     }
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9667142Z   ],
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9668144Z   "meaning": "Undeclared copies claim Base byte equality. Declared adaptations must match their acknowledged local bytes and mode; their recorded Base bytes and revision remain comparison baselines."
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9669107Z }
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9669293Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9669463Z > node tests/browser-suites.mjs
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9669817Z Running tests/operator-browser.mjs
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9670495Z node:internal/modules/run_main:123
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9670827Z     triggerUncaughtException(
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9671124Z     ^
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9671231Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9671884Z AssertionError [ERR_ASSERTION]: tests/operator-browser.mjs: failed at tests/operator-browser.mjs:216:18; inspect its private suite.log
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9672709Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9672801Z 1 !== 0
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9672931Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9673048Z   generatedMessage: false,
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9673333Z   code: 'ERR_ASSERTION',
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9673587Z   actual: 1,
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9673794Z   expected: 0,
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9674041Z   operator: 'strictEqual',
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9674298Z   diff: 'simple'
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9674520Z }
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9674622Z 
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9674718Z Node.js v22.20.0
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9675353Z  ELIFECYCLE  Command failed with exit code 1.
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9675785Z Log: [REDACTED]/.seed/installer/install.log
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9676166Z verify: failed (exit 1)
+shards (push-8)	Run this shard	2026-11-14T05:02:16.9947787Z ##[error]Process completed with exit code 1.
