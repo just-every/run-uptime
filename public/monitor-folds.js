@@ -1,5 +1,5 @@
-import {escape,humaneDuration} from './console-format.js';
-import {moreInfo,dayClock} from './monitor-status.js';
+import {escape,humaneDuration,shownState} from './console-format.js';
+import {moreInfo,dayClock,statusLine} from './monitor-status.js';
 import {openSlow} from './monitor-status-line.js';
 import {responseTime,httpRules,httpType,locationNamer} from './monitor-rules.js';
 import {COVERAGE_RULE,coverage,coverageLegend} from './monitor-coverage.js';
@@ -33,16 +33,15 @@ function coverageWindows(m,{since,now}){
  return window('Last 24 hours',m.availability?.last24h)+window('Last 7 days',m.availability?.last7d);
 }
 const reportsCoverage=(m,seen,data)=>`<div class="report-coverage"><div class="coverage-windows">${coverageWindows(m,{since:seen.start,now:data.now})}</div><div class="coverage-foot">${coverageLegend}${moreInfo('Uptime counts only observed time.',escape(COVERAGE_RULE)+' Passing is the share of observed time when every configured check passed. Percentages are rounded to two decimals, passing down and failing and Unknown up, and never to 0% or 100% unless exact. Manual runs and retries do not add observed time.','coverage-note','About coverage')}</div></div>`;
-// Saved criteria in readable rows. The original settings and engine explanation remain available for support in Raw data.
-function details(m,ui,data){
+// Saved criteria use the monitor's own rules. Raw definitions remain in the API and exports.
+function details(m,ui,data,seen,readUnavailable){
  const d=m.definition,trust=d.tlsTrust?.mode==='fingerprint'?'a pinned leaf fingerprint':d.tlsTrust?.mode==='ca'?'an owner-supplied CA':'certificate errors ignored';
- const raw=d.type==='mail'?d.mail:d.type==='api'?d.api:isProtocol(d)?{[d.type]:d[d.type],assertions:d.assertions}:d.assertions;
  const rows=httpType(d)?[['Request method',d.method??'GET'],...httpRules(d).map(rule=>[rule.label,rule.value])]:isProtocol(d)?protocolExpectations(d):[];
- const criteria=d.type==='mail'?mailSummary(d):d.type==='api'?transactionSummary(d):isFlow(d)?flowSummary(d):`<dl class="ui-dl">${rows.map(([label,value])=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>`;
+ const criteria=d.type==='heartbeat'?`<dl class="ui-dl">${heartbeatRuleDetails(d.heartbeat)}</dl><p>A job must report success before its deadline. Receipts alone do not change health; a scheduled check evaluates them.</p>`:d.type==='mail'?mailSummary(d):d.type==='api'?transactionSummary(d):isFlow(d)?flowSummary(d):`<dl class="ui-dl">${rows.map(([label,value])=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>`;
  const where=[...new Set((d.probes??[]).map(locationNamer(d,data.runner.runners)))].join(', ')||'Unavailable location';
  return (d.network==='private'?`<p class="details-note" id="details-private">Private network. Each connection requires its current host, address and port permission.</p>`:'')
   +(d.tlsTrust?`<p class="details-note" id="details-trust">Certificate trust exception: ${trust}. Initial HTTPS origin only; a private runner applies this setting. Full certificate results remain visible on TLS certificate monitors.</p>`:'')
-  +`<dl class="ui-dl"><div><dt>State</dt><dd>${escape(d.enabled?m.state.state:'Paused')}</dd></div><div><dt>Check from</dt><dd>${escape(where)}</dd></div><div><dt>Check every</dt><dd>${escape(humaneDuration(d.intervalMs))}</dd></div></dl>${criteria}<details class="check-raw-data"><summary>Raw data</summary><p class="engine-status">${escape(m.state.reason)}</p><pre>${escape(JSON.stringify({...raw,...(d.privateGrantRef?{privateGrantRef:d.privateGrantRef}:{})},null,2))}</pre></details>`
+  +`<dl class="ui-dl"><div><dt>State</dt><dd>${escape(shownState(m,readUnavailable))}</dd></div><div><dt>Check from</dt><dd>${escape(where)}</dd></div><div><dt>Check every</dt><dd>${escape(humaneDuration(d.intervalMs))}</dd></div></dl>${criteria}<p class="engine-status">${escape(statusLine(m,{data,seen,readUnavailable}))}</p>`
   +(isFlow(d)||d.type==='heartbeat'?`<p class="details-erase"><button type="button" class="ui-link danger" id="erase-monitor" data-action="erase-monitor">Erase monitor…</button></p><p class="edit-error" role="alert" id="edit-error-erase">${escape(ui.errors.erase??'')}</p>`:'');
 }
 // "Today", "Yesterday" or "Mon, Oct 20".
@@ -65,7 +64,7 @@ const summaries={
  heartbeat:({receipt})=>receipt===false?'No receipt yet':'',
 };
 // The folds this monitor has, in order: its type's own first, then the ones every monitor has.
-export function foldsFor(m,data,seen,ui){
+export function foldsFor(m,data,seen,ui,readUnavailable=false){
  const d=m.definition,list=[],now=Number.isSafeInteger(data.now)?data.now:Date.now();
  if(d.type==='heartbeat')list.push({id:'heartbeat',title:'Heartbeat',body:()=>receipts(m,data)+heartbeatJobsPanel(m),mount:(area,o)=>{bindHeartbeatKey(area,m,o);bindHeartbeatJobs(area,m,o)}});
  if(isFlow(d))list.push({id:'flow',title:'Browser flow',same:true,body:()=>flowPanel(m,data),mount:(area,o)=>bindFlowProfile(area,m,o)});
@@ -77,7 +76,7 @@ export function foldsFor(m,data,seen,ui){
  if(['http','keyword','flow'].includes(d.type))list.push({id:'snapshots',title:'Failure snapshots',same:true,body:()=>snapshotPanel(m),mount:(area,{api})=>mountSnapshots(area,m,api,data.runner.runners)});
  if(d.type!=='heartbeat')list.push({id:'slow',title:'Slow-response notices',same:true,body:()=>slowPolicyPanel(m),mount:(area,o)=>bindSlowPolicyPanel(area,m,o)});
  list.push({id:'maintenance',title:'Planned maintenance',same:true,body:()=>maintenancePanel(m),mount:(area,o)=>bindMaintenancePanel(area,m,o)});
- list.push({id:'details',title:'Full check details',always:true,body:()=>details(m,ui,data)});
+ list.push({id:'details',title:'Full check details',always:true,body:()=>details(m,ui,data,seen,readUnavailable)});
  return list.map(fold=>({...fold,summary:summaries[fold.id]?.(seen,now,m)??''}));
 }
 export const FOLD_IDS=['heartbeat','flow','followed','cleanup','alerts','incidents','reports','snapshots','slow','maintenance','details'];

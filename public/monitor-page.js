@@ -62,7 +62,7 @@ function actionButtons(m){
 // each location waits for its next check.
 function pageMarkup(page){
  const {m,data,readUnavailable,seen,ui}=page;
- page.folds=foldsFor(m,data,seen,ui);
+ page.folds=foldsFor(m,data,seen,ui,readUnavailable);
  return `<div class="monitor-page" id="monitor-page" data-monitor="${escape(m.id)}">${statusCard(m,{readUnavailable,data,seen})}${expiryPanel(m,data)}${pageSpeedPanel(m)}${heartbeatCheckInPanel(m)}`
   +`<div class="monitor-columns"><div class="monitor-column-main">${rulesTable(m,{data,newest:seen.newest?.revision===m.revision?seen.newest:undefined,earlier:seen.earlier,ui,fit:page.fit})}${recentChecks(m,seen.timeline,page.strip)}</div>`
   +`<div class="monitor-column-side">${foldsCard(page.folds,id=>ui.probing||ui.mounted.has(id))}</div></div></div>`;

@@ -55,6 +55,20 @@ export function showSecret(secret,destinationName){
  dialog.append(title,explanation,code,copy,status,help,close);document.body.append(dialog);containModalKeyboard(dialog);dialog.showModal();
 }
 
+// Group the stored inventory by what the owner erased, counting each record
+// once. New dependent tables stay counted without exposing storage names.
+const monitorErasureGroups=[
+ ['Monitor and saved settings',['monitors','revisions','definition_batch_entries','catalog_route_batch_entries','failure_snapshot_settings']],
+ ['Check results and supporting records',['slots','observations','failure_snapshots','evidence_generation','attempt_checkpoints','runner_assignments']],
+ ['Incidents, comments and updates',['outbox','incident_work','incident_comments','incident_comment_history','incident_timeline','incident_mentions','incident_mention_authority']],
+ ['Alerts and delivery history',['notification_jobs','notification_delivery_attempts','notification_retry_policy','integration_attempts','integration_resolutions','integration_deliveries','integration_replays','notification_claim_custody','uptime_agent_notifications','alert_team_deliveries','alert_contact_schedules','alert_recovery_matches','alert_fallback_chains','alert_routes','alert_route_changes','slow_acknowledgements','rer_mail_development_outbox']],
+ ['Job reports and check-in access',['heartbeat_runs','heartbeat_claims','heartbeat_authority','heartbeat_limits']],
+ ['Reports and schedules',['scheduled_reports','report_occurrences','report_recurrences']],
+ ['Imported history and files',['source_history_rows','source_history_batches','source_history_cutovers','archive_history','ik_door_chunks','ik_door_uploads','ik_door_archive_chunks']],
+ ['Connected services and discovery choices',['dependency_acks','followed_services','discovery_decisions']],
+ ['Permissions and activity history',['failure_evidence_grants','effect_grants','agent_door_events']],
+ ['Unfinished cleanup records',['cleanup_debt']],
+];
 function showMonitorErasureReceipt(receipt,{name,onClose}){
  const dialog=document.createElement('dialog');dialog.className='editor notification-dialog erasure-receipt monitor-erasure-receipt';dialog.setAttribute('aria-labelledby','erasure-receipt-heading');
  const heading=document.createElement('h2');heading.id='erasure-receipt-heading';heading.textContent='Erasure complete';
@@ -75,11 +89,15 @@ function showMonitorErasureReceipt(receipt,{name,onClose}){
  const summary=document.createElement('summary');summary.textContent='Receipt details';
  const completed=document.createElement('time');completed.dateTime=new Date(receipt.completedAt).toISOString();completed.textContent=new Date(receipt.completedAt).toLocaleString();
  const completion=document.createElement('p');completion.append('Completed ',completed,'.');
- const original=document.createElement('p');original.textContent=`Stored ${receipt.entityKind} receipt ID: ${receipt.id}`;
  const counts=document.createElement('dl');
- for(const [table,count] of Object.entries(receipt.counts).sort((a,b)=>b[1]-a[1])){const row=document.createElement('div'),label=document.createElement('dt'),total=document.createElement('dd');row.dataset.erasureTable=table;label.textContent=table.replaceAll('_',' ').replace(/^./,c=>c.toUpperCase());total.textContent=String(count);row.append(label,total);counts.append(row)}
+ const totals=new Map();
+ for(const [table,count] of Object.entries(receipt.counts)){
+  const label=monitorErasureGroups.find(([,tables])=>tables.includes(table))?.[0]??'Other related records';
+  totals.set(label,(totals.get(label)??0)+Number(count));
+ }
+ for(const [labelText,count] of [...totals].filter(([,count])=>count>0).sort((a,b)=>b[1]-a[1])){const row=document.createElement('div'),label=document.createElement('dt'),total=document.createElement('dd');row.dataset.erasureCategory='';label.textContent=labelText;total.textContent=String(count);row.append(label,total);counts.append(row)}
  const limits=document.createElement('p');limits.textContent='Downloaded backups and messages already sent are unchanged. Requests already in progress cannot be recalled.';
- details.append(summary,completion,original,counts,limits);
+ details.append(summary,completion,counts,limits);
  const close=document.createElement('button');close.className='primary';close.textContent='Close receipt';close.onclick=()=>dialog.close();dialog.onclose=()=>{dialog.remove();onClose()};
  dialog.append(heading,description,scope,reference,actions,feedback,details,close);document.body.append(dialog);containModalKeyboard(dialog);dialog.showModal();heading.tabIndex=-1;heading.focus();dialog.scrollTop=0;
 }
