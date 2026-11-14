@@ -1,0 +1,5 @@
+
+> @uptime/uptime-console@0.5.11 spec:check /home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-4/repo
+> node scripts/delivery/publish-spec.mjs --check
+
+Deployment spec, setup digest and local setup match the build

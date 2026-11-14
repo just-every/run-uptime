@@ -1,0 +1,23 @@
+Legend: production dependency, optional only, dev only
+
+@uptime/uptime-console@0.5.11 /home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-4/repo (PRIVATE)
+
+dependencies:
+@tanstack/react-start 1.168.60
+├─┬ @tanstack/react-start-rsc 0.1.59
+│ └─┬ @tanstack/start-plugin-core 1.171.49
+│   ├─┬ @tanstack/router-generator 1.167.40
+│   │ └── zod 4.6.6
+│   ├─┬ @tanstack/router-plugin 1.168.42
+│   │ ├─┬ @tanstack/router-generator 1.167.40
+│   │ │ └── zod 4.6.6
+│   │ └── zod 4.6.6
+│   └── zod 4.6.6
+└─┬ @tanstack/start-plugin-core 1.171.49
+  ├─┬ @tanstack/router-generator 1.167.40
+  │ └── zod 4.6.6
+  ├─┬ @tanstack/router-plugin 1.168.42
+  │ ├─┬ @tanstack/router-generator 1.167.40
+  │ │ └── zod 4.6.6
+  │ └── zod 4.6.6
+  └── zod 4.6.6

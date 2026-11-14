@@ -1,0 +1,47 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-dep-4",
+  "head": "03323cf01c8c86f42211faea3226bb8db2600670",
+  "tree": "9ba153ee75c3ded10ce9bb1cc239941b9eb62fcb",
+  "publication": {
+    "complete": true,
+    "status": "PASS",
+    "findings": 0,
+    "implementation": {
+      "version": "0.2.113",
+      "sha256": "c5f2d788f2f08764cd018e049b507c26f5ac01f651e2e8696398d89a5a886ffb",
+      "python": "3.12.14"
+    },
+    "totalSeconds": 290.731678
+  },
+  "product_push": {
+    "status": "success",
+    "attempts": 1,
+    "ref": "refs/heads/cloud/gr-mt-uptime-dep-4",
+    "receipt": "push-receipt.log",
+    "remote_readback": "03323cf01c8c86f42211faea3226bb8db2600670"
+  },
+  "identity_audit": {
+    "candidate_commits": 1,
+    "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "trailers": [],
+    "passed": true
+  },
+  "recovery_bundle": {
+    "path": "work/maint/gr-mt-uptime-dep-4/product.bundle",
+    "sha256": "468110b0d0d53a81aba28008404154c9f4551d2d042fc9d91385c78c6a1ab06d",
+    "verified": true
+  },
+  "pr": null,
+  "disposition": "READY",
+  "ci": {
+    "run_id": 43580179019,
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43580179019"
+  },
+  "github_api_calls": 9,
+  "blockers": []
+}

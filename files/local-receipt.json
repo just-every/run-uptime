@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "tag": "gr-mt-uptime-dep-4",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-dep-4",
+  "head": "03323cf01c8c86f42211faea3226bb8db2600670",
+  "tree": "9ba153ee75c3ded10ce9bb1cc239941b9eb62fcb",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "checks": [
+    {
+      "command": "pnpm install --lockfile-only",
+      "exit": 0,
+      "note": "Final lockfile-only regeneration preserves every unrelated dependency"
+    },
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit": 0,
+      "log": "install.log"
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit": 0,
+      "note": "Private setup log excluded from public packet"
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0,
+      "log": "build.log"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "cloud_run node --experimental-strip-types tests/public-paths.mjs",
+      "exit": 0,
+      "log": "public-paths.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "log": "source-check.json"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "log": "contract-check.log"
+    },
+    {
+      "command": "pnpm spec:check",
+      "exit": 0,
+      "log": "spec-check.log"
+    }
+  ],
+  "dependency": {
+    "before": "4.6.3",
+    "after": "4.6.6",
+    "unique_vulnerable_resolutions_before": 1,
+    "unique_vulnerable_resolutions_after": 0,
+    "consuming_edges": 3,
+    "unrelated_upgrades": 0
+  },
+  "tests": {
+    "added": 0,
+    "removed": 0,
+    "weakened": 0
+  },
+  "clauses": {
+    "changed": 0,
+    "status_changes": 0,
+    "counts_before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "counts_after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "package_inventory_check": "PASS: removed only zod@4.6.3; added only zod@4.6.6; product paths limited to pnpm-lock.yaml and sources.lock.json",
+  "scan_input": "Clean detached exact-commit worktree; build/setup outputs excluded by using committed source rather than the development working directory"
+}
