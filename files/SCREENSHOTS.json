@@ -1,0 +1,50 @@
+{
+  "productHead": "d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "screenshots": [
+    {
+      "file": "before-check-details-1440.png",
+      "bytes": 283095,
+      "sha256": "eaadf50064b02659ea94c391562807f7673037b1e18fa2586ca9df01cee56806"
+    },
+    {
+      "file": "before-check-details-390.png",
+      "bytes": 256316,
+      "sha256": "3da0da084969001ef1cce4fa7a77cbfd1c284c1494e5886053b12239cbd65f5f"
+    },
+    {
+      "file": "before-receipt-details-1440.png",
+      "bytes": 170160,
+      "sha256": "30f78279290ae446a712dc64b6bf1677844a1f874fad3068ebb404c68aa16a37"
+    },
+    {
+      "file": "before-receipt-details-390.png",
+      "bytes": 109865,
+      "sha256": "91de8aadc6412b13eb88ce846347fc6b067beb2ba0aa6200bcb4d7a6f0366f2b"
+    },
+    {
+      "file": "after-heartbeat-check-details-1440.png",
+      "bytes": 289732,
+      "sha256": "182f20f5a53876d81ac2a3d794e4b59df1dbfd52701712b11b7b3e74d857b249"
+    },
+    {
+      "file": "after-heartbeat-check-details-390.png",
+      "bytes": 261360,
+      "sha256": "1ce15118774ad9a17bb754bfbf9947d5d1b023ebfde7b45584fcc96bede2a23c"
+    },
+    {
+      "file": "after-erasure-receipt-details-1440.png",
+      "bytes": 151524,
+      "sha256": "1cfd48d770e5b0712d7256afa5535f414a744c42048f07fcdbe2c1ba11bfea12"
+    },
+    {
+      "file": "after-erasure-receipt-details-390.png",
+      "bytes": 114806,
+      "sha256": "2bc5cdb0a0bf35402e20b024ca51ab7ad693a8470ccd79d14cd4d402f365c3dd"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "journey": "proveReadableMaintenanceAndErasure",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "monitorName": "synthetic-uptime-902 imported site",
+  "selectionNamed": true,
+  "previewNamed": true,
+  "rawMonitorIdsVisible": false,
+  "rawReceiptIdVisible": false,
+  "inventoryRowsVisible": 0,
+  "storedInventoryRows": 42,
+  "displayedCategories": 2,
+  "expandedRawReceiptIdVisible": false,
+  "expandedInternalNamesVisible": false,
+  "allCountsRepresented": true,
+  "heartbeatDetailsPlain": true,
+  "heartbeatApiUnchanged": true,
+  "receiptDownloadEqualsServer": true,
+  "clipboardEqualsDisplay": true,
+  "reviewedWindowUnchanged": true,
+  "pausedMonitorStayedPaused": true,
+  "monitorErased": true
+}

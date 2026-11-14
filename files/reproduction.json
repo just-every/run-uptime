@@ -1,0 +1,9 @@
+{
+  "main": "c14aafe38f2a5c754a550251593170404f1363a5",
+  "details": "Full check details\nState\nPaused\nCheck from\nCedar Brook\nCheck every\n1 min\nRaw data\n\nMonitor paused; historical observations do not establish current target health.\n\n{\n  \"status\": 200\n}\n\nErase monitor…",
+  "receipt": "Erasure complete\n\n“synthetic-uptime-902 imported site” was erased.\n\nIts saved settings, check results, incident history, and related alert and heartbeat records were removed. The anonymous audit and this receipt remain.\n\nReceipt reference\nER-2739B1DE-38084237-9F991666-4CADD786\n\nCopy reference\nDownload receipt\n\nReceipt details\n\nCompleted 11/14/2026, 4:51:51 AM.\n\nStored monitor receipt ID: 2739b1de-3808-4237-9f99-16664cadd786\n\nEvidence generation\n1\nRevisions\n1\nMonitors\n1\nAlert team deliveries\n0\nAlert contact schedules\n0\nAlert recovery matches\n0\nReport occurrences\n0\nReport recurrences\n0\nAgent door events\n0\nScheduled reports\n0\nSource history rows\n0\nSource history batches\n0\nSource history cutovers\n0\nFailure snapshots\n0\nFailure snapshot settings\n0\nFailure evidence grants\n0\nSlow acknowledgements\n0\nCleanup debt\n0\nEffect grants\n0\nDependency acks\n0\nIncident timeline\n0\nIncident mention authority\n0\nIncident mentions\n0\nIncident comment history\n0\nIncident comments\n0\nIncident work\n0\nFollowed services\n0\nDiscovery decisions\n0\nAlert fallback chains\n0\nCatalog route batch entries\n0\nAlert routes\n0\nAlert route changes\n0\nHeartbeat runs\n0\nDefinition batch entries\n0\nAttempt checkpoints\n0\nRunner assignments\n0\nHeartbeat claims\n0\nHeartbeat authority\n0\nHeartbeat limits\n0\nObservations\n0\nOutbox\n0\nSlots\n0\n\nDownloaded backups and messages already sent are unchanged. Requests already in progress cannot be recalled.\n\nClose receipt",
+  "heartbeatShowsHttpStatus": true,
+  "detailsShowsJson": true,
+  "receiptShowsUuid": true,
+  "receiptShowsInternalNames": true
+}

@@ -1,0 +1,6 @@
+1. Refresh the fleet launcher, install Git identity, credential and commit safeguards, and clone only just-every/run-uptime on cloud/main-uptime-readable-details-1.
+2. Read the repository guidance and reproduce the heartbeat check-details JSON and imported-monitor receipt inventory through authenticated public routes and the actual browser UI.
+3. Replace the check-details raw object with kind-specific criteria and readable current evidence. Replace receipt UUID and storage inventory with the ER reference and plain counted categories. Preserve all raw API, stored receipt and download data.
+4. Extend existing browser journeys rather than add registrations. Assert behavior once at 1440; retain screenshots of each changed screen at 1440 and 390. Run touched journeys and typecheck.
+5. Fetch main before the first product commit, rebase unpublished work, regenerate the edition source lock last and run CI's exact lock check. Audit every candidate author, committer and trailer, commit with fleet identity and publish using the cloud push guard.
+6. Discover and poll the exact-head Verify using REST within the ten-call budget and 300-second polling interval. Publish reports and actual receipts on the evidence ref, retain terminal provenance and relay lane notes. Leave landing and the publication scan to the fleet Mac.

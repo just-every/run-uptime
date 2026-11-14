@@ -1,0 +1,87 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-readable-details-1",
+  "head": "d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d",
+  "base": "c14aafe38f2a5c754a550251593170404f1363a5",
+  "productPush": "success",
+  "productPushAttempts": 1,
+  "workingTreeClean": true,
+  "assertionWidth": 1440,
+  "browserProofWidths": [
+    1440,
+    390
+  ],
+  "apiOrStoredReceiptChanges": false,
+  "contractStatusChanges": [],
+  "targetedFindings": {
+    "before": 2,
+    "after": 0
+  },
+  "registrations": {
+    "productJourneyScriptsBefore": 47,
+    "productJourneyScriptsAfter": 47,
+    "topLevelProductRegistrationsBefore": 49,
+    "topLevelProductRegistrationsAfter": 49,
+    "added": 0,
+    "defaultCap": 200,
+    "countScope": "47 product verify-plan scripts, each standalone assert script counted once, or each explicit node:test registration; imported helpers extend existing registrations. Base-owned conformance is unchanged."
+  },
+  "checks": [
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium UPTIME_SCREENSHOTS=<packet> cloud_run node /tmp/uptime-readable-checks.mjs",
+      "exit": 0,
+      "entrypoints": [
+        "tests/readable-maintenance-erasure-support.mjs#proveReadableMaintenanceAndErasure",
+        "tests/monitor-stepup-support.mjs#proveMonitorStepUp"
+      ]
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/signed-runner.mjs",
+      "exit": 0
+    },
+    {
+      "command": "cloud_run pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "logSha256": "fd8dc46361817df1cb36d7b6589614a5c8e4f012171c90e90fc505bf229a7179"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "visualReview": {
+    "heartbeat1440": "Readable period/grace and maximum run duration; paused evidence says no checks run. No HTTP status or raw data disclosure.",
+    "heartbeat390": "Criteria wrap within the card and remain readable.",
+    "receipt1440": "ER reference, completion time and two nonzero counted categories; UUID and storage inventory absent.",
+    "receipt390": "Reference wraps and the complete expanded receipt fits the phone viewport; counts align in a separate column."
+  },
+  "limits": [
+    "Focused helpers ran against the emitted production Worker and persistent migrated D1 with synthetic owner authentication; network/provider edges use existing fixtures.",
+    "The full product wall is branch Verify. Mac publication scan and landing remain fleet responsibilities.",
+    "No hosted-provider, human screen-reader, VPAT or whole-clause completion claim."
+  ],
+  "ci": {
+    "runId": 43559246813,
+    "conclusion": null,
+    "head_sha": "d0ff7f539fd16f8e032c4d5c0539ff27a7c1ec7d",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43559246813",
+    "status": "in_progress",
+    "githubCallsUsed": 2
+  }
+}

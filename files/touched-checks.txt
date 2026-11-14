@@ -1,0 +1,35 @@
+Focused public-door browser journey and second-factor erasure
+Command exit: 0
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+PASS proveReadableMaintenanceAndErasure: imported heartbeat criteria, public erasure receipt, unchanged download, all counts, clipboard, axe, 1440 assertions and 1440/390 proof.
+Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, plain counted receipt with unchanged storage and later backup.
+PASS proveMonitorStepUp: native step-up, stored receipt and backup preservation.
+
+Signed production-runner lifecycle and heartbeat console
+Command exit: 0
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+{"event":"storage_error","method":"GET","route":"/api/overview","operation":null,"class":"schema","status":503,"cause":"D1_ERROR: no such table: runner_contact: SQLITE_ERROR"}
+PRESENCE-001 runner contact: idle and signed-result server receipts, 120-second boundary, refusal and read invariance, persistent restart, unavailable read, independent failing or Unknown targets and inactive restore passed
+Heartbeat console passed: create, copy real URL/command, actual check-in, signed Healthy, grace, exact-deadline Failing and late recovery.
+HEARTBEAT-001 revision isolation passed: settings retire both receipt forms, increasing old sequence refuses without writes, current signed snapshot has no inherited receipt, and only fresh authority plus scheduled signed evaluation establishes Healthy.
+HEARTBEAT-004 saved-document migrations passed: UptimeRobot and Better Stack 60-minute period plus five-minute grace, reviewed paused apply, owner activation and new URL, actual signed deadline failure and retained late recovery; controlled local clock, no hosted timing or live cutover claimed.
+SIGNED-RUNNER results {"tablesCompared":224,"assignedWindowFresh":true,"refusedStatus":403,"acceptedStatus":200,"persistedAttempts":1,"duplicateStatus":200}
+SIGNED-RUNNER completed one owner-to-runner lifecycle: emitted Worker + migrated persistent D1, real Node process restarts, local HTTPS with verified certificates; no real account or public network deployment.
+
+Typecheck
+Command exit: 0
+ WARN  Unsupported engine: wanted: {"node":"22.20.0"} (current: {"node":"v24.19.0","pnpm":"10.12.4"})
+
+> @uptime/uptime-console@0.5.11 typecheck /workspace/run-uptime
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
+
+
+Contract generated-documents check
+Command exit: 0
+Contract prose: 0 errors, 0 warnings.
+Contract documents are current.
+
