@@ -1,0 +1,99 @@
+[
+  {
+    "command": "pnpm add --save-dev --save-exact vite@8.2.4 --lockfile-only --ignore-scripts",
+    "exit_code": 0,
+    "result": "Vite and peer references only; no unrelated transitive upgrades"
+  },
+  {
+    "command": "cloud_run pnpm install --frozen-lockfile",
+    "exit_code": 0,
+    "result": "pnpm 10.12.4; Node 22.20.0; Vite 8.2.4 installed"
+  },
+  {
+    "command": "cloud_run npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+    "exit_code": 0,
+    "private_log_retained_outside_packet": true
+  },
+  {
+    "command": "cloud_run pnpm run typecheck",
+    "exit_code": 0,
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "cloud_run npx -y @runeditrun/rer build",
+    "exit_code": 0,
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "cloud_run pnpm run spec:generate && cloud_run pnpm run spec:check",
+    "exit_code": 0
+  },
+  {
+    "command": "node scripts/edition-authoring/cli.mjs lock && node scripts/edition-authoring/cli.mjs check",
+    "exit_code": 0
+  },
+  {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit_code": 0
+  },
+  {
+    "command": "cloud_run pnpm install --frozen-lockfile (after patch replay)",
+    "exit_code": 1,
+    "result": "Lockfile text conflict with newly landed Zod maintenance; resolved by regenerating from main lockfile with pinned pnpm, preserving Zod 4.6.6"
+  },
+  {
+    "command": "cloud_run pnpm install --lockfile-only --ignore-scripts",
+    "exit_code": 0,
+    "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "cloud_run pnpm install --frozen-lockfile",
+    "exit_code": 0,
+    "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "cloud_run npx -y @runeditrun/rer build",
+    "exit_code": 0,
+    "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "cloud_run pnpm run typecheck",
+    "exit_code": 0,
+    "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "cloud_run pnpm run spec:check",
+    "exit_code": 0,
+    "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "node scripts/edition-authoring/cli.mjs lock && node scripts/edition-authoring/cli.mjs check",
+    "exit_code": 0,
+    "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "node src/base/contract-docs.mjs check",
+    "exit_code": 0,
+    "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "git diff --check",
+    "exit_code": 0,
+    "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+    "runtime": "Node 22.20.0; pnpm 10.12.4"
+  },
+  {
+    "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/command-journey.mjs",
+    "exit_code": 0,
+    "head": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+    "scope": "Existing CLI journey: setup preservation, Vite client/env imports, HMR, native forms and hydration, preview assets, archive recovery; one browser worker at 1440",
+    "private_log_retained_outside_packet": true
+  }
+]

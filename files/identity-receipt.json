@@ -1,0 +1,16 @@
+{
+  "branch": "cloud/gr-mt-uptime-dep-5",
+  "head": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+  "base": "03323cf01c8c86f42211faea3226bb8db2600670",
+  "candidate_commits": [
+    {
+      "sha": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+      "author_name": "Run Edit Run fleet",
+      "author_email": "fleet@runeditrun.com",
+      "committer_name": "Run Edit Run fleet",
+      "committer_email": "fleet@runeditrun.com",
+      "trailers": []
+    }
+  ],
+  "worktree_clean": true
+}

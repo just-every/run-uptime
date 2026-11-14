@@ -1,0 +1,40 @@
+{
+  "repository": "just-every/run-uptime",
+  "base_head": "03323cf01c8c86f42211faea3226bb8db2600670",
+  "before_vite": "8.2.2",
+  "after_vite": "8.2.4",
+  "before_vite_snapshots": 2,
+  "before_affected_versions": [
+    "8.2.2"
+  ],
+  "after_affected_versions": [],
+  "package_manager": "pnpm@10.12.4",
+  "clauses": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "changes": []
+  },
+  "scope": "package.json, pnpm-lock.yaml and regenerated sources.lock.json only",
+  "main_drift": "Preserved newly landed Zod 4.6.6 maintenance at 03323cf; regenerated Vite lockfile from that baseline",
+  "head": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+  "after_vite_snapshots": 2,
+  "vulnerable_distinct_versions_before": 1,
+  "vulnerable_distinct_versions_after": 0,
+  "unrelated_upgrades": 0,
+  "changed_paths": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "sources.lock.json"
+  ],
+  "contract_views_unchanged": true
+}

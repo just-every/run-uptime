@@ -1,0 +1,23 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-dep-5",
+  "head": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+  "command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/gr-mt-uptime-dep-5",
+  "exit_code": 0,
+  "output": [
+    "fleet Git: removed 0 credential-bearing GitHub URL rewrite sections",
+    "PUSH attempt=1/5 command=git push --porcelain origin HEAD:refs/heads/cloud/gr-mt-uptime-dep-5",
+    "fleet Git: removed 0 credential-bearing GitHub URL rewrite sections",
+    "To https://github.com/just-every/run-uptime.git",
+    "*\tHEAD:refs/heads/cloud/gr-mt-uptime-dep-5\t[new branch]",
+    "Done",
+    "remote: ",
+    "remote: Create a pull request for 'cloud/gr-mt-uptime-dep-5' on GitHub by visiting:        ",
+    "remote:      https://github.com/just-every/run-uptime/pull/new/cloud/gr-mt-uptime-dep-5        ",
+    "remote: ",
+    "remote: GitHub found 41 vulnerabilities on just-every/run-uptime's default branch (15 high, 22 moderate, 4 low). To find out more, visit:        ",
+    "remote:      https://github.com/just-every/run-uptime/security/dependabot        ",
+    "remote: ",
+    "PUSH_OK branch=cloud/gr-mt-uptime-dep-5"
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "files": [
+    {
+      "blob": "cd496fcd22c95535d0607e74fea3709d55973139",
+      "bytes": 1704,
+      "path": "PLAN.md",
+      "sha256": "4b5b098167e7d67ad82c7a0bfb8bc1e5379acb60a5f48574fbc54ad643630fea"
+    },
+    {
+      "blob": "be095d18dfec50feac5a8426ad4676a8e329c3ec",
+      "bytes": 5649,
+      "path": "REPORT.md",
+      "sha256": "388e19e2954398ef5f8da739424707d07d87b1ee497c1d760f0c91e00cabe182"
+    },
+    {
+      "blob": "72920e8b7992e633589f77455db804d297d0f2f4",
+      "bytes": 361,
+      "path": "bundle-receipt.json",
+      "sha256": "28e4b693b71defecd844becc24111b711bf69c7dd445513c0eb24d6954305414"
+    },
+    {
+      "blob": "46eea13b91b9c19cbeb387bd4df4d8b95f31f227",
+      "bytes": 419,
+      "path": "candidate-receipt.json",
+      "sha256": "70bdb66cd901e9bfe7dc79d5746e26e73c8307b576a7f01d54aa3c22cfdcf918"
+    },
+    {
+      "blob": "663567ac61a3804a9acd651bdbe2fc7fe3ea1c88",
+      "bytes": 972,
+      "path": "ci-receipt.json",
+      "sha256": "a63abde73d90558d170efe3b0a3710112c4411cc9c0449dcf42ab4b919d7db96"
+    },
+    {
+      "blob": "3f7671917c3bd5d24daa99775fd970a210d6dbc9",
+      "bytes": 979,
+      "path": "command-journey-receipt.json",
+      "sha256": "da4e7297b64f831ccd524731b2d8ab2d02f3445463a1f7f67642e59cfc10dbd9"
+    },
+    {
+      "blob": "a5dd722ecba673eb06e2d676635a7a9494b288a7",
+      "bytes": 1072,
+      "path": "dependency-receipt.json",
+      "sha256": "9ff97af9074ec274be39d8c6fc79d41b03dba4eb955deae0e0c74426669a933c"
+    },
+    {
+      "blob": "698eb3046d41eeca501c4065c9d759b9816f3adb",
+      "bytes": 481,
+      "path": "identity-receipt.json",
+      "sha256": "448cf5850b7789b976f8d2f04224bdab8f6e83f9f424f146b2ad3b82d56800d8"
+    },
+    {
+      "blob": "7d3b4856ff6e024f43a7935e4be99894c57c80e6",
+      "bytes": 5023,
+      "path": "installed-vite.json",
+      "sha256": "3448915877aae3ba73b6087b50a8404235b289894f375825b07dda16626e881a"
+    },
+    {
+      "blob": "ab63b23917817b7655d8e498903fda239072cb77",
+      "bytes": 3368,
+      "path": "local-checks.json",
+      "sha256": "bafee5325f5a8275c60678ea84fff9bfe6102625dd2d8d5fed79af869150d30e"
+    },
+    {
+      "blob": "03ab422f0433a93287f37883918a2619594a69d0",
+      "bytes": 565,
+      "path": "publication-scan-initial.json",
+      "sha256": "922483f2bf2480df06c0761c91e645ddca4ceb58f3a0efabe9743d4edc86c96c"
+    },
+    {
+      "blob": "b3cc6f265ac49430b1268efc5c8ad0320f55e8b8",
+      "bytes": 584571,
+      "path": "publication-scan-invocation.json",
+      "sha256": "46c28850474f7a0e6b00085b5ec10d7889e6e836717a885816b787bb2be247d9"
+    },
+    {
+      "blob": "dfac9c77f6c3b519249f1e9a8297def93475b885",
+      "bytes": 584362,
+      "path": "publication-scan.json",
+      "sha256": "d03f412e85b29507958d1c18c09b4fd127c2ac9e30bb1c52c02ed38469651d56"
+    },
+    {
+      "blob": "6a09a0918bafb1662c8266dac5c78dc19b6c21ff",
+      "bytes": 1197,
+      "path": "push-receipt.json",
+      "sha256": "3bd9b323b02b7691d037ee22203f66945a59ea38b985233e38f77c1449b7052c"
+    }
+  ],
+  "product_branch": "cloud/gr-mt-uptime-dep-5",
+  "product_head": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+  "ref": "refs/heads/evidence/gr-mt-uptime-dep-5",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "gr-mt-uptime-dep-5"
+}

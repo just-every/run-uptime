@@ -1,0 +1,17 @@
+{
+  "head": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb",
+  "tree": "9e187ead5aeb08e3ad7220412912969de7efd1b4",
+  "files": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "sources.lock.json"
+  ],
+  "worktree_clean": true,
+  "tests_added": 0,
+  "tests_removed": 0,
+  "tests_weakened": 0,
+  "ui_changed": false,
+  "clause_status_changes": [],
+  "pushed": true,
+  "remote_head": "28c0bb130a0ec6b045bcbebc44ee05d787c76acb"
+}
