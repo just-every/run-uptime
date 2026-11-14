@@ -1,0 +1,16 @@
+{
+  "product": "ready",
+  "branch": "cloud/gr-mt-uptime-dep-3",
+  "head": "dc2114e58eaa72a2e459024fecae5761f07112e5",
+  "remote": "https://github.com/just-every/run-uptime.git",
+  "push_attempts": 1,
+  "publication_status": "COMPLETE/PASS",
+  "finding_count": 0,
+  "ci": "completed/success",
+  "pr": null,
+  "pushed_at": "2026-11-14T09:30:00.101928+00:00",
+  "ci_run_id": 43580780410,
+  "ci_url": "https://github.com/just-every/run-uptime/actions/runs/43580780410",
+  "blockers": [],
+  "ready_at": "2026-11-14T09:45:33.643402+00:00"
+}

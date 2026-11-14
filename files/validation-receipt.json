@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "tag": "gr-mt-uptime-dep-3",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-dep-3",
+  "base_head": "d47a432be0b9d6b1115de8579e23115b7a123646",
+  "head": "dc2114e58eaa72a2e459024fecae5761f07112e5",
+  "created_at": "2026-11-14T09:18:08.999586+00:00",
+  "toolchain": {
+    "node": "22.20.0",
+    "pnpm": "10.12.4",
+    "rer": "0.2.113"
+  },
+  "local_checks": [
+    {
+      "command": "pnpm install --lockfile-only --ignore-scripts (root and src/base/modules/mail)",
+      "exit_code": 0,
+      "logs": [
+        "root-lock-update.log",
+        "mail-lock-update.log"
+      ]
+    },
+    {
+      "command": "pnpm install --frozen-lockfile (root and src/base/modules/mail)",
+      "exit_code": 0,
+      "logs": [
+        "root-install.log",
+        "mail-install.log"
+      ]
+    },
+    {
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit_code": 0,
+      "log": "private local log intentionally excluded; successful setup observed"
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit_code": 0,
+      "log": "build.log"
+    },
+    {
+      "command": "pnpm spec:generate",
+      "exit_code": 0,
+      "log": "spec-generate.log"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit_code": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "node tests/probe-native-evidence.mjs",
+      "exit_code": 0,
+      "log": "probe-native-evidence.log"
+    },
+    {
+      "command": "node tests/notify-delivery.mjs",
+      "exit_code": 0,
+      "log": "notify-delivery.log"
+    },
+    {
+      "command": "node <packet>/mail-miniflare-smoke.mjs (from checkout root)",
+      "exit_code": 0,
+      "log": "mail-miniflare-smoke.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs adapt-base src/base/modules/mail/package.json; node scripts/edition-authoring/cli.mjs adapt-base src/base/modules/mail/pnpm-lock.yaml",
+      "exit_code": 0,
+      "log": "mail-copy-acknowledgement.json"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock; node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0,
+      "logs": [
+        "source-lock-generate.json",
+        "source-lock-check.json"
+      ]
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit_code": 0,
+      "log": "contract-check.log"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs verify-base --offline",
+      "exit_code": 0,
+      "log": "base-copy-check.json"
+    }
+  ],
+  "counts": {
+    "vulnerable_dependency_paths_before": 2,
+    "vulnerable_dependency_paths_after": 0,
+    "package_versions_changed": [
+      "undici: 7.29.1 -> 7.30.1"
+    ],
+    "test_source_changes": 0,
+    "clause_status_changes": 0
+  },
+  "notes": [
+    "The nested runtime smoke harness was adapted to the existing Miniflare 5 API using convertV4MiniflareOptions after two constructor-option validation failures; the final smoke passed without product-code changes.",
+    "pnpm 10.12.4 removed sixteen unrelated Sharp libc metadata lines while regenerating the nested lockfile. Original platform metadata was preserved; only the Undici version, integrity and override changed.",
+    "No contract clause, status, acceptance view, application source, UI or workflow changed. No PR rule was declared."
+  ],
+  "history": {
+    "reachable_commits": 1971,
+    "shallow": false,
+    "selected_scanned_commits": 1052
+  },
+  "observed_dependency_paths": {
+    "root": [
+      "miniflare > undici",
+      "wrangler > miniflare > undici",
+      "@cloudflare/vite-plugin > miniflare > undici",
+      "@cloudflare/vite-plugin > wrangler > miniflare > undici"
+    ],
+    "mail_module": [
+      "miniflare > undici"
+    ],
+    "all_undici_versions": "7.30.1"
+  },
+  "clauses": {
+    "changes": [],
+    "status_changes": [],
+    "claims": [],
+    "reason": "Dependency maintenance only; no acceptance-text or status changes were requested."
+  },
+  "publication_attempts": [
+    {
+      "report": "publication-working-tree-scan.json",
+      "status": "FAIL",
+      "complete": true,
+      "finding_count": 15,
+      "reason": "Initial invocation scanned generated local settings/build artifacts and supplied incomplete destination context. All fifteen findings were invocation/working-tree findings, not committed product source. A clean detached source checkout of the same SHA, independently checked byte-for-byte against all 2,405 Git blobs, is used for the authoritative rerun with explicit committed project/repository identities."
+    },
+    {
+      "report": "publication-scan.json",
+      "status": "PASS",
+      "complete": true,
+      "finding_count": 0,
+      "source": {
+        "commit": "dc2114e58eaa72a2e459024fecae5761f07112e5",
+        "tree": "32001917c503592f68eab80502589c587bc783e1"
+      },
+      "scope": "Exact committed source checkout, with explicit committed project and repository destination identities."
+    }
+  ],
+  "exact_source_proof": {
+    "commit": "dc2114e58eaa72a2e459024fecae5761f07112e5",
+    "tree": "32001917c503592f68eab80502589c587bc783e1",
+    "regular_files": 2405,
+    "method": "Every checked-out file blob was rehashed with Git blob framing and compared with git ls-tree HEAD; no untracked setup/build state was materialized in the detached publication checkout."
+  },
+  "publication": {
+    "status": "PASS",
+    "complete": true,
+    "source": {
+      "commit": "dc2114e58eaa72a2e459024fecae5761f07112e5",
+      "tree": "32001917c503592f68eab80502589c587bc783e1"
+    },
+    "guarantees": {
+      "historyScanned": true,
+      "visualRecognition": false,
+      "environmentChecked": true
+    },
+    "implementation": {
+      "version": "0.2.113",
+      "sha256": "c5f2d788f2f08764cd018e049b507c26f5ac01f651e2e8696398d89a5a886ffb",
+      "python": "3.12.14"
+    },
+    "finding_count": 0
+  },
+  "ci": {
+    "conclusion": "success",
+    "head_sha": "dc2114e58eaa72a2e459024fecae5761f07112e5",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43580780410",
+    "status": "completed",
+    "id": 43580780410,
+    "name": "Verify",
+    "observed_at": "2026-11-14T09:45:05.870434+00:00",
+    "github_calls_used": 10
+  },
+  "custody": {
+    "product": "ready",
+    "branch": "cloud/gr-mt-uptime-dep-3",
+    "head": "dc2114e58eaa72a2e459024fecae5761f07112e5",
+    "remote": "https://github.com/just-every/run-uptime.git",
+    "push_attempts": 1,
+    "publication_status": "COMPLETE/PASS",
+    "finding_count": 0,
+    "ci": "completed/success",
+    "pr": null,
+    "pushed_at": "2026-11-14T09:30:00.101928+00:00",
+    "ci_run_id": 43580780410,
+    "ci_url": "https://github.com/just-every/run-uptime/actions/runs/43580780410",
+    "blockers": [],
+    "ready_at": "2026-11-14T09:45:33.643402+00:00"
+  },
+  "github_calls_used": 10
+}

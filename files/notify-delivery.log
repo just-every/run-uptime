@@ -1,0 +1,17 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+(node:2561) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+MAIL_EDGE {"status":202,"received":1,"invalid":0}
+MAIL_EDGE {"status":202,"received":2,"invalid":0}
+MAIL_EDGE {"status":202,"received":3,"invalid":0}
+MAIL_EDGE {"status":202,"received":4,"invalid":0}
+MAIL_EDGE {"status":500,"received":5,"invalid":0}
+MAIL_EDGE {"status":400,"received":6,"invalid":0}
+MAIL_EDGE {"status":429,"received":7,"invalid":0}
+TIMEOUT {"kind":"email","observedStallMs":15102.867300999998}
+TIMEOUT {"kind":"webhook","observedStallMs":3635.018788000001,"transportElapsedMs":3500.8842650000006}
+TIMEOUT {"kind":"slack","observedStallMs":3624.8021389999994,"transportElapsedMs":3501.1727299999984}
+IN_PROGRESS_RESTART {"kind":"webhook","beforeRestart":"sending","afterWorkerRestart":"sending","finalState":"uncertain","code":"claim_expired","attempts":1,"providerSubmissions":1}
+Notification acceptance passed: emitted Worker/D1, production private runner, real synthetic probes, independent receivers and restart-safe delivery history.

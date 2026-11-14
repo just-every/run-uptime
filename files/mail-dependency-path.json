@@ -1,0 +1,23 @@
+[
+  {
+    "name": "@runeditrun/base-mail",
+    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/src/base/modules/mail",
+    "private": true,
+    "devDependencies": {
+      "miniflare": {
+        "from": "miniflare",
+        "version": "5.20260907.0-alpha",
+        "resolved": "https://registry.npmjs.org/miniflare/-/miniflare-5.20260907.0-alpha.tgz",
+        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare",
+        "dependencies": {
+          "undici": {
+            "from": "undici",
+            "version": "7.30.1",
+            "resolved": "https://registry.npmjs.org/undici/-/undici-7.30.1.tgz",
+            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/src/base/modules/mail/node_modules/.pnpm/undici@7.30.1/node_modules/undici"
+          }
+        }
+      }
+    }
+  }
+]

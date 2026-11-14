@@ -1,0 +1,11 @@
+{
+  "adapted": "src/base/modules/mail/pnpm-lock.yaml",
+  "revision": "c2efb501cbc148c2aee4d5e1107ebdba81469006",
+  "sha256": "4b8846fd11bb799afabcb07e44e9a3297086144ef18521fcfc458718233941e6",
+  "acknowledged": {
+    "sha256": "d522fc5e028ac3daeecb7ef2a83bebb69141a367516c4365b85339eb1a1e35b0",
+    "mode": "100644"
+  },
+  "record": "base-copies.json"
+}
+

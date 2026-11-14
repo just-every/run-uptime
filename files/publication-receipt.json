@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "complete": true,
+  "source": {
+    "commit": "dc2114e58eaa72a2e459024fecae5761f07112e5",
+    "tree": "32001917c503592f68eab80502589c587bc783e1"
+  },
+  "finding_count": 0,
+  "history": {
+    "scope": "selected-and-public-base",
+    "commits": 1052,
+    "trees": 1033,
+    "blobs": 9162,
+    "commitMessages": 1052,
+    "tagMessages": 22,
+    "hydration": {
+      "missingBefore": 0,
+      "missingAfter": 0,
+      "fetches": 0,
+      "seconds": 0.03168
+    }
+  },
+  "guarantees": {
+    "historyScanned": true,
+    "visualRecognition": false,
+    "environmentChecked": true
+  },
+  "authoritative_report_sha256": "d4cdc60cdcb6d8b0d531094b0324faec8a42621d678023ef2da8ac16e066b34b",
+  "initial_working_tree_scan": "publication-working-tree-scan.json",
+  "reason_for_rerun": "Exclude generated local installation/build state and provide explicit committed project/destination identities; candidate source was unchanged."
+}

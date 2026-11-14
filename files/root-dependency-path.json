@@ -1,0 +1,90 @@
+[
+  {
+    "name": "@uptime/uptime-console",
+    "version": "0.5.11",
+    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo",
+    "private": true,
+    "devDependencies": {
+      "miniflare": {
+        "from": "miniflare",
+        "version": "5.20260926.1-alpha",
+        "resolved": "https://registry.npmjs.org/miniflare/-/miniflare-5.20260926.1-alpha.tgz",
+        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare",
+        "dependencies": {
+          "undici": {
+            "from": "undici",
+            "version": "7.30.1",
+            "resolved": "https://registry.npmjs.org/undici/-/undici-7.30.1.tgz",
+            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/undici@7.30.1/node_modules/undici"
+          }
+        }
+      },
+      "wrangler": {
+        "from": "wrangler",
+        "version": "4.144.0",
+        "resolved": "https://registry.npmjs.org/wrangler/-/wrangler-4.144.0.tgz",
+        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/wrangler@4.144.0_@cloudflare+workers-types@5.20261006.1_@types+node@26.6.4/node_modules/wrangler",
+        "dependencies": {
+          "miniflare": {
+            "from": "miniflare",
+            "version": "5.20260926.1-alpha",
+            "resolved": "https://registry.npmjs.org/miniflare/-/miniflare-5.20260926.1-alpha.tgz",
+            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare",
+            "dependencies": {
+              "undici": {
+                "from": "undici",
+                "version": "7.30.1",
+                "resolved": "https://registry.npmjs.org/undici/-/undici-7.30.1.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/undici@7.30.1/node_modules/undici"
+              }
+            }
+          }
+        }
+      },
+      "@cloudflare/vite-plugin": {
+        "from": "@cloudflare/vite-plugin",
+        "version": "1.62.2",
+        "resolved": "https://registry.npmjs.org/@cloudflare/vite-plugin/-/vite-plugin-1.62.2.tgz",
+        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/@cloudflare+vite-plugin@1.62.2_@types+node@26.6.4_vite@8.2.2_@types+node@26.6.4_esbuild_ae1547388817a5f2c638ebefe5139dc9/node_modules/@cloudflare/vite-plugin",
+        "dependencies": {
+          "miniflare": {
+            "from": "miniflare",
+            "version": "5.20260926.1-alpha",
+            "resolved": "https://registry.npmjs.org/miniflare/-/miniflare-5.20260926.1-alpha.tgz",
+            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare",
+            "dependencies": {
+              "undici": {
+                "from": "undici",
+                "version": "7.30.1",
+                "resolved": "https://registry.npmjs.org/undici/-/undici-7.30.1.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/undici@7.30.1/node_modules/undici"
+              }
+            }
+          },
+          "wrangler": {
+            "from": "wrangler",
+            "version": "4.144.0",
+            "resolved": "https://registry.npmjs.org/wrangler/-/wrangler-4.144.0.tgz",
+            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/wrangler@4.144.0_@cloudflare+workers-types@5.20261006.1_@types+node@26.6.4/node_modules/wrangler",
+            "dependencies": {
+              "miniflare": {
+                "from": "miniflare",
+                "version": "5.20260926.1-alpha",
+                "resolved": "https://registry.npmjs.org/miniflare/-/miniflare-5.20260926.1-alpha.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare",
+                "dependencies": {
+                  "undici": {
+                    "from": "undici",
+                    "version": "7.30.1",
+                    "resolved": "https://registry.npmjs.org/undici/-/undici-7.30.1.tgz",
+                    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-3/repo/node_modules/.pnpm/undici@7.30.1/node_modules/undici"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]
