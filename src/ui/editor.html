@@ -57,7 +57,7 @@
         <div class="editor-pair"><label>Mail host<input disabled name="mailHost" maxlength="253" placeholder="mail.example.com" autocapitalize="off" spellcheck="false" required></label><label>Mail port<input disabled name="mailPort" type="number" min="1" max="65535" required></label></div>
         <label>TLS mode<select disabled name="mailSecurity"><option value="starttls">STARTTLS — upgrade the connection</option><option value="tls">TLS — secure from the start</option><option value="none">No TLS — no authentication</option></select></label>
         <label>Mail credential reference (optional)<input disabled name="mailCredentialRef" maxlength="80" pattern="[a-zA-Z0-9_-]+" autocomplete="off" aria-describedby="mail-settings-help"></label>
-        <p id="mail-settings-help" class="helper ui-helper">Use the reference of credentials stored on your private runner, never a password. <a href="/docs/runner#request-credentials">Set up runner credentials</a></p>
+        <p id="mail-settings-help" class="helper ui-helper">Use the reference of credentials stored on your private runner, never a password. <a href="/docs/runner#http-credential-fields">Set up runner credentials</a></p>
         <label class="check-row" data-mail-transaction-toggle><input disabled name="mailTransaction" type="checkbox">Send a synthetic message and confirm delivery</label>
         <div class="editor-fields mail-transaction" data-mail-transaction hidden>
          <label class="check-row"><input disabled name="mailDedicated" type="checkbox" required>I use a dedicated synthetic test mailbox</label>
@@ -74,7 +74,7 @@
        <div class="type-fields editor-fields" data-types="api" hidden>
         <label>API origin URL<input disabled name="apiUrl" type="url" placeholder="https://api.example.com/"></label>
         <label>Shared runner credential reference (optional)<input disabled name="apiCredentialRef" maxlength="80" pattern="[a-zA-Z0-9_-]+" autocomplete="off" aria-describedby="api-steps-help"></label>
-        <p id="api-steps-help" class="helper ui-helper">Requests stay on this origin. Authentication stays on your private runner. <a href="/docs/runner#request-credentials">Set up runner credentials</a></p>
+        <p id="api-steps-help" class="helper ui-helper">Requests stay on this origin. Authentication stays on your private runner. <a href="/docs/runner#http-credential-fields">Set up runner credentials</a></p>
         <div class="editor-fields" data-api-builder>
          <details class="step-options"><summary>Initial variables (optional)</summary><div class="editor-fields"><div data-pairs="variable"></div><button type="button" data-api-action="add-variable">Add variable</button></div></details>
          <p class="helper ui-helper" data-step-count></p>

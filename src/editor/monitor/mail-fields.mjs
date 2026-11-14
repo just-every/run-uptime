@@ -2,7 +2,7 @@ import {validateMailSettings} from '../../domain/mail-probe/schema.mjs';
 const defaults={smtp:{none:25,starttls:587,tls:465},pop3:{none:110,starttls:110,tls:995},imap:{none:143,starttls:143,tls:993}};
 const field=(root,name)=>root.querySelector(`[name="${name}"]`);
 const text=(root,name)=>field(root,name).value.trim();
-const set=(root,name,value)=>{field(root,name).value=value??''};
+const set=(root,name,value)=>{const control=field(root,name);if(control)control.value=value??''};
 export function fillMail(root,settings={protocol:'smtp',security:'starttls'}){
  for(const [prefix,s] of [['mail',settings],['receive',settings.transaction?.receive??{protocol:'imap',security:'tls'}]]){
   for(const [key,suffix] of [['protocol','Protocol'],['host','Host'],['security','Security'],['credentialRef','CredentialRef'],['mailbox','Mailbox']])set(root,prefix+suffix,s[key]??(key==='mailbox'?'INBOX':''));

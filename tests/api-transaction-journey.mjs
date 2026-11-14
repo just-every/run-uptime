@@ -1,3 +1,4 @@
+import {proveProtocolForms} from './protocol-forms-browser-support.mjs';
 import assert from 'node:assert/strict';
 import {createHash,randomBytes} from 'node:crypto';
 import {mkdir,mkdtemp,rm} from 'node:fs/promises';
@@ -17,6 +18,7 @@ const serializedSafe = (value,extra=[]) => {const text=JSON.stringify(value);for
 const waitFor = async (check,label) => {for (const end=Date.now()+15000;Date.now()<end;await new Promise(resolve=>setTimeout(resolve,20)))if(await check())return;throw Error(`Timed out waiting for ${label}`)};
 const rehash = archive => ({payload:archive.payload,sha256:createHash('sha256').update(JSON.stringify(archive.payload)).digest('hex')});
 test('API-004 sandbox setup/teardown, cancellation, denied cleanup, retained debt and explicit operator resolution without a live charge',async()=>{
+  await proveProtocolForms();
   const state={wrong:false,expired:false,missing:false,hold:false,deny:false,deleted:0};
   const h=await authFixture((request,res)=>{
     res.setHeader('content-type','application/json');
