@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "vite_before": "8.2.2",
+  "vite_after": "8.2.4",
+  "unrelated_dependency_changes": 0,
+  "lockfile_package_entries_before": 643,
+  "lockfile_package_entries_after": 643
+}

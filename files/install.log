@@ -1,0 +1,49 @@
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +221
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 221, reused 0, downloaded 46, added 46
+Progress: resolved 221, reused 0, downloaded 107, added 105
+Progress: resolved 221, reused 0, downloaded 173, added 173
+Progress: resolved 221, reused 0, downloaded 219, added 218
+Progress: resolved 221, reused 0, downloaded 221, added 221, done
+.../node_modules/workerd postinstall$ node install.js
+.../esbuild@0.28.1/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.28.2/node_modules/esbuild postinstall$ node install.js
+.../node_modules/workerd postinstall: Done
+.../esbuild@0.28.2/node_modules/esbuild postinstall: Done
+.../esbuild@0.28.1/node_modules/esbuild postinstall: Done
+
+dependencies:
++ @pdf-lib/fontkit 1.1.1
++ @simplewebauthn/server 14.0.3
++ @tanstack/react-router 1.170.41
++ @tanstack/react-start 1.168.60
++ hono 4.13.7
++ jsonpathly 3.0.1
++ pdf-lib 1.17.1
++ qrcode 1.5.4
++ re2js 2.8.6
++ react 19.2.8
++ react-dom 19.2.8
+
+devDependencies:
++ @cloudflare/vite-plugin 1.62.2
++ @cloudflare/workers-types 5.20261006.1
++ @runeditrun/rer 0.2.113
++ @types/node 26.6.4
++ @types/qrcode 1.5.6
++ @types/react 19.2.18
++ @types/react-dom 19.2.7
++ @vitejs/plugin-react 6.1.1
++ axe-core 4.10.3
++ js-yaml 4.3.2
++ jsqr 1.4.0
++ marked 18.0.14
++ miniflare 5.20260926.1-alpha
++ playwright 1.64.1
++ typescript 5.9.3
++ vite 8.2.4
++ wrangler 4.144.0
+
+Done in 5.5s using pnpm v10.12.4

@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "all_candidate_commits": [
+    "8e1966b14902e4923198677e4048cd978336522a"
+  ],
+  "author_and_committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "trailers": [],
+  "openai_codex_coauthors": 0,
+  "clean_product_checkout": true
+}

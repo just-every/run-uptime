@@ -1,0 +1,108 @@
+{
+  "head": "8e1966b14902e4923198677e4048cd978336522a",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "checks": [
+    {
+      "command": "pnpm install --lockfile-only",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "lockfile.log"
+    },
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "install.log"
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "build.log"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "typecheck.log"
+    },
+    {
+      "command": "pnpm run spec:check",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "spec-check.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock; node scripts/edition-authoring/cli.mjs check",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "source-lock-check.json"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "contract-check.log"
+    },
+    {
+      "command": "pnpm exec rer check --profile first-party",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "structural-check.log"
+    },
+    {
+      "command": "pnpm run test:base",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "base-check.log"
+    },
+    {
+      "command": "cloud_run node tests/command-journey.mjs",
+      "result": "pass",
+      "exit_code": 0,
+      "evidence": "command-journey.log",
+      "browser": "/usr/bin/chromium --no-sandbox",
+      "viewport": 1440
+    },
+    {
+      "command": "node tests/public-paths.mjs",
+      "result": "incomplete",
+      "note": "An initial invocation returned exit 0 without progress output and was not accepted as proof. An instrumented run stalled for about three minutes before any assertion result; it was stopped. A retry through cloud_run without cloud proxy settings likewise stalled for about two minutes and was stopped. No completed public-path assertions or pass is claimed.",
+      "evidence": [
+        "public-paths-probe.log",
+        "public-paths-clean.log"
+      ]
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "exit_code": 0
+    },
+    {
+      "command": "git log origin/main..HEAD --format=\"%an <%ae>%n%cn <%ce>%n%(trailers:only,unfold)\" and all-candidate message validation",
+      "result": "pass",
+      "evidence": "identity-check.json"
+    },
+    {
+      "command": "git ls-remote --heads origin refs/heads/cloud/gr-mt-uptime-dep-5-c1",
+      "result": "pass",
+      "evidence": "product-receipt.json"
+    }
+  ],
+  "full_ci_observed_success": false,
+  "github_api_calls": 1,
+  "ci": {
+    "total_count": 1,
+    "workflow_runs": [
+      {
+        "conclusion": null,
+        "head_sha": "8e1966b14902e4923198677e4048cd978336522a",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43607110443",
+        "id": 43607110443,
+        "name": "Verify",
+        "status": "in_progress"
+      }
+    ]
+  }
+}

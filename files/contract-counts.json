@@ -1,0 +1,24 @@
+{
+  "before": {
+    "published": {
+      "done": 14,
+      "partial": 7,
+      "missing": 0,
+      "total": 21
+    },
+    "target": {
+      "done": 23,
+      "partial": 51,
+      "missing": 20,
+      "total": 94
+    },
+    "all": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "after_identical": true,
+  "clause_changes": []
+}

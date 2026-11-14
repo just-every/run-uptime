@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "changed_entries": [
+    "package.json",
+    "pnpm-lock.yaml"
+  ],
+  "all_other_main_entries_preserved": true
+}
