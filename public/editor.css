@@ -149,3 +149,22 @@
 /* Scheduled jobs need only their name, period and grace. */
 #monitor-form[data-heartbeat="true"] .editor-columns { grid-template-columns: minmax(0, 720px); }
 #monitor-form [data-heartbeat-hide][hidden] { display: none; }
+
+/* Protocol editors use the same fields as the ordinary monitor form. */
+.mail-transaction[hidden] { display: none; }
+.transaction-phase { min-width: 0; padding-top: 16px; border-top: 1px solid var(--line); }
+.transaction-phase h3 { font-size: 16px; }
+.transaction-phase h3 .muted { font-size: 14px; font-weight: 500; }
+.transaction-step { min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-panel); }
+.transaction-step legend { padding: 0 6px; font-size: 15px; font-weight: 700; }
+.step-toolbar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin-bottom: 12px; }
+.step-toolbar button { min-height: 36px; padding: 4px 10px; font-size: 13px; }
+.step-options { min-width: 0; }
+.step-options summary { min-height: 36px; align-content: center; font-size: 14px; font-weight: 600; cursor: pointer; }
+.step-options > .editor-fields { padding-top: 10px; }
+.transaction-step h4 { font-size: 14px; }
+.transaction-row { display: grid; gap: 8px; margin-bottom: 12px; }
+.transaction-row > button, [data-api-builder] section > button, [data-api-action="add-variable"] { justify-self: start; }
+.transaction-step textarea { min-height: 90px; font-family: var(--mono); font-size: 14px; }
+[data-api-feedback]:empty { display: none; }
+@media (max-width: 560px) { .transaction-step { padding: 12px; } }
