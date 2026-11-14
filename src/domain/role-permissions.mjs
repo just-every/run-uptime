@@ -24,6 +24,9 @@ export function requestPermission(request,input){
  if(path==='/api/routing/recipient')return {action:'receive',workspace:false};
  if(path==='/api/routing/teams')return {action:'members',workspace:true};
  if(path==='/api/drill-reminders'&&read)return {action:'receive',workspace:false};
+ // Console monitoring reads share the documented read role; configuration and
+ // every mutating method retain their existing classifications.
+ if(path==='/api/overview'&&read)return {action:'read',workspace:true};
  if(path==='/api/access/self')return {action:'read',workspace:false};
  if(path.startsWith('/api/access/'))return {action:'members',workspace:true};
  if(path==='/api/auth/sign-out'||path==='/auth/signout')return {action:'read',workspace:false};
@@ -42,7 +45,7 @@ export function requestPermission(request,input){
  if(monitor){
   const id=decode(monitor[1]),suffix=monitor[2]??'';
   if(suffix.startsWith('report-schedules'))return {action:'owner',workspace:true};
-  if(read&&((path.startsWith('/api/v1/')&&['','uptime','report','response-times'].includes(suffix))||['history','incidents','heartbeat-runs'].includes(suffix)))return {action:'read',workspace:false,monitorIds:[id]};
+  if(read&&((path.startsWith('/api/v1/')&&['','uptime','report','response-times'].includes(suffix))||['history','revisions','incidents','heartbeat-runs'].includes(suffix)))return {action:'read',workspace:false,monitorIds:[id]};
   if(!read&&suffix==='run')return {action:'respond',workspace:false,monitorIds:[id]};
   if(!read&&suffix==='slow-ack')return {action:'respond',workspace:false,monitorIds:[id]};
   if(method==='PATCH'&&!suffix)return {action:'check_write',workspace:false,monitorIds:[id],definition:input};

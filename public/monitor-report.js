@@ -19,13 +19,13 @@ export function mountReportControl(area,monitor){
  });
 }
 
-export function renderPeriodReport({header,actions,area,monitor,api,runners}){
+export function renderPeriodReport({header,actions,area,monitor,api,runners,monitoringOnly=false}){
  const back=`/app/monitors/${encodeURIComponent(monitor.id)}#reports`;
  document.title=`Period report · ${monitor.definition.name} · Uptime`;
  patch(header,`<a class="back-link ui-link" id="report-back" href="${back}">Back to monitor</a><h1>Period report</h1><p class="subtitle">${escape(monitor.definition.name)}</p>`);
  actions.replaceChildren();
  patch(area,`<div class="period-report-view">${reportPanel(monitor)}</div>`);
- mountReportPanel(area,monitor,api,runners,{generate:true});
+ mountReportPanel(area,monitor,api,runners,{generate:true,monitoringOnly});
 }
 
 function formMarkup(monitor,probeName){
@@ -63,14 +63,14 @@ function focusReportPage(results,action){
  (requested?.disabled?requested.parentElement.querySelector('button:not(:disabled)'):requested)?.focus({preventScroll:true});
 }
 
-function bindReport(panel,monitor,api,probeName){
+function bindReport(panel,monitor,api,probeName,monitoringOnly){
  let snapshot=null,seriesPage=0,incidentPage=0,jobsPage=0;
  const form=panel.querySelector('form'),results=panel.querySelector('#report-results');
  const status=panel.querySelector('#report-status'),error=panel.querySelector('#report-error');
  const endpoint=`/api/v1/monitors/${encodeURIComponent(monitor.id)}/report`;
  const showError=problem=>{error.textContent=problem instanceof Error?problem.message:String(problem);error.hidden=false};
  const field=name=>form.elements.namedItem(name);
- api('/api/incident-settings').then(settings=>{for(const category of settings.categories)field('rootCause').add(new Option(category.label,category.id))},problem=>showError(problem));
+ if(!monitoringOnly)api('/api/incident-settings').then(settings=>{for(const category of settings.categories)field('rootCause').add(new Option(category.label,category.id))},problem=>showError(problem));
  const resetError=()=>{error.hidden=true;error.textContent=''};
  panel.querySelector('#report-period').addEventListener('change',()=>{
   const custom=field('period').value==='custom';panel.querySelector('#report-custom-range').hidden=!custom;
@@ -128,12 +128,12 @@ function bindReport(panel,monitor,api,probeName){
  });
 }
 
-export function mountReportPanel(area,monitor,api,runners,{generate=false}={}){
+export function mountReportPanel(area,monitor,api,runners,{generate=false,monitoringOnly=false}={}){
  if(!document.querySelector('link[data-period-report]')){
   const css=document.createElement('link');css.rel='stylesheet';css.href='/report.css';css.dataset.periodReport='';document.head.append(css);
  }
  const panel=area.querySelector('#monitor-report');if(!firstMount(panel))return;
- const probeName=locationNamer(monitor.definition,runners);panel.innerHTML=formMarkup(monitor,probeName);bindReport(panel,monitor,api,probeName);
+ const probeName=locationNamer(monitor.definition,runners);panel.innerHTML=formMarkup(monitor,probeName);bindReport(panel,monitor,api,probeName,monitoringOnly);
  if(generate){
   const period=new URLSearchParams(location.search).get('period');
   if(periods.some(([value])=>value===period))panel.querySelector('#report-period').value=period;

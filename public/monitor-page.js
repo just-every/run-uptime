@@ -134,7 +134,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  const m=data.monitors.find(m=>m.id===id);
  if(!m){renderMissing({header,actions,area,id});return}
  if(new URLSearchParams(location.search).get('view')==='report'){
-  renderPeriodReport({header,actions,area,monitor:m,api,runners:data.runner.runners??[]});return;
+  renderPeriodReport({header,actions,area,monitor:m,api,runners:data.runner.runners??[],monitoringOnly:data.access?.monitoringOnly});return;
  }
  const page=pageOf(m.id);
  if(!page.ui||area.querySelector('#monitor-page')?.dataset.monitor!==m.id)page.ui=freshUi();

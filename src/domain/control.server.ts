@@ -35,8 +35,8 @@ export function grants(env:Bindings){if(!env.UPTIME_SYNTHETIC_PORT)return [];con
 export async function session(env:Bindings,request:Request){return Boolean(await operatorSession(env,request))}
 const monitorRow=(row:any)=>({id:row.id,revision:row.revision,definition:JSON.parse(row.definition),nextDue:row.next_due,storedState:JSON.parse(row.state)})
 export async function get(env:Bindings,id:string){const row=await env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(id).first<any>();return row?monitorRow(row):null}
-async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:number,runners:any[],legacy:any,staleMs:number){
- const snapshot=await attemptSnapshot(env,m.id,m.revision,m.definition,now);
+async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:number,runners:any[],legacy:any,staleMs:number,readOnly=false){
+ const snapshot=await attemptSnapshot(env,m.id,m.revision,m.definition,now,undefined,readOnly);
  const state:any={...projectRecentAttempts(m.definition,snapshot.slots,snapshot.observations,now,snapshot.checkpoint),notificationOpen:m.storedState.notificationOpen,incidentKey:m.storedState.incidentKey};
  const changed=m.storedState.notificationOpen?await definitionChange(env,m.id,m.storedState.incidentRevision,m.revision,m.definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
  if(state.notificationOpen&&state.targetState==='Healthy'&&state.recoveryStreak<m.definition.recoverSlots){
@@ -55,7 +55,7 @@ async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:num
 // notification history, so opening one monitor costs one monitor's reads however many the installation has. Both carry the
 // installation's one time zone (Settings › General), which the console's report, maintenance and job forms start from. Reads that do
 // not depend on each other run together: each is a D1 round trip, and a hosted console waits for the slowest chain.
-export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
+export async function overview(env:Bindings,{monitorId,readOnly=false}:{monitorId?:string;readOnly?:boolean}={}){
  const now=Date.now(),staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
  // The first runner rows exist after the first overview; only an installation still missing one writes them, then reads again.
@@ -63,12 +63,12 @@ export async function overview(env:Bindings,{monitorId}:{monitorId?:string}={}){
  const [found,rows,alerts,started,contact,external,notifications,preferences]=await Promise.all([present(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
-  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined?notificationOverview(env):null,monitorId===undefined?null:notificationPreferences(env)]);
- const {runners,legacy}=found??(await ensureFirstRunner(env),(await present())!);
+  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env)]);
+ const {runners,legacy}=found??(readOnly?{runners:await listRunners(env),legacy:await runnerIdentity(env)}:(await ensureFirstRunner(env),(await present())!));
  const basics=rows.results.map(monitorRow);
- const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs))),availabilityOverview(env.DB,basics,now)]);
+ const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs,readOnly))),availabilityOverview(env.DB,basics,now)]);
  return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
-  runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,grants:grants(env),contact,externalCheckUrl:external.url},
+  runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,...(readOnly?{}:{grants:grants(env),contact,externalCheckUrl:external.url})},
   timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
 }
 export {MONITOR_LIMIT} from './monitor-cap.ts'

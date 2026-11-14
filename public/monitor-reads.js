@@ -54,7 +54,11 @@ export function loadPage(page){
   debt:()=>optional('debt',`/api/monitors/${key}/cleanup-debt`,debt=>{seen.debt=debt}),
  };
  page.retry=name=>{seen.failed.delete(name);page.draw();readers[name]?.()};
- readers.incidents();readers.history();readers.route();
+ readers.incidents();readers.history();
+ // A monitoring reader never requests configuration, destination details or
+ // private grants to render check history.
+ if(page.data.access?.monitoringOnly){seen.route=null;seen.slow=null;seen.failed.clear();return}
+ readers.route();
  if(d.slow&&d.type!=='heartbeat')readers.slow();else{seen.slow=null;seen.failed.delete('slow')}
  if(d.tags?.includes('dependency'))readers.followed();
  if(fixtures(d))readers.debt();
