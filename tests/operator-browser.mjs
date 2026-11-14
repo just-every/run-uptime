@@ -221,15 +221,21 @@ try{
    await tabTo(page,page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await page.getByRole('heading',{name:'Destinations',exact:true}).waitFor();await audit(page,`notifications-${width}`);
    await page.getByRole('link',{name:'Backup and files',exact:true}).click();await page.waitForURL(origin+'/app/settings/backup');await ready(page);await page.getByRole('button',{name:'Download backup'}).waitFor();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
-   await proveReadableMaintenanceAndErasure(page,origin,monitor);
-   await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();assert.equal((await page.request.get(origin+'/api/overview')).status(),401);assert.deepEqual(errors,[],'browser exceptions');
+   await proveReadableMaintenanceAndErasure(page,origin,monitor);await ready(page);
+   const signedOut=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/auth/sign-out'&&r.request().method()==='POST');
+   await page.getByRole('link',{name:'Sign out',exact:true}).click();assert.equal((await signedOut).status(),200,'sign-out completes through the native door');
+   try{await page.getByLabel('Email address').waitFor()}catch(error){console.error('Sign-out destination '+JSON.stringify({path:new URL(page.url()).pathname,title:await page.title(),text:await page.locator('body').innerText().then(text=>text.slice(0,160))}));throw error}
+   assert.equal((await page.request.get(origin+'/api/overview')).status(),401);assert.deepEqual(errors,[],'browser exceptions');
   }finally{await context.close()}
  }
  // One phone smoke: sign in, inspect retained monitoring, navigate, and sign out at 390.
+ // Like the desktop's cold context, use a fresh public-asset window.
  {
+  await new Promise(resolve=>setTimeout(resolve,60000-Date.now()%60000));
   const context=await browser.newContext({viewport:{width:390,height:844}});
   try{
-   const page=await context.newPage();
+   const page=await context.newPage(),failed=[];failedReads.set(page,failed);
+   page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
    await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
    await ready(page);await audit(page,'phone-console-390');
    // Many-at-once has one home: New monitor, at the phone's width too.
