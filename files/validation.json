@@ -121,5 +121,16 @@
     "reason": "The cloud adaptation explicitly reserves the publication scan to the fleet Mac."
   },
   "productHead": "594574662a8a692ff6d3311718c968f43363892c",
-  "baseHead": "c14aafe38f2a5c754a550251593170404f1363a5"
+  "baseHead": "c14aafe38f2a5c754a550251593170404f1363a5",
+  "ci": {
+    "runId": 43560095485,
+    "head": "594574662a8a692ff6d3311718c968f43363892c",
+    "status": "in_progress",
+    "conclusion": null,
+    "initialAttempt": "cancelled",
+    "retryAccepted": true,
+    "githubCalls": 10,
+    "budgetExhausted": true,
+    "terminalCustody": "PUSHED"
+  }
 }

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "gh",
+    "api",
+    "--method",
+    "POST",
+    "repos/just-every/run-uptime/actions/runs/43560095485/rerun-failed-jobs"
+  ],
+  "exit": 0,
+  "time": "2026-11-14T05:35:56.584660+00:00",
+  "monotonic": 3095.310127106,
+  "githubCallNumber": 9,
+  "reason": "First run cancelled its shards; aggregate coverage check failed with SHARDS=cancelled while BUILD and PREPARE succeeded."
+}

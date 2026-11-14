@@ -111,7 +111,73 @@
         "name": "Verify",
         "status": "in_progress"
       }
+    },
+    {
+      "number": 6,
+      "time": "2026-11-14T05:34:21.520266+00:00",
+      "monotonic": 3001.178492547,
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43560095485",
+        "--jq",
+        "{id,name,status,conclusion,head_sha,html_url}"
+      ],
+      "exit": 0,
+      "response": {
+        "conclusion": "cancelled",
+        "head_sha": "594574662a8a692ff6d3311718c968f43363892c",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43560095485",
+        "id": 43560095485,
+        "name": "Verify",
+        "status": "completed"
+      }
     }
   ],
-  "githubCalls": 5
+  "githubCalls": 10,
+  "initialConclusion": "cancelled",
+  "rerunsRequested": 1,
+  "watcherCalls": 6,
+  "diagnosticCalls": [
+    {
+      "number": 7,
+      "command": [
+        "gh",
+        "api",
+        "repos/just-every/run-uptime/actions/runs/43560095485/jobs?per_page=100"
+      ],
+      "resultFile": "ci-failed-jobs.json",
+      "exit": 0
+    },
+    {
+      "number": 8,
+      "command": [
+        "gh",
+        "run",
+        "view",
+        "43560095485",
+        "--repo",
+        "just-every/run-uptime",
+        "--job",
+        "132346945007",
+        "--log-failed"
+      ],
+      "resultFile": "ci-failure-summary.json",
+      "result": "log archive retrieved"
+    },
+    {
+      "number": 9,
+      "receiptFile": "ci-rerun-receipt.json",
+      "exit": 0
+    },
+    {
+      "number": 10,
+      "receiptFile": "ci-final-poll.json",
+      "exit": 0
+    }
+  ],
+  "budgetExhausted": true,
+  "head_sha": "594574662a8a692ff6d3311718c968f43363892c",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/43560095485",
+  "terminalCustody": "PUSHED"
 }

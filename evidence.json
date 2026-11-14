@@ -7,10 +7,10 @@
       "sha256": "6bbe0fffe76f6bd54b186086af6ea6b81d790c2dc44360cb445bf0c210010274"
     },
     {
-      "blob": "0197371577327afac5729fbae975537ec88db9b5",
-      "bytes": 7807,
+      "blob": "6113fa1f471c919aef71ce77477a84eafc0cde9a",
+      "bytes": 8782,
       "path": "REPORT.md",
-      "sha256": "b1a5aa082dbfcf7af11975d73f28cf2545520598252fadb1c91d7be241c4d9fa"
+      "sha256": "c2b4e3162d34b55cba3e106553a11e9d16cdc64862e71ebbaed30d8331a7ea84"
     },
     {
       "blob": "6ea36b8ee8e73f925bc37ec1c0af21b6f6924726",
@@ -67,10 +67,34 @@
       "sha256": "485cc392b44020670af220de31e4c5631cb9e0d71cc15572ce83f49b697e5b22"
     },
     {
-      "blob": "192d75adab8e8db49c14e6425cbbc0246a02035f",
-      "bytes": 3437,
+      "blob": "23c3a7deb6f5672b1ca731b0095df9f8b37fc7fd",
+      "bytes": 211,
+      "path": "ci-failed-jobs.json",
+      "sha256": "bffe6c2df5b7a069dfb403946e0107a1a5969b8767dad599e065196664e4ae6a"
+    },
+    {
+      "blob": "fb45aadfa8f1633db786595b4009989fa6c3534c",
+      "bytes": 894,
+      "path": "ci-failure-summary.json",
+      "sha256": "3699da1ec54141e9752085d70a2bd4f5c1794def44a3f67253dcc328bef67d4f"
+    },
+    {
+      "blob": "97e4535a5acaa083621ac66e47ff8c98510cf002",
+      "bytes": 494,
+      "path": "ci-final-poll.json",
+      "sha256": "da964a7e9a8ca0c31a79c2780854b01923e3144ff27a4a6ca0e1927c6cccc257"
+    },
+    {
+      "blob": "222721f9d0a511af36441cfd05f61a771e8df49d",
+      "bytes": 5116,
       "path": "ci-receipt.json",
-      "sha256": "fc426f6d516e67d375a80a52eefc98d6e5d8daf36449a23aabe5a087b2d5f9e7"
+      "sha256": "0ca1fe09794e051894e916e9cbacdd160fc537cf64c531605b92dbac4371d8d4"
+    },
+    {
+      "blob": "64aa67058b5bb61508c0538cc8ba00d8bd11ad4b",
+      "bytes": 400,
+      "path": "ci-rerun-receipt.json",
+      "sha256": "08bee8d7468004e68a961827b006f33f2ccb0eb67d22cc5042c0116d77c9ca0f"
     },
     {
       "blob": "c029a513f22050343bcc68592ce29f1affd4d872",
@@ -169,10 +193,10 @@
       "sha256": "3417943b075b73ae8b8efde83802fb2ec926f419193ccd50f3b42634956ff6c1"
     },
     {
-      "blob": "2576510734e624082fca278a525bb674b0997873",
-      "bytes": 3037,
+      "blob": "9b39e9bf3f1106a7d31715f7698210a6f3e7a1be",
+      "bytes": 3333,
       "path": "validation.json",
-      "sha256": "2d14ffac5ea15e3a2fbd25c9f145b576064c5200fbbdec3862fa57e1c9052efc"
+      "sha256": "73135fdcf84d9f8e6f7d7685d17b5f67a66eed1b661e30902f1612b3af12e026"
     }
   ],
   "product_branch": "cloud/main-uptime-readonly-console-1",

@@ -5,7 +5,7 @@ Branch: cloud/main-uptime-readonly-console-1
 Candidate: 594574662a8a692ff6d3311718c968f43363892c
 Base: c14aafe38f2a5c754a550251593170404f1363a5
 PR: none; this repository's supplied rules require a branch candidate, not a PR.
-Verify: 43560095485, exact candidate SHA; currently running.
+Verify: 43560095485, exact candidate SHA; initial attempt cancelled; one retry accepted. Final permitted REST check at 2026-11-14T05:40:55Z reports in_progress on the exact SHA; GitHub budget 10/10 used. Terminal custody: PUSHED.
 URL: https://github.com/just-every/run-uptime/actions/runs/43560095485
 
 ## Outcome
@@ -54,7 +54,7 @@ Counts: 47 -> 47 top-level push assertion scripts; no new registered suite. Cont
 - git diff --check and changed-diff credential-shape scan: PASS.
 - Fleet identity/trailer audit: PASS on the sole candidate commit, including all side parents; no co-author trailers.
 - Product push guard: PASS on attempt 1. The advertised branch head matches the candidate.
-- Exact-SHA Verify: pending. See ci-receipt.json for actual REST responses and call timestamps.
+- Exact-SHA Verify: the first attempt ended cancelled. Build and prepare succeeded; the aggregate verify job failed its coverage guard because the shards were cancelled. Its failed log was read once. One rerun of the failed/cancelled jobs was accepted. See ci-receipt.json, ci-failure-summary.json and ci-rerun-receipt.json for actual results; the retry remains in_progress on the exact SHA at the final permitted check. All ten GitHub calls have been used; no successful Verify or READY claim is made.
 
 The cloud adaptation explicitly reserves the full publication scan to the fleet Mac. That scan remains required at landing; it was not claimed from this cloud.
 
@@ -66,4 +66,4 @@ GAP ACCESS-001: This repair proves the invited read-only monitoring/refusal slic
 
 Only the product/docs/tests and regenerated source lock are in the product commit. All reports, receipts and screenshots are outside the product clone in this packet and are selected explicitly for the separate report-only evidence ref. No credentials, environment dumps, real browser profiles, held-out gate material or symlinks are included.
 
-No product blocker is known. CI is still running. Product custody and evidence transfer are independent; evidence publication is not READY, acceptance or landing.
+No local product blocker is known. Exact-SHA Verify has no successful conclusion yet; its first attempt was cancelled and one retry was accepted. The ten-call GitHub budget is exhausted after discovery/polls, one completed-run job lookup, one failed-job log read, the retry and the final status check. The final retry status is in_progress on the exact SHA. Return PUSHED, not READY; no product failure is inferred from the cancelled first attempt. Product custody and evidence transfer are independent; evidence publication is not READY, acceptance or landing.

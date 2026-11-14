@@ -1,0 +1,24 @@
+{
+  "runId": 43560095485,
+  "head": "594574662a8a692ff6d3311718c968f43363892c",
+  "initialRunConclusion": "cancelled",
+  "failedJob": {
+    "id": 132346945007,
+    "name": "verify",
+    "step": "Require the selected coverage and its proof",
+    "result": "failure"
+  },
+  "observedPrerequisites": {
+    "plan": "success",
+    "build": "success",
+    "prepare": "success",
+    "shards": "cancelled",
+    "coverage": "full"
+  },
+  "diagnostic": "Aggregate coverage guard exited 1 after SHARDS=cancelled. No product assertion failure is shown in this aggregate-job log.",
+  "logCommand": "gh run view 43560095485 --repo just-every/run-uptime --job 132346945007 --log-failed",
+  "logReads": 1,
+  "logSha256": "b619aa4634093e8894f0d2e41b8a9edc231a403933280fb393cc48c048ab6226",
+  "rawLogRetainedOutsidePacket": true,
+  "retry": "One rerun-failed-jobs request accepted; see ci-rerun-receipt.json."
+}
