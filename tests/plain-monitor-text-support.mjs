@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 
-// Only visible console text is checked: support JSON remains available in its explicitly closed disclosure.
+// Person-facing text stays readable; raw definitions remain in the API and exports.
 export async function assertPlainMonitorText(region){
  const visible=await region.innerText();
  assert.doesNotMatch(visible,/\blocal-[a-z]\b|\bself-[0-9a-f-]{36}\b|\b[A-Z][A-Z0-9]*(?:-[A-Z]+)*-\d{3}\b|\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b|[{}]/,'visible monitor text has no internal location/clause IDs or JSON payload');
@@ -43,12 +43,11 @@ export async function provePlainMonitorEvidence(page,origin,monitor){
   const words=await evidence.innerText(),expected=slot.definition.assertions.status.map(String).join(', ').replaceAll('-','–');
   assert.ok(words.includes(String(failed.status))&&words.includes(expected),'incident names the measured status and its original expected range after an edit');
   for(const assignment of Object.values(slot.definition.assignments))assert.ok(words.includes(assignment.networkLabel),'incident names the assigned place');
-  await page.evaluate(()=>{location.hash='details'});const details=page.locator('#details');await details.locator('.check-raw-data').waitFor();
+  await page.evaluate(()=>{location.hash='details'});const details=page.locator('#details');await details.locator('dt').first().waitFor();
   assert.ok(await details.locator('dt').count()>0,'saved details have labelled values');
-  assert.equal(await details.locator('.check-raw-data pre').isVisible(),false,'support payload starts closed');
   await assertPlainMonitorText(details);
-  await details.locator('.check-raw-data > summary').click();assert.equal(await details.locator('.check-raw-data pre').isVisible(),true,'support payload remains reachable');
-  await details.locator('.check-raw-data > summary').click();
+  assert.equal(await details.locator('pre').count(),0,'saved details never render a raw payload');
+  assert.deepEqual((await current()).definition,monitor.definition,'the full saved criteria remain available through the API');
  }finally{await control('healthy')}
  await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:30000});
  await provePeriodReport(page,origin,monitor);
