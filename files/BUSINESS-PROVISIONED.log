@@ -1,0 +1,3 @@
+(node:19844) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+BUSINESS-PROVISIONED passed: door opened at the first claim only, kept the owner's choice across later claims, and runner-status answered never, fresh and stale to signed grants, cutover-status counted deliveries and created records since a time with ids and hosts only, and both refused every other request.

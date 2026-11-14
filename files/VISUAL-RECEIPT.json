@@ -1,0 +1,22 @@
+{
+  "head": "b484d6d34b92c0a85f9b3780a574ddd89cfb1e1f",
+  "inspected": true,
+  "method": "Contact sheet of all eight actual full-page browser captures",
+  "screens": [
+    "mail-connection",
+    "mail-existing-delivery",
+    "api-transaction",
+    "api-existing"
+  ],
+  "widths": [
+    1440,
+    390
+  ],
+  "raw_json_primary_editors": 0,
+  "document_overflow": false,
+  "axe_violations": 0,
+  "limitations": [
+    "Four-step API configuration is a long form; original form design retained."
+  ],
+  "proof_receipt": "BROWSER-RECEIPT.json"
+}

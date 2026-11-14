@@ -1,0 +1,25 @@
+(node:18593) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+Protocol forms PASS: SMTP/POP3/IMAP, TLS/port validation, existing delivery settings, API add/reorder/remove, headers/body/assertions/captures, same-origin refusal, save and reopen.
+# Subtest: API-004 sandbox setup/teardown, cancellation, denied cleanup, retained debt and explicit operator resolution without a live charge
+ok 1 - API-004 sandbox setup/teardown, cancellation, denied cleanup, retained debt and explicit operator resolution without a live charge
+  ---
+  duration_ms: 32834.903292
+  type: 'test'
+  ...
+# Subtest: API-004 browser sandbox checkout runs setup and teardown around the real browser, through cancellation, denied cleanup and the debt limit
+ok 2 - API-004 browser sandbox checkout runs setup and teardown around the real browser, through cancellation, denied cleanup and the debt limit
+  ---
+  duration_ms: 10172.179752
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43011.022517

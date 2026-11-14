@@ -1,0 +1,22 @@
+{
+  "contract_statuses_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "contract_statuses_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "contract_total": 115,
+  "clause_status_changes": [],
+  "primary_raw_json_editors_before": 2,
+  "primary_raw_json_editors_after": 0,
+  "journey_commands_before": 47,
+  "journey_commands_after": 47,
+  "added_test_registrations": 0,
+  "existing_assertions_deleted_skipped_or_weakened": false,
+  "product_base": "8529deda750510402236ece09a9ab91f934a3231",
+  "original_branch_head": "70a4553b3ccfc5eef6274d59de8a75697b95e2a3"
+}

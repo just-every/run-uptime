@@ -1,0 +1,14 @@
+{
+  "command": "cloud_run node .github/scripts/verify-ci.mjs push-3",
+  "node": "22.20.0",
+  "head": "b484d6d34b92c0a85f9b3780a574ddd89cfb1e1f",
+  "exit_code": 1,
+  "tasks": [
+    "command-journey",
+    "definitions-import",
+    "signed-runner",
+    "api-transaction-journey",
+    "failure-page-journey",
+    "business-provisioned"
+  ]
+}

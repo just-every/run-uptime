@@ -1,0 +1,19 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-protocol-forms-1-c1",
+  "head": "b484d6d34b92c0a85f9b3780a574ddd89cfb1e1f",
+  "pushed": true,
+  "remote_ref_verified": true,
+  "product_commits_ahead": 1,
+  "verify_run_id": 43597710287,
+  "verify_status": "completed",
+  "verify_url": "https://github.com/just-every/run-uptime/actions/runs/43597710287",
+  "publication_scan": "fleet Mac gate required; unavailable in cloud",
+  "landing_claim": false,
+  "deployment_claim": false,
+  "pr_created": false,
+  "verify_conclusion": "success",
+  "verify_exact_sha": true,
+  "terminal": "READY",
+  "blockers": []
+}

@@ -1,0 +1,15 @@
+{
+  "path": "/app/monitors/new",
+  "rows": [
+    {
+      "width": 1440,
+      "discovery": true,
+      "manual": true,
+      "saved": 201,
+      "persisted": true
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "cancellations": []
+}

@@ -1,0 +1,17 @@
+CODE-001 bounded CI: actual workflow preview/semantic test/apply with least-scope token, typed JSON parity, paused deployment, replay/drift and environment/tag refusals, token revocation after an attributed 20-record batch, exact durable-table refusal on the next operation, owner export/undo. Durable revoked-job stop presentation, runtime probe execution and hosted Actions remain gaps.
+IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo. DEPENDENCY-002 passed: UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries as paused followed services, a Better Stack third-party status page row is refused citing its public API, and a part already followed is refused.
+MANAGE-001 native management: direct create, edit and pause retain immutable public revisions; foreign-site and malformed monitor and contact writes preserve every durable table.
+MIGRATE-004 saved list: read 12 = converted 5 + refused 2 + unsupported 5; paused apply, unchanged re-import and retained-history undo.
+MIGRATE-003 saved monitors: read 12 = converted 7 + refused 1 + unsupported 4; groups/regions labelled, paused apply, unchanged re-import and retained-history undo.
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+Error: write ECONNRESET
+    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19) {
+  errno: -104,
+  code: 'ECONNRESET',
+  syscall: 'write'
+}
+
+Node.js v22.20.0

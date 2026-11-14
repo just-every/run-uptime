@@ -1,0 +1,30 @@
+{
+  "path": "/app/monitors/new",
+  "rows": [],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Vite dynamic import failed: src/client.tsx",
+    "Failed to fetch dynamically imported module: http://127.0.0.1:8787/src/client.tsx",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "failed": [
+    {
+      "path": "/src/domain/mail-probe/schema.mjs",
+      "status": 404
+    },
+    {
+      "path": "/src/domain/api-transaction.mjs",
+      "status": 404
+    }
+  ],
+  "cancellations": [
+    {
+      "path": "/src/domain/mail-probe/schema.mjs",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/src/domain/api-transaction.mjs",
+      "error": "net::ERR_ABORTED"
+    }
+  ]
+}

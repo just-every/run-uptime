@@ -1,0 +1,18 @@
+(node:19226) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# Subtest: owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access
+ok 1 - owners capture safe failure pages, share only monitor evidence, export every artifact and revoke access
+  ---
+  duration_ms: 25499.777967
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 25503.593564

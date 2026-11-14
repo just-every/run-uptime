@@ -1,0 +1,7 @@
+{
+  "command": "cloud_run node .github/scripts/verify-ci.mjs push-3 (initial build stage)",
+  "exit_code": 0,
+  "head": "b484d6d34b92c0a85f9b3780a574ddd89cfb1e1f",
+  "log": "PUSH3.log",
+  "note": "Full shard continued past the successful build, then failed on the unchanged oversized definition-import upload."
+}

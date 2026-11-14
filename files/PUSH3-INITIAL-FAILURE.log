@@ -1,0 +1,180 @@
+> pnpm run build
+ WARN  Unsupported engine: wanted: {"node":"22.20.0"} (current: {"node":"v24.19.0","pnpm":"10.12.4"})
+
+> @uptime/uptime-console@0.5.11 build /workspace/run-uptime
+> rer build
+
+Using project Node 22.20.0 (current Node 24.19.0).
+Heavy job admitted: Uptime build:workflow [36df30e06fdf]
+Checking pinned pnpm
+10.12.4
+Building your application
+ WARN  Unsupported engine: wanted: {"node":"22.20.0"} (current: {"node":"v24.19.0","pnpm":"10.12.4"})
+
+> @uptime/uptime-console@0.5.11 build:app [REDACTED]
+> vite build
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 265 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/client/.assetsignore                                  0.02 kB
+dist/client/assets/SiteHeader-DgNqAB8-.css                 7.65 kB │ gzip:   2.52 kB
+dist/client/assets/styles-CspfDIiD.css                    10.23 kB │ gzip:   2.88 kB
+dist/client/assets/_console-CtXh-Mac.js                    0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors._id.edit-BG9juYHQ.js       0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors._id.index-45_bhoB2.js      0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors.new-BG9juYHQ.js            0.07 kB │ gzip:   0.08 kB
+dist/client/assets/useRouter-CwjitLz4.js                   0.15 kB │ gzip:   0.14 kB
+dist/client/assets/docs.index-DL7IwW9t.js                  1.51 kB │ gzip:   0.57 kB
+dist/client/assets/SiteHeader-X4EvqIxu.js                  2.47 kB │ gzip:   0.99 kB
+dist/client/assets/docs._slug-8GwKRxzv.js                  3.56 kB │ gzip:   1.24 kB
+dist/client/assets/preload-helper-DB7eREMW.js              6.82 kB │ gzip:   3.02 kB
+dist/client/assets/styles-BqPRR8cQ.js                      7.28 kB │ gzip:   2.60 kB
+dist/client/assets/jsx-runtime-Cltr0gcK.js                 8.43 kB │ gzip:   3.21 kB
+dist/client/assets/react-CgYkgSSX.js                       9.38 kB │ gzip:   3.58 kB
+dist/client/assets/NotFound-CPM4oo_m.js                   12.22 kB │ gzip:   4.14 kB
+dist/client/assets/index-CXHN28Rs.js                   1,000.21 kB │ gzip: 309.45 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 650ms
+vite v8.2.2 building ssr environment for production...
+transforming...
+✓ 1747 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/server/wrangler.json                                           1.48 kB │ gzip:   0.74 kB
+dist/server/.vite/manifest.json                                    12.21 kB │ gzip:   1.75 kB
+dist/server/assets/SiteHeader-DgNqAB8-.css                          7.65 kB │ gzip:   2.52 kB
+dist/server/assets/styles-CspfDIiD.css                             10.23 kB │ gzip:   2.88 kB
+dist/server/assets/_console-CRd9jJKS.js                             0.20 kB │ gzip:   0.15 kB
+dist/server/assets/app.monitors.new-Brhuno95.js                     0.22 kB │ gzip:   0.16 kB
+dist/server/assets/app.monitors._id.index-DlAIVbZO.js               0.22 kB │ gzip:   0.17 kB
+dist/server/assets/app.monitors._id.edit-VIMaKD3g.js                0.23 kB │ gzip:   0.17 kB
+dist/server/assets/empty-plugin-adapters-D_0twvAa.js                0.28 kB │ gzip:   0.18 kB
+dist/server/assets/start-ZMDMKl11.js                                0.28 kB │ gzip:   0.20 kB
+dist/server/assets/useRouter-DVA3ZGiS.js                            1.15 kB │ gzip:   0.54 kB
+dist/server/assets/rolldown-runtime-DC62tzP2.js                     1.44 kB │ gzip:   0.67 kB
+dist/server/assets/useMatch-DKHsqT--.js                             1.53 kB │ gzip:   0.71 kB
+dist/server/assets/monitor-editor-path-DI1AzMkS.js                  1.59 kB │ gzip:   0.61 kB
+dist/server/assets/_tanstack-start-manifest_v-DwcLb5DB.js           2.25 kB │ gzip:   0.68 kB
+dist/server/assets/docs.index-CnC80GnV.js                           3.70 kB │ gzip:   1.02 kB
+dist/server/assets/destination-C69Oxw1O.js                          3.75 kB │ gzip:   1.57 kB
+dist/server/assets/crypto-c5c57a0W.js                               4.29 kB │ gzip:   1.61 kB
+dist/server/assets/hash-ZmvzCFvI.js                                 4.70 kB │ gzip:   2.16 kB
+dist/server/assets/storage-D3lwDNSo.js                              5.18 kB │ gzip:   2.07 kB
+dist/server/assets/SiteHeader-Cgg1BjtJ.js                           5.70 kB │ gzip:   1.73 kB
+dist/server/assets/tslib.es6-CQmLnqu5.js                            5.75 kB │ gzip:   2.26 kB
+dist/server/assets/react-dom-OB40rE-n.js                            6.67 kB │ gzip:   1.97 kB
+dist/server/assets/docs._slug-BclmkVda.js                           8.39 kB │ gzip:   2.27 kB
+dist/server/assets/alert-drill-scheduler.server-D0CEYNY-.js         8.51 kB │ gzip:   2.60 kB
+dist/server/assets/ClientOnly-B5BL1WjV.js                           9.40 kB │ gzip:   3.45 kB
+dist/server/assets/styles-RVUvzCdJ.js                              13.71 kB │ gzip:   3.91 kB
+dist/server/assets/NotFound-DSYJyq8U.js                            13.99 kB │ gzip:   4.50 kB
+dist/server/assets/useSelector-BwnDjWY2.js                         15.48 kB │ gzip:   5.32 kB
+dist/server/assets/react-B-MKOOcn.js                               16.24 kB │ gzip:   5.02 kB
+dist/server/assets/jsx-runtime-vOMkI1k2.js                         17.14 kB │ gzip:   4.48 kB
+dist/server/assets/notification-credentials.server-CGONc9hq.js     20.99 kB │ gzip:   6.18 kB
+dist/server/assets/crypto-BXOjyjGb.js                              23.78 kB │ gzip:   7.45 kB
+dist/server/assets/protocol-Dnj2H8-g.js                            29.06 kB │ gzip:   7.93 kB
+dist/server/assets/json-DQzWNvsj.js                               110.02 kB │ gzip:  16.29 kB
+dist/server/assets/Match-qokUVZx6.js                              122.96 kB │ gzip:  29.80 kB
+dist/server/assets/undo-snapshot-CFNM5wYx.js                      297.39 kB │ gzip:  77.28 kB
+dist/server/assets/api-transaction-I8Dav0Rk.js                    328.88 kB │ gzip:  84.89 kB
+dist/server/assets/router-DLIZh3wn.js                             618.18 kB │ gzip: 177.17 kB
+dist/server/assets/authority.server-DSOu_Yer.js                   736.90 kB │ gzip: 189.03 kB
+dist/server/assets/archive.server-DbUynOSK.js                   1,080.32 kB │ gzip: 280.01 kB
+dist/server/assets/pdf-BfuqqyrX.js                              1,958.74 kB │ gzip: 622.61 kB
+dist/server/index.js                                            2,900.14 kB │ gzip: 713.00 kB
+
+[INEFFECTIVE_DYNAMIC_IMPORT] src/domain/notification-credentials.server.ts is dynamically imported by src/domain/notification-webhook.ts but also statically imported by src/domain/alert-drill-scheduler.server.ts, src/domain/alert-drills.server.ts, src/domain/alert-teams.server.ts, src/domain/archive.server.ts, src/domain/health.server.ts, ..., dynamic import will not move module into another chunk.
+
+✓ built in 2.22s
+Your application is built
+build: complete (exit 0)
+> node tests/command-journey.mjs
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.fill: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByLabel('Website URL', { exact: true })[22m
+[2m    - locator resolved to <input disabled type="text" autofocus="" name="website" inputmode="url" id="discovery-url" autocomplete="url" spellcheck="false" autocapitalize="off" placeholder="https://www.your-site.example" aria-describedby="discovery-status discovery-runner"/>[22m
+[2m    - fill("http://127.0.0.1:39117/health")[22m
+[2m  - attempting fill action[22m
+[2m    2 × waiting for element to be visible, enabled and editable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying fill action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and editable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying fill action[22m
+[2m      - waiting 100ms[22m
+[2m    59 × waiting for element to be visible, enabled and editable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying fill action[22m
+[2m       - waiting 500ms[22m
+
+    at monitorHydration (/workspace/run-uptime/tests/installer-support.mjs:76:58)
+    at async file:///workspace/run-uptime/tests/command-journey.mjs:136:2 {
+  log: [
+    "  - waiting for getByLabel('Website URL', { exact: true })",
+    '    - locator resolved to <input disabled type="text" autofocus="" name="website" inputmode="url" id="discovery-url" autocomplete="url" spellcheck="false" autocapitalize="off" placeholder="https://www.your-site.example" aria-describedby="discovery-status discovery-runner"/>',
+    '    - fill("http://127.0.0.1:39117/health")',
+    '  - attempting fill action',
+    '    2 × waiting for element to be visible, enabled and editable',
+    '      - element is not enabled',
+    '    - retrying fill action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and editable',
+    '      - element is not enabled',
+    '    - retrying fill action',
+    '      - waiting 100ms',
+    '    59 × waiting for element to be visible, enabled and editable',
+    '       - element is not enabled',
+    '     - retrying fill action',
+    '       - waiting 500ms'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.19.0
