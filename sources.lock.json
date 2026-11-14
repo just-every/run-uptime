@@ -592,7 +592,7 @@
       "executable": false
     },
     "docs/definitions.md": {
-      "sha256": "3e5692df1b211747f9550a1f1a0f59b5e8418b8c29ebaaac6787288992d5bb13",
+      "sha256": "43137db3f46405014be7b48aec36e61f7efa5a9b8c379fd0649e3340587a473b",
       "executable": false
     },
     "docs/deploy.md": {
@@ -2108,7 +2108,7 @@
       "executable": false
     },
     "docs/monitors.md": {
-      "sha256": "20967dcb1c158c187a5829943427985eb5e01f43cdac2afe5daa58c3216bf372",
+      "sha256": "d93dd7b7d708b79a6fe4ba869bced7e7383ea43980527b3936b0b7f66674fe4c",
       "executable": false
     },
     "docs/moving-from-uptimerobot.md": {
@@ -2156,7 +2156,7 @@
       "executable": false
     },
     "docs/site.json": {
-      "sha256": "4b73d6165347e0756fdb91d39040a4a8f1955118b40664a6918f8bd9ddec7663",
+      "sha256": "68a5c79272ac912e0e722e91a738ed496f241987b8c9611c479711a9c16f5cea",
       "executable": false
     },
     "docs/slow-responses.md": {
@@ -8040,11 +8040,11 @@
       "executable": false
     },
     "src/domain/reports/pdf-layout.ts": {
-      "sha256": "da118d70ddf6c4f5bdd96efe5ea1d56c0d956d29b46e27b1ec6ba75d7bc91272",
+      "sha256": "2d9e0a842c5ab1c0ac1b6365f47d198d9e039b548dab8e02c90729715644b296",
       "executable": false
     },
     "src/domain/reports/pdf.ts": {
-      "sha256": "c2e1825f02fede41cc7b3a886a54a7284c341f78ec1f60b477738812f79bcdf1",
+      "sha256": "51fa0957cbb2027f6f759ddf150701f2955ca027a0f03c7d6910b2e82f7aad45",
       "executable": false
     },
     "src/domain/reports/period.ts": {
@@ -8532,7 +8532,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "54148bc3dc413387c30c7efcf43f09d6b645f1da8a40595acf4a4401e7c75405",
+      "sha256": "dcb3d3e72135b235768abea261cbc7d62ea52c8a4df069e3e8a50c72696ac77f",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8548,7 +8548,7 @@
       "executable": false
     },
     "src/site/docs/build/site.ts": {
-      "sha256": "4ff4cef7bdd0271f1638a846f63ef54eed435b562cd3dbe0e8c4171b2b905563",
+      "sha256": "a8087a1d26e32ad26f8780483cc4b423231ae22b12bf32ced48a3fb3a6b64b92",
       "executable": false
     },
     "src/site/docs/build/slug.ts": {
@@ -9140,7 +9140,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "1030fd491ec5988a9c56c97417eeb34e8bb5d16fd938077a5a5676d884b28ac7",
+      "sha256": "d8ffcd3b6f8cfea6a1193fb49762304c18c9ca6db96e0b8eaab5dcc7b163f352",
       "executable": false
     },
     "tests/connection-diagnostics-protocols.mjs": {

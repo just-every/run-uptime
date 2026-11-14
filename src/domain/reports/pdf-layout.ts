@@ -13,11 +13,13 @@ export class PdfReportWriter {
  private section=''
  private document:PDFDocument
  private constructor(document:PDFDocument){this.document=document}
- static async create(assets:Fetcher|undefined){
+ static async create(assets:Fetcher|undefined,origin:string){
   if(!assets)throw Error('PDF export requires the installed report font')
   const document=await PDFDocument.create(),writer=new PdfReportWriter(document)
   document.registerFontkit(fontkit)
-  const response=await assets.fetch('https://uptime-assets.invalid/design-assets/fonts/noto-sans-regular.ttf')
+  // Development assets pass through Vite's host checks. Use this installation's
+  // origin for the bundled font, while keeping the fetch on the asset binding.
+  const response=await assets.fetch(new URL('/design-assets/fonts/noto-sans-regular.ttf',origin).href)
   if(!response.ok)throw Error('PDF report font unavailable')
   writer.font=await document.embedFont(await response.arrayBuffer(),{subset:true})
   writer.supported=new Set(writer.font.getCharacterSet())

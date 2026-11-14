@@ -2,7 +2,7 @@ A definition file lists your monitors as reviewed text, so you can keep them in 
 
 ## The file
 
-The default name is `uptime.monitors.json`. New exports use version 8; versions 1–7 remain readable (a flow needs version 2 or later, TCP, DNS, TLS and domain need version 3, UDP needs version 4, private network scope and local grant references need version 5, ICMP ping needs version 6, a followed service's catalog part, `catalog`, needs version 7, and a page-speed monitor, `pagespeed`, needs version 8). Supported public monitor types are HTTP(S), keyword, heartbeat, TCP, UDP, ICMP ping, DNS, TLS and domain. UDP requires a private runner and uses `udp: {"host":"service.example.com","port":9000,"payloadHex":"50494e47","expectedHex":"504f4e47","match":"exact"}`; bytes are hexadecimal (`PING` and `PONG` here), never credentials. Its minimum interval is 30 seconds.
+The default name is `uptime.monitors.json`. New exports use version 8; versions 1–7 remain readable (a flow needs version 2 or later, TCP, DNS, TLS and domain need version 3, UDP needs version 4, private network scope and local grant references need version 5, ICMP ping needs version 6, a followed service's catalog part, `catalog`, needs version 7, and a page-speed monitor, `pagespeed`, needs version 8). The monitor editor offers {{monitorKindCount}} kinds: {{monitorKinds}}. Keyword checks use the Website or API (HTTP) form. UDP requires a private runner and uses `udp: {"host":"service.example.com","port":9000,"payloadHex":"50494e47","expectedHex":"504f4e47","match":"exact"}`; bytes are hexadecimal (`PING` and `PONG` here), never credentials. Its minimum interval is 30 seconds.
 
 ```json
 {
@@ -58,7 +58,7 @@ Some things never go in the file:
 - **Installation authority.** Runner assignments, canary URLs, heartbeat tokens and notification destinations stay with the installation.
 - **On and off.** `enabled` and `maintenanceUntil` are written when you export, so you can read them, but a file never changes them. New monitors always arrive paused, and an existing monitor keeps its current state.
 
-A file may be at most 2 MiB and list at most 500 monitors, and its evaluated form must be UTF-8 JSON. The CLI also accepts a trusted local TypeScript module as described below; the Worker receives only its evaluated definition file. An unknown field, including one inside a header or JSON assertion, or a duplicate name refuses that entry, and the reason names it. An installation still holds at most 100 monitors.
+A file may be at most 2 MiB and list at most 500 monitors, and its evaluated form must be UTF-8 JSON. The CLI also accepts a trusted local TypeScript module as described below; the Worker receives only its evaluated definition file. An unknown field, including one inside a header or JSON assertion, or a duplicate name refuses that entry, and the reason names it. An installation still holds at most {{monitorLimit}} monitors.
 
 ## Preview, then apply
 
@@ -106,7 +106,7 @@ Moving from UptimeRobot uses the same preview and apply. See [Moving from Uptime
 
 ## Saved incumbent HTTP definitions
 
-The same bounded preview/apply/undo engine also accepts the saved source formats below. File size remains 2 MiB and at most 500 entries; the installation's 100-monitor limit still applies. New entries stay paused, and importing never authorizes credentials, enables traffic, sends alerts or rewrites current monitoring evidence.
+The same bounded preview/apply/undo engine also accepts the saved source formats below. File size remains 2 MiB and at most 500 entries; the installation's {{monitorLimit}}-monitor limit still applies. New entries stay paused, and importing never authorizes credentials, enables traffic, sends alerts or rewrites current monitoring evidence.
 
 ### Third-party service monitors
 

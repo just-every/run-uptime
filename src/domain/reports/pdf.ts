@@ -2,8 +2,8 @@ import type {MonitorReport} from './index.server.ts'
 import {PdfReportWriter} from './pdf-layout.ts'
 
 /** A downloadable view of the same period snapshot as JSON/CSV; no independent health calculation. */
-export async function reportPdf(report:MonitorReport,assets:Fetcher|undefined){
- const pdf=await PdfReportWriter.create(assets),zone=report.period.timeZone
+export async function reportPdf(report:MonitorReport,assets:Fetcher|undefined,origin:string){
+ const pdf=await PdfReportWriter.create(assets,origin),zone=report.period.timeZone
  const at=(value:number|null)=>value===null?'Not reported':new Intl.DateTimeFormat('en-US',{timeZone:zone,dateStyle:'medium',timeStyle:'long'}).format(value)
  const number=(value:unknown)=>value===null?'Unknown':String(value)
  const duration=(value:number|null)=>value===null?'Not reported':`${value/1000} seconds (${value} ms)`

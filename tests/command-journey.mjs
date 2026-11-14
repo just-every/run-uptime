@@ -9,6 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { populateArchiveFixture } from './archive-fixture.mjs';
 import { archive as productArchive } from '../src/domain/archive.server.ts';
 import { chromium } from 'playwright';
+import { PDFDocument } from 'pdf-lib';
 import { scratchInstallation, machineAvailable } from './scratch-installation.mjs';
 import { openGate, readCheckoutKey } from './auth-test-support.mjs';
 import { until, assertPortFree, devSignIn, smokeDocuments, monitorHydration, descendantGroups, assertGroupsGone } from './installer-support.mjs';
@@ -133,6 +134,38 @@ try {
  await completeSecondFactor(origin,scratch.env.UPTIME_ACCESS_COOKIE);
  await smokeDocuments(page, origin);
  await monitorHydration(page, origin, scratch.root);
+ // The README installer runs this development asset path. A report must download
+ // here as well as through the emitted Worker exercised by tests/reporting.mjs.
+ const reportingOverview = await (await page.request.get(origin+'/api/overview')).json();
+ const reportingMonitor = reportingOverview.monitors[0];
+ assert.ok(reportingMonitor, 'the installed monitor journey created a reportable monitor');
+ await page.goto(origin+`/app/monitors/${encodeURIComponent(reportingMonitor.id)}?view=report`);
+ const pdfButton = page.getByRole('button', {name:'Download PDF for this range',exact:true});
+ await pdfButton.waitFor();
+ const pdfDownload = page.waitForEvent('download');
+ const pdfResponse = page.waitForResponse(response=>new URL(response.url()).searchParams.get('format')==='pdf');
+ await pdfButton.click();
+ const downloaded = await pdfDownload;
+ assert.equal((await pdfResponse).status(),200,'the installed report door returns a PDF');
+ assert.equal(await downloaded.failure(),null,'the installed app completes its PDF download');
+ const pdf = await PDFDocument.load(await readFile(await downloaded.path()));
+ assert.ok(pdf.getPageCount()>0,'the download is a readable PDF');
+ assert.ok(pdf.getTitle().includes(reportingMonitor.definition.name),'the PDF identifies the requested monitor');
+ console.log('COMMAND-JOURNEY PDF PASS: the freshly installed development app downloads a readable period report.');
+ const reportEvidence = process.env.UPTIME_REPORT_EVIDENCE;
+ if(reportEvidence){
+  await mkdir(reportEvidence,{recursive:true});
+  await downloaded.saveAs(join(reportEvidence,'installed-report.pdf'));
+  await writeFile(join(reportEvidence,'pdf-download.json'),JSON.stringify({status:(await pdfResponse).status(),contentType:(await pdfResponse).headers()['content-type'],filename:downloaded.suggestedFilename(),pages:pdf.getPageCount(),title:pdf.getTitle(),freshInstallation:true},null,2)+'\n');
+  for(const [path,name] of [[`/app/monitors/${encodeURIComponent(reportingMonitor.id)}?view=report`,'report'],['/docs','docs'],['/docs/definitions','definitions'],['/docs/monitors','monitors']]){
+   await page.goto(origin+path);
+   for(const width of [1440,390]){
+    await page.setViewportSize({width,height:1000});
+    await page.screenshot({path:join(reportEvidence,`after-${name}-${width}.png`),fullPage:true});
+   }
+  }
+  await page.setViewportSize({width:1440,height:1000});
+ }
  await definitionsJourney(page, origin);
  await completeBrowserSecondFactor(page,origin);
  await proveLocalSignInTruth({browser,page,origin,key:devKey,runRer:invoke});
