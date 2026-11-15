@@ -1,6 +1,7 @@
 import {notificationReadiness,ensureNotificationCustody} from './notification-credentials.server.ts'
 import {deploymentHealth} from '../base/deployment-health.ts'
 import type {Bindings} from './control.server.ts'
+import {version as buildVersion} from '../../package.json' with {type:'json'}
 
 const unavailable=()=>Response.json({error:'Health dependencies unavailable'},{status:503,headers:{'cache-control':'no-store'}})
 
@@ -29,7 +30,7 @@ export async function health(env:Bindings){
  // Preserve the first-health upgrade seal. Individual unavailable credentials
  // stay isolated; a storage failure must not be reported as healthy.
  await ensureNotificationCustody(env,{validate:false})
- return Response.json({status:'ok',...deploymentHealth(env)},{headers:{'cache-control':'no-store'}})
+ return Response.json({status:'ok',buildVersion,...deploymentHealth(env)},{headers:{'cache-control':'no-store'}})
  }catch{return unavailable()}
 }
 

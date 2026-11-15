@@ -7580,7 +7580,7 @@
       "executable": false
     },
     "src/domain/health.server.ts": {
-      "sha256": "61e5d65829383f324795f6e21f75e3d3338d41e99e924ccff6102143b777c73d",
+      "sha256": "7f2ec1b7b6b6918168fa7e426021049fca152f415d3cdf859658e1eba188af6d",
       "executable": false
     },
     "src/domain/heartbeat-archive.ts": {
@@ -9680,7 +9680,7 @@
       "executable": false
     },
     "tests/public-paths.mjs": {
-      "sha256": "254f969aeb86e43316c53f938920a7bd56ef9029a52b0a52c56183ae2a11cb99",
+      "sha256": "d5cbfed11fe75b3e0b0a929fe2425ae979affd0320afc25ccad5a72588b8abd6",
       "executable": false
     },
     "tests/public-surfaces-support.mjs": {

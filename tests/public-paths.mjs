@@ -14,6 +14,15 @@ await proveRerMailKeyStartup();
 await proveMailSenderStartup();
 
 const seed=JSON.parse(await readFile('seed.json','utf8')),declarations=seed.deploy.publicPaths,limits=seed.limits.publicRequestsPerMinutePerIp;
+const {version}=JSON.parse(await readFile('package.json','utf8'));
+async function healthVersion(call){
+ const response=await call('/health');
+ assert.equal(response.status,200);
+ assert.equal(response.headers.get('cache-control'),'no-store');
+ const payload=await response.json();
+ assert.equal(payload.buildVersion,version,'public health names the running package version');
+ assert.equal(payload.status,'ok');assert.equal(payload.ok,true);
+}
 const matches=(path,local=false)=>declarations.find(item=>(local||item.environment!=='local')&&(item.match==='prefix'?path.startsWith(item.path):path===item.path)&&(!item.withinDirectory||(!/[\\]|%(?:2f|5c|25)/i.test(path)&&path.split('/').includes(item.withinDirectory))));
 const emitted=JSON.parse(await readFile('dist/server/wrangler.json','utf8'));
 const files=await filesIn(resolve('dist/server',emitted.assets.directory));
@@ -52,6 +61,7 @@ await proveRerRelayUrlStartup();
 directory=await runtimeDirectory();
 try{
  let {DB,call}=await start();
+ await healthVersion(call);
  // Discover fingerprinted build resources from the actual served document,
  // rather than assuming a particular filename or hash from this checkout.
  const document=await (await call('/docs')).text(),built=[...document.matchAll(/(?:href|src)="(\/assets\/[^"?]+\.(?:js|css))"/g)].map(match=>match[1]);
@@ -141,6 +151,7 @@ try{
   const response=await call(path);assert.equal(response.status,404,`${path}: local compiler declaration must not admit private files`);await response.arrayBuffer();
   assert.equal((await DB.prepare('SELECT COUNT(*) n FROM public_rate_limits').first()).n,0,'private compiler paths are undeclared, not merely missing assets');
  }
+ await healthVersion(call);
  for(const {path,declaration:item} of probes.values()){
   if(item.environment!=='local')continue;
   await DB.prepare('DELETE FROM public_rate_limits').run();
