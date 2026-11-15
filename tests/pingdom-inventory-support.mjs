@@ -59,8 +59,11 @@ export async function provePingdomInventory({api,origin,certs,scenario,registrat
   }
   const request=scenario.httpRequests.find(r=>r.url==='/inventory/8');assert.equal(request.method,'POST');assert.equal(request.body,'synthetic=ready');assert.equal(request.headers['x-inventory'],'synthetic');assert.equal(request.headers['content-type'],'application/x-www-form-urlencoded');
   assert.equal(edge.state.accepted.length,0,'SMTP probe never sends a message');assert.ok(edge.state.commands.includes('STARTTLS'));
+  const first=byName('Inventory check 1'),current=(await api(`/api/overview?monitor=${first.id}`)).data.monitors[0];assert.equal((await api(`/api/monitors/${first.id}`,{...current.definition,enabled:true},{},'PATCH')).status,200);
+  source[0].check.tags=[{name:'reviewed-catchup'}];
   const again=await door.preview(source,'pingdom');assert.equal(again.status,200);assert.equal(again.body.counts.create,0);assert.equal((await door.apply(again.body)).status,200);
-  const retained=(await api('/api/overview')).data.monitors.filter(m=>m.definition.name.startsWith('Inventory check '));assert.ok(retained.every(m=>!m.definition.enabled));assert.deepEqual(retained.map(m=>m.id).sort(),monitors.map(m=>m.id).sort());
+  const retained=(await api('/api/overview')).data.monitors.filter(m=>m.definition.name.startsWith('Inventory check '));assert.equal(retained.find(m=>m.id===first.id).definition.enabled,true,'catch-up preserves a locally resumed check');assert.ok(retained.filter(m=>m.id!==first.id).every(m=>!m.definition.enabled),'catch-up preserves local pauses, including the source-paused POST');assert.deepEqual(retained.map(m=>m.id).sort(),monitors.map(m=>m.id).sort());
+  const resumed=retained.find(m=>m.id===first.id);assert.equal((await api(`/api/monitors/${first.id}`,{...resumed.definition,enabled:false},{},'PATCH')).status,200);
   console.log('PINGDOM-INVENTORY PASS: 12 source settings, 8 certificate companions, paused import/re-import, exact intervals/targets, signed scheduled HTTP/POST/body/headers/TCP/STARTTLS/ICMP/named-DNS execution and 7/30-day failure windows.');
  }finally{await edge.close()}
 }

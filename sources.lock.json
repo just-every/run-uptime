@@ -7371,6 +7371,14 @@
       "sha256": "93d1c747f68bbf0975b12bf2935596e8fce309985b43a32e023b6c2c0bdc5607",
       "executable": false
     },
+    "src/domain/definitions/importers/pingdom-http.ts": {
+      "sha256": "5d4c42873743e8af7972f1dcb2bde3bc480e9e259a3aca94ecf96f0ee09e2bb3",
+      "executable": false
+    },
+    "src/domain/definitions/importers/pingdom-protocol.ts": {
+      "sha256": "97746736b5ac7494fea405da03f2fceb1b36792b9c32af3b1f1f8f3c0ad0ea9b",
+      "executable": false
+    },
     "src/domain/definitions/importers/pingdom.ts": {
       "sha256": "2f2e5d5e6a78b13bab2f7a86bcceb869a12cc09174b8c07ae6d8f11e1e7dc544",
       "executable": false
@@ -9589,6 +9597,10 @@
     },
     "tests/ping-routing.mjs": {
       "sha256": "0bfbcb22fe22df0eddd3fadcd95757da36893d90dd56b17ca993e1ae748f98b6",
+      "executable": false
+    },
+    "tests/pingdom-inventory-support.mjs": {
+      "sha256": "8beab119e5b330260400718d04090e72cf76664e42af6b4a5454ff3c18cae02f",
       "executable": false
     },
     "tests/plain-monitor-text-support.mjs": {
