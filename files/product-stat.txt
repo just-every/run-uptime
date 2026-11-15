@@ -1,0 +1,8 @@
+2045014 Prepare Uptime 0.5.12 release metadata from current main
+ CHANGELOG.md      | 41 +++++++++++++++++++++++++++++++++++++++++
+ README.md         |  2 +-
+ RELEASE.json      |  6 +++---
+ package.json      |  2 +-
+ seed.json         |  2 +-
+ sources.lock.json | 10 +++++-----
+ 6 files changed, 52 insertions(+), 11 deletions(-)

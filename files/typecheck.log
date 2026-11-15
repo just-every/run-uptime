@@ -1,0 +1,4 @@
+
+> @uptime/uptime-console@0.5.12 typecheck /home/agent/rer-consolidation/work/sd-uptime-release-0-5-12-refresh-1/repo
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
+

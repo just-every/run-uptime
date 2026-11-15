@@ -1,0 +1,14 @@
+{
+  "stamp": "2026-11-15T09:44:09Z",
+  "author": "Run Edit Run fleet",
+  "ok": true,
+  "version": "0.5.12",
+  "previousVersion": "0.5.11",
+  "rerPin": "0.2.113",
+  "dependencyGraphChanged": false,
+  "migrationChanges": 0,
+  "generatedViewsChanged": false,
+  "screenshotExists": true,
+  "packageLockExists": false,
+  "node": "v22.20.0"
+}

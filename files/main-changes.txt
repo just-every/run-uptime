@@ -1,0 +1,22 @@
+fef01b1 Show named DNS servers and expiry failure windows on monitors
+117837e Keep protocol configuration proof in its native journey
+7e9a4b8 Prove catch-up preserves local state and refuses edited targets
+585f360 Use an independent SMTP target in the inventory journey
+ff2c0e0 Keep external health probes independent of slow-response policy
+3e57fe8 Exercise the twelve-check inventory through signed native probes
+07aeed6 Preserve Pingdom protocol checks and certificate failure windows
+e14489c Hide write controls in monitoring-only consoles
+bcfa163 Upgrade Vite to 8.2.4
+7012340 Restore read-only monitoring in the operator console
+a79f1a9 Add mail connection forms and API transaction step builder
+f4f3a25 Show readable check details and erasure receipts on current main
+8529ded Upgrade undici to 7.30.1 in both dependency trees
+03323cf Upgrade transitive Zod to 4.6.6
+d47a432 Fix installed PDF reports and derive monitor documentation from policy
+c14aafe Regenerate contract views from CONTRACT.md
+7340cf3 Qualify native healthy digest custody across Worker restart
+954353a Regenerate contract views from CONTRACT.md
+9cdbb05 Register the scheduled DNS rebinding journey and bound its contract proof
+bd3374d Prove numeric HTTPS pinning across a DNS answer change [skip ci]
+83b2f26 Verify refreshed local sign-in guidance through the CLI
+df5963c Adopt rer 0.2.113 and refresh recorded Base source

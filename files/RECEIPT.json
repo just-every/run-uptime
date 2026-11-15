@@ -1,0 +1,100 @@
+{
+  "stamp": "2026-11-15T09:45:38Z",
+  "author": "Run Edit Run fleet",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-12-refresh-1",
+  "head": "2045014b15f76380b5d7493c0c42b2caa430f88b",
+  "main": "fef01b15e0205f1c53c4e362a3729afc66a0b20b",
+  "previous_tag": "v0.5.11",
+  "main_commits_since_previous_tag": 22,
+  "version_before": "0.5.11",
+  "version_after": "0.5.12",
+  "rer_before": "0.2.113",
+  "rer_after": "0.2.113",
+  "changed_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "changed_files": 6,
+  "clause_status_counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clause_status_counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clause_changes": [],
+  "test_files_changed": [],
+  "tests_added": 0,
+  "tests_deleted": 0,
+  "migrations_before": 91,
+  "migrations_after": 91,
+  "migrations_added": 0,
+  "new_required_settings": 0,
+  "checks": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "node": "22.20.0",
+      "pnpm": "10.12.4",
+      "exit": 0
+    },
+    {
+      "command": "release metadata consistency and screenshot-reference check (inline Node)",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    },
+    {
+      "command": "candidate identity/trailer inspection (all side parents)",
+      "exit": 0
+    }
+  ],
+  "product_push_exit": 0,
+  "product_push_attempts": 1,
+  "pr": null,
+  "full_local_suite": "not run: metadata-only brief",
+  "browser": "not run: no UI change",
+  "publication_scan": "cloud adaptation defers full-history publication scan to Mac lander",
+  "release_production": "not authorized in this metadata round",
+  "blocking_issues": [],
+  "ci": {
+    "conclusion": "success",
+    "head_sha": "2045014b15f76380b5d7493c0c42b2caa430f88b",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43700719951",
+    "id": 43700719951,
+    "name": "Verify",
+    "status": "completed"
+  },
+  "github_calls": 7,
+  "ci_latest_observation": "2026-11-15T10:04:57Z",
+  "remote_readback": {
+    "head": "2045014b15f76380b5d7493c0c42b2caa430f88b",
+    "ref": "refs/heads/cloud/sd-uptime-release-0-5-12-refresh-1",
+    "verified": true
+  },
+  "custody": "READY",
+  "ci_run_id": 43700719951,
+  "ci_url": "https://github.com/just-every/run-uptime/actions/runs/43700719951",
+  "final_stamp": "2026-11-15T10:05:27Z"
+}
