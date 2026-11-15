@@ -9820,15 +9820,15 @@
       "executable": false
     },
     "tests/startup-mail-sender-support.mjs": {
-      "sha256": "b0a5079c6e973ec03ff4366632937ebedc163dfcdeab0d2997e7fa0461907eec",
+      "sha256": "9ad8eb8358644583d79b1dc729dceaa2090fb8e8baa2b7bfb6b57ee9199b6642",
       "executable": false
     },
     "tests/startup-rer-mail-key-support.mjs": {
-      "sha256": "9af79dce7b5a428c93ec3a71ea3f77adbf58f40c3c37ca6a5e845d4344d7d040",
+      "sha256": "ae21016af400093d8ceab11c32acb1e9b9b004aef1cb923f6f5ec9882228f85d",
       "executable": false
     },
     "tests/startup-rer-relay-url-support.mjs": {
-      "sha256": "1a19bee953bc5a5f26197398bc454278eb98cce636bf0627b8d743e4e681d0a2",
+      "sha256": "fe4bcd224f75586199e959e17afbe8ce6c5f7256ef47c91cdb107aa86e127cc3",
       "executable": false
     },
     "tests/startup-runner-config-support.mjs": {

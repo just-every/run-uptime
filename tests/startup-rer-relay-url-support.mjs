@@ -53,7 +53,10 @@ export async function proveRerRelayUrlStartup(){
   const tables=(await DB.prepare("SELECT name,sql FROM sqlite_master WHERE type='table' AND name <> '_cf_METADATA' ORDER BY name").all()).results;
   // Include sequence tables; D1 forbids its private _cf_METADATA contents.
   // Sort row encodings so WITHOUT ROWID tables have the same coverage.
-  return Promise.all(tables.map(async({name,sql})=>({name,sql,rows:(await DB.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`).all()).results.map(row=>JSON.stringify(row)).sort()})));
+  // One D1 transaction avoids a socket per table through Miniflare's proxy.
+  // Keep the complete inventory and the same deterministic row comparison.
+  const results=await DB.batch(tables.map(({name})=>DB.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`)));
+  return tables.map(({name,sql},index)=>({name,sql,rows:results[index].results.map(row=>JSON.stringify(row)).sort()}));
  }
  function valueFree(text){
   for(const value of [sentinel,malformed,...Object.values(bindings)]){

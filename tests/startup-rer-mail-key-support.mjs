@@ -51,7 +51,10 @@ export async function proveRerMailKeyStartup(){
   // D1 prohibits reading its platform-owned _cf_METADATA; every readable
   // durable table, including SQLite sequence state, is compared without exclusions.
   const tables=(await DB.prepare("SELECT name,sql FROM sqlite_master WHERE type='table' AND name <> '_cf_METADATA' ORDER BY name").all()).results;
-  return Promise.all(tables.map(async({name,sql})=>({name,sql,rows:(await DB.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`).all()).results.map(row=>JSON.stringify(row)).sort()})));
+  // One D1 transaction avoids a socket per table through Miniflare's proxy.
+  // Keep the complete inventory and the same deterministic row comparison.
+  const results=await DB.batch(tables.map(({name})=>DB.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`)));
+  return tables.map(({name,sql},index)=>({name,sql,rows:results[index].results.map(row=>JSON.stringify(row)).sort()}));
  }
  const unchanged=async(before,label)=>assert.ok(isDeepStrictEqual(await snapshot(),before),label);
  function withheld(text){

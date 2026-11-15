@@ -53,7 +53,10 @@ export async function proveMailSenderStartup(){
   // D1 forbids its private platform metadata. Include every readable table,
   // including SQLite sequences; no application table is filtered out.
   const tables=(await DB.prepare("SELECT name,sql FROM sqlite_master WHERE type='table' AND name <> '_cf_METADATA' ORDER BY name").all()).results;
-  return Promise.all(tables.map(async({name,sql})=>({name,sql,rows:(await DB.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`).all()).results.map(row=>JSON.stringify(row)).sort()})));
+  // One D1 transaction avoids a socket per table through Miniflare's proxy.
+  // Keep the complete inventory and the same deterministic row comparison.
+  const results=await DB.batch(tables.map(({name})=>DB.prepare(`SELECT * FROM "${name.replaceAll('"','""')}"`)));
+  return tables.map(({name,sql},index)=>({name,sql,rows:results[index].results.map(row=>JSON.stringify(row)).sort()}));
  }
  const equal=(actual,expected,label)=>assert.ok(isDeepStrictEqual(actual,expected),label);
  const rows=(state,name)=>state.find(table=>table.name===name).rows.map(raw=>JSON.parse(raw));
