@@ -544,7 +544,7 @@
       "executable": false
     },
     "deploy.json": {
-      "sha256": "2574b82d16958b02ef521f605a331dea740d6d5ccd48752939fb00548e9156c4",
+      "sha256": "1f4050d6834ecdf5a815cc394becabfa591806f28daaf2756fece37d21fc2b24",
       "executable": false
     },
     "docs/access.md": {
@@ -10032,7 +10032,7 @@
       "executable": false
     },
     "wrangler.jsonc": {
-      "sha256": "6903c0fe1a87d8294667f3d258a64998edfe8df1db5c459be81ad45194ea5e2a",
+      "sha256": "3a3a807386d102b0dad1acb3ec18b50fd7cd05f14350f36985a802ec2e444472",
       "executable": false
     }
   }

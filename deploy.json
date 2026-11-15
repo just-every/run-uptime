@@ -41,11 +41,6 @@
     {
       "binding": "UPTIME_RUNNER_KEY",
       "environment": "UPTIME_RUNNER_KEY"
-    },
-    {
-      "binding": "MAIL_PROVIDER",
-      "environment": "MAIL_PROVIDER",
-      "optional": true
     }
   ],
   "crons": [
