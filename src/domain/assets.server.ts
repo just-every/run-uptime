@@ -1,5 +1,9 @@
 import {publicPath} from './public-paths.ts'
 
+// Generated from public/assets by vite.config.ts, never from request input.
+declare const __UPTIME_UNVERSIONED_ASSETS__: readonly string[]
+const unversionedAssets=new Set(__UPTIME_UNVERSIONED_ASSETS__)
+
 // The manifest is the same declaration used by the Worker admission boundary.
 // ASSETS still decides whether a declared resource actually exists.
 export function isPublicAsset(path:string){return publicPath(path)?.kind==='asset'}
@@ -15,7 +19,7 @@ export async function publicAssetResponse(request:Request,assets?:{fetch(request
  const response=await assets.fetch(request);
  if(import.meta.env.DEV||response.status!==200||!['GET','HEAD'].includes(request.method))return response;
  const headers=new Headers(response.headers);
- const fingerprinted=/^\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.(?:js|css)$/.test(new URL(request.url).pathname);
+ const fingerprinted=!unversionedAssets.has(new URL(request.url).pathname)&&/^\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.(?:js|css)$/.test(new URL(request.url).pathname);
  headers.set('cache-control',fingerprinted?'public, max-age=31536000, immutable':'public, max-age=60, must-revalidate');
  return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
 }

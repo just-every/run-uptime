@@ -3,11 +3,15 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { docsSite } from './src/site/docs/build/plugin.ts'
 import { archiveOutputGuard } from '@runeditrun/rer/archive-output'
 import { developmentImportDiagnostics } from './scripts/dev/import-diagnostics.ts'
 import { runnerScript } from './scripts/build/runner-script.ts'
+
+// Public files are copied verbatim. A stable name such as security-controls.js
+// can resemble a Vite content hash, so keep that inventory at the cache boundary.
+const unversionedAssets = readdirSync(new URL('./public/assets/', import.meta.url)).map(name => `/assets/${name}`)
 
 const origin = process.env.RER_DEV_ORIGIN
 const local = origin ? {
@@ -21,7 +25,7 @@ const gate = (name: string) => process.env[name] ? { [name]: process.env[name] }
 // inspectorPort:false: the plugin otherwise serves /__debug (a devtools redirect for the workerd inspector) on the public dev port, before the Worker and unlimited.
 // docsSite: the public /docs pages, rendered from docs/site.json and docs/*.md at build time, never in the Worker or the browser.
 // runnerScript: the location runner as one Node script, served at /uptime-runner.mjs for the Add location command.
-export default defineConfig(({ command, isPreview }) => ({ server: { fs: {
+export default defineConfig(({ command, isPreview }) => ({ define: { __UPTIME_UNVERSIONED_ASSETS__: JSON.stringify(unversionedAssets) }, server: { fs: {
  // Runtime imports need the public manifest and maintained portability source, and a hosted demo's Worker runs the
  // runner's discovery crawl (pure code, no settings). Allow only those paths, never scripts or the checkout root; private settings
  // and archives remain outside the file allowlist and under the denies below.

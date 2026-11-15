@@ -7140,7 +7140,7 @@
       "executable": false
     },
     "src/domain/assets.server.ts": {
-      "sha256": "e092436222a5e5a58bd538617c91639f3149aa2adfb9026ed3e7f12995402b50",
+      "sha256": "7054186c0b84f8fb2395900b5a1c1dea74f47a8c4c42674357f93a5aaecc1952",
       "executable": false
     },
     "src/domain/attempt-checkpoint.server.ts": {
@@ -9680,7 +9680,7 @@
       "executable": false
     },
     "tests/public-paths.mjs": {
-      "sha256": "ff85c2f2cfbf320bf916a08c0a783acf8a91ad26006d352ba6962ea7493b7485",
+      "sha256": "254f969aeb86e43316c53f938920a7bd56ef9029a52b0a52c56183ae2a11cb99",
       "executable": false
     },
     "tests/public-surfaces-support.mjs": {
@@ -9880,7 +9880,7 @@
       "executable": false
     },
     "vite.config.ts": {
-      "sha256": "65a5019aa802d6a6a12123af192c3885f7f8ae9ba5e2e92e49e9a0de4f52191f",
+      "sha256": "089102b53cfe0c152874d65309016df11785ef8d141608c176b5a2e00a4737e3",
       "executable": false
     },
     "vite.site.config.ts": {

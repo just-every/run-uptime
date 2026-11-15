@@ -61,7 +61,7 @@ try{
   assert.match(asset.headers.get('cache-control'),/public/);assert.match(asset.headers.get('cache-control'),/max-age=31536000/);assert.match(asset.headers.get('cache-control'),/immutable/);
   await asset.arrayBuffer();
  }
- for(const path of ['/app.js','/assets/tooltip.js']){
+ for(const path of ['/app.js','/assets/tooltip.js','/assets/security-controls.js','/assets/alert-route-fallback.css']){
   const asset=await call(path);assert.equal(asset.status,200);assert.doesNotMatch(asset.headers.get('cache-control'),/immutable/);await asset.arrayBuffer();
  }
  const missing=await call('/assets/missing-12345678.js');assert.equal(missing.status,404);assert.doesNotMatch(missing.headers.get('cache-control')??'',/immutable/);await missing.arrayBuffer();
