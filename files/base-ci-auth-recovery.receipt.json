@@ -1,0 +1,18 @@
+{
+  "initial_request": "gh api repos/runeditrun/base/actions/runs/43710227680 --jq {status,conclusion,head_sha,html_url}",
+  "initial_request_at": "2026-11-15T12:08:28Z",
+  "observed_stderr": "gh: Bad credentials (HTTP 401)",
+  "observed_http_status": 401,
+  "recovery": "bash /workspace/rer-cloud-launcher/refresh.sh; repeat fleet Git setup; reload GH_TOKEN from the same decrypted injected bundle in the gh child",
+  "backoff_seconds": 15,
+  "retry_result": {
+    "conclusion": "success",
+    "head_sha": "34847bae3f640486f16d42affb2274f32075248a",
+    "html_url": "https://github.com/runeditrun/base/actions/runs/43710227680",
+    "status": "completed"
+  },
+  "resolved": true,
+  "github_calls_used": 8,
+  "github_call_budget": 10,
+  "other_credentials_used": false
+}

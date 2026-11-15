@@ -1,9 +1,22 @@
 {
-  "at": "2026-11-15T11:47:10Z",
+  "at": "2026-11-15T11:58:44Z",
   "servers_started": [],
   "browsers_started": [],
-  "owned_command_descendants": "reaped through cloud_run; proof commands completed",
+  "owned_command_descendants": "completed and reaped through cloud_run",
+  "removed_task_local_dependencies_and_build_products": [
+    "base/node_modules",
+    "uptime/node_modules",
+    "uptime/dist",
+    "uptime/.rer",
+    "uptime/.seed",
+    "tools",
+    "candidate-artifacts",
+    "candidate-package",
+    "isolated-home"
+  ],
   "base_tracked_status": "clean, candidate pushed",
-  "uptime_tracked_status": "clean; installed rer symlink restored",
-  "checkouts_and_dependencies": "retained until evidence verified; cleanup pending"
+  "uptime_tracked_status": "clean, no product changes",
+  "product_checkouts": "retained temporarily for final supported evidence transport; remove after final refs verify",
+  "shared_launcher_and_toolchain": "retained; outside disposable product checkouts",
+  "packet": "preserved; initial publications and supported read-backs verified for both repositories"
 }

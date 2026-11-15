@@ -1,0 +1,291 @@
+{
+  "initial_fault": {
+    "reason": "Git fetch failed exit=128",
+    "ref": "refs/heads/evidence/gr-rer-dryrun-output-1",
+    "repository": "just-every/run-uptime",
+    "status": "failed"
+  },
+  "supported_retry": {
+    "destination": "/home/agent/rer-consolidation/work/gr-rer-dryrun-output-1/reports/just-every/run-uptime",
+    "files": [
+      {
+        "blob": "fefd97dcdc9b372fc453854dcabec6bbbdb3c1b8",
+        "bytes": 2443,
+        "path": "PLAN.md",
+        "sha256": "b662f23f328db006b9d78f3fe48f8bbc0485e174ac9f8680ee7424900266cf1a"
+      },
+      {
+        "blob": "a20acc00cb53d7f005bcf7774d7350016d9e6c7f",
+        "bytes": 8163,
+        "path": "REPORT.md",
+        "sha256": "baa4eb82603e5123e50b186e665d86881b1956d20cc296ef6dc5ee4fb344e372"
+      },
+      {
+        "blob": "779ff076decd5458358539be05d8bec5f7159f48",
+        "bytes": 361,
+        "path": "base-ci-discovery.receipt.json",
+        "sha256": "1373a5cfa51d081a151891b5aa8e0300166b18dc1e34143a30a47866887b9193"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "base-install.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "cc24c5a66d885a8bf08cd62d1558c2c790d52a91",
+        "bytes": 1230,
+        "path": "base-install.stdout.txt",
+        "sha256": "fccc00047dbfbde9881b37eb941a149540d16fb3eb3bd295adc86be064a198a1"
+      },
+      {
+        "blob": "ec11785a3bf397824dea20cf484a900b1a7c067b",
+        "bytes": 288,
+        "path": "base-pr.receipt.json",
+        "sha256": "59ffab91fe085eb2578b88cfb6d7d674b51866a162c2ddc4d16ab17ac5dd11f9"
+      },
+      {
+        "blob": "ca9d41030756d0e6e5ea2dbd2c5187386ae2429d",
+        "bytes": 298,
+        "path": "base-precommit-provenance.json",
+        "sha256": "4014f2d729b1dcde6f276e4a7c5bbe0fa9b0e90d9d2a9a38066474404f46f4ed"
+      },
+      {
+        "blob": "8c3501672500be58dc7aa4fa8ce85dd7b16d527c",
+        "bytes": 105,
+        "path": "candidate-package.stdout.txt",
+        "sha256": "2f8ba4e4d7d6e521cdac13335c363416bde87acf9d025294863aca60f789cdf3"
+      },
+      {
+        "blob": "44919a2e148617de19f81311fe4e61681e879238",
+        "bytes": 13282,
+        "path": "candidate-uptime.network.txt",
+        "sha256": "943e965207fba0a65b48ab89df91605fe6af03a60ed0a827d1282d1b48f21660"
+      },
+      {
+        "blob": "c0a9733446eb2c120ab76902ad48c0c0c57ae2c2",
+        "bytes": 1375,
+        "path": "candidate-uptime.receipt.json",
+        "sha256": "cc1bf263f42d0840effeb8c559b4646b8349ad184260ed8bc24dcea19e654ad7"
+      },
+      {
+        "blob": "14ba0d6e9269e6b888f3dce5525d60ca648432a7",
+        "bytes": 27736,
+        "path": "candidate-uptime.stderr.txt",
+        "sha256": "add4df5b2cbf19c9aeddfbc8d95ef58e706fde50857d10053aa1ea15068b4609"
+      },
+      {
+        "blob": "f17971dac783c81b96488b763a224efdf4633566",
+        "bytes": 26,
+        "path": "candidate-uptime.stdout.txt",
+        "sha256": "8d815c835bf50cc180e650525d026037ece182667a5962be93d23dc4ab5174f5"
+      },
+      {
+        "blob": "81832bec39461f8f87fbe5c0099e4f0175ca3043",
+        "bytes": 1106,
+        "path": "checks.receipt.json",
+        "sha256": "238393ea4a00637510dd6298a0f0d9a262e60450b757c35e22f278747662034d"
+      },
+      {
+        "blob": "7fba416c99d09f83d7958419b3f91806945d1363",
+        "bytes": 376,
+        "path": "cleanup.receipt.json",
+        "sha256": "9ad28a4591dad993c7564d108e3cb992244159bd72c8caf867f7a61a52e0bbc5"
+      },
+      {
+        "blob": "944e08fc1ea69d9298469b7214592cfc44dd5f5c",
+        "bytes": 13282,
+        "path": "current-0118.network.txt",
+        "sha256": "fe0e94abfef19b0113d3f515938281e408379d51f06af664ee391a783d567024"
+      },
+      {
+        "blob": "0de0c8a8cae100de67f1b26582e8940ffe1a6863",
+        "bytes": 1274,
+        "path": "current-0118.receipt.json",
+        "sha256": "b4150119b69a973cd990ff523b6a04493baa305b85d675e1655d35cd130c155c"
+      },
+      {
+        "blob": "4e7133ba36597504a4427d3de9c8d87f956eb20f",
+        "bytes": 27824,
+        "path": "current-0118.stderr.txt",
+        "sha256": "a6b251d7a88472ddb27a32176fb4d868fef443b7a2550e155caee7049d5b0d29"
+      },
+      {
+        "blob": "f17971dac783c81b96488b763a224efdf4633566",
+        "bytes": 26,
+        "path": "current-0118.stdout.txt",
+        "sha256": "8d815c835bf50cc180e650525d026037ece182667a5962be93d23dc4ab5174f5"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "export-check.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "45d64212015c592951d8a2ca431c8cfc9bf820ef",
+        "bytes": 376,
+        "path": "export-check.stdout.txt",
+        "sha256": "d6c64181a0502a23afab3da8e433a4a95179facec37dc49895953a9116e21ee1"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "export.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "export.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "6e2e283a63ceac934501e808a17d4a126e2c8140",
+        "bytes": 434,
+        "path": "github-api-calls.json",
+        "sha256": "e98c7999fd741ccaa35f9d51ed8492b79945212d8c59f1d01e5445eddd96c79c"
+      },
+      {
+        "blob": "ad653b908f028f4405cd5ef9ce313d3b6f5ab4d3",
+        "bytes": 84,
+        "path": "identity-audit.txt",
+        "sha256": "1ee1bde2607793eecb9c34c2e46dac7f695700ec9c1221d9e791dc2bc0bd6a53"
+      },
+      {
+        "blob": "212ef655eee8fcca4d8c8b0f374b93e7085fe8dd",
+        "bytes": 598,
+        "path": "package-acquisition.receipt.json",
+        "sha256": "859c71874545704b59ff06342938a1e384be83156fa72f34eddba146c4198823"
+      },
+      {
+        "blob": "b17f6d9b05941cbd5a476df1b1b803877da9619b",
+        "bytes": 9610,
+        "path": "product.patch",
+        "sha256": "6c9944b2e7be4c88b35df19d29dc7bbbe1593292f6252c475143c17915a2f80b"
+      },
+      {
+        "blob": "f5eb4a9895366391a4c069172866bcb305517ec5",
+        "bytes": 907,
+        "path": "product.receipt.json",
+        "sha256": "7962cf245154a702eb71ea36a55b7758f2c016ed9f1ebd9b3e5b33077f307c49"
+      },
+      {
+        "blob": "ec560fd422dfc5d0ce59851c853749e51c4bfbaf",
+        "bytes": 13281,
+        "path": "public-uptime.network.txt",
+        "sha256": "df7d1ede94d580f126a166b3b290749625cfe7d9daf2b8edd08d87b9f761b698"
+      },
+      {
+        "blob": "5357eec9554ca2cd6deeb66ccff10426a688f82c",
+        "bytes": 1257,
+        "path": "public-uptime.receipt.json",
+        "sha256": "73418b38f132fce01dc4fadb672862ab5df2c6eb2e3bf9acfdd7a8ccdeb0e3ea"
+      },
+      {
+        "blob": "d702a109ffc7451d9edc8fe8ebd10f2fd327c000",
+        "bytes": 27824,
+        "path": "public-uptime.stderr.txt",
+        "sha256": "4ef8a1e9a7d2f46c7f85b8e8ef9b1f6f7d6ce9ee2cfa4bb77f76321bacda132f"
+      },
+      {
+        "blob": "f17971dac783c81b96488b763a224efdf4633566",
+        "bytes": 26,
+        "path": "public-uptime.stdout.txt",
+        "sha256": "8d815c835bf50cc180e650525d026037ece182667a5962be93d23dc4ab5174f5"
+      },
+      {
+        "blob": "b843bf612fa45729923a7514d33c798b580bd07a",
+        "bytes": 2424,
+        "path": "reproduction-harness.py",
+        "sha256": "37b711295ac947970d9a0f535980825340b4a4570354be7cde442ea23be6d9bc"
+      },
+      {
+        "blob": "fde252b17d41ff66a6fa8d163723dc84c63b17a4",
+        "bytes": 740,
+        "path": "result.json",
+        "sha256": "e6694976c249b52f0866d0a8a4230074a2d520212ac194c3ffdc0aa405ab2190"
+      },
+      {
+        "blob": "07970f07bcac7d6b62ecbc3ee0e9c66bc7760168",
+        "bytes": 691,
+        "path": "section-comparison.json",
+        "sha256": "970359445c6e09218271e0e1ab61bed8d7905e1d24de0890d78dc7fc6719eb3f"
+      },
+      {
+        "blob": "811c04e17ed2a7a5f44c52141bd7fa0807962ab4",
+        "bytes": 1115,
+        "path": "source-provenance.receipt.json",
+        "sha256": "7c50897bf995b21e1bdb634b63c8e43928ec56b16e36f03b67f960c3d93b53ed"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "tools-install.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "8e1d25133d06e5e3358be54e4d34b02277d6805d",
+        "bytes": 24,
+        "path": "tools-install.stdout.txt",
+        "sha256": "3a055381dd30fdfbcecad3d62d569860f3345f8c2cac6efafcd1de5c8b41e208"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "touched-tests.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "1a5744ff1400bb779fd20a5d8600005d181077be",
+        "bytes": 12509,
+        "path": "touched-tests.stdout.txt",
+        "sha256": "bfa542824bbfeacc1340f57583c1c7c644e679d6d7e32cc33a404b33aef3fe6a"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "touched-typecheck.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "touched-typecheck.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "a6d2810edca0f9907d889cc7e6e9e51d14af6b89",
+        "bytes": 174,
+        "path": "uptime-initial-provenance.json",
+        "sha256": "214b8b11fb2dfdc97b06f12eafaf64e0896d88545d9e0f7cdd049d828a3f8673"
+      },
+      {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "path": "uptime-install.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "blob": "2d5ff9feeb7b930a76ea374579356b83b2b61e4b",
+        "bytes": 2722,
+        "path": "uptime-install.stdout.txt",
+        "sha256": "ee6b0f66506f9fd1cee754d2d66373301385eda6825abca81d4512288c2d7dd2"
+      },
+      {
+        "blob": "f24c7d88c54e3d0a50e87c631a6000093bedb697",
+        "bytes": 799,
+        "path": "uptime.result.json",
+        "sha256": "df5729c861d9baf63b6521ec92144feb13286acc75abc283234e28c595206142"
+      }
+    ],
+    "head": "63e99cde470880cfac3e38d2c06bfd8f1ab74e34",
+    "manifest_sha256": "65aa5939e2d654cd0ff2b572d5db792ff13e96fd652541d7ae01e3f663cc2143",
+    "product_branch": "cloud/gr-rer-dryrun-output-1",
+    "product_head": "2045014b15f76380b5d7493c0c42b2caa430f88b",
+    "ref": "refs/heads/evidence/gr-rer-dryrun-output-1",
+    "repository": "just-every/run-uptime",
+    "status": "restored"
+  },
+  "resolved": true
+}

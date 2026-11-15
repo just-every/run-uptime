@@ -1,7 +1,7 @@
 {
   "tag": "gr-rer-dryrun-output-1",
-  "status": "pushed-awaiting-ci",
-  "updated_at": "2026-11-15T11:47:10Z",
+  "status": "ready",
+  "updated_at": "2026-11-15T12:10:20Z",
   "repository": "runeditrun/base",
   "branch": "cloud/gr-rer-dryrun-output-1",
   "head": "34847bae3f640486f16d42affb2274f32075248a",
@@ -9,7 +9,7 @@
   "ci_run_ids": [
     43710227680
   ],
-  "ci_status": "in_progress (last observed exact-SHA discovery)",
+  "ci_status": "completed/success",
   "before_heading_count": 2,
   "after_heading_count": 1,
   "before_exit": 0,
@@ -18,5 +18,16 @@
   "clause_status_changes": [],
   "uptime_status": "no-change; consumer only; no candidate or product push",
   "blockers": [],
-  "evidence_publication": "separate evidence refs; not a READY or landing signal"
+  "evidence_publication": "final packet publishing to both separate evidence refs; not a landing or release signal",
+  "ci": {
+    "conclusion": "success",
+    "head_sha": "34847bae3f640486f16d42affb2274f32075248a",
+    "html_url": "https://github.com/runeditrun/base/actions/runs/43710227680",
+    "status": "completed"
+  },
+  "github_calls_used": 8,
+  "recovered_tool_gaps": [
+    "Initial Uptime evidence read-back Git fetch exit=128; supported retry restored/verified the exact evidence head.",
+    "CI request HTTP 401; prescribed launcher refresh and bundle-only retry succeeded."
+  ]
 }
