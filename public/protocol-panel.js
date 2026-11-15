@@ -3,7 +3,7 @@ import {escape} from './console-format.js';
 // facts, and the staged expiry warnings with their renewal follow-through (from the monitor's own outbox events).
 export const PROTOCOL_KINDS={ping:'ICMP ping check',udp:'UDP request and response check',tcp:'TCP port check',dns:'DNS record check',tls:'TLS certificate check',domain:'Domain expiry check'};
 export const isProtocol=definition=>Object.hasOwn(PROTOCOL_KINDS,definition?.type);
-const RESOLVER_NAMES={cloudflare:'Cloudflare',google:'Google',authoritative:'Authoritative server'};
+const RESOLVER_NAMES={cloudflare:'Cloudflare',google:'Google',authoritative:'Authoritative server',nameserver:'Named server'};
 const day=at=>new Date(at).toISOString().slice(0,10);
 const stages=list=>list.map(d=>`${d} days`).join(', ');
 /** [label, value, monospace] rows for "What the check expects". */
@@ -17,11 +17,13 @@ export function protocolExpectations(definition){
  if(definition.type==='udp')rows.push(['Sends to',`${s.host}:${s.port}`,true],['Request bytes',s.payloadHex,true],['Expected response',`${s.match}: ${s.expectedHex}`,true],['Per attempt','One packet',false],['Packet bytes','256 out / 1,024 in',false],['Endpoint budget','6 packets / minute',false]);
  if(definition.type==='dns'){
   rows.push(['Record',`${s.name} ${s.recordType}`,true],['Resolvers',s.resolvers.map(r=>RESOLVER_NAMES[r]??r).join(' and '),false]);
+  if(s.nameserver)rows.push(['Name server',s.nameserver,true]);
   rows.push(['Expected',s.expect?.absent?'No such record':s.expect?`${s.expect.match==='includes'?'Includes ':''}${s.expect.values.join(', ')}`:'At least one record',Boolean(s.expect?.values)]);
   if(s.approved)rows.push(['Approved change',s.approved.values.join(', '),true]);
  }
  if(definition.type==='tls'){
   rows.push(['Certificate at',`${s.host}:${s.port}`,true],['Must be','Trusted, for this host name and in date',false],['Warnings before expiry',stages(s.warnDays),false]);
+  if(s.failBeforeDays!==undefined)rows.push(['Fails within',`${s.failBeforeDays} day${s.failBeforeDays===1?'':'s'} of expiry`,false]);
   if(s.owner)rows.push(['Accountable owner',s.owner,false]);
  }
  if(definition.type==='domain'){

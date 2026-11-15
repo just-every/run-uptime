@@ -3008,7 +3008,7 @@
       "executable": false
     },
     "public/protocol-panel.js": {
-      "sha256": "afe2bba1f1a7bd37d8d8dd27f0b54b93f93667c61448048c2445c83422ae9fe5",
+      "sha256": "fc69f6dc59485008f5c3b4ee713988e41e064af3744d9a956c9abc2a50f75b52",
       "executable": false
     },
     "public/report-jobs.js": {
@@ -9637,6 +9637,10 @@
     },
     "tests/probe-native-support.mjs": {
       "sha256": "b7f741fe281f95ea15efb78dd759ca2bd4d8e5f954719e6531895ea89763e884",
+      "executable": false
+    },
+    "tests/protocol-config-browser-support.mjs": {
+      "sha256": "613b6223483ae80b9acab955a77d8c76d853b6af3a237e67c0e15193064668b1",
       "executable": false
     },
     "tests/protocol-fixtures.mjs": {
