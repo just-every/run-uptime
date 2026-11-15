@@ -9412,7 +9412,7 @@
       "executable": false
     },
     "tests/location-enrollment-support.mjs": {
-      "sha256": "ae8b6416fcdfa05b89f1249aa0ebd0d51657b250e515208f7759f0dc4040bcf4",
+      "sha256": "84ea4e0c9cb895a3729d7adaa1b6f16e54b9d8e5b6db15dbc01993ee2c923ffd",
       "executable": false
     },
     "tests/mail-edges.mjs": {
