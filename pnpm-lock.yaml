@@ -53,8 +53,8 @@ importers:
         specifier: 5.20261006.1
         version: 5.20261006.1
       '@runeditrun/rer':
-        specifier: 0.2.113
-        version: 0.2.113
+        specifier: 0.2.118
+        version: 0.2.118
       '@types/node':
         specifier: 26.6.4
         version: 26.6.4
@@ -899,8 +899,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@runeditrun/rer@0.2.113':
-    resolution: {integrity: sha512-f4xK3+cPFW2ahC11FyFPs6SBl0TFmoDhsjjBAeh+jOiHWwV4B58Ss5bO7C+uLCtvvpYY3FoNnX2ygNeqMlfOYw==}
+  '@runeditrun/rer@0.2.118':
+    resolution: {integrity: sha512-bRR06ezNrbkyDYiyOFdQpKEkeBZZfql9OqYm+Nm625u6HcKE8PzUTghjQsIfkdDKjVxc3LzP10RrBiazTyELAg==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -2386,7 +2386,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@runeditrun/rer@0.2.113': {}
+  '@runeditrun/rer@0.2.118': {}
 
   '@simplewebauthn/server@14.0.3':
     dependencies:

@@ -47,7 +47,7 @@ excluded, then provisions a Worker, D1 database, migrations and one-minute
 Cron through Base deploy-kit. Supply `CLOUDFLARE_ACCOUNT_ID` and
 `CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL`, `MAIL_FROM` and the selected mail
 provider's credentials.
-Hosted sign-in requires a configured Base mail adapter (Resend, SendGrid or Cloudflare), a verified sender and that provider's API credential.
+When outbound email is enabled, hosted email-link sign-in requires a configured Base mail adapter, verified sender and that provider's credentials. An explicit `MAIL_PROVIDER=none` instead uses guarded `rer signin` from the deploying checkout (Run Edit Run fleet, 2026-11-15).
 `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default when
 unset) or `cloudflare`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses
 `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and
@@ -408,3 +408,15 @@ Stage installation, live Cloudflare and the public release remain owner work.
 ## Independent watches and runner vantages
 
 Since v0.1.2, Uptime uses per-runner keys, immutable probe assignments, stored-evidence state and independent-vantage failure agreement. Mail is selected through Base adapters. See [the monitoring setup and C3/C4 rules](docs/resilient-monitoring.md).
+
+## Deliberately run without outbound email
+
+Select `MAIL_PROVIDER=none` in the hosted setup or the deploying checkout's private environment file. Leave `MAIL_FROM`, provider keys, relay URL, account ID and DKIM inputs absent. Missing or deferred provider selection does not mean off; `none` together with sending credentials is refused before upload. The deployment binds `MAIL_PROVIDER=none` to the Worker. Local dev and demo keep their existing development mail behavior.
+
+With mail off, use `rer signin` (or `rer signin --environment NAME`) from the checkout that deployed this environment, with that deploying account's Cloudflare credentials and its saved deployment record. Base checks the recorded Worker, account, project, environment and ownership receipt before issuing a short-lived owner grant. Keep the terminal link private; it is never an invitation or a hosted local-development entry. Losing the deploying checkout's receipt requires restoring that receipt, not bypassing ownership.
+
+First-run setup, monitor checks, incident recovery and Settings remain available. Email-link and invitation requests return `503 mail_unavailable`, including for unknown addresses. Email alerts remain unavailable and are never recorded as sent; configure another supported destination for delivery. Webhook and Slack delivery keep their existing configuration requirements. Optional operations sign-in mail reports off; required delivery loops cannot claim readiness while off.
+
+To enable email later, select an enabled provider and supply its verified `MAIL_FROM` plus its required inputs: SendGrid `SENDGRID_API_KEY`, Resend `MAIL_PROVIDER_API_KEY`, Cloudflare `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`, or managed mail `MAIL_API_KEY` and `MAIL_RELAY_URL`. Use `rer deploy --set-secret` with the selected environment; remove obsolete sending secrets with `rer deploy --unset-secret` before switching to `none`. Deploy preflight and the native configuration validator still refuse incomplete enabled providers. Operations inspection is local input validation, not proof of provider delivery.
+
+— Run Edit Run fleet, 2026-11-15

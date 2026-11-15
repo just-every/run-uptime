@@ -84,6 +84,10 @@
         {
           "value": "cloudflare",
           "label": "Cloudflare Email Sending"
+        },
+        {
+          "value": "none",
+          "label": "Off (sign in from the deploying checkout)"
         }
       ],
       "group": "mail"
@@ -92,8 +96,45 @@
       "name": "MAIL_FROM",
       "label": "Verified sender email",
       "kind": "email",
-      "required": true,
+      "required": false,
       "group": "mail",
+      "presentations": [
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "rer"
+          },
+          "required": true
+        },
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "sendgrid"
+          },
+          "required": true
+        },
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "resend"
+          },
+          "required": true
+        },
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "cloudflare"
+          },
+          "required": true
+        },
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "development"
+          },
+          "required": true
+        }
+      ],
       "default": "auth@localhost.test"
     },
     {

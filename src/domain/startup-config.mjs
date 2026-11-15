@@ -30,7 +30,7 @@ export const configurationTable = Object.freeze([
  { name: 'SESSION_SECRET', scopes: app, required: 'always', valid: secret(32) },
  { name: 'SETUP_TOKEN', scopes: app, required: 'always', valid: secret(32) },
  { name: 'UPTIME_RUNNER_KEY', scopes: [...app, 'runner'], required: 'always', valid: secret(24) },
- { name: 'MAIL_FROM', scopes: app, required: 'always', valid: sender },
+ { name: 'MAIL_FROM', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER !== 'none', valid: (value, env) => env.MAIL_PROVIDER === 'none' && value === '' || sender(value) },
  { name: 'MAIL_API_KEY', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER === 'rer', valid: value => text(value) && !/\s/.test(value) },
  { name: 'MAIL_RELAY_URL', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER === 'rer', valid: (value, env) => {if(env.MAIL_PROVIDER!=='rer'&&value==='')return true;try{const url=new URL(value);return text(value)&&url.protocol==='https:'&&!url.username&&!url.password&&!value.includes('?')&&!value.includes('#')&&url.href===value}catch{return false}} },
  { name: 'SENDGRID_API_KEY', scopes: app, required: 'conditional', when: env => !local(env) && (env.MAIL_PROVIDER ?? 'sendgrid') === 'sendgrid', valid: value => text(value) && !/\s/.test(value) },
@@ -44,7 +44,7 @@ export const configurationTable = Object.freeze([
  ...['UPTIME_WATCH_WEBHOOK_URL','UPTIME_WATCH_SLACK_URL'].map(name=>({name,scopes:['runner'],required:'optional',valid:value=>{try{return publicTarget(value).protocol==='https:'}catch{return false}}})),
  {name:'UPTIME_RUNNER_ID',scopes:['runner'],required:'optional',valid:text},
  {name:'UPTIME_NETWORK_LABEL',scopes:['runner'],required:'optional',valid:value=>text(value)&&value.length<=80},
- { name: 'MAIL_PROVIDER', scopes: app, required: 'local', valid: (value, env) => ['sendgrid','resend','cloudflare','rer'].includes(value) || ((local(env) || env.RER_DEMO==='1') && value === 'development') },
+ { name: 'MAIL_PROVIDER', scopes: app, required: 'local', valid: (value, env) => ['none','sendgrid','resend','cloudflare','rer'].includes(value) || ((local(env) || env.RER_DEMO==='1') && value === 'development') },
  { name: 'UPTIME_LOCAL_REVIEW', scopes: [...app, 'runner'], required: 'optional', valid: value => ['true', 'false'].includes(value) },
  { name: 'AUTH_ORIGIN', scopes: ['settings'], required: 'optional', valid: origin },
  { name: 'UPTIME_LOCAL_ORIGIN', scopes: ['local-worker'], required: 'always', valid: value => origin(value, { UPTIME_LOCAL_REVIEW: 'true' }) },
@@ -79,6 +79,10 @@ export function validateConfiguration(env, options = {}) {
  validate(env, options);
 }
 function validate(env, { scope = 'worker', suppliedOnly = false } = {}, retiredSetupToken = false) {
+ if (env.MAIL_PROVIDER === 'none') {
+  const conflicts = ['MAIL_API_KEY','SENDGRID_API_KEY','RESEND_API_KEY','MAIL_PROVIDER_API_KEY','CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID','MAIL_RELAY_URL','MAIL_DKIM_PRIVATE_KEY'].filter(name => env[name] !== undefined && env[name] !== '');
+  if (conflicts.length) throw new Error(`Invalid configuration: MAIL_PROVIDER=none conflicts with ${conflicts.join(', ')}`);
+ }
  const required = new Set(requiredConfiguration(env, scope).map(rule => rule.name));
  for (const rule of configurationTable) {
   if (!rule.scopes.includes(scope)) continue;

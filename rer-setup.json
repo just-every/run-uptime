@@ -80,17 +80,51 @@
         {
           "value": "cloudflare",
           "label": "Cloudflare Email Sending"
+        },
+        {
+          "value": "none",
+          "label": "Off (sign in from the deploying checkout)"
         }
       ],
       "group": "mail",
-      "help": "Managed hosting supplies mail automatically. For Assisted or Free hosting, choose a provider and supply its verified sender and credentials. Local installs use the development outbox."
+      "help": "Choose a provider with its verified sender and credentials, or deliberately turn email off. With email off, sign in with rer signin from the deploying checkout; email links, invitations and email alerts are unavailable."
     },
     {
       "name": "MAIL_FROM",
       "label": "Verified sender email",
       "kind": "email",
-      "required": true,
-      "group": "mail"
+      "required": false,
+      "group": "mail",
+      "presentations": [
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "rer"
+          },
+          "required": true
+        },
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "sendgrid"
+          },
+          "required": true
+        },
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "resend"
+          },
+          "required": true
+        },
+        {
+          "when": {
+            "field": "MAIL_PROVIDER",
+            "equals": "cloudflare"
+          },
+          "required": true
+        }
+      ]
     },
     {
       "name": "MAIL_RELAY_URL",

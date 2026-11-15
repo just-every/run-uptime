@@ -25,19 +25,27 @@
     },
     {
       "binding": "MAIL_FROM",
-      "environment": "MAIL_FROM"
+      "environment": "MAIL_FROM",
+      "optional": true
     },
     {
       "binding": "SENDGRID_API_KEY",
-      "environment": "SENDGRID_API_KEY"
+      "environment": "SENDGRID_API_KEY",
+      "optional": true
     },
     {
       "binding": "MAIL_API_KEY",
-      "environment": "MAIL_API_KEY"
+      "environment": "MAIL_API_KEY",
+      "optional": true
     },
     {
       "binding": "UPTIME_RUNNER_KEY",
       "environment": "UPTIME_RUNNER_KEY"
+    },
+    {
+      "binding": "MAIL_PROVIDER",
+      "environment": "MAIL_PROVIDER",
+      "optional": true
     }
   ],
   "crons": [

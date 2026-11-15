@@ -7,16 +7,16 @@ import { features } from './ui/seed.mjs';
 import { prepare, runtimeTarget } from '../local/targets.mjs';
 import { portability } from '../local/portability.mjs';
 import { buildCommand, migrationCommand } from '../local/commands.mjs';
-export const lifecycle = localInstaller({
+export const lifecycle = { ...localInstaller({
  features, node: '22.20.0', tools: ['pnpm', 'node'], prepare,
  secrets: settingsDefinition(), build: buildCommand, migrate: async ({demo}) => {const [command,args]=migrationCommand(demo?.state ?? '.wrangler/state', !demo);return [command,args,{env:{...runtimeEnvironment(),...await demoEnvironment(demo)}}]},
  start: context => runtimeTarget(context, false),
  owner: { existingOwnerViaSignIn: true, displayName: input => input.displayName ?? 'Owner', returnTo: '/setup' },
  signIn: { emailKey: 'OWNER_EMAIL', returnTo: '/setup' },
-});
+}), mailOffSignIn: 'rer signin' };
 export const commandAdapter = createCommandAdapter(lifecycle, {
  dev: context => runtimeTarget(context, true), preview: context => runtimeTarget(context, false), verify: ['pnpm', ['run', 'verify:app']],
- deploy: deployment(lifecycle), portability,
+ deploy: deployment(lifecycle), portability, mailOffSignIn: 'rer signin',
  settings: ['data/local-secrets.json'], setup: { manifestFile: 'rer-local-setup.json' },
  // Local dev identity: the local-only Worker entry, the build output rer build scans for the dev layer, and the kept end-to-end email-link test.
  devIdentity: { entry: 'src/server.dev.ts', output: ['dist'], emailLinkTest: 'tests/hosted-auth-browser.mjs' }, localOnlyKeys: ['RER_DEV_ORIGIN', 'RER_DEV_IDENTITY'],

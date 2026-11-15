@@ -16,7 +16,8 @@ code{color:var(--ink);font:500 .9em/1 ui-monospace,SFMono-Regular,Menlo,Consolas
 // A hosted Worker names its deploy environment (UPTIME_DEPLOY_ENVIRONMENT, validated at startup); each named environment keeps its own settings file.
 const hostedSettings=(environment?:string)=>`.rer/deploy/${environment??'production'}.secrets.env`;
 
-export function authDocument(setup=false,sent=false,localReview=false,invalidSetupToken=false,environment?:string,claimOpen=true,mailUnavailable=false,loginHint=''){
+export function authDocument(setup=false,sent=false,localReview=false,invalidSetupToken=false,environment?:string,claimOpen=true,mailUnavailable=false,loginHint='',mailOff=false){
+ if(mailOff&&!setup)return new Response(shellDocument({title:`Sign in to ${productName}`,style:formStyle,card:`<h1>Sign in to ${productName}</h1><p>Email is off for this installation. Email links and invitations are unavailable.</p><p>On the computer and checkout used to deploy this app, run <code>rer signin${environment&&environment!=='production'?` --environment ${escapeHtml(environment)}`:''}</code> with the deploying account’s Cloudflare credentials and saved deployment receipt.</p><p>Ask the person who runs this app for access.</p>`}),{headers:documentHeaders});
  const hosted=hostedSettings(environment);
  let email='';
  if(!setup&&loginHint){try{email=normalizeEmail(loginHint)}catch{/* Invalid hints leave the editable field empty. */}}

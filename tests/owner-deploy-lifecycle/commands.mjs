@@ -35,7 +35,7 @@ export async function checkout(t) {
   await appendFile(join(root, '.git/info/exclude'), '\n/node_modules\n');
   return root;
 }
-export async function deploy(root, provider, signal, flags = [], { inputs = true } = {}) {
+export async function deploy(root, provider, signal, flags = [], { inputs = true, verb = 'deploy' } = {}) {
   // Dependency probes keep NODE_OPTIONS but correctly discard application
   // environment variables. Keep the test transport in this private checkout so
   // the same preload also works in the real npm/pnpm probe processes.
@@ -45,10 +45,10 @@ export async function deploy(root, provider, signal, flags = [], { inputs = true
     NODE_OPTIONS: `--import=${pathToFileURL(join(root, 'tests/owner-deploy-lifecycle/preload.mjs')).href}`,
     CLOUDFLARE_ACCOUNT_ID: provider.accountId, CLOUDFLARE_API_TOKEN: provider.token,
     // rer's shared production-mail names; Uptime keeps MAIL_API_KEY under the selected provider's own setting.
-    ...(inputs ? { OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@synthetic-uptime.dev', MAIL_PROVIDER: 'sendgrid', MAIL_API_KEY: 'test-only-sendgrid-key' } : {}),
+    ...(inputs && typeof inputs === 'object' ? inputs : inputs ? { OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@synthetic-uptime.dev', MAIL_PROVIDER: 'sendgrid', MAIL_API_KEY: 'test-only-sendgrid-key' } : {}),
   };
   return new Promise((resolveResult, reject) => {
-    const child = spawn('rer', ['deploy', '--json', '--owner-name', 'Lifecycle owner', ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn('rer', [verb, '--json', ...(verb==='deploy'?['--owner-name','Lifecycle owner']:[]), ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
     const stop = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* Already reaped. */ } };
     signal.addEventListener('abort', stop, { once: true });
     let output = '', errors = '';

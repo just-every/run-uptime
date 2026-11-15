@@ -1,6 +1,7 @@
 // Test-only Base network fixture from 67e0a7d7c4a87b3a145545515a8c83afcac457ec.
 // Validation comes from the installed package. The provider models eventual D1
 // listings and serves the uploaded asset bytes for the package health probe.
+import {nativeAuth} from './auth.mjs';
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
 import { hash } from '@runeditrun/rer/internal/modules/deploy-kit/validation.mjs';
@@ -10,7 +11,7 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
   // Model the provider's detected-handler response at the network edge. Tests
   // can change this before any upload; Worker modules are inert upload bytes.
   state.uploadHandlers = structuredClone(handlers);
-  let ownerClaimed = false;
+
   const ok = (result, result_info) => Response.json({success:true,errors:[],result,...(result_info ? {result_info}:{})});
   const missing = () => Response.json({success:false,errors:[{code:100,message:'missing'}]},{status:404});
   function write(method,path,body) { state.writes.push({method,path,body}); }
@@ -41,14 +42,9 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
       if (init.headers?.Authorization) throw Error('health received token');
       // The current CLI claims the hosted owner after verifying deployment.
       // Model that network exchange against the secrets actually uploaded.
-      if (url.pathname === '/auth/bootstrap') {
-        if (method !== 'POST' || init.headers?.origin !== url.origin) return Response.json({error:'invalid_origin'},{status:403});
-        const input = JSON.parse(init.body);
-        const token = state.secrets.find(item => item.name === 'SETUP_TOKEN')?.value;
-        if (!token || input.token !== token) return Response.json({error:'invalid_setup_token'},{status:403});
-        if (ownerClaimed) return Response.json({error:'already_initialized'},{status:409});
-        ownerClaimed = true;
-        return new Response(null, {status:303,headers:{location:'/setup'}});
+      if (['/auth/bootstrap','/auth/signout','/auth/owner-signin'].includes(url.pathname)) {
+        if ((method !== 'POST' && url.pathname !== '/auth/owner-signin') || (method==='POST' && init.headers?.origin !== url.origin)) return Response.json({error:'invalid_origin'},{status:403});
+        return nativeAuth(state,url,init);
       }
       if (url.pathname !== '/health') {
         const entry = assetManifest[decodeURIComponent(url.pathname)], bytes = entry && assets.get(entry.hash);
