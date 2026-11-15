@@ -2576,7 +2576,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "c8bf15533a71fcc1d3a1e32de5c064c6e666baf39f3ad465d84668a5de51c6d6",
+      "sha256": "898c36c822b8c91ab1b68196917dcab0cacc33dad5d157622c56138586e67d07",
       "executable": false
     },
     "public/action-feedback.mjs": {
