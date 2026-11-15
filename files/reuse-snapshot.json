@@ -1,0 +1,206 @@
+{
+  "at": "2026-11-15T08:27:08.731855+00:00",
+  "scope": "TCP sockets owned by exact started processes; inode and port only",
+  "sockets": [
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8788,
+      "remote_port": 0,
+      "state": "0A",
+      "inode": "10244"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 0,
+      "state": "0A",
+      "inode": "7482"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 33552,
+      "remote_port": 46809,
+      "state": "01",
+      "inode": "20869"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 48408,
+      "remote_port": 46809,
+      "state": "01",
+      "inode": "18718"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 39720,
+      "state": "01",
+      "inode": "18717"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 39670,
+      "state": "01",
+      "inode": "18453"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 39682,
+      "state": "01",
+      "inode": "16342"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 48986,
+      "state": "01",
+      "inode": "7650"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 39672,
+      "state": "01",
+      "inode": "17481"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 48976,
+      "state": "01",
+      "inode": "5119"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 53754,
+      "state": "01",
+      "inode": "16713"
+    },
+    {
+      "pid": 1835,
+      "role": "rer managed proxy",
+      "local_port": 8787,
+      "remote_port": 39702,
+      "state": "01",
+      "inode": "16345"
+    },
+    {
+      "pid": 2023,
+      "role": "synthetic target",
+      "local_port": 46513,
+      "remote_port": 0,
+      "state": "0A",
+      "inode": "6728"
+    },
+    {
+      "pid": 2034,
+      "role": "Vite/Miniflare host",
+      "local_port": 46809,
+      "remote_port": 0,
+      "state": "0A",
+      "inode": "6765"
+    },
+    {
+      "pid": 2034,
+      "role": "Vite/Miniflare host",
+      "local_port": 42769,
+      "remote_port": 0,
+      "state": "0A",
+      "inode": "6743"
+    },
+    {
+      "pid": 2034,
+      "role": "Vite/Miniflare host",
+      "local_port": 52018,
+      "remote_port": 38823,
+      "state": "01",
+      "inode": "6753"
+    },
+    {
+      "pid": 2034,
+      "role": "Vite/Miniflare host",
+      "local_port": 46809,
+      "remote_port": 48408,
+      "state": "01",
+      "inode": "19609"
+    },
+    {
+      "pid": 2034,
+      "role": "Vite/Miniflare host",
+      "local_port": 42769,
+      "remote_port": 35190,
+      "state": "01",
+      "inode": "18462"
+    },
+    {
+      "pid": 2034,
+      "role": "Vite/Miniflare host",
+      "local_port": 46809,
+      "remote_port": 33552,
+      "state": "01",
+      "inode": "19052"
+    },
+    {
+      "pid": 2080,
+      "role": "workerd",
+      "local_port": 40295,
+      "remote_port": 0,
+      "state": "0A",
+      "inode": "7624"
+    },
+    {
+      "pid": 2080,
+      "role": "workerd",
+      "local_port": 38823,
+      "remote_port": 0,
+      "state": "0A",
+      "inode": "7623"
+    },
+    {
+      "pid": 2080,
+      "role": "workerd",
+      "local_port": 35190,
+      "remote_port": 42769,
+      "state": "01",
+      "inode": "17486"
+    },
+    {
+      "pid": 2080,
+      "role": "workerd",
+      "local_port": 38823,
+      "remote_port": 52018,
+      "state": "01",
+      "inode": "7625"
+    },
+    {
+      "pid": 2102,
+      "role": "native private runner",
+      "local_port": 48976,
+      "remote_port": 8787,
+      "state": "01",
+      "inode": "6792"
+    },
+    {
+      "pid": 2102,
+      "role": "native private runner",
+      "local_port": 48986,
+      "remote_port": 8787,
+      "state": "01",
+      "inode": "6796"
+    }
+  ]
+}

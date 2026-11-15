@@ -1,0 +1,33 @@
+{
+  "at": "2026-11-15T08:30:46.483408+00:00",
+  "action": "SIGTERM only recorded managed server PID 1835; its lifecycle stopped its own runner, synthetic target, Vite and workerd",
+  "before": {
+    "1835": {
+      "comm": "node"
+    },
+    "2023": {
+      "comm": "node"
+    },
+    "2034": {
+      "comm": "node"
+    },
+    "2061": {
+      "comm": "esbuild"
+    },
+    "2080": {
+      "comm": "workerd"
+    },
+    "2102": {
+      "comm": "node"
+    }
+  },
+  "remaining_owned_pids": {
+    "1835": false,
+    "2023": false,
+    "2034": false,
+    "2061": false,
+    "2080": false,
+    "2102": false
+  },
+  "browser_drivers": "both closed browser in finally; final scenario exit 0"
+}

@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-15T08:25:15.855692+00:00",
+  "operation": "first console observation and pause attempt",
+  "observed": "HTTP 403 on PATCH /api/monitors/<synthetic-monitor-id> after 60 seconds of successful console observation",
+  "cause": "new dev browser session had no fresh second factor",
+  "cleanup": "browser closed in finally",
+  "resolution": "repeat with genuine public-door local TOTP enrollment using existing test helper; no authentication code or setting changes"
+}

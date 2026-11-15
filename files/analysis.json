@@ -1,0 +1,919 @@
+{
+  "generated_at": "2026-11-15T08:32:37.919977+00:00",
+  "scope": "isolated Linux VM, exact instance ports only; no machine-global or Mac inference",
+  "connection_traces": {
+    "baseline-connect.trace": {
+      "duration_seconds": 30,
+      "loopback_connect_attempts": 118,
+      "attempts_per_second": 3.933333333333333,
+      "max_in_any_utc_second_bucket": 7,
+      "by_pid_destination": [
+        {
+          "pid": "2034",
+          "destination_port": 38823,
+          "connect_attempts": 101
+        },
+        {
+          "pid": "1835",
+          "destination_port": 46809,
+          "connect_attempts": 9
+        },
+        {
+          "pid": "2102",
+          "destination_port": 46513,
+          "connect_attempts": 6
+        },
+        {
+          "pid": "2102",
+          "destination_port": 8787,
+          "connect_attempts": 2
+        }
+      ]
+    },
+    "console-connect.trace": {
+      "duration_seconds": 60,
+      "loopback_connect_attempts": 294,
+      "attempts_per_second": 4.9,
+      "max_in_any_utc_second_bucket": 14,
+      "by_pid_destination": [
+        {
+          "pid": "2034",
+          "destination_port": 38823,
+          "connect_attempts": 240
+        },
+        {
+          "pid": "1835",
+          "destination_port": 46809,
+          "connect_attempts": 38
+        },
+        {
+          "pid": "2102",
+          "destination_port": 46513,
+          "connect_attempts": 13
+        },
+        {
+          "pid": "2102",
+          "destination_port": 8787,
+          "connect_attempts": 3
+        }
+      ]
+    }
+  },
+  "socket_samples": {
+    "baseline-sockets.json": {
+      "sample_count": 19,
+      "period_seconds": 5,
+      "first": {
+        "at": "2026-11-15T08:19:43.478221+00:00",
+        "by_port": {
+          "8787": {
+            "0A": 1,
+            "01": 20,
+            "06": 3
+          },
+          "8788": {
+            "0A": 1
+          },
+          "38823": {
+            "0A": 1,
+            "06": 385,
+            "01": 2
+          },
+          "40295": {
+            "0A": 1
+          },
+          "42769": {
+            "0A": 1,
+            "01": 12,
+            "06": 1
+          },
+          "46513": {
+            "0A": 1,
+            "06": 2
+          },
+          "46809": {
+            "0A": 1,
+            "01": 4,
+            "06": 16
+          }
+        },
+        "time_wait": 407
+      },
+      "last": {
+        "at": "2026-11-15T08:21:13.582295+00:00",
+        "by_port": {
+          "8787": {
+            "0A": 1,
+            "06": 8,
+            "01": 4
+          },
+          "8788": {
+            "0A": 1
+          },
+          "38823": {
+            "0A": 1,
+            "06": 203,
+            "01": 2
+          },
+          "40295": {
+            "0A": 1
+          },
+          "42769": {
+            "0A": 1,
+            "01": 2
+          },
+          "46513": {
+            "0A": 1,
+            "06": 12
+          },
+          "46809": {
+            "0A": 1,
+            "01": 4,
+            "06": 9
+          }
+        },
+        "time_wait": 232
+      },
+      "maximum": 459,
+      "minimum_after_60s": 226,
+      "maximum_after_60s": 243,
+      "values": [
+        407,
+        420,
+        423,
+        422,
+        433,
+        433,
+        440,
+        439,
+        451,
+        455,
+        459,
+        450,
+        243,
+        242,
+        234,
+        238,
+        226,
+        228,
+        232
+      ]
+    },
+    "console-sockets.json": {
+      "sample_count": 41,
+      "period_seconds": 5,
+      "first": {
+        "at": "2026-11-15T08:22:12.381328+00:00",
+        "by_port": {
+          "8787": {
+            "0A": 1,
+            "01": 4
+          },
+          "8788": {
+            "0A": 1
+          },
+          "38823": {
+            "0A": 1,
+            "06": 167,
+            "01": 4
+          },
+          "40295": {
+            "0A": 1
+          },
+          "42769": {
+            "0A": 1,
+            "01": 2
+          },
+          "46513": {
+            "0A": 1,
+            "06": 13
+          },
+          "46809": {
+            "0A": 1,
+            "01": 2,
+            "06": 5
+          }
+        },
+        "time_wait": 185
+      },
+      "last": {
+        "at": "2026-11-15T08:25:32.649239+00:00",
+        "by_port": {
+          "8787": {
+            "0A": 1,
+            "06": 7,
+            "01": 14
+          },
+          "8788": {
+            "0A": 1
+          },
+          "38823": {
+            "0A": 1,
+            "06": 583,
+            "01": 2
+          },
+          "40295": {
+            "0A": 1
+          },
+          "42769": {
+            "0A": 1,
+            "01": 2,
+            "06": 6
+          },
+          "46513": {
+            "0A": 1,
+            "06": 13
+          },
+          "46809": {
+            "0A": 1,
+            "06": 23,
+            "01": 4
+          }
+        },
+        "time_wait": 632
+      },
+      "maximum": 734,
+      "minimum_after_60s": 179,
+      "maximum_after_60s": 734,
+      "values": [
+        185,
+        614,
+        633,
+        640,
+        652,
+        670,
+        679,
+        693,
+        703,
+        718,
+        725,
+        734,
+        734,
+        373,
+        334,
+        326,
+        336,
+        316,
+        316,
+        290,
+        289,
+        264,
+        267,
+        257,
+        241,
+        235,
+        217,
+        210,
+        184,
+        188,
+        179,
+        185,
+        187,
+        182,
+        186,
+        182,
+        186,
+        254,
+        610,
+        620,
+        632
+      ]
+    },
+    "cadence-pause-sockets.json": {
+      "sample_count": 45,
+      "period_seconds": 5,
+      "first": {
+        "at": "2026-11-15T08:25:15.890549+00:00",
+        "by_port": {
+          "8787": {
+            "0A": 1,
+            "06": 3,
+            "01": 6
+          },
+          "8788": {
+            "0A": 1
+          },
+          "38823": {
+            "0A": 1,
+            "06": 161,
+            "01": 2
+          },
+          "40295": {
+            "0A": 1
+          },
+          "42769": {
+            "0A": 1,
+            "01": 2
+          },
+          "46513": {
+            "0A": 1,
+            "06": 13
+          },
+          "46809": {
+            "0A": 1,
+            "01": 2,
+            "06": 6
+          }
+        },
+        "time_wait": 183
+      },
+      "last": {
+        "at": "2026-11-15T08:28:56.143019+00:00",
+        "by_port": {
+          "8787": {
+            "0A": 1,
+            "06": 6,
+            "01": 4
+          },
+          "8788": {
+            "0A": 1
+          },
+          "38823": {
+            "0A": 1,
+            "06": 234,
+            "01": 2
+          },
+          "40295": {
+            "0A": 1
+          },
+          "42769": {
+            "0A": 1,
+            "01": 2
+          },
+          "46513": {
+            "0A": 1,
+            "06": 9
+          },
+          "46809": {
+            "0A": 1,
+            "06": 32,
+            "01": 2
+          }
+        },
+        "time_wait": 281
+      },
+      "maximum": 735,
+      "minimum_after_60s": 281,
+      "maximum_after_60s": 735,
+      "values": [
+        183,
+        605,
+        617,
+        633,
+        640,
+        659,
+        677,
+        689,
+        704,
+        702,
+        718,
+        724,
+        735,
+        314,
+        323,
+        337,
+        332,
+        338,
+        333,
+        341,
+        323,
+        338,
+        323,
+        337,
+        340,
+        336,
+        335,
+        330,
+        330,
+        320,
+        328,
+        319,
+        328,
+        334,
+        326,
+        324,
+        320,
+        331,
+        315,
+        325,
+        318,
+        318,
+        307,
+        290,
+        281
+      ]
+    },
+    "steady-sockets.json": {
+      "sample_count": 25,
+      "period_seconds": 5,
+      "first": {
+        "at": "2026-11-15T08:27:45.936074+00:00",
+        "by_port": {
+          "8787": {
+            "0A": 1,
+            "01": 16,
+            "06": 1
+          },
+          "8788": {
+            "0A": 1
+          },
+          "38823": {
+            "0A": 1,
+            "06": 276,
+            "01": 2
+          },
+          "40295": {
+            "0A": 1
+          },
+          "42769": {
+            "0A": 1,
+            "01": 2
+          },
+          "46513": {
+            "0A": 1,
+            "06": 8
+          },
+          "46809": {
+            "0A": 1,
+            "06": 43,
+            "01": 12
+          }
+        },
+        "time_wait": 328
+      },
+      "last": {
+        "at": "2026-11-15T08:29:46.065976+00:00",
+        "by_port": {
+          "8787": {
+            "0A": 1,
+            "06": 2,
+            "01": 4
+          },
+          "8788": {
+            "0A": 1
+          },
+          "38823": {
+            "0A": 1,
+            "06": 166,
+            "01": 2
+          },
+          "40295": {
+            "0A": 1
+          },
+          "42769": {
+            "0A": 1,
+            "01": 2
+          },
+          "46513": {
+            "0A": 1,
+            "06": 9
+          },
+          "46809": {
+            "0A": 1,
+            "06": 7,
+            "01": 2
+          }
+        },
+        "time_wait": 184
+      },
+      "maximum": 334,
+      "minimum_after_60s": 182,
+      "maximum_after_60s": 307,
+      "values": [
+        328,
+        329,
+        328,
+        334,
+        325,
+        324,
+        320,
+        329,
+        315,
+        324,
+        328,
+        318,
+        307,
+        289,
+        281,
+        262,
+        255,
+        236,
+        230,
+        222,
+        210,
+        201,
+        182,
+        187,
+        184
+      ]
+    }
+  },
+  "runtime": {
+    "baseline-runtime.json": {
+      "sample_count": 18,
+      "duration_ms": 91435,
+      "monitors": [
+        {
+          "name": "synthetic-uptime-6",
+          "slots": 12,
+          "observations": 12,
+          "outcomes": {
+            "pass": 12
+          },
+          "intervals_by_revision": {
+            "1": 6000
+          },
+          "by_revision": {
+            "1": {
+              "observations": 12,
+              "minimum_gap_ms": 6803,
+              "starts": [
+                1794730779265,
+                1794730786838,
+                1794730796562,
+                1794730804242,
+                1794730811112,
+                1794730818881,
+                1794730825684,
+                1794730833365,
+                1794730840823,
+                1794730850454,
+                1794730857914,
+                1794730865361
+              ]
+            }
+          },
+          "minimum_gap_ms": 6803,
+          "median_gap_ms": 7573,
+          "no_early_repeated_checks": true
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "slots": 7,
+          "observations": 7,
+          "outcomes": {
+            "pass": 7
+          },
+          "intervals_by_revision": {
+            "1": 11000
+          },
+          "by_revision": {
+            "1": {
+              "observations": 7,
+              "minimum_gap_ms": 12156,
+              "starts": [
+                1794730781441,
+                1794730794396,
+                1794730806552,
+                1794730821105,
+                1794730835487,
+                1794730848339,
+                1794730861095
+              ]
+            }
+          },
+          "minimum_gap_ms": 12156,
+          "median_gap_ms": 12903.5,
+          "no_early_repeated_checks": true
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "slots": 0,
+          "observations": 0,
+          "outcomes": {},
+          "intervals_by_revision": {},
+          "by_revision": {},
+          "minimum_gap_ms": null,
+          "median_gap_ms": null,
+          "no_early_repeated_checks": true
+        }
+      ],
+      "actions": []
+    },
+    "console-runtime.json": {
+      "sample_count": 12,
+      "duration_ms": 61425,
+      "monitors": [
+        {
+          "name": "synthetic-uptime-6",
+          "slots": 30,
+          "observations": 29,
+          "outcomes": {
+            "pass": 29
+          },
+          "intervals_by_revision": {
+            "1": 6000
+          },
+          "by_revision": {
+            "1": {
+              "observations": 29,
+              "minimum_gap_ms": 6803,
+              "starts": [
+                1794730779265,
+                1794730786838,
+                1794730796562,
+                1794730804242,
+                1794730811112,
+                1794730818881,
+                1794730825684,
+                1794730833365,
+                1794730840823,
+                1794730850454,
+                1794730857914,
+                1794730865361,
+                1794730872854,
+                1794730880313,
+                1794730889027,
+                1794730896581,
+                1794730904039,
+                1794730911526,
+                1794730919358,
+                1794730926949,
+                1794730934490,
+                1794730942036,
+                1794730951656,
+                1794730959235,
+                1794730966919,
+                1794730976054,
+                1794730984046,
+                1794730991782,
+                1794731000744
+              ]
+            }
+          },
+          "minimum_gap_ms": 6803,
+          "median_gap_ms": 7585.0,
+          "no_early_repeated_checks": true
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "slots": 18,
+          "observations": 18,
+          "outcomes": {
+            "pass": 18
+          },
+          "intervals_by_revision": {
+            "1": 11000
+          },
+          "by_revision": {
+            "1": {
+              "observations": 18,
+              "minimum_gap_ms": 11061,
+              "starts": [
+                1794730781441,
+                1794730794396,
+                1794730806552,
+                1794730821105,
+                1794730835487,
+                1794730848339,
+                1794730861095,
+                1794730874997,
+                1794730887847,
+                1794730900861,
+                1794730912691,
+                1794730923752,
+                1794730936705,
+                1794730949550,
+                1794730961474,
+                1794730973813,
+                1794730986247,
+                1794730998485
+              ]
+            }
+          },
+          "minimum_gap_ms": 11061,
+          "median_gap_ms": 12845,
+          "no_early_repeated_checks": true
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "slots": 0,
+          "observations": 0,
+          "outcomes": {},
+          "intervals_by_revision": {},
+          "by_revision": {},
+          "minimum_gap_ms": null,
+          "median_gap_ms": null,
+          "no_early_repeated_checks": true
+        }
+      ],
+      "actions": [],
+      "browser_requests": {
+        "all_count_including_startup": 608,
+        "after_initial_10s_warmup": 71,
+        "requests_per_second_after_warmup": 1.155881155881156,
+        "paths": {
+          "/api/overview": 13,
+          "/api/monitors/0e34ca9e-0e04-4cbc-889e-e87ba60e8154/incidents": 13,
+          "/api/monitors/0e34ca9e-0e04-4cbc-889e-e87ba60e8154/history": 13,
+          "/api/monitors/0e34ca9e-0e04-4cbc-889e-e87ba60e8154/revisions": 13,
+          "/api/monitors/0e34ca9e-0e04-4cbc-889e-e87ba60e8154/alert-route": 13,
+          "/auth/session": 3,
+          "/api/editor/config": 3
+        }
+      }
+    },
+    "cadence-pause-runtime.json": {
+      "sample_count": 36,
+      "duration_ms": 182697,
+      "monitors": [
+        {
+          "name": "synthetic-uptime-6",
+          "slots": 59,
+          "observations": 58,
+          "outcomes": {
+            "pass": 58
+          },
+          "intervals_by_revision": {
+            "3": 15000,
+            "1": 6000
+          },
+          "by_revision": {
+            "3": {
+              "observations": 5,
+              "minimum_gap_ms": 16055,
+              "starts": [
+                1794731229014,
+                1794731245179,
+                1794731262268,
+                1794731280556,
+                1794731296611
+              ]
+            },
+            "1": {
+              "observations": 53,
+              "minimum_gap_ms": 6503,
+              "starts": [
+                1794730779265,
+                1794730786838,
+                1794730796562,
+                1794730804242,
+                1794730811112,
+                1794730818881,
+                1794730825684,
+                1794730833365,
+                1794730840823,
+                1794730850454,
+                1794730857914,
+                1794730865361,
+                1794730872854,
+                1794730880313,
+                1794730889027,
+                1794730896581,
+                1794730904039,
+                1794730911526,
+                1794730919358,
+                1794730926949,
+                1794730934490,
+                1794730942036,
+                1794730951656,
+                1794730959235,
+                1794730966919,
+                1794730976054,
+                1794730984046,
+                1794730991782,
+                1794731000744,
+                1794731008434,
+                1794731015374,
+                1794731022298,
+                1794731030014,
+                1794731037515,
+                1794731044999,
+                1794731052514,
+                1794731062140,
+                1794731069684,
+                1794731077227,
+                1794731084776,
+                1794731092389,
+                1794731100226,
+                1794731107776,
+                1794731114279,
+                1794731122073,
+                1794731129652,
+                1794731139206,
+                1794731146659,
+                1794731154042,
+                1794731161552,
+                1794731169015,
+                1794731178688,
+                1794731186126
+              ]
+            }
+          },
+          "minimum_gap_ms": 6503,
+          "median_gap_ms": 7576.0,
+          "no_early_repeated_checks": true
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "slots": 42,
+          "observations": 42,
+          "outcomes": {
+            "pass": 42
+          },
+          "intervals_by_revision": {
+            "1": 11000
+          },
+          "by_revision": {
+            "1": {
+              "observations": 42,
+              "minimum_gap_ms": 11061,
+              "starts": [
+                1794730781441,
+                1794730794396,
+                1794730806552,
+                1794730821105,
+                1794730835487,
+                1794730848339,
+                1794730861095,
+                1794730874997,
+                1794730887847,
+                1794730900861,
+                1794730912691,
+                1794730923752,
+                1794730936705,
+                1794730949550,
+                1794730961474,
+                1794730973813,
+                1794730986247,
+                1794730998485,
+                1794731009656,
+                1794731021056,
+                1794731033230,
+                1794731047115,
+                1794731060005,
+                1794731072941,
+                1794731085936,
+                1794731099082,
+                1794731112097,
+                1794731124188,
+                1794731137096,
+                1794731149812,
+                1794731163677,
+                1794731176560,
+                1794731188310,
+                1794731201166,
+                1794731214064,
+                1794731226895,
+                1794731239778,
+                1794731252632,
+                1794731265459,
+                1794731278408,
+                1794731291225,
+                1794731304162
+              ]
+            }
+          },
+          "minimum_gap_ms": 11061,
+          "median_gap_ms": 12854,
+          "no_early_repeated_checks": true
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "slots": 0,
+          "observations": 0,
+          "outcomes": {},
+          "intervals_by_revision": {},
+          "by_revision": {},
+          "minimum_gap_ms": null,
+          "median_gap_ms": null,
+          "no_early_repeated_checks": true
+        }
+      ],
+      "actions": [
+        {
+          "at": 1794731190706,
+          "enabled": false,
+          "intervalMs": 6000,
+          "revision": 2
+        },
+        {
+          "at": 1794731226233,
+          "enabled": true,
+          "intervalMs": 15000,
+          "revision": 3
+        }
+      ],
+      "pause_resume": {
+        "paused_at": 1794731190706,
+        "resumed_at": 1794731226233,
+        "observations_after_inflight_grace_during_pause": [],
+        "pause_duration_ms": 35527
+      },
+      "browser_requests": {
+        "all_count_including_startup": 743,
+        "after_initial_10s_warmup": 203,
+        "requests_per_second_after_warmup": 1.111129356256534,
+        "paths": {
+          "/api/overview": 37,
+          "/api/monitors/0e34ca9e-0e04-4cbc-889e-e87ba60e8154/incidents": 37,
+          "/api/monitors/0e34ca9e-0e04-4cbc-889e-e87ba60e8154/history": 37,
+          "/api/monitors/0e34ca9e-0e04-4cbc-889e-e87ba60e8154/revisions": 37,
+          "/api/monitors/0e34ca9e-0e04-4cbc-889e-e87ba60e8154/alert-route": 37,
+          "/auth/session": 9,
+          "/api/editor/config": 9
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "at": "2026-11-15T08:30:19.440670+00:00",
+  "checks": [
+    {
+      "name": "configured intervals and pause/resume",
+      "pass": true,
+      "evidence": "cadence-pause-runtime.json and analysis.json"
+    },
+    {
+      "name": "genuine local TOTP enrollment and verified pause/edit",
+      "pass": true,
+      "evidence": "cadence-pause-driver.log"
+    },
+    {
+      "name": "source integrity check",
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0,
+      "pass": true,
+      "output_sha256": "897b2e5a786e107e4923b28d85d41a70cd0711f249fa7a2250f283b73d552aea"
+    },
+    {
+      "name": "product tree untouched",
+      "pass": true,
+      "evidence": "source-provenance.json"
+    }
+  ],
+  "driver_exit_code": 0,
+  "registered_test_change": {
+    "added": 0,
+    "removed": 0,
+    "modified": 0
+  },
+  "product_commits": 0,
+  "typecheck": "not run: no product source changes",
+  "full_local_verify": "not run per brief",
+  "ci": "not requested: no product candidate commit or push",
+  "diagnosis": "500 short loopback connections/sec case NOT REPRODUCED; severe original defect not diagnosed; no product remedy claimed"
+}

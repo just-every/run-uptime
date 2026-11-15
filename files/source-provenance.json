@@ -1,0 +1,26 @@
+{
+  "at": "2026-11-15T08:26:29.358581+00:00",
+  "product_head": "fef01b15e0205f1c53c4e362a3729afc66a0b20b",
+  "branch": "cloud/sd-uptime-loopback-churn-1",
+  "product_changes": "",
+  "packages": {
+    "@runeditrun/rer": "0.2.113",
+    "@cloudflare/vite-plugin": "1.62.2",
+    "miniflare": "5.20260926.1-alpha",
+    "wrangler": "4.144.0",
+    "playwright": "1.64.1"
+  },
+  "runtime_node": "22.20.0 (rer-managed application and runner); measurement driver Node 24.19.0",
+  "source_hashes": {
+    "runners/src/runner.mjs": "2d62c0df442dbc2196aac211fab26ceee979a826600a008157bac9f9b7cdf616",
+    "runners/src/discovery-loop.mjs": "3ebfdf05068710225c8c7d6f0454ae2c62563ec2044d103fb153bcc56a50624a",
+    "runners/src/probes.mjs": "0df4512cf5b5704ae3ce62037b253e0e806d06b587b8795814a13319b717cbd7",
+    "runners/src/public-http-request.mjs": "bf8c30ccee1025b33fc8c33940530bfb4b1792ebb788cfd75d4b3ac81cb70f15",
+    "src/domain/attempts.server.ts": "6bd8da524e171940266456676963c7ab82308775cfe506405a8386c7365fc57a",
+    "scripts/local/vite-runtime.mjs": "3f8c4495a2e7d79c5e469de674fe38d1f5fb7862939c3172fdf6e9570648427e",
+    "node_modules/@runeditrun/rer/cli/scheduled.mjs": "8a5a59d2f2bdeb4ed420a79cb998feb74b9ea0b21d9236be2a32a5fe9d2b19e9",
+    "node_modules/@runeditrun/rer/cli/upstream-agent.mjs": "dc2b22e01c2969ebe11040cd274d454c5c6b37b2d0177641287e44c9e1809820",
+    "node_modules/@runeditrun/rer/onboarding/loopback-fetch.mjs": "f2df7a7402351dd13c41c5f162f851ced33bb14a2f71673a74747ad3e75f5e8a",
+    "node_modules/miniflare/dist/src/index.js": "c45cab13999099f96bfd9cf654cada57c4cf41ebab21261e4cdb238ed1110c3d"
+  }
+}

@@ -1,0 +1,4526 @@
+{
+  "schema": 1,
+  "host": "isolated Linux cloud VM",
+  "root": "/home/agent/rer-consolidation/work/sd-uptime-loopback-churn-1/run-uptime",
+  "origin": "http://127.0.0.1:8787",
+  "startedAt": "2026-11-15T08:19:37.804Z",
+  "durationMs": 91435,
+  "monitors": [
+    {
+      "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154",
+      "revision": 1,
+      "definition": {
+        "name": "synthetic-uptime-6",
+        "type": "http",
+        "network": "synthetic",
+        "url": "http://127.0.0.1:46513/health",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assertions": {
+          "status": 200
+        },
+        "intervalMs": 6000,
+        "timeoutMs": 2000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 30000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-66911b07-ab99-475c-8d26-04d816331876",
+            "networkLabel": "Brisbane",
+            "canaryUrl": "https://example.org/"
+          }
+        },
+        "externalCheck": "settings"
+      },
+      "nextDue": 1794730777684,
+      "storedState": {
+        "state": "Unknown",
+        "confirmedFailure": false,
+        "notificationOpen": false,
+        "incidentKey": null,
+        "incidentRevision": null
+      },
+      "name": "synthetic-uptime-6",
+      "intervalMs": 6000,
+      "enabled": true
+    },
+    {
+      "id": "d697915f-1e04-4d9a-b518-7e96aaefed00",
+      "revision": 1,
+      "definition": {
+        "name": "synthetic-uptime-11",
+        "type": "http",
+        "network": "synthetic",
+        "url": "http://127.0.0.1:46513/health",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assertions": {
+          "status": 200
+        },
+        "intervalMs": 11000,
+        "timeoutMs": 2000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 30000,
+        "enabled": true,
+        "maintenanceUntil": 0,
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-66911b07-ab99-475c-8d26-04d816331876",
+            "networkLabel": "Brisbane",
+            "canaryUrl": "https://example.org/"
+          }
+        },
+        "externalCheck": "settings"
+      },
+      "nextDue": 1794730777748,
+      "storedState": {
+        "state": "Unknown",
+        "confirmedFailure": false,
+        "notificationOpen": false,
+        "incidentKey": null,
+        "incidentRevision": null
+      },
+      "name": "synthetic-uptime-11",
+      "intervalMs": 11000,
+      "enabled": true
+    },
+    {
+      "id": "e8e303fd-2113-4255-aecc-22cfff8b88e7",
+      "revision": 1,
+      "definition": {
+        "name": "synthetic-uptime-paused",
+        "type": "http",
+        "network": "synthetic",
+        "url": "http://127.0.0.1:46513/health",
+        "method": "GET",
+        "probes": [
+          "local-a"
+        ],
+        "assertions": {
+          "status": 200
+        },
+        "intervalMs": 7000,
+        "timeoutMs": 2000,
+        "retries": 0,
+        "failureQuorum": 1,
+        "confirmSlots": 1,
+        "recoverSlots": 1,
+        "freshnessMs": 30000,
+        "enabled": false,
+        "maintenanceUntil": 0,
+        "assignments": {
+          "local-a": {
+            "runnerId": "self-66911b07-ab99-475c-8d26-04d816331876",
+            "networkLabel": "Brisbane"
+          }
+        }
+      },
+      "nextDue": 1794730777794,
+      "storedState": {
+        "state": "Unknown",
+        "confirmedFailure": false,
+        "notificationOpen": false,
+        "incidentKey": null,
+        "incidentRevision": null
+      },
+      "name": "synthetic-uptime-paused",
+      "intervalMs": 7000,
+      "enabled": false
+    }
+  ],
+  "samples": [
+    {
+      "elapsedMs": 5067,
+      "at": "2026-11-15T08:19:42.871Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 10135,
+      "at": "2026-11-15T08:19:47.939Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 15194,
+      "at": "2026-11-15T08:19:52.998Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 20257,
+      "at": "2026-11-15T08:19:58.061Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 25436,
+      "at": "2026-11-15T08:20:03.240Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 30515,
+      "at": "2026-11-15T08:20:08.319Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 35707,
+      "at": "2026-11-15T08:20:13.511Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 40783,
+      "at": "2026-11-15T08:20:18.587Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "running",
+              "observations": []
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 45882,
+      "at": "2026-11-15T08:20:23.686Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 50958,
+      "at": "2026-11-15T08:20:28.762Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 56012,
+      "at": "2026-11-15T08:20:33.816Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730831684",
+              "dueAt": 1794730831684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730833365,
+                  "completedAt": 1794730833366,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 61065,
+      "at": "2026-11-15T08:20:38.869Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730831684",
+              "dueAt": 1794730831684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730833365,
+                  "completedAt": 1794730833366,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730832105",
+              "dueAt": 1794730832105,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730835487,
+                  "completedAt": 1794730835488,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 66133,
+      "at": "2026-11-15T08:20:43.937Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730839365",
+              "dueAt": 1794730839365,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730840823,
+                  "completedAt": 1794730840824,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730831684",
+              "dueAt": 1794730831684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730833365,
+                  "completedAt": 1794730833366,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730832105",
+              "dueAt": 1794730832105,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730835487,
+                  "completedAt": 1794730835488,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 71192,
+      "at": "2026-11-15T08:20:48.996Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730839365",
+              "dueAt": 1794730839365,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730840823,
+                  "completedAt": 1794730840824,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730831684",
+              "dueAt": 1794730831684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730833365,
+                  "completedAt": 1794730833366,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730846487",
+              "dueAt": 1794730846487,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730848339,
+                  "completedAt": 1794730848340,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730832105",
+              "dueAt": 1794730832105,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730835487,
+                  "completedAt": 1794730835488,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 76248,
+      "at": "2026-11-15T08:20:54.052Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730846823",
+              "dueAt": 1794730846823,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730850454,
+                  "completedAt": 1794730850455,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730839365",
+              "dueAt": 1794730839365,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730840823,
+                  "completedAt": 1794730840824,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730831684",
+              "dueAt": 1794730831684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730833365,
+                  "completedAt": 1794730833366,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730846487",
+              "dueAt": 1794730846487,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730848339,
+                  "completedAt": 1794730848340,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730832105",
+              "dueAt": 1794730832105,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730835487,
+                  "completedAt": 1794730835488,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 81317,
+      "at": "2026-11-15T08:20:59.121Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730856454",
+              "dueAt": 1794730856454,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730857914,
+                  "completedAt": 1794730857915,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730846823",
+              "dueAt": 1794730846823,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730850454,
+                  "completedAt": 1794730850455,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730839365",
+              "dueAt": 1794730839365,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730840823,
+                  "completedAt": 1794730840824,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730831684",
+              "dueAt": 1794730831684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730833365,
+                  "completedAt": 1794730833366,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730846487",
+              "dueAt": 1794730846487,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730848339,
+                  "completedAt": 1794730848340,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730832105",
+              "dueAt": 1794730832105,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730835487,
+                  "completedAt": 1794730835488,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 86376,
+      "at": "2026-11-15T08:21:04.180Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730856454",
+              "dueAt": 1794730856454,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730857914,
+                  "completedAt": 1794730857915,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730846823",
+              "dueAt": 1794730846823,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730850454,
+                  "completedAt": 1794730850455,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730839365",
+              "dueAt": 1794730839365,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730840823,
+                  "completedAt": 1794730840824,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730831684",
+              "dueAt": 1794730831684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730833365,
+                  "completedAt": 1794730833366,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730859339",
+              "dueAt": 1794730859339,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730861095,
+                  "completedAt": 1794730861098,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730846487",
+              "dueAt": 1794730846487,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730848339,
+                  "completedAt": 1794730848340,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730832105",
+              "dueAt": 1794730832105,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730835487,
+                  "completedAt": 1794730835488,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    },
+    {
+      "elapsedMs": 91435,
+      "at": "2026-11-15T08:21:09.239Z",
+      "histories": [
+        {
+          "name": "synthetic-uptime-6",
+          "intervalMs": 6000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730863914",
+              "dueAt": 1794730863914,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730865361,
+                  "completedAt": 1794730865362,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730856454",
+              "dueAt": 1794730856454,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730857914,
+                  "completedAt": 1794730857915,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730846823",
+              "dueAt": 1794730846823,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730850454,
+                  "completedAt": 1794730850455,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730839365",
+              "dueAt": 1794730839365,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730840823,
+                  "completedAt": 1794730840824,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730831684",
+              "dueAt": 1794730831684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730833365,
+                  "completedAt": 1794730833366,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730824881",
+              "dueAt": 1794730824881,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730825684,
+                  "completedAt": 1794730825687,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730817112",
+              "dueAt": 1794730817112,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730818881,
+                  "completedAt": 1794730818884,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730810242",
+              "dueAt": 1794730810242,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730811112,
+                  "completedAt": 1794730811114,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730802562",
+              "dueAt": 1794730802562,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730804242,
+                  "completedAt": 1794730804244,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730792838",
+              "dueAt": 1794730792838,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730796562,
+                  "completedAt": 1794730796564,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730785265",
+              "dueAt": 1794730785265,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730786838,
+                  "completedAt": 1794730786840,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0e34ca9e-0e04-4cbc-889e-e87ba60e8154:1:1794730777684",
+              "dueAt": 1794730777684,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730779265,
+                  "completedAt": 1794730779277,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-11",
+          "intervalMs": 11000,
+          "enabled": true,
+          "slots": [
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730859339",
+              "dueAt": 1794730859339,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730861095,
+                  "completedAt": 1794730861098,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730846487",
+              "dueAt": 1794730846487,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730848339,
+                  "completedAt": 1794730848340,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730832105",
+              "dueAt": 1794730832105,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730835487,
+                  "completedAt": 1794730835488,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730817552",
+              "dueAt": 1794730817552,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730821105,
+                  "completedAt": 1794730821108,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730805396",
+              "dueAt": 1794730805396,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730806552,
+                  "completedAt": 1794730806555,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730792441",
+              "dueAt": 1794730792441,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730794396,
+                  "completedAt": 1794730794400,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "d697915f-1e04-4d9a-b518-7e96aaefed00:1:1794730777748",
+              "dueAt": 1794730777748,
+              "manual": 0,
+              "status": "complete",
+              "observations": [
+                {
+                  "probe": "local-a",
+                  "startedAt": 1794730781441,
+                  "completedAt": 1794730781443,
+                  "outcome": "pass",
+                  "checks": [
+                    {
+                      "assertion": "status",
+                      "pass": true,
+                      "reason": "HTTP status matches expected status or range"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "synthetic-uptime-paused",
+          "intervalMs": 7000,
+          "enabled": false,
+          "slots": []
+        }
+      ]
+    }
+  ]
+}
