@@ -1,3 +1,4 @@
+import {proveProtocolConfig} from './protocol-config-browser-support.mjs';
 import {provePingdomInventory} from './pingdom-inventory-support.mjs';
 import {proveNetworkDiagnostics} from './network-diagnostics-support.mjs';
 import {proveTlsExpiryStages} from './tls-stages-support.mjs';
@@ -155,3 +156,5 @@ try{
 
 await proveNetworkDiagnostics();
 await proveTlsExpiryStages();
+
+await proveProtocolConfig();

@@ -35,15 +35,6 @@ export async function proveProtocolForms(){
    const saved=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/monitors'&&r.request().method()==='POST');
    await page.getByRole('button',{name:'Save monitor',exact:true}).click();const response=await saved;assert.equal(response.status(),201);await page.waitForURL(url=>/^\/app\/monitors\/(?!new(?:\/|$))[^/]+$/.test(url.pathname));await page.locator('.signed-in').waitFor();return get(new URL(page.url()).pathname.split('/').at(-1));
   };
-  // The named DNS server and certificate failure window survive ordinary save and reopen.
-  await start('dns');await page.locator('[name=name]').fill('Synthetic authoritative DNS');await page.locator('[name=dnsName]').fill('shop.synthetic.example');await page.locator('[name=dnsNameserver]').fill('ns1.synthetic.example');
-  for(const box of await page.locator('[name=dnsResolver]').all())await box.uncheck();
-  await page.locator('[name=dnsExpected]').fill('192.0.2.10');await screenshot('dns-named-server');
-  const named=await save();assert.deepEqual(named.definition.dns.resolvers,['nameserver']);assert.equal(named.definition.dns.nameserver,'ns1.synthetic.example');
-  await page.goto(app.origin+`/app/monitors/${named.id}/edit`);await page.locator('html.editor-context-ready').waitFor();assert.equal(await page.locator('[name=dnsNameserver]').inputValue(),'ns1.synthetic.example');await screenshot('dns-named-reopened');
-  await start('tls');await page.locator('[name=name]').fill('Synthetic certificate window');await page.locator('[name=tlsHost]').fill('shop.synthetic.example');await page.locator('[name=tlsFailBeforeDays]').fill('30');await screenshot('tls-failure-window');
-  const certificate=await save();assert.equal(certificate.definition.tls.failBeforeDays,30);
-  await page.goto(app.origin+`/app/monitors/${certificate.id}/edit`);await page.locator('html.editor-context-ready').waitFor();assert.equal(await page.locator('[name=tlsFailBeforeDays]').inputValue(),'30');await screenshot('tls-window-reopened');
   // Mail connection forms cover every supported protocol. TLS defaults and validation are observable before any write.
   const mails=[];
   for(const protocol of ['smtp','pop3','imap']){

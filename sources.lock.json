@@ -9644,11 +9644,11 @@
       "executable": false
     },
     "tests/protocol-forms-browser-support.mjs": {
-      "sha256": "b30a12b047ebb836cfca84ea6cb87c5f9f4d5444fec8ef3f273694fd844b5ee9",
+      "sha256": "7b6d8ef9c71592a050b59adcabc725986d726cd21fa52dd30b73aff9f9001b96",
       "executable": false
     },
     "tests/protocol-monitors.mjs": {
-      "sha256": "fcaf74c081f63a1e50bb763c8e058866866de935018de119cc404662c3273308",
+      "sha256": "22d0f5fad65f81df23d69aa09bdc1d3d33d279b9aeb7529c620b24d1439449bd",
       "executable": false
     },
     "tests/protocol-routing.mjs": {
