@@ -1,0 +1,6 @@
+{
+  "command": "pnpm run typecheck",
+  "exit": 0,
+  "completed": "2026-11-15T16:46:22.809906+00:00",
+  "node": "22.20.0"
+}

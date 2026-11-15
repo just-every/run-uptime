@@ -1,0 +1,943 @@
+{
+  "origin": "http://127.0.0.1:8787",
+  "loads": [
+    {
+      "path": "/app/locations",
+      "ready": true,
+      "ms": 5003,
+      "requests": 267,
+      "limited": [],
+      "loading": []
+    },
+    {
+      "path": "/app/settings/alerts",
+      "ready": true,
+      "ms": 4754,
+      "requests": 287,
+      "limited": [],
+      "loading": []
+    },
+    {
+      "path": "/app/locations",
+      "ready": true,
+      "ms": 3696,
+      "requests": 267,
+      "limited": [],
+      "loading": []
+    },
+    {
+      "path": "/app/settings/general",
+      "ready": true,
+      "ms": 3645,
+      "requests": 269,
+      "limited": [],
+      "loading": []
+    },
+    {
+      "path": "/app/locations",
+      "ready": true,
+      "ms": 3653,
+      "requests": 267,
+      "limited": [],
+      "loading": []
+    },
+    {
+      "path": "/app/settings/alerts",
+      "ready": true,
+      "ms": 3681,
+      "requests": 280,
+      "limited": [],
+      "loading": []
+    },
+    {
+      "path": "/app/locations",
+      "ready": true,
+      "ms": 5244,
+      "requests": 269,
+      "limited": [],
+      "loading": []
+    },
+    {
+      "path": "/app/settings/alerts",
+      "ready": true,
+      "ms": 4377,
+      "requests": 268,
+      "limited": [
+        {
+          "path": "/settings-alerts.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        }
+      ],
+      "loading": []
+    },
+    {
+      "path": "/app/locations",
+      "ready": false,
+      "ms": 15312,
+      "requests": 262,
+      "limited": [
+        {
+          "path": "/app-theme.css",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/tooltip.css",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/app.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/style.css",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/notifications.css",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/sections.css",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/action-feedback.mjs",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/alert-health.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/alert-route-check.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/alert-route-fallback.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/alert-route-markup.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/alert-route-targeting.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/alert-route.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/contact-quiet.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/failure-snapshot-view.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/catalog-dialogs.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/assets/tooltip.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/catalog.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/cleanup-debt.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/style.css",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/notifications.css",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/sections.css",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/console-format.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/dom-patch.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/evidence-access.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/failure-snapshots.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/flow-panel.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/heartbeat-key.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/followed-service.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/heartbeat-jobs.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/incident-dependencies.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/incident-work-markup.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/incident-work.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/installation-zone.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/locations.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/mail-panel.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/maintenance-calendar.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/maintenance-markup.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/monitor-coverage.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/monitor-folds.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/monitor-incidents.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/monitor-links.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/monitor-list.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "26"
+        },
+        {
+          "path": "/monitor-page.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-reads.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-recent-checks.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-report.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-rule-edit.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-rules-table.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-rules.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-status-line.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-status.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-table-fit.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/monitor-timeline.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/notification-dialogs.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/pagespeed-panel.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/pagespeed-rum.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/planned-maintenance.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/protocol-panel.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/report-jobs.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/report-render.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/settings-save.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/settings-view.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/slow-policy.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/transaction-panel.js",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        },
+        {
+          "path": "/favicon.svg",
+          "status": 429,
+          "cache": "no-store",
+          "retryAfter": "25"
+        }
+      ],
+      "loading": [
+        "Loading…"
+      ]
+    }
+  ],
+  "requests": 2923,
+  "errors": 1,
+  "assetHeaders": [
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 429,
+      "cache": "no-store"
+    }
+  ],
+  "limited": [
+    {
+      "path": "/settings-alerts.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/app-theme.css",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/tooltip.css",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/design-assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/app.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/style.css",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/notifications.css",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/sections.css",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/action-feedback.mjs",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/alert-health.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/alert-route-check.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/alert-route-fallback.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/alert-route-markup.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/alert-route-targeting.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/alert-route.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/contact-quiet.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/failure-snapshot-view.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/catalog-dialogs.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/assets/tooltip.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/catalog.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/cleanup-debt.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/style.css",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/notifications.css",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/sections.css",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/console-format.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/dom-patch.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/evidence-access.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/failure-snapshots.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/flow-panel.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/heartbeat-key.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/followed-service.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/heartbeat-jobs.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/incident-dependencies.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/incident-work-markup.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/incident-work.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/installation-zone.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/locations.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/mail-panel.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/maintenance-calendar.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/maintenance-markup.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/monitor-coverage.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/monitor-folds.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/monitor-incidents.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/monitor-links.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/monitor-list.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "26"
+    },
+    {
+      "path": "/monitor-page.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-reads.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-recent-checks.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-report.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-rule-edit.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-rules-table.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-rules.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-status-line.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-status.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-table-fit.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/monitor-timeline.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/notification-dialogs.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/pagespeed-panel.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/pagespeed-rum.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/planned-maintenance.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/protocol-panel.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/report-jobs.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/report-render.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/settings-save.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/settings-view.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/slow-policy.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/transaction-panel.js",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 429,
+      "cache": "no-store",
+      "retryAfter": "25"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "command": "node tests/public-paths.mjs",
+  "exit": 0,
+  "completed": "2026-11-15T16:49:23.836964+00:00",
+  "node": "22.20.0",
+  "scope": "Emitted public routes, cache headers and persistent limiter boundaries"
+}

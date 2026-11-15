@@ -1,0 +1,8 @@
+{
+  "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/browser-suites.mjs",
+  "exit": 0,
+  "head": "3cb0b1d831860675f03a16333a6878eaeaa3eda3",
+  "completed": "2026-11-15T17:05:15.077629+00:00",
+  "node": "22.20.0",
+  "scope": "Final committed exact-SHA timing and operator/recovery public-door proof"
+}

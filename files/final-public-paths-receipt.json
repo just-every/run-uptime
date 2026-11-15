@@ -1,0 +1,7 @@
+{
+  "command": "node tests/public-paths.mjs",
+  "exit": 0,
+  "completed": "2026-11-15T17:00:22.156193+00:00",
+  "node": "22.20.0",
+  "scope": "Final fingerprint inventory, stable copied asset policy and unchanged persistent limiter admission"
+}

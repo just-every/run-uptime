@@ -1,0 +1,15 @@
+{
+  "branch": "cloud/main-uptime-asset-limit-1",
+  "head": "3cb0b1d831860675f03a16333a6878eaeaa3eda3",
+  "candidateCommits": [
+    "3cb0b1d831860675f03a16333a6878eaeaa3eda3",
+    "dffe593c12092e7bef1b26edef929d966defcbae"
+  ],
+  "allIdentitiesAndTrailersChecked": true,
+  "checkedAtEpoch": 1794762060.8606246,
+  "firstPublishedHead": "dffe593c12092e7bef1b26edef929d966defcbae",
+  "historyRewritten": false,
+  "push": "success",
+  "pushCompletedEpoch": 1794762065.2408466,
+  "pushCompleted": "2026-11-15T17:01:05.240854+00:00"
+}

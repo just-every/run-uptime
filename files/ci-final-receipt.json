@@ -1,0 +1,18 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "3cb0b1d831860675f03a16333a6878eaeaa3eda3",
+  "branch": "cloud/main-uptime-asset-limit-1",
+  "observedAt": "2026-11-15T17:16:47.812181+00:00",
+  "githubCallsUsed": 1,
+  "firstReadDelaySeconds": 901.2574994564056,
+  "verify": {
+    "conclusion": "success",
+    "event": "push",
+    "head_branch": "cloud/main-uptime-asset-limit-1",
+    "head_sha": "3cb0b1d831860675f03a16333a6878eaeaa3eda3",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43738698569",
+    "id": 43738698569,
+    "name": "Verify",
+    "status": "completed"
+  }
+}

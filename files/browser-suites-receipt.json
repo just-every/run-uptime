@@ -1,0 +1,7 @@
+{
+  "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/browser-suites.mjs",
+  "exit": 0,
+  "completed": "2026-11-15T16:49:45.851452+00:00",
+  "node": "22.20.0",
+  "scope": "Existing operator and recovery public-door journeys"
+}

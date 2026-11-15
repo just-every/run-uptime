@@ -1,0 +1,7 @@
+{
+  "command": "cloud_run npx -y @runeditrun/rer build",
+  "exit": 0,
+  "node": "22.20.0",
+  "completed": "2026-11-15T16:56:53.546497+00:00",
+  "scope": "Fingerprint inventory excludes copied stable assets"
+}

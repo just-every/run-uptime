@@ -1,0 +1,8 @@
+{
+  "command": "cloud_run npx -y @runeditrun/rer build",
+  "exit": 0,
+  "node": "22.20.0",
+  "cliReported": "build: complete (exit 0)",
+  "followup": "pnpm spec:generate completed; no generated delivery file drift",
+  "candidateHead": "dffe593c12092e7bef1b26edef929d966defcbae"
+}

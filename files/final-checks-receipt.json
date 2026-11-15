@@ -1,0 +1,43 @@
+{
+  "rebaseBase": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+  "publishedHistoryPreserved": true,
+  "commands": [
+    {
+      "command": "git merge origin/main",
+      "exit": 0
+    },
+    {
+      "command": "pnpm spec:check",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "files": {
+    "docs/contract/safety-rules.md": "c4d1502b07347fd69c3b787bac18bea117eaa7b6b9b7c1b38e1052707828428b",
+    "public/action-feedback.mjs": "e65fbb562dcd48c329a5417454b10b9a88e4d0efc7adb0a47d63cbced57d5586",
+    "public/app-theme.css": "2294fd30ebd2f2f89fb7ee2c155af80e3933ee21c7689320531727b7cf1828fe",
+    "public/app.js": "6d96904a3a1ea1a35d204f95fdc2448d1d519d53a807f0bde04864838c08f6c0",
+    "seed.json": "6de7e2d662bfcdee8b3c4d919d9d82882233fdc9c9383e0840d18dccdd185c27",
+    "sources.lock.json": "00dc1ddfee9ec3d4dab7ba1e0477400364386c12fafeb88d6df36f3d9065e1a0",
+    "src/domain/assets.server.ts": "7054186c0b84f8fb2395900b5a1c1dea74f47a8c4c42674357f93a5aaecc1952",
+    "tests/operator-browser.mjs": "c02b238f65335d07328d12e9e3d5bf74f859b95dd8f16e4c33a0a30a34bd8a86",
+    "tests/public-paths.mjs": "254f969aeb86e43316c53f938920a7bd56ef9029a52b0a52c56183ae2a11cb99",
+    "vite.config.ts": "089102b53cfe0c152874d65309016df11785ef8d141608c176b5a2e00a4737e3"
+  },
+  "generatedViewsCommitted": false,
+  "contractStatusChanges": 0,
+  "diffCredentialPatternCheck": "passed; full publication scan remains with the Mac fleet lander",
+  "candidateHead": "3cb0b1d831860675f03a16333a6878eaeaa3eda3",
+  "allRecordedFileHashesMatchCommittedHead": true
+}

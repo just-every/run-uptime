@@ -1,0 +1,82 @@
+{
+  "origin": "http://127.0.0.1:8787",
+  "loads": [
+    {
+      "path": "/app/locations",
+      "ready": true,
+      "ms": 3802,
+      "requests": 267,
+      "limited": [],
+      "loading": null
+    },
+    {
+      "path": "/app/settings/alerts",
+      "ready": true,
+      "ms": 4285,
+      "requests": 279,
+      "limited": [],
+      "loading": null
+    },
+    {
+      "path": "/app/locations",
+      "ready": true,
+      "ms": 4301,
+      "requests": 267,
+      "limited": [],
+      "loading": null
+    },
+    {
+      "path": "/app/settings/general",
+      "ready": true,
+      "ms": 3784,
+      "requests": 269,
+      "limited": [],
+      "loading": null
+    },
+    {
+      "path": "/app/locations",
+      "ready": true,
+      "ms": 3703,
+      "requests": 267,
+      "limited": [],
+      "loading": null
+    },
+    {
+      "path": "/app/settings/alerts",
+      "ready": true,
+      "ms": 4250,
+      "requests": 281,
+      "limited": [],
+      "loading": null
+    }
+  ],
+  "requests": 1911,
+  "errors": 0,
+  "assetHeaders": [
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    },
+    {
+      "status": 200,
+      "cache": "no-cache"
+    }
+  ],
+  "limited": []
+}

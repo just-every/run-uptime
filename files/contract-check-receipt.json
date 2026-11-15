@@ -1,0 +1,6 @@
+{
+  "command": "node src/base/contract-docs.mjs check",
+  "exit": 0,
+  "contractChanged": false,
+  "generatedViewsCommitted": false
+}
