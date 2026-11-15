@@ -1,0 +1,16 @@
+
+> @uptime/uptime-console@0.5.13 spec:check /workspace/run-uptime
+> node scripts/delivery/publish-spec.mjs --check
+
+file:///workspace/run-uptime/scripts/delivery/base/mail.mjs:59
+    if (!Object.hasOwn(spec.publicVariables, name)) throw Error(`Managed mail requires public ${name}`);
+                                                          ^
+
+Error: Managed mail requires public MAIL_PROVIDER
+    at validateMailSpec (file:///workspace/run-uptime/scripts/delivery/base/mail.mjs:59:59)
+    at validateCandidateSpec (file:///workspace/run-uptime/scripts/delivery/base/spec.mjs:56:3)
+    at deploymentSpec (file:///workspace/run-uptime/scripts/delivery/base/spec.mjs:157:10)
+    at async file:///workspace/run-uptime/scripts/delivery/publish-spec.mjs:21:50
+
+Node.js v22.20.0
+ ELIFECYCLE  Command failed with exit code 1.

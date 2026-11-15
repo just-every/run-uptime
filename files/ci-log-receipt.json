@@ -1,0 +1,21 @@
+{
+  "author": "Run Edit Run fleet",
+  "run_id": 43774540585,
+  "head": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4",
+  "reads": [
+    {
+      "command": "gh run view 43774540585 --repo just-every/run-uptime --job 132997750875 --log-failed",
+      "exit": 0,
+      "job_id": 132997750875,
+      "log": "ci-build-failed.log"
+    },
+    {
+      "command": "gh run view 43774540585 --repo just-every/run-uptime --job 132997925445 --log-failed",
+      "exit": 0,
+      "job_id": 132997925445,
+      "log": "ci-verify-failed.log"
+    }
+  ],
+  "github_calls_for_logs": 2,
+  "publication_omission": "GitHub-generated environment display blocks omitted; complete assertion and failure output retained."
+}

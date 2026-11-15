@@ -1,0 +1,12 @@
+{
+  "journey": "proveMailOff",
+  "setup": "native model -> bootstrap -> first-run",
+  "provider": "none",
+  "mailRequests": 0,
+  "settingsSaved": true,
+  "incidentOpened": true,
+  "incidentRecovered": true,
+  "privateDoorsProtected": true,
+  "unavailableAuthentication": true,
+  "unavailableAlerts": true
+}

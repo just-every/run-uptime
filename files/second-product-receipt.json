@@ -1,0 +1,85 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-mail-off-1-fix1",
+  "head": "8c7317dc3799002fc52cf55d6d39ea37e505ab04",
+  "tree": "78da32d4d30f99deef764fd9b4d3c63331e28ff8",
+  "main": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+  "remote_branch_head": "8c7317dc3799002fc52cf55d6d39ea37e505ab04",
+  "remote_confirmed": true,
+  "observed_pushed_epoch": 1794784186.2422814,
+  "observed_at": "2026-11-15T23:09:46.242292+00:00",
+  "worktree_clean": true,
+  "product_pushes": 2,
+  "push_attempts_per_head": [
+    1,
+    1
+  ],
+  "published_history_rewritten": false,
+  "main_pushed": false,
+  "pr_created": false,
+  "candidate_commits": [
+    "8c7317dc3799002fc52cf55d6d39ea37e505ab04",
+    "584da6da0e4235088f267d8644071e678ad8dbfe",
+    "b2bcd69d856aae1fda1ae1890319062ce42535ef"
+  ],
+  "identity_review": "all candidate authors and committers fleet; no trailers or co-author lines",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "test_content": "checks ran against final source content before commit; no source changed afterward; contract generation proof covers the retained inherited requirement change",
+  "claim": "STARTUP-001 PARTIAL points=none",
+  "counts": "counts.json",
+  "browser_receipt": "browser-proof-receipt.json",
+  "mail_off_receipt": "mail-off-receipt.json",
+  "superseded_head": "584da6da0e4235088f267d8644071e678ad8dbfe",
+  "superseded_head_receipt": "first-product-receipt.json",
+  "note": "Second published head; local product checks passed. A later test-only commit places the shared-input isolation assertion on the resumed deployment that actually supplies the shared input.",
+  "push_log": "second-product-push.log",
+  "checks_summary": [
+    {
+      "command": "pnpm run test:base",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm run spec:generate; pnpm run spec:check",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write; node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check (main generated views restored)",
+      "exit": 1
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node tests/hosted-auth-browser.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node tests/owner-deploy-lifecycle.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node tests/public-paths.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node tests/hosted-alerts.mjs",
+      "exit": 0
+    }
+  ]
+}

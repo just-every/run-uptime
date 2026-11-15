@@ -1,0 +1,29 @@
+✖ real rer deploy covers fresh custody, automatic legacy upgrade, conflicts, named keys, exact repeat, resume and foreign ownership refusal (6652.580247ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6659.27575
+
+✖ failing tests:
+
+test at tests/owner-deploy-lifecycle.mjs:13:1
+✖ real rer deploy covers fresh custody, automatic legacy upgrade, conflicts, named keys, exact repeat, resume and foreign ownership refusal (6652.580247ms)
+  AssertionError [ERR_ASSERTION]: {"code":3,"messages":["Node 22.20.0 is required. The exact official release could not be acquired within 60 seconds; check the connection and available disk space. With network access, run: npm exec --yes --package=node@22.20.0 -- node '/workspace/run-uptime/node_modules/.pnpm/@runeditrun+rer@0.2.118/node_modules/@runeditrun/rer/bin/rer.mjs' 'deploy' '--cwd' '/tmp/uptime-owner-lifecycle-wAScQx' (repeat any original options privately)."],"errorCodes":["missing_input"],"failureCodes":["npm"],"result":{"version":1,"verb":"deploy","event":"result","ok":false,"exitCode":3}}
+  
+  3 !== 0
+  
+      at TestContext.<anonymous> (file:///workspace/run-uptime/tests/owner-deploy-lifecycle.mjs:23:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

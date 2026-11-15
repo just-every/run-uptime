@@ -1,0 +1,20 @@
+{
+  "author": "Run Edit Run fleet",
+  "head": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "worktree_clean": true,
+  "commands": [
+    "pnpm run test:base",
+    "pnpm run typecheck",
+    "npx -y @runeditrun/rer build",
+    "pnpm run spec:check",
+    "node scripts/edition-authoring/cli.mjs check",
+    "node tests/hosted-auth-browser.mjs",
+    "node tests/owner-deploy-lifecycle.mjs",
+    "node tests/public-paths.mjs",
+    "node tests/hosted-alerts.mjs"
+  ],
+  "all_exit_codes": 0,
+  "completed_at": "2026-11-15T23:30:49.249662+00:00"
+}

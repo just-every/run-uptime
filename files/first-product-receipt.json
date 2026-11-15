@@ -1,0 +1,37 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-mail-off-1-fix1",
+  "head": "584da6da0e4235088f267d8644071e678ad8dbfe",
+  "tree": "23d0d0d68885bbe149715dabb100036a7a96edf9",
+  "main": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+  "remote_branch_head": "584da6da0e4235088f267d8644071e678ad8dbfe",
+  "remote_confirmed": true,
+  "observed_pushed_epoch": 1794783355.1022363,
+  "observed_at": "2026-11-15T22:55:55.102295+00:00",
+  "worktree_clean": true,
+  "product_push_attempts": 1,
+  "main_pushed": false,
+  "pr_created": false,
+  "candidate_commits": [
+    "584da6da0e4235088f267d8644071e678ad8dbfe",
+    "b2bcd69d856aae1fda1ae1890319062ce42535ef"
+  ],
+  "identity_review": "all candidate authors and committers fleet; no trailers or co-author lines",
+  "checks": [
+    {
+      "command": "pnpm run spec:check",
+      "exit": 1,
+      "log": "spec-check-initial.log",
+      "reason": "Managed mail requires public MAIL_PROVIDER"
+    }
+  ],
+  "test_content": "checks ran against the final source content before commit; no source changed afterward",
+  "claim": "STARTUP-001 PARTIAL points=none",
+  "counts": "counts.json",
+  "browser_receipt": "browser-proof-receipt.json",
+  "mail_off_receipt": "mail-off-receipt.json",
+  "note": "First published save, superseded by a later real commit; final local proof logs are retained for the terminal candidate. No READY claim was issued for this first head.",
+  "push_log": "first-product-push.log"
+}

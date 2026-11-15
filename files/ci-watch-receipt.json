@@ -1,0 +1,23 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4",
+  "pushed_epoch": 1794785021.5533688,
+  "first_read_delay_seconds": 900,
+  "poll_interval_seconds": 300,
+  "calls": [
+    {
+      "at": "2026-11-15T23:38:43.000488+00:00",
+      "endpoint": "repos/just-every/run-uptime/actions/runs?head_sha=732ba43d9eade6d00bbec6180b2dc42c83edbcd4&per_page=100",
+      "exit": 0
+    }
+  ],
+  "run": {
+    "id": 43774540585,
+    "name": "Verify",
+    "status": "completed",
+    "conclusion": "failure",
+    "head_sha": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43774540585"
+  },
+  "result": "completed"
+}

@@ -1,0 +1,42 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-mail-off-1-fix1",
+  "head": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4",
+  "run_id": 43774540585,
+  "url": "https://github.com/just-every/run-uptime/actions/runs/43774540585",
+  "status": "completed",
+  "conclusion": "failure",
+  "ready_under_generated_view_exception": true,
+  "exception": {
+    "job": "build",
+    "job_id": 132997750875,
+    "step": "node src/base/contract-docs.mjs check",
+    "file": "ACCEPTANCE.md",
+    "diagnostic": "generated content differs; run contract-docs write",
+    "prose_errors": 0,
+    "prose_warnings": 0
+  },
+  "dependent_aggregate_failure": {
+    "job": "verify",
+    "job_id": 132997925445,
+    "reason": "requires the shards skipped by the failed build"
+  },
+  "successful_jobs": [
+    "plan",
+    "prepare"
+  ],
+  "other_independent_failures": [],
+  "required_local_checks": "exact-head-local-receipt.json",
+  "github_budget_calls": 5,
+  "github_call_breakdown": {
+    "oncall_lamp_declarations": 1,
+    "exact_sha_discovery": 1,
+    "completed_run_jobs": 1,
+    "failed_job_log_archive_reads": 2
+  },
+  "full_publication_scan": "fleet-owned; not run in this cloud",
+  "required_regate": "pending fleet independent re-gate",
+  "landing": "not performed"
+}

@@ -1,0 +1,15 @@
+fleet Git: removed 0 credential-bearing GitHub URL rewrite sections
+PUSH attempt=1/5 command=git push --porcelain origin HEAD:refs/heads/cloud/main-uptime-mail-off-1-fix1
+PUSH_CREDENTIAL sha256_16=8addacf6ac95b0bc bundle_file_age_seconds=952 token_issue_age=unknown
+fleet Git: removed 0 credential-bearing GitHub URL rewrite sections
+To https://github.com/just-every/run-uptime
+*	HEAD:refs/heads/cloud/main-uptime-mail-off-1-fix1	[new branch]
+Done
+remote: 
+remote: Create a pull request for 'cloud/main-uptime-mail-off-1-fix1' on GitHub by visiting:        
+remote:      https://github.com/just-every/run-uptime/pull/new/cloud/main-uptime-mail-off-1-fix1        
+remote: 
+remote: GitHub found 19 vulnerabilities on just-every/run-uptime's default branch (5 high, 12 moderate, 2 low). To find out more, visit:        
+remote:      https://github.com/just-every/run-uptime/security/dependabot        
+remote: 
+PUSH_OK branch=cloud/main-uptime-mail-off-1-fix1

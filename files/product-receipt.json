@@ -1,0 +1,99 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-mail-off-1-fix1",
+  "head": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4",
+  "tree": "c9b65c4127204ab439172cb639173938f5180e29",
+  "main": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+  "remote_branch_head": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4",
+  "remote_confirmed": true,
+  "observed_pushed_epoch": 1794785021.5533688,
+  "observed_at": "2026-11-15T23:23:41.553381+00:00",
+  "worktree_clean": true,
+  "product_pushes": 3,
+  "push_attempts_per_head": [
+    1,
+    1,
+    1
+  ],
+  "published_history_rewritten": false,
+  "main_pushed": false,
+  "pr_created": false,
+  "candidate_commits": [
+    "732ba43d9eade6d00bbec6180b2dc42c83edbcd4",
+    "8c7317dc3799002fc52cf55d6d39ea37e505ab04",
+    "584da6da0e4235088f267d8644071e678ad8dbfe",
+    "b2bcd69d856aae1fda1ae1890319062ce42535ef"
+  ],
+  "identity_review": "all candidate authors and committers fleet; no trailers or co-author lines",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "checks": [
+    {
+      "command": "pnpm run test:base",
+      "exit": 0,
+      "before_fix_exit": 1,
+      "log": "test-base-after.log"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exit": 0,
+      "log": "build.log"
+    },
+    {
+      "command": "pnpm run spec:generate; pnpm run spec:check",
+      "exit": 0,
+      "log": "spec-check.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write; node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "log": "contract-check-regenerated.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check (main generated views restored)",
+      "exit": 1,
+      "exception": "ACCEPTANCE.md generated content differs",
+      "log": "contract-check-restored.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "log": "source-check.log"
+    },
+    {
+      "command": "node tests/hosted-auth-browser.mjs",
+      "exit": 0,
+      "log": "hosted-auth-browser.log"
+    },
+    {
+      "command": "node tests/owner-deploy-lifecycle.mjs",
+      "exit": 0,
+      "log": "owner-deploy-lifecycle.log"
+    },
+    {
+      "command": "node tests/public-paths.mjs",
+      "exit": 0,
+      "log": "public-paths.log"
+    },
+    {
+      "command": "node tests/hosted-alerts.mjs",
+      "exit": 0,
+      "log": "hosted-alerts.log"
+    }
+  ],
+  "test_content": "All required local commands, all four named journeys, managed spec and source-lock checks passed on this exact committed head with a clean worktree before and after.",
+  "claim": "STARTUP-001 PARTIAL points=none",
+  "counts": "counts.json",
+  "browser_receipt": "browser-proof-receipt.json",
+  "mail_off_receipt": "mail-off-receipt.json",
+  "superseded_head": "8c7317dc3799002fc52cf55d6d39ea37e505ab04",
+  "superseded_head_receipt": "second-product-receipt.json",
+  "exact_head_proof_completed_at": "2026-11-15T23:30:49.249662+00:00"
+}

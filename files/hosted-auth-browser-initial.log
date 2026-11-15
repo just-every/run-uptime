@@ -1,0 +1,18 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+HOSTED-AUTH-BROWSER passed native HTTPS bootstrap, Open app login_hint prefill at 1440 without auto-submit, fresh-context magic link and confirmation; actual Origin, origin-only Referer and Secure Base owner session verified; outbound mail captured only in test
+file:///workspace/run-uptime/node_modules/.pnpm/@runeditrun+rer@0.2.118/node_modules/@runeditrun/rer/cli/errors.mjs:8
+export const refuse = message => new RerError('safety_refusal', message, 4);
+                                 ^
+
+RerError: Production sign-in is not configured. Configure outbound email; missing or invalid: MAIL_API_KEY. Or select and approve an Auth SSO install through the declared oidc-provider@1 setup dependency. Local dev and demo use automatic RER_OPEN sign-in. Nothing was built or uploaded.
+    at refuse (file:///workspace/run-uptime/node_modules/.pnpm/@runeditrun+rer@0.2.118/node_modules/@runeditrun/rer/cli/errors.mjs:8:34)
+    at requireProductionAuth (file:///workspace/run-uptime/node_modules/.pnpm/@runeditrun+rer@0.2.118/node_modules/@runeditrun/rer/cli/production-auth.mjs:55:8)
+    at async Module.proveMailOff (file:///workspace/run-uptime/tests/mail-off-support.mjs:47:3)
+    at async file:///workspace/run-uptime/tests/hosted-auth-browser.mjs:184:1 {
+  code: 'safety_refusal',
+  exitCode: 4
+}
+
+Node.js v24.19.0

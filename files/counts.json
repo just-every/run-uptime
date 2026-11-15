@@ -1,0 +1,31 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15",
+  "base_main": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+  "clause_status_counts": {
+    "main": {
+      "done": 37,
+      "missing": 20,
+      "partial": 58,
+      "total": 115
+    },
+    "candidate": {
+      "done": 37,
+      "missing": 20,
+      "partial": 58,
+      "total": 115
+    }
+  },
+  "new_test_registrations": 0,
+  "new_test_scripts": 0,
+  "changed_test_scripts": [
+    "tests/mail-off-support.mjs",
+    "tests/owner-deploy-lifecycle.mjs",
+    "tests/hosted-alerts.mjs"
+  ],
+  "required_top_level_journeys_before": 4,
+  "required_top_level_journeys_after": 4,
+  "declared_push_journey_tasks_before": 47,
+  "declared_push_journey_tasks_after": 47,
+  "product_head": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4"
+}

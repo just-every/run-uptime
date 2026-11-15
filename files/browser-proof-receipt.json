@@ -1,0 +1,27 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15",
+  "journey": "tests/hosted-auth-browser.mjs -> proveMailOff",
+  "node": "22.20.0",
+  "assertion_width": 1440,
+  "captures": [
+    {
+      "path": "screens/mail-off-login-1440.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "6107cf652344a284fa0ec8c40d06096abeba0b2feab9190b1fca341a76b20a35",
+      "observed": "Native mail-off sign-in document; readable text and rer signin guidance fit the viewport, no input or login credential shown."
+    },
+    {
+      "path": "screens/mail-off-login-390.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "a7aae25c4dccb5260a0f9b43488b09fb0b03b34c35828019dc1dc2fca13dfc2f",
+      "observed": "Native mail-off sign-in document; readable text and rer signin guidance fit the viewport, no input or login credential shown."
+    }
+  ],
+  "browser": "/usr/bin/chromium, headless, --no-sandbox",
+  "fixture": "existing emitted-Worker HTTPS bridge; provider edges faked",
+  "private_browser_session_exported": false,
+  "product_head": "732ba43d9eade6d00bbec6180b2dc42c83edbcd4"
+}

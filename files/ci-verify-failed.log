@@ -1,0 +1,19 @@
+verify	Require the selected coverage and its proof	﻿2026-11-15T23:24:16.7880685Z ##[group]Run set -euo pipefail
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7881345Z [36;1mset -euo pipefail[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7882111Z [36;1mtest "$PLAN" = success[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7882875Z [36;1mcase "$PUSH_PROOF:$NIGHTLY_PROOF" in[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7883487Z [36;1m  *failure*|*cancelled*) exit 1 ;;[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7884023Z [36;1mesac[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7884509Z [36;1mcase "$COVERAGE" in[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7885297Z [36;1m  reuse) test "$SKIP" = true && test "$SHARDS" = skipped && test "$LIGHT" = skipped ;;[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7886313Z [36;1m  light) test "$SKIP" = false && test "$LIGHT" = success && test "$SHARDS" = skipped ;;[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7887417Z [36;1m  full) test "$LIGHT" = skipped && { test "$SHARDS" = success || { test "$HAS_SHARDS" = false && test "$SHARDS" = skipped; }; } ;;[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7888387Z [36;1m  *) exit 1 ;;[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7888955Z [36;1mesac || exit 1[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7889461Z [36;1m[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7890140Z [36;1mif [ "$HAS_SHARDS" = true ]; then test "$BUILD" = success; else test "$BUILD" = skipped; fi[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.7891362Z [36;1mif [ "$COVERAGE" = full ] && [ "$TIER" != nightly ]; then test "$PREPARE" = success; else test "$PREPARE" = skipped; fi[0m
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.8106935Z shell: /usr/bin/bash -e {0}
+[GitHub environment display omitted from public evidence; assertion output retained.]
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.8112403Z ##[endgroup]
+verify	Require the selected coverage and its proof	2026-11-15T23:24:16.8259496Z ##[error]Process completed with exit code 1.

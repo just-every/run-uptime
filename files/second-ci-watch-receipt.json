@@ -1,0 +1,5 @@
+{
+  "head": "8c7317dc3799002fc52cf55d6d39ea37e505ab04",
+  "calls": [],
+  "result": "watcher stopped before the prescribed first API read to retain the shared-key isolation assertion on the actual shared-input deployment; terminal SHA receives its own watcher"
+}

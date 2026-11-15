@@ -1,0 +1,8 @@
+build	Run node src/base/contract-docs.mjs check	﻿2026-11-15T23:23:52.8857530Z ##[group]Run node src/base/contract-docs.mjs check
+build	Run node src/base/contract-docs.mjs check	2026-11-15T23:23:52.8857727Z [36;1mnode src/base/contract-docs.mjs check[0m
+build	Run node src/base/contract-docs.mjs check	2026-11-15T23:23:52.8877660Z shell: /usr/bin/bash -e {0}
+[GitHub environment display omitted from public evidence; assertion output retained.]
+build	Run node src/base/contract-docs.mjs check	2026-11-15T23:23:52.8878356Z ##[endgroup]
+build	Run node src/base/contract-docs.mjs check	2026-11-15T23:23:52.9784529Z Contract prose: 0 errors, 0 warnings.
+build	Run node src/base/contract-docs.mjs check	2026-11-15T23:23:53.0496690Z ACCEPTANCE.md: generated content differs; run contract-docs write.
+build	Run node src/base/contract-docs.mjs check	2026-11-15T23:23:53.0618336Z ##[error]Process completed with exit code 1.
