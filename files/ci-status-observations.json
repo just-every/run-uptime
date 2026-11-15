@@ -1,0 +1,32 @@
+[
+  {
+    "number": 7,
+    "command": "gh api repos/just-every/run-uptime/actions/runs/43762867424 --jq {status,conclusion,head_sha,html_url}",
+    "time": 1794779567.0693965,
+    "exit": 0,
+    "conclusion": null,
+    "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424",
+    "status": "in_progress"
+  },
+  {
+    "number": 8,
+    "command": "gh api repos/just-every/run-uptime/actions/runs/43762867424 --jq {status,conclusion,head_sha,html_url}",
+    "time": 1794779867.6318176,
+    "exit": 0,
+    "conclusion": null,
+    "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424",
+    "status": "in_progress"
+  },
+  {
+    "number": 9,
+    "command": "gh api repos/just-every/run-uptime/actions/runs/43762867424 --jq {status,conclusion,head_sha,html_url}",
+    "time": 1794780168.1718051,
+    "exit": 0,
+    "conclusion": "success",
+    "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424",
+    "status": "completed"
+  }
+]

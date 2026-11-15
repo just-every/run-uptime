@@ -1,0 +1,84 @@
+{
+  "author": "Run Edit Run fleet (Codex)",
+  "date": "2026-11-15",
+  "base": "72bb4356a4734ba4d49037be7cfa57c77f1a5eb7",
+  "checks": [
+    {
+      "command": "cloud_run node tests/public-paths.mjs (new assertion, original handler)",
+      "exit": 1,
+      "expectedFailure": "buildVersion undefined; expected runtime package.json version 0.5.13",
+      "log": "regression-before.log"
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0,
+      "log": "build.log"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "cloud_run node tests/public-paths.mjs",
+      "exit": 0,
+      "log": "public-paths.log",
+      "coverage": "computed package version equality in emitted hosted and local Worker modes; existing readiness refusals, public surfaces and rate limits retained"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs verify-base --offline",
+      "exit": 0,
+      "log": "base-copy-check.json"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "log": "contract-check.log"
+    },
+    {
+      "command": "node scripts/delivery/publish-spec.mjs --check",
+      "exit": 0,
+      "log": "spec-check.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "log": "source-lock-write.json",
+      "note": "Regenerated last after fetch and rebase; only the handler and existing journey entries changed"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "log": "source-lock-check.json"
+    },
+    {
+      "command": "cloud_run node /tmp/uptime-health-browser.mjs",
+      "exit": 0,
+      "log": "dev-health-receipt.json",
+      "coverage": "real rer dev; fresh Chromium; public health signed out and after native owner sign-in; existing healthy payload unchanged"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write && node src/base/contract-docs.mjs check; restore generated views from origin/main; source lock write/check last",
+      "exit": 0,
+      "log": "contract-regenerate.log",
+      "note": "Required rebase generation protocol completed idempotently; product HEAD, index and working tree remain unchanged and clean."
+    }
+  ],
+  "source_sha256": {
+    "src/domain/health.server.ts": "7f2ec1b7b6b6918168fa7e426021049fca152f415d3cdf859658e1eba188af6d",
+    "tests/public-paths.mjs": "d5cbfed11fe75b3e0b0a929fe2425ae979affd0320afc25ccad5a72588b8abd6"
+  },
+  "registrations": {
+    "touched_before": 1,
+    "touched_after": 1,
+    "added": 0
+  },
+  "full_local_verify": "not run, as instructed",
+  "candidate_head": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+  "verification_plan": {
+    "existing_push_journey_commands_before": 47,
+    "existing_push_journey_commands_after": 47,
+    "public_paths_selections": 1,
+    "new_test_registrations": 0
+  }
+}

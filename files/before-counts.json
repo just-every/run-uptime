@@ -1,0 +1,11 @@
+{
+  "source": "CONTRACT.md status table",
+  "base": "72bb4356a4734ba4d49037be7cfa57c77f1a5eb7",
+  "counts": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "touched_assertion_scripts": 1,
+  "added_registrations": 0
+}

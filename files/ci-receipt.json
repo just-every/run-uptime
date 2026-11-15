@@ -1,0 +1,51 @@
+{
+  "repository": "just-every/run-uptime",
+  "run_id": 43762867424,
+  "candidate_head": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+  "final": {
+    "conclusion": "success",
+    "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424",
+    "status": "completed"
+  },
+  "failed_jobs_rerun_count": 1,
+  "initial_attempt": {
+    "id": 43762867424,
+    "name": "Verify",
+    "status": "completed",
+    "conclusion": "failure",
+    "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424",
+    "run_attempt": 1,
+    "observation": "first permitted REST discovery, 15 minutes after push",
+    "failed_jobs": [
+      {
+        "id": 132961602410,
+        "name": "shards (push-8)",
+        "failed_steps": [
+          "Run this shard"
+        ]
+      },
+      {
+        "id": 132965392919,
+        "name": "verify",
+        "failed_steps": [
+          "Require the selected coverage and its proof"
+        ]
+      }
+    ],
+    "successful_build_and_prepare": true,
+    "successful_shards": [
+      "shards (push-4)",
+      "shards (push-2)",
+      "shards (push-3)",
+      "shards (push-1)",
+      "shards (push-7)",
+      "shards (push-5)",
+      "shards (push-6)"
+    ]
+  },
+  "github_calls_used": 9,
+  "remaining_github_calls": 1,
+  "no_additional_product_commit_or_push": true
+}

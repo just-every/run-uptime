@@ -1,0 +1,53 @@
+shards (push-8)	Run this shard	﻿2026-11-15T21:19:02.3696913Z ##[group]Run node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3697420Z [36;1mnode .github/scripts/verify-ci.mjs "$SHARD"[0m
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3713774Z shell: /usr/bin/bash -e {0}
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3713987Z env:
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3714158Z   CI: true
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3714329Z   WRANGLER_SEND_METRICS: false
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3714544Z   PLAYWRIGHT_SKIP_BROWSER_GC: 1
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3714827Z   PLAYWRIGHT_BROWSERS_PATH: /home/runner/work/_temp/ms-playwright
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3715166Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3715440Z   TMPDIR: /tmp/uptime-verify-76B1Sl
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3715661Z   TMP: /tmp/uptime-verify-76B1Sl
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3715875Z   TEMP: /tmp/uptime-verify-76B1Sl
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3716082Z   SHARD: push-8
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3716247Z   TIER: push
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3716482Z   UPTIME_VERIFY_BUILD: /home/runner/work/_temp/uptime-verify-build
+shards (push-8)	Run this shard	2026-11-15T21:19:02.3717023Z ##[endgroup]
+shards (push-8)	Run this shard	2026-11-15T21:19:02.4604006Z > node tests/contact-schedules.mjs
+shards (push-8)	Run this shard	2026-11-15T21:19:03.3249143Z (node:2733) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-8)	Run this shard	2026-11-15T21:19:03.3260922Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-8)	Run this shard	2026-11-15T21:19:03.3261816Z TAP version 13
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8868452Z # Subtest: contact schedules survive restart, stop on recovery/ack, and never replay uncertain attempts
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8874375Z not ok 1 - contact schedules survive restart, stop on recovery/ack, and never replay uncertain attempts
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8875430Z   ---
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8875707Z   duration_ms: 129562.709464
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8876013Z   type: 'test'
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8876560Z   location: '/home/runner/work/run-uptime/run-uptime/tests/contact-schedules.mjs:8:1'
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8877388Z   failureType: 'testCodeFailure'
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8877743Z   error: |-
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8878057Z     Expected values to be strictly equal:
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8878383Z     
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8878636Z     2 !== 1
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8878873Z     
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8879132Z   code: 'ERR_ASSERTION'
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8879434Z   name: 'AssertionError'
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8879727Z   expected: 1
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8879981Z   actual: 2
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8880253Z   operator: 'strictEqual'
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8880548Z   stack: |-
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8881181Z     TestContext.<anonymous> (file:///home/runner/work/run-uptime/run-uptime/tests/contact-schedules.mjs:54:126)
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8882081Z     process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8882746Z     async Test.run (node:internal/test_runner/test:1054:7)
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8883386Z     async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8883911Z   ...
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8884161Z 1..1
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8884392Z # tests 1
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8884629Z # suites 0
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8884855Z # pass 0
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8885066Z # fail 1
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8885320Z # cancelled 0
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8885571Z # skipped 0
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8885807Z # todo 0
+shards (push-8)	Run this shard	2026-11-15T21:21:12.8886075Z # duration_ms 129566.73837
+shards (push-8)	Run this shard	2026-11-15T21:21:12.9224965Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,36 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+PROBE STARTUP-001 acceptance-1 MAIL_API_KEY: missing and whitespace-bearing rer key -> health and authenticated native claim 503, named value-free responses and captured diagnostics, every durable table unchanged, zero outbound requests
+PROBE STARTUP-001 acceptance-2 MAIL_API_KEY: corrected synthetic key and restart with identical persistence -> health 200 and authenticated idle claim 200, no mail or target work
+STARTUP_RER_MAIL_KEY_PASS {"cases":[{"kind":"missing","refused":[{"path":"/health","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"},{"path":"/api/runner/claim","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"}],"tablesCompared":225,"healthAfter":200,"claimAfter":200,"task":null,"outboundRequests":0},{"kind":"malformed","refused":[{"path":"/health","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"},{"path":"/api/runner/claim","status":503,"diagnostic":"Invalid or missing configuration: MAIL_API_KEY"}],"tablesCompared":225,"healthAfter":200,"claimAfter":200,"task":null,"outboundRequests":0}],"capturedDiagnostics":["[mf:info] Ready on http://127.0.0.1:39277","[mf:info] POST / 303 See Other (19ms)","[mf:info] POST / 200 OK (13ms)","[mf:info] POST / 200 OK (10ms)","[mf:info] Ready on http://127.0.0.1:32953","[mf:info] POST / 503 Service Unavailable (3ms)","[mf:info] POST / 503 Service Unavailable (1ms)","[mf:info] Ready on http://127.0.0.1:44777","[mf:info] POST / 200 OK (18ms)","[mf:info] POST / 200 OK (13ms)","[mf:info] Ready on http://127.0.0.1:40185","[mf:info] POST / 503 Service Unavailable (3ms)","[mf:info] POST / 503 Service Unavailable (1ms)","[mf:info] Ready on http://127.0.0.1:44025","[mf:info] POST / 200 OK (22ms)","[mf:info] POST / 200 OK (12ms)"],"outboundRequests":0}
+PROBE STARTUP-001 acceptance-1 MAIL_FROM missing: health and authenticated claim -> 503 naming MAIL_FROM; value-free diagnostics; zero outbound; 225 readable durable tables unchanged
+PROBE STARTUP-001 acceptance-2 MAIL_FROM missing: corrected sender and same persistence restart -> health 200, wrong key 401, authenticated idle claim 200; only named admission counts and contact fields change; zero mail or target work
+PROBE STARTUP-001 acceptance-1 MAIL_FROM malformed: health and authenticated claim -> 503 naming MAIL_FROM; value-free diagnostics; zero outbound; 225 readable durable tables unchanged
+PROBE STARTUP-001 acceptance-2 MAIL_FROM malformed: corrected sender and same persistence restart -> health 200, wrong key 401, authenticated idle claim 200; only named admission counts and contact fields change; zero mail or target work
+STARTUP_MAIL_SENDER_PASS {"cases":2,"durableTables":225,"sequenceIncluded":true,"outboundRequests":0,"diagnosticsValueFree":true}
+PROBE STARTUP-001 acceptance-1 MAIL_RELAY_URL missing: health and authenticated native claim -> 503 naming MAIL_RELAY_URL, value-free responses and diagnostics, zero outbound, all 225 durable tables unchanged
+PROBE STARTUP-001 acceptance-1 MAIL_RELAY_URL malformed: health and authenticated native claim -> 503 naming MAIL_RELAY_URL, value-free responses and diagnostics, zero outbound, all 225 durable tables unchanged
+PROBE STARTUP-001 acceptance-2 MAIL_RELAY_URL: valid HTTPS relay and same persistence restart -> health 200, wrong runner key 401, authenticated idle claim 200, zero outbound and preserved product custody
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: public health names the running package version
++ actual - expected
+
++ undefined
+- '0.5.13'
+
+    at healthVersion (file:///workspace/run-uptime/tests/public-paths.mjs:23:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///workspace/run-uptime/tests/public-paths.mjs:64:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: '0.5.13',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Vary: Origin
+cache-control: no-store
+content-length: 93
+content-type: application/json
+Date: Sun, 15 Nov 2026 21:10:30 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

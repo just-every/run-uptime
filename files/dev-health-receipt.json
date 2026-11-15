@@ -1,0 +1,37 @@
+{
+  "author": "Run Edit Run fleet (Codex)",
+  "date": "2026-11-15T21:17:11.858Z",
+  "command": "node /tmp/uptime-health-browser.mjs",
+  "version": "0.5.13",
+  "signedOut": {
+    "persona": "signed out",
+    "status": 200,
+    "cacheControl": "no-store",
+    "payload": {
+      "status": "ok",
+      "buildVersion": "0.5.13",
+      "ok": true,
+      "deployment": {
+        "sourceSha": null,
+        "fingerprint": null,
+        "versionId": null
+      }
+    }
+  },
+  "signedIn": {
+    "persona": "signed in through native dev handoff",
+    "status": 200,
+    "cacheControl": "no-store",
+    "payload": {
+      "status": "ok",
+      "buildVersion": "0.5.13",
+      "ok": true,
+      "deployment": {
+        "sourceSha": null,
+        "fingerprint": null,
+        "versionId": null
+      }
+    }
+  },
+  "existingFieldsUnchanged": true
+}

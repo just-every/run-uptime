@@ -1,0 +1,2142 @@
+{
+  "total_count": 15,
+  "jobs": [
+    {
+      "id": 132961342857,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9R0ViQ",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961342857",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961342857",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:17:38Z",
+      "started_at": "2026-11-15T21:17:40Z",
+      "completed_at": "2026-11-15T21:17:50Z",
+      "name": "plan",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:17:41Z",
+          "completed_at": "2026-11-15T21:17:42Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:17:42Z",
+          "completed_at": "2026-11-15T21:17:45Z"
+        },
+        {
+          "name": "Check reusable workflow permissions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:17:45Z",
+          "completed_at": "2026-11-15T21:17:46Z"
+        },
+        {
+          "name": "Look up complete nightly marker",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4,
+          "started_at": "2026-11-15T21:17:46Z",
+          "completed_at": "2026-11-15T21:17:46Z"
+        },
+        {
+          "name": "Run node .github/scripts/verify-ci.mjs --plan",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:17:46Z",
+          "completed_at": "2026-11-15T21:17:48Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:17:48Z",
+          "completed_at": "2026-11-15T21:17:48Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:17:48Z",
+          "completed_at": "2026-11-15T21:17:49Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961342857",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328551,
+      "runner_name": "GitHub Actions 1000328551",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961400545,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9R324Q",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961400545",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961400545",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:17:50Z",
+      "started_at": "2026-11-15T21:17:52Z",
+      "completed_at": "2026-11-15T21:18:25Z",
+      "name": "prepare",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:17:53Z",
+          "completed_at": "2026-11-15T21:17:54Z"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:17:54Z",
+          "completed_at": "2026-11-15T21:17:57Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:17:57Z",
+          "completed_at": "2026-11-15T21:17:59Z"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:17:59Z",
+          "completed_at": "2026-11-15T21:18:04Z"
+        },
+        {
+          "name": "Install and package without credential environment",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:04Z",
+          "completed_at": "2026-11-15T21:18:20Z"
+        },
+        {
+          "name": "Retain inert deployment artifact and digest",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:20Z",
+          "completed_at": "2026-11-15T21:18:22Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:22Z",
+          "completed_at": "2026-11-15T21:18:22Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:22Z",
+          "completed_at": "2026-11-15T21:18:22Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:22Z",
+          "completed_at": "2026-11-15T21:18:23Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:18:23Z",
+          "completed_at": "2026-11-15T21:18:23Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961400545",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328552,
+      "runner_name": "GitHub Actions 1000328552",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961400584,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9R33CA",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961400584",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961400584",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:17:50Z",
+      "started_at": "2026-11-15T21:17:52Z",
+      "completed_at": "2026-11-15T21:18:30Z",
+      "name": "build",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:17:52Z",
+          "completed_at": "2026-11-15T21:17:53Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:17:53Z",
+          "completed_at": "2026-11-15T21:17:53Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:17:53Z",
+          "completed_at": "2026-11-15T21:17:57Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:17:57Z",
+          "completed_at": "2026-11-15T21:17:58Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:17:58Z",
+          "completed_at": "2026-11-15T21:17:59Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:17:59Z",
+          "completed_at": "2026-11-15T21:17:59Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:17:59Z",
+          "completed_at": "2026-11-15T21:18:03Z"
+        },
+        {
+          "name": "Run node scripts/edition-authoring/cli.mjs check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:03Z",
+          "completed_at": "2026-11-15T21:18:04Z"
+        },
+        {
+          "name": "Run node src/base/contract-docs.mjs check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:04Z",
+          "completed_at": "2026-11-15T21:18:04Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:04Z",
+          "completed_at": "2026-11-15T21:18:09Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:09Z",
+          "completed_at": "2026-11-15T21:18:14Z"
+        },
+        {
+          "name": "Build exact verification checkout once",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:14Z",
+          "completed_at": "2026-11-15T21:18:21Z"
+        },
+        {
+          "name": "Bind shared output to this source and run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:18:21Z",
+          "completed_at": "2026-11-15T21:18:24Z"
+        },
+        {
+          "name": "Share verification output with this run's shards",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:18:24Z",
+          "completed_at": "2026-11-15T21:18:25Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-11-15T21:18:25Z",
+          "completed_at": "2026-11-15T21:18:25Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26,
+          "started_at": "2026-11-15T21:18:25Z",
+          "completed_at": "2026-11-15T21:18:28Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-11-15T21:18:28Z",
+          "completed_at": "2026-11-15T21:18:28Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28,
+          "started_at": "2026-11-15T21:18:28Z",
+          "completed_at": "2026-11-15T21:18:28Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29,
+          "started_at": "2026-11-15T21:18:28Z",
+          "completed_at": "2026-11-15T21:18:28Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961400584",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328553,
+      "runner_name": "GitHub Actions 1000328553",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961402055,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9R38xw",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961402055",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961402055",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-11-15T21:17:50Z",
+      "started_at": "2026-11-15T21:17:50Z",
+      "completed_at": "2026-11-15T21:17:50Z",
+      "name": "light",
+      "steps": [],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961402055",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 132961602341,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9SELJQ",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961602341",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961602341",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:18:30Z",
+      "started_at": "2026-11-15T21:18:32Z",
+      "completed_at": "2026-11-15T21:27:31Z",
+      "name": "shards (push-4)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:18:32Z",
+          "completed_at": "2026-11-15T21:18:34Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:18:34Z",
+          "completed_at": "2026-11-15T21:18:34Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:18:34Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:39Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:39Z",
+          "completed_at": "2026-11-15T21:18:39Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:39Z",
+          "completed_at": "2026-11-15T21:18:44Z"
+        },
+        {
+          "name": "Check edition source lock freshness",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:18:44Z",
+          "completed_at": "2026-11-15T21:18:44Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:44Z",
+          "completed_at": "2026-11-15T21:18:44Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:44Z",
+          "completed_at": "2026-11-15T21:18:48Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:48Z",
+          "completed_at": "2026-11-15T21:18:53Z"
+        },
+        {
+          "name": "Prepare runner-owned browser and apt caches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:53Z",
+          "completed_at": "2026-11-15T21:18:53Z"
+        },
+        {
+          "name": "Install browsers and probe bundled engines",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:53Z",
+          "completed_at": "2026-11-15T21:19:00Z"
+        },
+        {
+          "name": "Download this run's shared verification build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:19:00Z",
+          "completed_at": "2026-11-15T21:19:01Z"
+        },
+        {
+          "name": "Validate and restore the exact build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:19:01Z",
+          "completed_at": "2026-11-15T21:19:01Z"
+        },
+        {
+          "name": "Prepare canonical temporary directory",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-15T21:19:01Z",
+          "completed_at": "2026-11-15T21:19:01Z"
+        },
+        {
+          "name": "Run this shard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-11-15T21:19:01Z",
+          "completed_at": "2026-11-15T21:27:26Z"
+        },
+        {
+          "name": "Retain browser suite logs of a failed shard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-11-15T21:27:26Z",
+          "completed_at": "2026-11-15T21:27:26Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-11-15T21:27:26Z",
+          "completed_at": "2026-11-15T21:27:28Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-11-15T21:27:28Z",
+          "completed_at": "2026-11-15T21:27:28Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-11-15T21:27:28Z",
+          "completed_at": "2026-11-15T21:27:29Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-11-15T21:27:29Z",
+          "completed_at": "2026-11-15T21:27:29Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-11-15T21:27:29Z",
+          "completed_at": "2026-11-15T21:27:29Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961602341",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328554,
+      "runner_name": "GitHub Actions 1000328554",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961602356,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9SELNA",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961602356",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961602356",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:18:30Z",
+      "started_at": "2026-11-15T21:18:32Z",
+      "completed_at": "2026-11-15T21:28:39Z",
+      "name": "shards (push-2)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:18:33Z",
+          "completed_at": "2026-11-15T21:18:36Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:18:36Z",
+          "completed_at": "2026-11-15T21:18:36Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:18:36Z",
+          "completed_at": "2026-11-15T21:18:39Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:18:39Z",
+          "completed_at": "2026-11-15T21:18:40Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:40Z",
+          "completed_at": "2026-11-15T21:18:41Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:41Z",
+          "completed_at": "2026-11-15T21:18:46Z"
+        },
+        {
+          "name": "Check edition source lock freshness",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:18:46Z",
+          "completed_at": "2026-11-15T21:18:46Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:46Z",
+          "completed_at": "2026-11-15T21:18:47Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:47Z",
+          "completed_at": "2026-11-15T21:18:51Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:51Z",
+          "completed_at": "2026-11-15T21:18:55Z"
+        },
+        {
+          "name": "Prepare runner-owned browser and apt caches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:55Z",
+          "completed_at": "2026-11-15T21:18:55Z"
+        },
+        {
+          "name": "Install browsers and probe bundled engines",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:55Z",
+          "completed_at": "2026-11-15T21:20:23Z"
+        },
+        {
+          "name": "Download this run's shared verification build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:20:23Z",
+          "completed_at": "2026-11-15T21:20:25Z"
+        },
+        {
+          "name": "Validate and restore the exact build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:20:25Z",
+          "completed_at": "2026-11-15T21:20:25Z"
+        },
+        {
+          "name": "Prepare canonical temporary directory",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-15T21:20:25Z",
+          "completed_at": "2026-11-15T21:20:25Z"
+        },
+        {
+          "name": "Run this shard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-11-15T21:20:25Z",
+          "completed_at": "2026-11-15T21:28:27Z"
+        },
+        {
+          "name": "Retain browser suite logs of a failed shard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-11-15T21:28:27Z",
+          "completed_at": "2026-11-15T21:28:27Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-11-15T21:28:27Z",
+          "completed_at": "2026-11-15T21:28:35Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-11-15T21:28:35Z",
+          "completed_at": "2026-11-15T21:28:35Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-11-15T21:28:35Z",
+          "completed_at": "2026-11-15T21:28:36Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-11-15T21:28:36Z",
+          "completed_at": "2026-11-15T21:28:36Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-11-15T21:28:36Z",
+          "completed_at": "2026-11-15T21:28:36Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961602356",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328558,
+      "runner_name": "GitHub Actions 1000328558",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961602371,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9SELQw",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961602371",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961602371",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:18:30Z",
+      "started_at": "2026-11-15T21:18:32Z",
+      "completed_at": "2026-11-15T21:29:30Z",
+      "name": "shards (push-3)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:18:32Z",
+          "completed_at": "2026-11-15T21:18:34Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:18:34Z",
+          "completed_at": "2026-11-15T21:18:34Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:18:34Z",
+          "completed_at": "2026-11-15T21:18:37Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:18:37Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:40Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:40Z",
+          "completed_at": "2026-11-15T21:18:45Z"
+        },
+        {
+          "name": "Check edition source lock freshness",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:18:45Z",
+          "completed_at": "2026-11-15T21:18:46Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:46Z",
+          "completed_at": "2026-11-15T21:18:46Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:46Z",
+          "completed_at": "2026-11-15T21:18:49Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:49Z",
+          "completed_at": "2026-11-15T21:18:53Z"
+        },
+        {
+          "name": "Prepare runner-owned browser and apt caches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:53Z",
+          "completed_at": "2026-11-15T21:18:53Z"
+        },
+        {
+          "name": "Install browsers and probe bundled engines",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:53Z",
+          "completed_at": "2026-11-15T21:18:59Z"
+        },
+        {
+          "name": "Download this run's shared verification build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:18:59Z",
+          "completed_at": "2026-11-15T21:19:00Z"
+        },
+        {
+          "name": "Validate and restore the exact build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:19:00Z",
+          "completed_at": "2026-11-15T21:19:00Z"
+        },
+        {
+          "name": "Prepare canonical temporary directory",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-15T21:19:00Z",
+          "completed_at": "2026-11-15T21:19:00Z"
+        },
+        {
+          "name": "Run this shard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-11-15T21:19:00Z",
+          "completed_at": "2026-11-15T21:29:25Z"
+        },
+        {
+          "name": "Retain browser suite logs of a failed shard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-11-15T21:29:25Z",
+          "completed_at": "2026-11-15T21:29:25Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-11-15T21:29:25Z",
+          "completed_at": "2026-11-15T21:29:27Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-11-15T21:29:27Z",
+          "completed_at": "2026-11-15T21:29:28Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-11-15T21:29:28Z",
+          "completed_at": "2026-11-15T21:29:28Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-11-15T21:29:28Z",
+          "completed_at": "2026-11-15T21:29:28Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-11-15T21:29:28Z",
+          "completed_at": "2026-11-15T21:29:28Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961602371",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328557,
+      "runner_name": "GitHub Actions 1000328557",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961602389,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9SELVQ",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961602389",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961602389",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:18:30Z",
+      "started_at": "2026-11-15T21:18:32Z",
+      "completed_at": "2026-11-15T21:29:00Z",
+      "name": "shards (push-1)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:18:33Z",
+          "completed_at": "2026-11-15T21:18:35Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:18:35Z",
+          "completed_at": "2026-11-15T21:18:35Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:18:35Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:39Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:39Z",
+          "completed_at": "2026-11-15T21:18:40Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:40Z",
+          "completed_at": "2026-11-15T21:18:44Z"
+        },
+        {
+          "name": "Check edition source lock freshness",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:18:44Z",
+          "completed_at": "2026-11-15T21:18:45Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:45Z",
+          "completed_at": "2026-11-15T21:18:45Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:45Z",
+          "completed_at": "2026-11-15T21:18:50Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:50Z",
+          "completed_at": "2026-11-15T21:18:55Z"
+        },
+        {
+          "name": "Prepare runner-owned browser and apt caches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:55Z",
+          "completed_at": "2026-11-15T21:18:55Z"
+        },
+        {
+          "name": "Install browsers and probe bundled engines",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:55Z",
+          "completed_at": "2026-11-15T21:19:05Z"
+        },
+        {
+          "name": "Download this run's shared verification build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:19:05Z",
+          "completed_at": "2026-11-15T21:19:06Z"
+        },
+        {
+          "name": "Validate and restore the exact build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:19:06Z",
+          "completed_at": "2026-11-15T21:19:06Z"
+        },
+        {
+          "name": "Prepare canonical temporary directory",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-15T21:19:06Z",
+          "completed_at": "2026-11-15T21:19:06Z"
+        },
+        {
+          "name": "Run this shard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-11-15T21:19:06Z",
+          "completed_at": "2026-11-15T21:28:53Z"
+        },
+        {
+          "name": "Retain browser suite logs of a failed shard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-11-15T21:28:53Z",
+          "completed_at": "2026-11-15T21:28:53Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-11-15T21:28:53Z",
+          "completed_at": "2026-11-15T21:28:57Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-11-15T21:28:57Z",
+          "completed_at": "2026-11-15T21:28:57Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-11-15T21:28:57Z",
+          "completed_at": "2026-11-15T21:28:57Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-11-15T21:28:57Z",
+          "completed_at": "2026-11-15T21:28:57Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-11-15T21:28:57Z",
+          "completed_at": "2026-11-15T21:28:57Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961602389",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328559,
+      "runner_name": "GitHub Actions 1000328559",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961602391,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9SELVw",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961602391",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961602391",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:18:30Z",
+      "started_at": "2026-11-15T21:18:32Z",
+      "completed_at": "2026-11-15T21:31:33Z",
+      "name": "shards (push-7)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:18:33Z",
+          "completed_at": "2026-11-15T21:18:34Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:18:34Z",
+          "completed_at": "2026-11-15T21:18:35Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:18:35Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:39Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:39Z",
+          "completed_at": "2026-11-15T21:18:39Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:39Z",
+          "completed_at": "2026-11-15T21:18:44Z"
+        },
+        {
+          "name": "Check edition source lock freshness",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:18:44Z",
+          "completed_at": "2026-11-15T21:18:44Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:44Z",
+          "completed_at": "2026-11-15T21:18:45Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:45Z",
+          "completed_at": "2026-11-15T21:18:49Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:49Z",
+          "completed_at": "2026-11-15T21:18:53Z"
+        },
+        {
+          "name": "Prepare runner-owned browser and apt caches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:53Z",
+          "completed_at": "2026-11-15T21:18:53Z"
+        },
+        {
+          "name": "Install browsers and probe bundled engines",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:53Z",
+          "completed_at": "2026-11-15T21:19:01Z"
+        },
+        {
+          "name": "Download this run's shared verification build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:19:01Z",
+          "completed_at": "2026-11-15T21:19:02Z"
+        },
+        {
+          "name": "Validate and restore the exact build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:19:02Z",
+          "completed_at": "2026-11-15T21:19:02Z"
+        },
+        {
+          "name": "Prepare canonical temporary directory",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-15T21:19:02Z",
+          "completed_at": "2026-11-15T21:19:02Z"
+        },
+        {
+          "name": "Run this shard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-11-15T21:19:02Z",
+          "completed_at": "2026-11-15T21:31:27Z"
+        },
+        {
+          "name": "Retain browser suite logs of a failed shard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-11-15T21:31:27Z",
+          "completed_at": "2026-11-15T21:31:27Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-11-15T21:31:27Z",
+          "completed_at": "2026-11-15T21:31:30Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-11-15T21:31:30Z",
+          "completed_at": "2026-11-15T21:31:30Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-11-15T21:31:30Z",
+          "completed_at": "2026-11-15T21:31:30Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-11-15T21:31:30Z",
+          "completed_at": "2026-11-15T21:31:31Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-11-15T21:31:31Z",
+          "completed_at": "2026-11-15T21:31:31Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961602391",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328556,
+      "runner_name": "GitHub Actions 1000328556",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961602393,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9SELWQ",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961602393",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961602393",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:18:30Z",
+      "started_at": "2026-11-15T21:18:32Z",
+      "completed_at": "2026-11-15T21:27:28Z",
+      "name": "shards (push-5)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:18:32Z",
+          "completed_at": "2026-11-15T21:18:34Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:18:34Z",
+          "completed_at": "2026-11-15T21:18:34Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:18:34Z",
+          "completed_at": "2026-11-15T21:18:37Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:18:37Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:43Z"
+        },
+        {
+          "name": "Check edition source lock freshness",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:18:43Z",
+          "completed_at": "2026-11-15T21:18:43Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:43Z",
+          "completed_at": "2026-11-15T21:18:43Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:43Z",
+          "completed_at": "2026-11-15T21:18:46Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:46Z",
+          "completed_at": "2026-11-15T21:18:50Z"
+        },
+        {
+          "name": "Prepare runner-owned browser and apt caches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:50Z",
+          "completed_at": "2026-11-15T21:18:50Z"
+        },
+        {
+          "name": "Install browsers and probe bundled engines",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:50Z",
+          "completed_at": "2026-11-15T21:18:57Z"
+        },
+        {
+          "name": "Download this run's shared verification build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:18:57Z",
+          "completed_at": "2026-11-15T21:18:58Z"
+        },
+        {
+          "name": "Validate and restore the exact build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:18:58Z",
+          "completed_at": "2026-11-15T21:18:58Z"
+        },
+        {
+          "name": "Prepare canonical temporary directory",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-15T21:18:58Z",
+          "completed_at": "2026-11-15T21:18:58Z"
+        },
+        {
+          "name": "Run this shard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-11-15T21:18:58Z",
+          "completed_at": "2026-11-15T21:27:22Z"
+        },
+        {
+          "name": "Retain browser suite logs of a failed shard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-11-15T21:27:22Z",
+          "completed_at": "2026-11-15T21:27:22Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-11-15T21:27:22Z",
+          "completed_at": "2026-11-15T21:27:26Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-11-15T21:27:26Z",
+          "completed_at": "2026-11-15T21:27:26Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-11-15T21:27:26Z",
+          "completed_at": "2026-11-15T21:27:26Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-11-15T21:27:26Z",
+          "completed_at": "2026-11-15T21:27:26Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-11-15T21:27:26Z",
+          "completed_at": "2026-11-15T21:27:26Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961602393",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328555,
+      "runner_name": "GitHub Actions 1000328555",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961602410,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9SELag",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961602410",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961602410",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-15T21:18:30Z",
+      "started_at": "2026-11-15T21:18:32Z",
+      "completed_at": "2026-11-15T21:21:16Z",
+      "name": "shards (push-8)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:18:33Z",
+          "completed_at": "2026-11-15T21:18:35Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:18:35Z",
+          "completed_at": "2026-11-15T21:18:35Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:18:35Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:39Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:39Z",
+          "completed_at": "2026-11-15T21:18:40Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:40Z",
+          "completed_at": "2026-11-15T21:18:44Z"
+        },
+        {
+          "name": "Check edition source lock freshness",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:18:44Z",
+          "completed_at": "2026-11-15T21:18:45Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:45Z",
+          "completed_at": "2026-11-15T21:18:45Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:45Z",
+          "completed_at": "2026-11-15T21:18:49Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:49Z",
+          "completed_at": "2026-11-15T21:18:53Z"
+        },
+        {
+          "name": "Prepare runner-owned browser and apt caches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:53Z",
+          "completed_at": "2026-11-15T21:18:53Z"
+        },
+        {
+          "name": "Install browsers and probe bundled engines",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:53Z",
+          "completed_at": "2026-11-15T21:19:00Z"
+        },
+        {
+          "name": "Download this run's shared verification build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:19:00Z",
+          "completed_at": "2026-11-15T21:19:01Z"
+        },
+        {
+          "name": "Validate and restore the exact build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:19:01Z",
+          "completed_at": "2026-11-15T21:19:02Z"
+        },
+        {
+          "name": "Prepare canonical temporary directory",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-15T21:19:02Z",
+          "completed_at": "2026-11-15T21:19:02Z"
+        },
+        {
+          "name": "Run this shard",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 16,
+          "started_at": "2026-11-15T21:19:02Z",
+          "completed_at": "2026-11-15T21:21:12Z"
+        },
+        {
+          "name": "Retain browser suite logs of a failed shard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-11-15T21:21:12Z",
+          "completed_at": "2026-11-15T21:21:12Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 31,
+          "started_at": "2026-11-15T21:21:12Z",
+          "completed_at": "2026-11-15T21:21:12Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 32,
+          "started_at": "2026-11-15T21:21:12Z",
+          "completed_at": "2026-11-15T21:21:12Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-11-15T21:21:12Z",
+          "completed_at": "2026-11-15T21:21:13Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-11-15T21:21:13Z",
+          "completed_at": "2026-11-15T21:21:13Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-11-15T21:21:13Z",
+          "completed_at": "2026-11-15T21:21:13Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961602410",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328561,
+      "runner_name": "GitHub Actions 1000328561",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132961602414,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9SELbg",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132961602414",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132961602414",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-15T21:18:30Z",
+      "started_at": "2026-11-15T21:18:32Z",
+      "completed_at": "2026-11-15T21:28:21Z",
+      "name": "shards (push-6)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:18:33Z",
+          "completed_at": "2026-11-15T21:18:35Z"
+        },
+        {
+          "name": "Set runner-owned browser cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-15T21:18:35Z",
+          "completed_at": "2026-11-15T21:18:35Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:18:35Z",
+          "completed_at": "2026-11-15T21:18:37Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-15T21:18:37Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Set runner-owned pnpm store",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:38Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-15T21:18:38Z",
+          "completed_at": "2026-11-15T21:18:43Z"
+        },
+        {
+          "name": "Check edition source lock freshness",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-15T21:18:43Z",
+          "completed_at": "2026-11-15T21:18:43Z"
+        },
+        {
+          "name": "Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-15T21:18:43Z",
+          "completed_at": "2026-11-15T21:18:43Z"
+        },
+        {
+          "name": "Run pnpm install --frozen-lockfile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-15T21:18:43Z",
+          "completed_at": "2026-11-15T21:18:47Z"
+        },
+        {
+          "name": "Run pnpm exec rer install",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-15T21:18:47Z",
+          "completed_at": "2026-11-15T21:18:50Z"
+        },
+        {
+          "name": "Prepare runner-owned browser and apt caches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-15T21:18:50Z",
+          "completed_at": "2026-11-15T21:18:50Z"
+        },
+        {
+          "name": "Install browsers and probe bundled engines",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-15T21:18:50Z",
+          "completed_at": "2026-11-15T21:18:57Z"
+        },
+        {
+          "name": "Download this run's shared verification build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-15T21:18:57Z",
+          "completed_at": "2026-11-15T21:18:58Z"
+        },
+        {
+          "name": "Validate and restore the exact build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-15T21:18:58Z",
+          "completed_at": "2026-11-15T21:18:58Z"
+        },
+        {
+          "name": "Prepare canonical temporary directory",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-15T21:18:58Z",
+          "completed_at": "2026-11-15T21:18:58Z"
+        },
+        {
+          "name": "Run this shard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-11-15T21:18:58Z",
+          "completed_at": "2026-11-15T21:28:15Z"
+        },
+        {
+          "name": "Retain browser suite logs of a failed shard",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-11-15T21:28:15Z",
+          "completed_at": "2026-11-15T21:28:15Z"
+        },
+        {
+          "name": "Post Cache runner-owned dependencies and browsers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-11-15T21:28:15Z",
+          "completed_at": "2026-11-15T21:28:18Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-11-15T21:28:18Z",
+          "completed_at": "2026-11-15T21:28:18Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-11-15T21:28:18Z",
+          "completed_at": "2026-11-15T21:28:18Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-11-15T21:28:18Z",
+          "completed_at": "2026-11-15T21:28:18Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-11-15T21:28:18Z",
+          "completed_at": "2026-11-15T21:28:18Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132961602414",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328560,
+      "runner_name": "GitHub Actions 1000328560",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132965392919,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9VriFw",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132965392919",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132965392919",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-15T21:31:34Z",
+      "started_at": "2026-11-15T21:31:35Z",
+      "completed_at": "2026-11-15T21:31:37Z",
+      "name": "verify",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-15T21:31:36Z",
+          "completed_at": "2026-11-15T21:31:36Z"
+        },
+        {
+          "name": "Require the selected coverage and its proof",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 2,
+          "started_at": "2026-11-15T21:31:36Z",
+          "completed_at": "2026-11-15T21:31:36Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-15T21:31:36Z",
+          "completed_at": "2026-11-15T21:31:36Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132965392919",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000328574,
+      "runner_name": "GitHub Actions 1000328574",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 132965394403,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9Vrn4w",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132965394403",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132965394403",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-11-15T21:31:34Z",
+      "started_at": "2026-11-15T21:31:34Z",
+      "completed_at": "2026-11-15T21:31:33Z",
+      "name": "nightly-proof",
+      "steps": [],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132965394403",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 132965394842,
+      "run_id": 43762867424,
+      "workflow_name": "Verify",
+      "head_branch": "cloud/main-uptime-health-version-1",
+      "run_url": "https://api.github.com/repos/just-every/run-uptime/actions/runs/43762867424",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEUhcs8AAAAe9Vrpmg",
+      "head_sha": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+      "url": "https://api.github.com/repos/just-every/run-uptime/actions/jobs/132965394842",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43762867424/job/132965394842",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-11-15T21:31:34Z",
+      "started_at": "2026-11-15T21:31:34Z",
+      "completed_at": "2026-11-15T21:31:33Z",
+      "name": "full-push-proof",
+      "steps": [],
+      "check_run_url": "https://api.github.com/repos/just-every/run-uptime/check-runs/132965394842",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    }
+  ]
+}

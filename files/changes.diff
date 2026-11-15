@@ -1,0 +1,79 @@
+diff --git a/sources.lock.json b/sources.lock.json
+index 4b570fd..4da0ddd 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -7580,7 +7580,7 @@
+       "executable": false
+     },
+     "src/domain/health.server.ts": {
+-      "sha256": "61e5d65829383f324795f6e21f75e3d3338d41e99e924ccff6102143b777c73d",
++      "sha256": "7f2ec1b7b6b6918168fa7e426021049fca152f415d3cdf859658e1eba188af6d",
+       "executable": false
+     },
+     "src/domain/heartbeat-archive.ts": {
+@@ -9680,7 +9680,7 @@
+       "executable": false
+     },
+     "tests/public-paths.mjs": {
+-      "sha256": "254f969aeb86e43316c53f938920a7bd56ef9029a52b0a52c56183ae2a11cb99",
++      "sha256": "d5cbfed11fe75b3e0b0a929fe2425ae979affd0320afc25ccad5a72588b8abd6",
+       "executable": false
+     },
+     "tests/public-surfaces-support.mjs": {
+diff --git a/src/domain/health.server.ts b/src/domain/health.server.ts
+index 94a958c..f6cefdf 100644
+--- a/src/domain/health.server.ts
++++ b/src/domain/health.server.ts
+@@ -1,6 +1,7 @@
+ import {notificationReadiness,ensureNotificationCustody} from './notification-credentials.server.ts'
+ import {deploymentHealth} from '../base/deployment-health.ts'
+ import type {Bindings} from './control.server.ts'
++import {version as buildVersion} from '../../package.json' with {type:'json'}
+ 
+ const unavailable=()=>Response.json({error:'Health dependencies unavailable'},{status:503,headers:{'cache-control':'no-store'}})
+ 
+@@ -29,7 +30,7 @@ export async function health(env:Bindings){
+  // Preserve the first-health upgrade seal. Individual unavailable credentials
+  // stay isolated; a storage failure must not be reported as healthy.
+  await ensureNotificationCustody(env,{validate:false})
+- return Response.json({status:'ok',...deploymentHealth(env)},{headers:{'cache-control':'no-store'}})
++ return Response.json({status:'ok',buildVersion,...deploymentHealth(env)},{headers:{'cache-control':'no-store'}})
+  }catch{return unavailable()}
+ }
+ 
+diff --git a/tests/public-paths.mjs b/tests/public-paths.mjs
+index 2a41e9d..2a4f330 100644
+--- a/tests/public-paths.mjs
++++ b/tests/public-paths.mjs
+@@ -14,6 +14,15 @@ await proveRerMailKeyStartup();
+ await proveMailSenderStartup();
+ 
+ const seed=JSON.parse(await readFile('seed.json','utf8')),declarations=seed.deploy.publicPaths,limits=seed.limits.publicRequestsPerMinutePerIp;
++const {version}=JSON.parse(await readFile('package.json','utf8'));
++async function healthVersion(call){
++ const response=await call('/health');
++ assert.equal(response.status,200);
++ assert.equal(response.headers.get('cache-control'),'no-store');
++ const payload=await response.json();
++ assert.equal(payload.buildVersion,version,'public health names the running package version');
++ assert.equal(payload.status,'ok');assert.equal(payload.ok,true);
++}
+ const matches=(path,local=false)=>declarations.find(item=>(local||item.environment!=='local')&&(item.match==='prefix'?path.startsWith(item.path):path===item.path)&&(!item.withinDirectory||(!/[\\]|%(?:2f|5c|25)/i.test(path)&&path.split('/').includes(item.withinDirectory))));
+ const emitted=JSON.parse(await readFile('dist/server/wrangler.json','utf8'));
+ const files=await filesIn(resolve('dist/server',emitted.assets.directory));
+@@ -52,6 +61,7 @@ await proveRerRelayUrlStartup();
+ directory=await runtimeDirectory();
+ try{
+  let {DB,call}=await start();
++ await healthVersion(call);
+  // Discover fingerprinted build resources from the actual served document,
+  // rather than assuming a particular filename or hash from this checkout.
+  const document=await (await call('/docs')).text(),built=[...document.matchAll(/(?:href|src)="(\/assets\/[^"?]+\.(?:js|css))"/g)].map(match=>match[1]);
+@@ -141,6 +151,7 @@ try{
+   const response=await call(path);assert.equal(response.status,404,`${path}: local compiler declaration must not admit private files`);await response.arrayBuffer();
+   assert.equal((await DB.prepare('SELECT COUNT(*) n FROM public_rate_limits').first()).n,0,'private compiler paths are undeclared, not merely missing assets');
+  }
++ await healthVersion(call);
+  for(const {path,declaration:item} of probes.values()){
+   if(item.environment!=='local')continue;
+   await DB.prepare('DELETE FROM public_rate_limits').run();
