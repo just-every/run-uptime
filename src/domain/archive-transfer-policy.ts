@@ -10,7 +10,7 @@ export function archiveTransferPolicy(env:Bindings,importJob:()=>string|undefine
  return {
   product:'just-every/uptime-monitor',partBytes:16*1024*1024,
   excludeTables:[...TABLES,...Object.keys(installationLocalTables)],
-  requiredConfiguration:['OWNER_EMAIL','SESSION_SECRET','SETUP_TOKEN','UPTIME_RUNNER_KEY','MAIL_FROM','MAIL_PROVIDER'],
+  requiredConfiguration:['OWNER_EMAIL','SESSION_SECRET','SETUP_TOKEN','UPTIME_RUNNER_KEY','MAIL_PROVIDER',...(env.MAIL_PROVIDER==='none'?[]:['MAIL_FROM'])],
   extraPayloads:{uptime:{
    async produce(){await authorize();return chunkedArchive(await archive(env,selection(),{transfer:true}))},
    async consume(stream:ReadableStream<Uint8Array>,descriptor:{size:number;sha256:string}){

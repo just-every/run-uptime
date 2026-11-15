@@ -5,10 +5,11 @@ import {permission,accessResponse} from './access.server.ts'
 import {authorizedDatabase} from './access-database.server.ts'
 // Edition wiring only. Credential, session and operator authority belongs to Base.
 import {mailSender} from './mail.server.ts'
+import {authDocument} from './auth-document.server.ts'
 import branding from '../branding.json' with {type:'json'}
 import {createOperatorAuth,createAuthHandler,createSignInHandler,AuthError,isLoopbackHost} from '../base/modules/operator-auth/index.mjs'
 import {operatorMailSender} from './operator-mail.server.ts'
-export interface AuthBindings {RER_BUSINESS_TRUST?:string;RER_DEMO?:string;RER_DEMO_EXPIRES?:string;DB:D1Database;UPTIME_ORIGIN?:string;UPTIME_LOCAL_REVIEW?:string;OWNER_EMAIL?:string;SESSION_SECRET?:string;SETUP_TOKEN?:string;MAIL_FROM?:string;SENDGRID_API_KEY?:string;MAIL_PROVIDER?:string;MAIL_API_KEY?:string;MAIL_RELAY_URL?:string;MAIL_PROVIDER_API_KEY?:string;MAIL_ACCOUNT_ID?:string;CLOUDFLARE_MAIL_API_KEY?:string;RER_OWNER_CLAIM_ISSUER?:string;RER_OWNER_CLAIM_INSTALLATION_ID?:string;RER_OWNER_CLAIM_APP_ORIGIN?:string;RER_OWNER_CLAIM_PUBLIC_KEYS?:string;RER_IMPORT_DOOR?:string;RER_MANAGEMENT_ORIGIN?:string;RER_INSTALLATION_ID?:string;RER_DEV_KEY?:string;RER_DEV_IDENTITY?:string}
+export interface AuthBindings {UPTIME_DEPLOY_ENVIRONMENT?:string;RER_BUSINESS_TRUST?:string;RER_DEMO?:string;RER_DEMO_EXPIRES?:string;DB:D1Database;UPTIME_ORIGIN?:string;UPTIME_LOCAL_REVIEW?:string;OWNER_EMAIL?:string;SESSION_SECRET?:string;SETUP_TOKEN?:string;MAIL_FROM?:string;SENDGRID_API_KEY?:string;MAIL_PROVIDER?:string;MAIL_API_KEY?:string;MAIL_RELAY_URL?:string;MAIL_PROVIDER_API_KEY?:string;MAIL_ACCOUNT_ID?:string;CLOUDFLARE_MAIL_API_KEY?:string;RER_OWNER_CLAIM_ISSUER?:string;RER_OWNER_CLAIM_INSTALLATION_ID?:string;RER_OWNER_CLAIM_APP_ORIGIN?:string;RER_OWNER_CLAIM_PUBLIC_KEYS?:string;RER_IMPORT_DOOR?:string;RER_MANAGEMENT_ORIGIN?:string;RER_INSTALLATION_ID?:string;RER_DEV_KEY?:string;RER_DEV_IDENTITY?:string}
 export function developmentMail(env:AuthBindings){
  if(env.RER_DEMO==='1'&&env.MAIL_PROVIDER==='development')return true;
  try{const url=new URL(env.UPTIME_ORIGIN!);return env.UPTIME_LOCAL_REVIEW==='true'&&env.MAIL_PROVIDER==='development'&&url.origin===env.UPTIME_ORIGIN&&isLoopbackHost(url.hostname)&&['http:','https:'].includes(url.protocol)}catch{return false}
@@ -51,6 +52,12 @@ export async function authRoute(env:AuthBindings,request:Request){try{
   }
   if(!own){try{const actor=await permission(env,request,undefined,{action:'members',workspace:true});configured={...env,DB:authorizedDatabase(env,actor)}}catch(error){if(accessResponse(error))return Response.json({error:'forbidden'},{status:principal?403:401});throw error}}
  }
+ // Mail-off invitations perform no lookup or write, after the ordinary owner
+ // authorization above. Known and unknown addresses share the same refusal.
+ if(path==='/auth/invite'&&request.method==='POST'&&env.MAIL_PROVIDER==='none'){
+  if(request.headers.get('origin')!==env.UPTIME_ORIGIN||request.headers.get('sec-fetch-site')==='cross-site')return Response.json({error:'invalid_origin'},{status:403,headers:{'cache-control':'no-store'}});
+  return Response.json({error:'mail_unavailable'},{status:503,headers:{'cache-control':'no-store'}});
+ }
  const response=await createAuthHandler(operatorAuth(configured))(request)
  if(path==='/auth/invite'&&request.method==='POST'&&response?.status===202&&developmentMail(env)){
   return Response.json(invitationResult(env,await response.json() as {status:'accepted'}),{status:202,headers:response.headers})
@@ -78,9 +85,14 @@ export async function signedInOwnerRedirect(env:AuthBindings,request:Request){
 }
 
 // Keep /signin as a browser alias; /login is the declared sign-in and native return path.
-// Render the alias through Base so validation, escaping and login_hint stay shared.
+// Enabled email renders the alias through Base so validation, escaping and login_hint stay shared.
 export async function signInDocument(env:AuthBindings,request:Request){
  const forward=await signedInOwnerRedirect(env,request);if(forward)return forward;
+ if(env.MAIL_PROVIDER==='none'){
+  if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405,headers:{allow:'GET, HEAD'}});
+  const response=authDocument(false,false,false,false,env.UPTIME_DEPLOY_ENVIRONMENT,false,false,'',true);
+  return request.method==='HEAD'?new Response(null,response):response;
+ }
  const url=new URL(request.url);url.pathname='/login';
  if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405,headers:{allow:'GET, HEAD'}});
  return (await createSignInHandler(operatorAuth(env),{defaultReturnTo:'/setup'})(new Request(url,request)))!;

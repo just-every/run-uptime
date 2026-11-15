@@ -15,6 +15,7 @@ const provider = manifest.fields.find(field => field.name === 'MAIL_PROVIDER');
 provider.default = 'development';
 provider.options.unshift({ value: 'development', label: 'Local development (mail suppressed)' });
 delete provider.help;
+manifest.fields.find(field => field.name === 'MAIL_FROM').presentations.push({when:{field:'MAIL_PROVIDER',equals:'development'},required:true});
 manifest.fields.find(field => field.name === 'MAIL_FROM').default = 'auth@localhost.test';
 const outputs = {
   'management/integration/deployment-spec.json': await deploymentSpec(root, config.artifact.specInputs),

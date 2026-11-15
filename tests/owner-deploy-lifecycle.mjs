@@ -147,4 +147,36 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
     removed: ['d1:uptime-monitor-production-db', 'worker:uptime-monitor-production'],
     worker: null, databases: 0, uploads: uploadsBeforeRemoval,
   }, 'remove uses shared removal without uploading a deployment');
+  // A fresh mail-off deployment uses its ordinary owner bootstrap, then the
+  // actual rer signin command against that exact recorded account and Worker.
+  const offRoot=await checkout(t),offProvider=await providerBridge(t);
+  const off=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test',MAIL_PROVIDER:'none'}});
+  assert.equal(off.code,0,JSON.stringify({code:off.code,errors:off.errorCodes}));
+  assert.equal(offProvider.state.secrets.find(s=>s.name==='MAIL_PROVIDER')?.value,'none');
+  assert.ok(!offProvider.state.secrets.some(s=>s.name==='MAIL_FROM'||s.name.includes('API_KEY')));
+  const signed=await deploy(offRoot,offProvider,t.signal,[],{inputs:false,verb:'signin'});
+  assert.equal(signed.code,0);
+  assert.ok(signed.result?.link,'guarded command returns its one-time link only to its caller');
+  const grantRows=offProvider.state.databases[0].db.prepare('SELECT token_hash FROM oa_owner_signins').all();
+  assert.equal(grantRows.length,1);
+  assert.ok(!JSON.stringify(grantRows).includes(new URL(signed.result.link).searchParams.get('token')),'only the grant hash is stored');
+  const preview=await offProvider.fetch(signed.result.link,{method:'GET',headers:{}});
+  assert.equal(preview.status,200,'owner grant GET is a confirmation, not admission');
+  const useGrant=()=>offProvider.fetch(new URL(signed.result.link).origin+'/auth/owner-signin',{method:'POST',headers:{origin:new URL(signed.result.link).origin},body:JSON.stringify({token:new URL(signed.result.link).searchParams.get('token')})});
+  assert.equal((await useGrant()).status,303,'guarded owner grant opens one native session');
+  const replay=await useGrant();
+  assert.equal(replay.status,400,'used owner grant cannot be replayed');
+  assert.equal(replay.headers.get('set-cookie'),null);
+  const missingCredentials=await deploy(offRoot,offProvider,t.signal,[],{inputs:{CLOUDFLARE_API_TOKEN:''},verb:'signin'});
+  assert.notEqual(missingCredentials.code,0);
+  const wrongEnvironment=await deploy(offRoot,offProvider,t.signal,['--environment','staging'],{inputs:false,verb:'signin'});
+  assert.notEqual(wrongEnvironment.code,0);
+  const offReceipt=await readFile(join(offRoot,'.rer/deploy/production.json'));
+  await rm(join(offRoot,'.rer/deploy/production.json'));
+  const refused=await deploy(offRoot,offProvider,t.signal,[],{inputs:false,verb:'signin'});
+  assert.notEqual(refused.code,0,'missing deployment receipt cannot sign in');
+  assert.equal(offProvider.state.databases[0].db.prepare('SELECT count(*) AS n FROM oa_owner_signins').get().n,1);
+  await writeFile(join(offRoot,'.rer/deploy/production.json'),offReceipt,{mode:0o600});
+  if(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',provider:'none',freshDeployment:true,ownerAdmittedByNativeBootstrap:true,runtimeBindingOff:true,sendingInputsAbsent:true,guardedRerSignin:true,onlyGrantHashStored:true,confirmationRequired:true,replayRefused:true,missingCredentialsRefused:true,wrongEnvironmentRefused:true,missingReceiptRefused:true},null,2)+'\n');
+
 });

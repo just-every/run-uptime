@@ -46,7 +46,7 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
   const changes=await op('notifications.mail.claim',()=>env.DB.batch([env.DB.prepare(`UPDATE notification_jobs SET state='sending',code='mail_claimed',attempts=attempts+1,claim=?,claim_until=? WHERE id=? AND state='queued' AND ${recoveryAccepted('notification_jobs')} AND ${contactReady('notification_jobs')} AND (claim_until IS NULL OR claim_until<=?) AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL AND (d.enabled=1 OR json_extract(notification_jobs.event,'$.kind')='test'))`).bind(claim,Date.now()+60000,row.id,Date.now()),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1 AND ?=1',[Number(mailConfigured(env))])]));
   // Another dispatcher (the cron or a second poll) claimed this job first: nothing for this one to do.
   if(!changes[0].meta.changes)continue;
-  let retryAt:number|undefined,state='rejected',code='mail_not_configured',sender:ReturnType<typeof mailSender>|null=null,content:any;
+  let retryAt:number|undefined,state='rejected',code=env.MAIL_PROVIDER==='none'?'mail_unavailable':'mail_not_configured',sender:ReturnType<typeof mailSender>|null=null,content:any;
   if(env.MAIL_FROM){
    try{
     sender=mailSender(env);

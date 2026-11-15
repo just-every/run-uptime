@@ -19,5 +19,5 @@ globalThis.fetch = async (input, init) => {
   });
   if (!response.ok) throw Error('test-provider-bridge-failed');
   const result = await response.json();
-  return new Response(Buffer.from(result.body, 'base64'), { status: result.status, headers: result.headers });
+  return new Response([204,205,304].includes(result.status)?null:Buffer.from(result.body, 'base64'), { status: result.status, headers: result.headers });
 };

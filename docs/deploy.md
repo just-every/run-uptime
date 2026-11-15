@@ -12,7 +12,7 @@ The account credentials and provider mail inputs below apply when deploying to y
 
 - A Cloudflare account ID and an API token for that account.
 - An owner email address, for the person who will claim the installation.
-- A verified sender and the API credential for Resend, SendGrid or Cloudflare Email Sending. These deployment inputs support ordinary email-link sign-in and email notifications, and are required even if you chose **Set up later** locally.
+- A verified sender and the API credential for Resend, SendGrid or Cloudflare Email Sending. These deployment inputs support ordinary email-link sign-in and email notifications. They are required when mail is enabled, even if you chose **Set up later** locally; choose `MAIL_PROVIDER=none` deliberately to operate without email.
 
 ## Set the inputs
 
@@ -21,10 +21,10 @@ The account credentials and provider mail inputs below apply when deploying to y
 - `CLOUDFLARE_ACCOUNT_ID` is your Cloudflare account.
 - `CLOUDFLARE_API_TOKEN` is a token that can deploy to that account.
 - `OWNER_EMAIL` is the address of the first owner.
-- `MAIL_FROM` is your verified sender.
-- `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default), or `cloudflare`.
+- `MAIL_FROM` is your verified sender when email is enabled.
+- `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default), `cloudflare`, managed `rer`, or explicit `none` (email off).
 - Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`.
-- rer checks the selected provider's mail configuration before it builds. Supply `MAIL_PROVIDER`, `MAIL_FROM` and that provider's key in the environment or an `--env-file`. The shared `MAIL_API_KEY` input can also supply a direct provider's key; Uptime keeps it under the selected provider's name above. Updates may reuse an existing deployment's mail credential.
+- rer checks the selected provider's mail configuration before it builds. For enabled email, supply `MAIL_PROVIDER`, `MAIL_FROM` and that provider's key in the environment or an `--env-file`. The shared `MAIL_API_KEY` input can also supply a direct provider's key; Uptime keeps it under the selected provider's name above. Updates may reuse an existing deployment's mail credential.
 - Optional `UPTIME_START_URL` is a public `http` or `https` website for the owner to start with. Uptime asks the owner's runner to look at it when the owner opens first-run setup, and finishing setup opens the console on the monitors it proposes. A hosted address that is not public stops the deployment before anything is created. Set it before the first deploy: like the other saved inputs, it is kept in `.rer/deploy/<environment>.secrets.env` from then on (production: `.rer/deploy/production.secrets.env`). Without it, `/setup` offers the same box.
 - Optional `UPTIME_HEARTBEAT_URL` enables the independent heartbeat described in [Watchers and independent checks](/docs/resilient-monitoring).
 
@@ -63,7 +63,7 @@ With rer's custom-deployment lifecycle, `rer deploy` wraps Uptime's custom deplo
 
 This checkout pins the unmodified published `@runeditrun/rer` in [`package.json`](https://github.com/just-every/run-uptime/blob/main/package.json). The lifecycle wraps Uptime's upload and health-check hook to perform owner claim and token retirement. If automatic claim or token retirement is incomplete, retain `.rer/deploy/<environment>.json` and private settings, rerun the same `rer deploy --environment NAME`, and inspect the new stage, owner outcome and retirement result. Do not enter a retired token at `/claim` as routine recovery.
 
-If mail is unavailable, restore the configured mail sender and verify the owner's email address, then request a new link at `/login`. Keep the deployment records and existing private settings when updating mail configuration; an ordinary update preserves the admitted owner.
+If mail is deliberately off, use guarded `rer signin` from the deploying checkout as described below. For an enabled provider whose mail is unavailable, restore the configured sender and verify the owner's email address, then request a new link at `/login`. Keep the deployment records and existing private settings when updating mail configuration; an ordinary update preserves the admitted owner.
 
 ## Check it
 
@@ -131,3 +131,15 @@ A resource with a familiar name but mismatched identity must not be adopted or d
 Local checks cover the deploy command and the installer. One fresh-account hosted installation of version 0.1.1 has been exercised end to end: claim, email sign-in, a signed runner, and down and recovery emails. Its first deploy attempt stopped part way and completed on the documented resume. If something does not behave as written here, open an issue at https://github.com/just-every/run-uptime.
 
 On a fresh checkout, unattended deployment with the pinned rer version also needs `--owner-name "Your name"` unless setup already saved that owner name. The CLI asks interactively when needed and keeps the answer for later deploys; it refuses before uploading when an unattended run has no name.
+
+## Deliberately run without outbound email
+
+Select `MAIL_PROVIDER=none` in the hosted setup or the deploying checkout's private environment file. Leave `MAIL_FROM`, provider keys, relay URL, account ID and DKIM inputs absent. Missing or deferred provider selection does not mean off; `none` together with sending credentials is refused before upload. The deployment binds `MAIL_PROVIDER=none` to the Worker. Local dev and demo keep their existing development mail behavior.
+
+With mail off, use `rer signin` (or `rer signin --environment NAME`) from the checkout that deployed this environment, with that deploying account's Cloudflare credentials and its saved deployment record. Base checks the recorded Worker, account, project, environment and ownership receipt before issuing a short-lived owner grant. Keep the terminal link private; it is never an invitation or a hosted local-development entry. Losing the deploying checkout's receipt requires restoring that receipt, not bypassing ownership.
+
+First-run setup, monitor checks, incident recovery and Settings remain available. Email-link and invitation requests return `503 mail_unavailable`, including for unknown addresses. Email alerts remain unavailable and are never recorded as sent; configure another supported destination for delivery. Webhook and Slack delivery keep their existing configuration requirements. Optional operations sign-in mail reports off; required delivery loops cannot claim readiness while off.
+
+To enable email later, select an enabled provider and supply its verified `MAIL_FROM` plus its required inputs: SendGrid `SENDGRID_API_KEY`, Resend `MAIL_PROVIDER_API_KEY`, Cloudflare `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`, or managed mail `MAIL_API_KEY` and `MAIL_RELAY_URL`. Use `rer deploy --set-secret` with the selected environment; remove obsolete sending secrets with `rer deploy --unset-secret` before switching to `none`. Deploy preflight and the native configuration validator still refuse incomplete enabled providers. Operations inspection is local input validation, not proof of provider delivery.
+
+— Run Edit Run fleet, 2026-11-15

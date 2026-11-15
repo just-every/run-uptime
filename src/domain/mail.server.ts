@@ -4,6 +4,7 @@ import {relayMailSender} from './relay-mail.server.ts'
 import type {AuthBindings} from './operator-auth.server.ts'
 export function mailSender(env:AuthBindings,dependencies:any={}){
  const provider=env.MAIL_PROVIDER??'sendgrid';
+ if(provider==='none')return null;
  if(!env.MAIL_FROM)return null;
  if(provider==='development'){
   let url;try{url=new URL(env.UPTIME_ORIGIN!)}catch{return null}

@@ -17,8 +17,6 @@
     "CLOUDFLARE_ACCOUNT_ID",
     "CLOUDFLARE_API_TOKEN",
     "OWNER_EMAIL",
-    "MAIL_FROM",
-    "SENDGRID_API_KEY",
     "SESSION_SECRET",
     "SETUP_TOKEN",
     "UPTIME_RUNNER_KEY",
@@ -51,7 +49,11 @@
     "RER_DEPLOY_RUN_ATTEMPT": "Build workflow numeric attempt number. Read OPERATIONS.md",
     "RER_DEPLOY_RECEIPT": "Private receipt location held by the deployment operator. Read OPERATIONS.md",
     "UPTIME_WORKER_NAME": "Cloudflare Worker name selected in the deployment plan. Read OPERATIONS.md",
-    "UPTIME_ORIGIN": "Exact public HTTPS origin selected in the deployment plan. Read OPERATIONS.md"
+    "UPTIME_ORIGIN": "Exact public HTTPS origin selected in the deployment plan. Read OPERATIONS.md",
+    "MAIL_PROVIDER": "Explicit mail provider selection in the owner deployment settings; none turns outbound email off. Read OPERATIONS.md",
+    "MAIL_PROVIDER_API_KEY": "Selected mail provider settings in the owner deployment environment. Read OPERATIONS.md",
+    "CLOUDFLARE_MAIL_API_KEY": "Selected mail provider settings in the owner deployment environment. Read OPERATIONS.md",
+    "MAIL_ACCOUNT_ID": "Selected mail provider settings in the owner deployment environment. Read OPERATIONS.md"
   },
   "commands": {
     "setup": {
@@ -108,8 +110,6 @@
         "CLOUDFLARE_ACCOUNT_ID",
         "CLOUDFLARE_API_TOKEN",
         "OWNER_EMAIL",
-        "MAIL_FROM",
-        "SENDGRID_API_KEY",
         "SESSION_SECRET",
         "SETUP_TOKEN",
         "UPTIME_RUNNER_KEY"
@@ -242,11 +242,21 @@
             "SESSION_SECRET",
             "SETUP_TOKEN",
             "OWNER_EMAIL",
-            "MAIL_FROM",
-            "SENDGRID_API_KEY",
             "UPTIME_RUNNER_KEY"
           ],
           "when": "Required for a fresh deployment or when the corresponding named secret is absent at the provider. Existing opaque secrets are preserved; identical-artifact receipt readback needs no secret values."
+        },
+        {
+          "names": [
+            "MAIL_FROM",
+            "SENDGRID_API_KEY",
+            "MAIL_PROVIDER_API_KEY",
+            "CLOUDFLARE_MAIL_API_KEY",
+            "MAIL_ACCOUNT_ID",
+            "MAIL_API_KEY",
+            "MAIL_RELAY_URL"
+          ],
+          "when": "Only the selected enabled mail provider requires its sender and credential inputs. Explicit MAIL_PROVIDER none requires no sending inputs and refuses sending credentials."
         }
       ],
       "forbiddenEnvironment": [
@@ -406,12 +416,38 @@
     {
       "id": "operator-sign-in-mail",
       "type": "mail",
-      "required": true,
+      "required": false,
       "enabled": true,
-      "provider": "sendgrid"
+      "binding": {
+        "providerEnvironment": "MAIL_PROVIDER",
+        "providers": {
+          "none": {
+            "requiredEnvironment": []
+          },
+          "sendgrid": {
+            "apiKeyEnvironment": "SENDGRID_API_KEY",
+            "requiredEnvironment": [
+              "MAIL_FROM"
+            ]
+          },
+          "resend": {
+            "apiKeyEnvironment": "MAIL_PROVIDER_API_KEY",
+            "requiredEnvironment": [
+              "MAIL_FROM"
+            ]
+          },
+          "cloudflare": {
+            "apiKeyEnvironment": "CLOUDFLARE_MAIL_API_KEY",
+            "accountIdEnvironment": "MAIL_ACCOUNT_ID",
+            "requiredEnvironment": [
+              "MAIL_FROM"
+            ]
+          }
+        }
+      }
     }
   ],
-  "authentication": "Base operator-auth magic-link owner sessions and one-time setup. Local sign-in links use the development outbox.",
+  "authentication": "Base operator-auth magic-link owner sessions and one-time setup. Local sign-in links use the development outbox. Hosted installations may deliberately select MAIL_PROVIDER=none and use rer signin with the deploying credentials and recorded ownership receipt. Email links, invitations and email alerts remain unavailable.",
   "health": {
     "path": "/health",
     "meaning": "D1 readiness and deployment identity, not target health, runner operation, mail delivery, notification delivery or recipient acceptance."
@@ -421,5 +457,8 @@
     "version": 1,
     "profile": "first-party",
     "adapter": "scripts/installer/local.mjs"
+  },
+  "configuration": {
+    "module": "scripts/deployment/ops-config.mjs"
   }
 }

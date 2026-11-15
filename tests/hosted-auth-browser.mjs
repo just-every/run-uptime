@@ -180,3 +180,5 @@ try {
   await runtime?.close();
   await rm(directory, {recursive: true, force: true});
 }
+
+await (await import('./mail-off-support.mjs')).proveMailOff();
