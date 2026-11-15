@@ -1863,15 +1863,15 @@
       "redirects": 180,
       "heartbeats": 600,
       "runner": 1800,
-      "assets": 600,
+      "assets": 12000,
       "development": 600,
       "drills": 30,
-      "development-assets": 1800,
+      "development-assets": 12000,
       "imports": 120,
       "metrics": 60,
       "rum": 120
     },
-    "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Production assets retain their own budget. Local Vite compiler assets use a separate budget for the unbundled browser graph: about 140 module requests per console load, with room for twelve loads per minute. These defaults are estimated, not load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
+    "notes": "Owner-tunable source settings; each class shares one fixed 60-second D1 window per client. Production assets retain their own budget, sized for repeated console document loads and several tabs, including cold or revalidated resources. Fingerprinted production build assets are immutable for one year; unversioned assets revalidate after one minute. Local Vite compiler assets use a separate budget for the unbundled browser graph and keep development revalidation/HMR. These defaults are estimated, not load tested. Hosted CF-Connecting-IP must be a valid single IP; missing/malformed values share an unknown-client bucket. Local mode ignores all forwarding headers and uses one loopback bucket. Only keyed hashes of client identities are stored."
   },
   "accessibility": {
     "level": "WCAG 2.2 AA",

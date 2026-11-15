@@ -52,6 +52,19 @@ await proveRerRelayUrlStartup();
 directory=await runtimeDirectory();
 try{
  let {DB,call}=await start();
+ // Discover fingerprinted build resources from the actual served document,
+ // rather than assuming a particular filename or hash from this checkout.
+ const document=await (await call('/docs')).text(),built=[...document.matchAll(/(?:href|src)="(\/assets\/[^"?]+\.(?:js|css))"/g)].map(match=>match[1]);
+ assert.ok(built.length,'the public document references emitted build assets');
+ for(const path of new Set(built))for(const method of ['GET','HEAD']){
+  const asset=await call(path,{method});assert.equal(asset.status,200);
+  assert.match(asset.headers.get('cache-control'),/public/);assert.match(asset.headers.get('cache-control'),/max-age=31536000/);assert.match(asset.headers.get('cache-control'),/immutable/);
+  await asset.arrayBuffer();
+ }
+ for(const path of ['/app.js','/assets/tooltip.js']){
+  const asset=await call(path);assert.equal(asset.status,200);assert.doesNotMatch(asset.headers.get('cache-control'),/immutable/);await asset.arrayBuffer();
+ }
+ const missing=await call('/assets/missing-12345678.js');assert.equal(missing.status,404);assert.doesNotMatch(missing.headers.get('cache-control')??'',/immutable/);await missing.arrayBuffer();
  await provePublicSurfaces({call,origin:hosted.UPTIME_ORIGIN,directory});
  await DB.prepare('DELETE FROM public_rate_limits').run();
  // Discover non-served output metadata by its actual Worker denial, never by

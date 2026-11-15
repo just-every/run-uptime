@@ -6,13 +6,16 @@ export function isPublicAsset(path:string){return publicPath(path)?.kind==='asse
 
 // Reusing public resources across document navigations keeps an ordinary
 // console journey from spending the public asset budget on the same modules
-// and styles over and over. Unversioned assets revalidate after one minute.
+// and styles over and over. Vite build filenames carry an eight-character
+// content hash; only those resources are immutable. Unversioned assets
+// revalidate after one minute.
 // Vite keeps its development revalidation/HMR behaviour.
 export async function publicAssetResponse(request:Request,assets?:{fetch(request:Request):Promise<Response>}){
  if(!assets)return new Response('Not found',{status:404});
  const response=await assets.fetch(request);
  if(import.meta.env.DEV||response.status!==200||!['GET','HEAD'].includes(request.method))return response;
  const headers=new Headers(response.headers);
- headers.set('cache-control','public, max-age=60, must-revalidate');
+ const fingerprinted=/^\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.(?:js|css)$/.test(new URL(request.url).pathname);
+ headers.set('cache-control',fingerprinted?'public, max-age=31536000, immutable':'public, max-age=60, must-revalidate');
  return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
 }

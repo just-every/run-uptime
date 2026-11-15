@@ -24,17 +24,35 @@ function routeOf(path){
 }
 const pathOf=({view,area})=>view==='settings'?`/app/settings/${area}`:`/app/${view}`;
 const TITLES={monitors:'Monitors',locations:'Locations',signout:'Sign out'};
-function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname),entry=routeOf(location.pathname);let data=null,view=pageId!==null?'monitor':entry?.view??(location.pathname.split('/')[2]||'monitors'),settingsArea=entry?.area??null,feedback,readUnavailable=false,redirecting=false,closed=false,polling,shown=null;const $=s=>document.querySelector(s);
+function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname),entry=routeOf(location.pathname);let data=null,view=pageId!==null?'monitor':entry?.view??(location.pathname.split('/')[2]||'monitors'),settingsArea=entry?.area??null,feedback,readUnavailable=false,redirecting=false,closed=false,polling,retryReadAt=0,retryTimer,shown=null;const $=s=>document.querySelector(s);
 // /app/settings, or an area Settings does not have, opens Alerts at its own path.
 if(entry&&location.pathname!==pathOf(entry))history.replaceState(history.state,'',pathOf(entry)+location.search+location.hash);
 // A monitor's page started its first reads while the document parsed (src/ui/console-prefetch.ts); each is used once.
 function takePrefetched(path){const early=window.uptimePrefetch?.[path];if(!early)return null;delete window.uptimePrefetch[path];return Date.now()-early.at<15000?early.response:null}
-async function api(path,method='GET',body,retried=false){if(closed)throw Error('The console is closed. Sign in again to continue.');const response=await((method==='GET'?takePrefetched(path):null)??fetch(path,{method,headers:{'content-type':'application/json','x-uptime-time-zone':Intl.DateTimeFormat().resolvedOptions().timeZone},...(method==='GET'?{signal:AbortSignal.timeout(10000)}:{}),body:body===undefined?undefined:JSON.stringify(body)})),result=await response.json();if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result);return api(path,method,body,true)}if([401,403].includes(response.status)&&!needsStepUp(result))window.dispatchEvent(new Event('uptime:auth-lost'));if(!response.ok)throw Object.assign(Error(result.error??`Request ${response.status}`),{status:response.status,code:result.code});return result}
+// A 429 is a refusal, never a reason to replay a write. Reads share a cooldown
+// so normal polling and user-triggered refreshes cannot beat Retry-After.
+async function api(path,method='GET',body,retried=false){
+ if(closed)throw Error('The console is closed. Sign in again to continue.');
+ if(method==='GET'&&Date.now()<retryReadAt)throw Object.assign(Error('Too many requests. Waiting before trying again.'),{status:429,retryAt:retryReadAt});
+ const response=await((method==='GET'?takePrefetched(path):null)??fetch(path,{method,headers:{'content-type':'application/json','x-uptime-time-zone':Intl.DateTimeFormat().resolvedOptions().timeZone},...(method==='GET'?{signal:AbortSignal.timeout(10000)}:{}),body:body===undefined?undefined:JSON.stringify(body)}));
+ if(response.status===429){
+  const value=response.headers.get('retry-after'),now=Date.now(),after=value&&/^\d+$/.test(value)?now+Number(value)*1000:Date.parse(value??''),retryAt=Number.isFinite(after)?Math.max(now+1000,after):now+5000;
+  if(method==='GET'){
+   retryReadAt=Math.max(retryReadAt,retryAt);clearTimeout(retryTimer);
+   retryTimer=setTimeout(()=>{retryTimer=null;void refresh()},Math.min(2147483647,Math.max(0,retryReadAt-Date.now())));
+  }
+  throw Object.assign(Error(method==='GET'?'Too many requests. Waiting before trying again.':'Too many requests. Wait before trying this action again.'),{status:429,retryAt});
+ }
+ const result=await response.json();
+ if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result);return api(path,method,body,true)}
+ if([401,403].includes(response.status)&&!needsStepUp(result))window.dispatchEvent(new Event('uptime:auth-lost'));
+ if(!response.ok)throw Object.assign(Error(result.error??`Request ${response.status}`),{status:response.status,code:result.code});return result;
+}
 const notice=text=>feedback?.announceBackground(text);
 const catalog=createCatalog({api,action});
 if(!document.querySelector('link[href="/catalog.css"]')){const style=document.createElement('link');style.rel='stylesheet';style.href='/catalog.css';document.head.append(style)}
 function disposeConsole(){
- if(closed)return;closed=true;feedback?.dispose();clearInterval(polling);data=null;
+ if(closed)return;closed=true;feedback?.dispose();clearInterval(polling);clearTimeout(retryTimer);data=null;
  window.uptimeBooted=false;
  window.removeEventListener('pagehide',closeConsole);window.removeEventListener('pageshow',restored);window.removeEventListener('popstate',followHistory);window.removeEventListener('uptime:console-unmount',disposeConsole);window.removeEventListener('beforeunload',holdUnsaved);
  document.removeEventListener('click',guardBusyNavigation,true);document.removeEventListener('click',followSection);
@@ -54,7 +72,7 @@ window.addEventListener('uptime:console-unmount',disposeConsole);
 // A history restore reloads through the document's server-side authority check.
 function restored(event){if(event.persisted)location.reload()}
 window.addEventListener('pageshow',restored);
-async function refresh(options){if(closed||document.querySelector('dialog[open]'))return;return feedback.refresh(options)}
+async function refresh(options){if(closed||Date.now()<retryReadAt||document.querySelector('dialog[open]'))return;return feedback.refresh(options)}
 async function action(fn,options){const focusId=document.activeElement?.id,result=await feedback.run(fn,options);if(result.accepted&&focusId)document.getElementById(focusId)?.focus({preventScroll:true});return result}
 // The menus are the document's own markup (src/ui/console.html), painted before this module loads; here they only follow the
 // view. In Settings the sidebar shows the Settings menu (data-menu="settings" on .app): one attribute, so switching menus

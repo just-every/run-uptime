@@ -631,9 +631,9 @@ body:has(.ui-sidebar)::before {
 .ui-notice > [data-state="working"] { --i: var(--icon-clock); }
 .ui-notice > [data-state="success"], .ui-notice > [data-state="recovered"] { --i: var(--icon-check-circle); border-color: var(--line-strong); background: var(--card); }
 .ui-notice > [data-state="error"] { --i: var(--icon-alert); background: var(--rose-soft); color: var(--rose-text); }
-.ui-notice > [data-state="unavailable"] { --i: var(--mark-ring); border-color: var(--line-strong); background: var(--card); color: var(--ink); font-weight: 500; }
+.ui-notice > :is([data-state="unavailable"],[data-state="rate-limited"]) { --i: var(--mark-ring); border-color: var(--line-strong); background: var(--card); color: var(--ink); font-weight: 500; }
 .ui-notice strong { font-weight: 700; }
-.ui-notice > [data-state="unavailable"]::before { width: 14px; height: 14px; margin: 4px 2px 0; background: var(--unknown); }
+.ui-notice > :is([data-state="unavailable"],[data-state="rate-limited"])::before { width: 14px; height: 14px; margin: 4px 2px 0; background: var(--unknown); }
 .ui-notice > #background-notice { color: var(--body); }
 .ui-notice > #background-notice::before { content: none; }
 

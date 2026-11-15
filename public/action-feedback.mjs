@@ -17,7 +17,9 @@ export function createActionFeedback({load,render,publish,lock=()=>{}}) {
       if(ticket!==version)return false;
       recoverableReadFailure=error?.status!==401;
       const lastRefresh=Number.isFinite(current?.now)?` Last successful refresh ${new Date(current.now).toLocaleTimeString()}.`:'';
-      feedback.read={state:'unavailable',message:`Refresh unavailable: ${error.message}. Current target health is Unknown.${lastRefresh}`};
+      feedback.read=error?.status===429
+        ?{state:'rate-limited',message:`${error.message} Current target health is Unknown.${lastRefresh}`}
+        :{state:'unavailable',message:`Refresh unavailable: ${error.message}. Current target health is Unknown.${lastRefresh}`};
       render(current,{busy,readUnavailable:true,error});lock(busy);emit();return false;
     }finally{if(pendingRead===ticket)pendingRead=null;}
   }

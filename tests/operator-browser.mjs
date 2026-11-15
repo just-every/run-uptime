@@ -5,6 +5,7 @@ import {browserSignIn,testAuthBindings} from './auth-test-support.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {chromium} from 'playwright';
 
@@ -77,10 +78,65 @@ async function unavailableJourney(page,width){
  await page.locator('#read-notice[data-state=recovered]').waitFor({timeout:12000});
  await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor();
 }
-async function actionErrorJourney(page,monitor,width){
+// A cold document must explain a refused read, then resume only after the
+// server's Retry-After. The route fake is at the browser/network edge; assets,
+// auth and the recovered read still use the real installation.
+async function rateLimitedJourney(page,width){
+ const requests=[],seconds=8;let notBefore=0;
+ const refuse=async route=>{
+  requests.push(Date.now());
+  if(requests.length===1){
+   const value=width===1440?new Date(Date.now()+seconds*1000).toUTCString():String(seconds);
+   notBefore=width===1440?Date.parse(value):Date.now()+seconds*1000;
+   await route.fulfill({status:429,headers:{'retry-after':value,'cache-control':'no-store'},contentType:'application/json',body:JSON.stringify({error:'Synthetic rate overrun'})});
+  }else await route.continue();
+ };
+ await page.route(overviewRead,refuse);
+ try{
+  await page.goto(origin+'/app/locations');
+  await page.locator('#read-notice[data-state=rate-limited]').waitFor();
+  if(width===1440){
+   assert.ok(await page.locator('#read-notice').isVisible(),'rate-limited reads have a visible explanation');
+   assert.ok(await page.locator('.loading-list.read-failed').count(),'a refused first read replaces the loading skeleton');
+  }
+  await audit(page,`rate-limited-${width}`);
+  await ready(page);
+  if(width===1440){assert.ok(requests.length>=2,'the read retries automatically');assert.ok(requests[1]>=notBefore,'no retry before Retry-After');}
+  checks.push({label:`rate-limited-recovery-${width}`,attempts:requests.length,retryWaitMs:requests[1]-requests[0],retryAfterHonored:requests[1]>=notBefore});
+ }finally{await page.unroute(overviewRead,refuse)}
+}
+// Routing disables Chromium's HTTP cache in this journey. Repeated full page
+// loads must still work when every static resource revalidates at the Worker.
+async function repeatConsoleLoads(page){
+ const paths=['/app/locations','/app/settings/alerts','/app/locations','/app/settings/general','/app/locations','/app/settings/alerts'],failed=[];
+ const observe=response=>{if(response.status()>=400&&response.request().resourceType()!=='fetch')failed.push({path:new URL(response.url()).pathname,status:response.status()})};
+ page.on('response',observe);
+ const started=Date.now();
+ try{for(const path of paths){await page.goto(origin+path);await ready(page);assert.equal(new URL(page.url()).pathname,path);}}
+ finally{page.off('response',observe)}
+ assert.ok(Date.now()-started<60000,'six full console loads finish within one minute');
+ assert.deepEqual(failed,[],'all document/script/style loads succeed');
+ checks.push({label:'repeated-console-loads-1440',loads:paths.length,elapsedMs:Date.now()-started,failedResources:failed.length});
+ // API admission is independent of the larger static resource allowance.
+ const seed=JSON.parse(await readFile('seed.json','utf8')),declaration=seed.deploy.publicPaths.find(item=>item.path==='/api/v1/openapi.json'),limit=seed.limits.publicRequestsPerMinutePerIp[declaration.class];
+ const remaining=60000-Date.now()%60000;if(remaining<15000)await page.waitForTimeout(remaining+25);
+ const window=Math.floor(Date.now()/60000),statuses=[];let refusal;
+ for(let sent=0;sent<=limit&&!refusal;sent+=12){
+  const responses=await Promise.all(Array.from({length:Math.min(12,limit+1-sent)},()=>page.request.get(origin+declaration.path)));
+  for(const response of responses){statuses.push(response.status());if(response.status()===429)refusal=response;else assert.equal(response.status(),200,'requests within the API budget succeed');}
+ }
+ assert.equal(Math.floor(Date.now()/60000),window,'API burst stays in one limit window');
+ assert.ok(refusal,'API requests over the configured budget receive 429');
+ assert.ok(Number(refusal.headers()['retry-after'])>0,'API refusal carries Retry-After');
+ assert.equal(refusal.headers()['cache-control'],'no-store');
+ assert.equal((await page.request.get(origin+'/api/overview')).status(),200,'independent private console API still works');
+ checks.push({label:'api-over-limit-1440',requests:statuses.length,limited:statuses.filter(status=>status===429).length});
+}
+async function actionErrorJourney(page,monitor,width,status=503){
+ let attempts=0;
  const actionGate=deferred(),actionStarted=deferred(),readGate=deferred(),readStarted=deferred();
  const runURL=origin+`/api/monitors/${monitor.id}/run`;
- const failAction=async route=>{actionStarted.resolve();await actionGate.promise;await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Manual check could not be queued'})})};
+ const failAction=async route=>{attempts++;actionStarted.resolve();await actionGate.promise;await route.fulfill({status,...(status===429?{headers:{'retry-after':'8'}}:{}),contentType:'application/json',body:JSON.stringify({error:'Manual check could not be queued'})})};
  const holdRead=async route=>{readStarted.resolve();await readGate.promise;await route.continue()};
  await page.route(runURL,failAction);
  try{
@@ -101,7 +157,8 @@ async function actionErrorJourney(page,monitor,width){
   const message=await page.locator('#action-notice').textContent();
   await nextPoll(page);assert.equal(await page.locator('#action-notice').textContent(),message,'successful polling preserves the failed action');
   assert.equal(await page.evaluate(()=>document.activeElement?.id),'run-monitor','action restores its initiating keyboard control');
-  await audit(page,`action-error-${width}`,{state:'Healthy',reason:/^Up/});
+  assert.equal(attempts,1,'a refused action is never replayed automatically');
+  if(status===503)await audit(page,`action-error-${width}`,{state:'Healthy',reason:/^Up/});
  }finally{actionGate.resolve();readGate.resolve();await page.unroute(runURL,failAction);await page.unroute(overviewRead,holdRead)}
  assert.equal((await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json()).some(slot=>slot.manual),false,'failed action created no manual evidence');
 }
@@ -178,9 +235,6 @@ async function ruleEditJourney(page,width){
 }
 try{
  for(const width of [1440]){
-  // These independent cold-browser journeys share the local installation's
-  // public asset bucket. Do not carry one viewport's loads into the next one.
-  await new Promise(resolve=>setTimeout(resolve,60000-Date.now()%60000));
   const context=await browser.newContext({viewport:{width,height:900}});
   await context.route('**/*',route=>{const u=new URL(route.request().url());return u.origin===origin?route.continue():route.abort()});
   try{
@@ -207,7 +261,7 @@ try{
    await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);await page.locator('#all-checks > summary').click();
    await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
    await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});
-   await unavailableJourney(page,width);await actionErrorJourney(page,monitor,width);
+   await unavailableJourney(page,width);for(const status of [503,429])await actionErrorJourney(page,monitor,width,status);
    await page.getByRole('button',{name:'Run now',exact:true}).click();await page.locator('#raw-history summary').filter({hasText:/Manual check complete · .+[✓✗]/}).first().waitFor({timeout:12000});
    await page.locator('#raw-history details').first().locator('summary').click();
    const summary=page.locator('#raw-history details[open] summary').first();await summary.focus();const summaryId=await summary.getAttribute('id');
@@ -230,6 +284,7 @@ try{
    await page.getByRole('link',{name:'Backup and files',exact:true}).click();await page.waitForURL(origin+'/app/settings/backup');await ready(page);await page.getByRole('button',{name:'Download backup'}).waitFor();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
    await proveReadableMaintenanceAndErasure(page,origin,monitor);await ready(page);
+   await repeatConsoleLoads(page);await rateLimitedJourney(page,width);
    const signedOut=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/auth/sign-out'&&r.request().method()==='POST');
    await page.getByRole('link',{name:'Sign out',exact:true}).click();assert.equal((await signedOut).status(),200,'sign-out completes through the native door');
    try{await page.getByLabel('Email address').waitFor()}catch(error){console.error('Sign-out destination '+JSON.stringify({path:new URL(page.url()).pathname,title:await page.title(),text:await page.locator('body').innerText().then(text=>text.slice(0,160))}));throw error}
@@ -237,15 +292,13 @@ try{
   }finally{await context.close()}
  }
  // One phone smoke: sign in, inspect retained monitoring, navigate, and sign out at 390.
- // Like the desktop's cold context, use a fresh public-asset window.
  {
-  await new Promise(resolve=>setTimeout(resolve,60000-Date.now()%60000));
   const context=await browser.newContext({viewport:{width:390,height:844}});
   try{
    const page=await context.newPage(),failed=[];failedReads.set(page,failed);
    page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
    await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
-   await ready(page);await audit(page,'phone-console-390');
+   await ready(page);await audit(page,'phone-console-390');await rateLimitedJourney(page,390);await page.goto(origin+'/app/monitors');await ready(page);
    // Many-at-once has one home: New monitor, at the phone's width too.
    await page.getByRole('button',{name:'New monitor',exact:true}).click();await page.locator('.editor-ready').waitFor();await bulkAddDoor(page);await audit(page,'phone-editor-390');
    await page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}).click();await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await audit(page,'phone-notifications-390');
@@ -253,6 +306,6 @@ try{
    assert.equal((await page.request.get(origin+'/api/overview')).status(),401);
   }finally{await context.close()}
  }
- await writeFile(resolve(out,'RESULTS.json'),JSON.stringify({checks,workflow:'Desktop owner monitoring and one 390 phone smoke; real healthy and naturally stale scheduled evidence; failed reads show Unknown with historical time; keyboard actions/navigation; failed actions survive polling; controls excluded through reconciliation; assertion edits preserve checks and reject overrides without writes; immutable history/focus retained; native export and signout; computed accessibility trees, axe and reflow',externalNetwork:false},null,2));
+ await writeFile(resolve(out,'RESULTS.json'),JSON.stringify({checks,workflow:'Desktop owner monitoring and one 390 phone smoke; real healthy and naturally stale scheduled evidence; failed reads show Unknown with historical time; keyboard actions/navigation; failed actions survive polling; controls excluded through reconciliation; assertion edits preserve checks and reject overrides without writes; immutable history/focus retained; native export and signout; six cold document loads within one minute, real API overrun and Retry-After read recovery; computed accessibility trees, axe and reflow',externalNetwork:false},null,2));
  console.log(`INTERFACE-001 operator passed: ${checks.length} local accessibility/reflow checks and real owner journeys at 1440 plus one 390 phone smoke. Evidence ${out}`);
 }finally{await browser.close()}
