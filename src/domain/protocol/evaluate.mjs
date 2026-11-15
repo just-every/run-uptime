@@ -36,6 +36,7 @@ function tls(definition,facts,at){
  const names=cert.dnsNames.length?cert.dnsNames.join(', '):cert.subject.cn??'no names';
  checks.push(check('hostname',facts.hostnameMatch,`Certificate for ${names} ${facts.hostnameMatch?'covers':'does not cover'} ${definition.tls.host}`));
  const left=daysLeft(cert.notAfter,at);
+ if(definition.tls.failBeforeDays!==undefined)checks.push(check('expiry-window',cert.notAfter-at>definition.tls.failBeforeDays*DAY,`Certificate expires in ${plural(left,'day')}; must be more than ${plural(definition.tls.failBeforeDays,'day')} away`));
  checks.push(check('validity',cert.notBefore<=at&&at<=cert.notAfter,at<cert.notBefore?`Certificate not valid until ${day(cert.notBefore)}`:at>cert.notAfter?`Certificate expired on ${day(cert.notAfter)}`:`Valid until ${day(cert.notAfter)} (${plural(left,'day')} left)`));
  if(definition.assertions.latencyMs!==undefined)checks.push(check('latency',facts.handshakeMs<=definition.assertions.latencyMs,`TLS handshake in ${facts.handshakeMs} ms (limit ${definition.assertions.latencyMs} ms)`));
  return checks;

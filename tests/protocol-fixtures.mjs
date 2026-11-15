@@ -23,7 +23,7 @@ export async function certificates(dir){
  openssl(['req','-x509','-newkey','rsa:2048','-nodes','-keyout',ca.key,'-out',ca.cert,'-days','30','-subj','/CN=Protocol fixture test CA']);
  const host='tls.protocol.test';
  return {caPath:ca.cert,
-  web:await signed(dir,'web',['localhost','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'],30,ca),
+  web:await signed(dir,'web',['localhost','tls.protocol.test','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'],30,ca),
   expiring:await signed(dir,'expiring',[host],10,ca),wrongName:await signed(dir,'wrong-name',['other.protocol.test'],200,ca),
   selfSigned:await signed(dir,'self-signed',[host],200,null),renewed:await signed(dir,'renewed',[host],400,ca)};
 }
@@ -36,6 +36,7 @@ export function webServer(tlsOptions,scenario,controlHandler){
   const host=String(req.headers.host).split(':')[0],url=new URL(req.url,'https://'+host);
   const json=(status,body)=>{res.writeHead(status,{'content-type':'application/json'});res.end(JSON.stringify(body))};
   if(host==='localhost')return controlHandler(req,res);
+  if(host==='tls.protocol.test'){let body='';for await(const chunk of req)body+=chunk;scenario.httpRequests??=[];scenario.httpRequests.push({method:req.method,url:req.url,headers:req.headers,body});res.writeHead(200);return res.end('ready')}
   if(host==='canary.protocol.test'){res.writeHead(200);return res.end('ok')}
   if(host==='cloudflare-dns.com'||host==='dns.google'){
    // The zone's name server and its address, for the authoritative query; every other question is the monitored record.

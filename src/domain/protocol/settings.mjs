@@ -67,15 +67,18 @@ export function protocolSettings(type,input){
   return {settings:{host,port:p,payloadHex,expectedHex,match},url:`udp://${host.includes(':')?`[${host}]`:host}:${p}`};
  }
  if(type==='tls'){
-  const s=fields(input.tls,['host','port','warnDays','owner'],'TLS');
+  const s=fields(input.tls,['host','port','warnDays','failBeforeDays','owner'],'TLS');
   const host=publicHost(s.host),p=port(s.port,443,'TLS port'),owner=text(s.owner,100,'Accountable owner');
-  return {settings:{host,port:p,warnDays:warnDays(s.warnDays,[30,14,7],'Certificate expiry'),...(owner?{owner}:{})},url:`tls://${host.includes(':')?`[${host}]`:host}:${p}`};
+  if(s.failBeforeDays!==undefined&&(!Number.isInteger(s.failBeforeDays)||s.failBeforeDays<0||s.failBeforeDays>365))throw Error('Certificate failure window must be whole days from 0 to 365');
+  return {settings:{host,port:p,...(s.failBeforeDays===undefined?{}:{failBeforeDays:s.failBeforeDays}),warnDays:warnDays(s.warnDays,[30,14,7],'Certificate expiry'),...(owner?{owner}:{})},url:`tls://${host.includes(':')?`[${host}]`:host}:${p}`};
  }
  if(type==='dns'){
-  const s=fields(input.dns,['name','recordType','resolvers','expect','approved'],'DNS');
+  const s=fields(input.dns,['name','recordType','resolvers','nameserver','expect','approved'],'DNS');
   const name=dnsName(s.name),recordType=s.recordType??'A';
   if(!RECORD_TYPES.includes(recordType))throw Error(`Record type must be one of ${RECORD_TYPES.join(', ')}`);
-  const resolvers=s.resolvers??DEFAULT_RESOLVERS;
+  const nameserver=s.nameserver===undefined?undefined:publicHost(s.nameserver,'Name server');
+  const resolvers=s.resolvers??(nameserver?['nameserver']:DEFAULT_RESOLVERS);
+  if(resolvers.includes?.('nameserver')!==Boolean(nameserver))throw Error('A named DNS resolver requires its name server, and a name server must be selected');
   if(!Array.isArray(resolvers)||!resolvers.length||resolvers.length>3||new Set(resolvers).size!==resolvers.length||resolvers.some(r=>!Object.hasOwn(RESOLVERS,r)))throw Error(`Resolvers must be one or more of ${Object.keys(RESOLVERS).join(', ')}`);
   let expect;
   if(s.expect!==undefined){
@@ -89,7 +92,7 @@ export function protocolSettings(type,input){
    if(!expect?.values)throw Error('An approved change needs expected values to change from');
    approved={values:values(a.values,'Approved change values')};
   }
-  return {settings:{name,recordType,resolvers,...(expect?{expect}:{}),...(approved?{approved}:{})},url:`dns://${name}/${recordType}`};
+  return {settings:{name,recordType,resolvers,...(nameserver?{nameserver}:{}),...(expect?{expect}:{}),...(approved?{approved}:{})},url:`dns://${name}/${recordType}`};
  }
  if(type==='domain'){
   const s=fields(input.domain,['name','warnDays','owner'],'Domain');

@@ -1,3 +1,4 @@
+import {provePingdomInventory} from './pingdom-inventory-support.mjs';
 import {proveNetworkDiagnostics} from './network-diagnostics-support.mjs';
 import {proveTlsExpiryStages} from './tls-stages-support.mjs';
 import {rejectForgedDiagnostics} from './diagnostic-intake-refusals.mjs';
@@ -145,8 +146,9 @@ try{
   scenario.registrar={status:200,expiresAt:soon};scenario.registry={status:200,redacted:true};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.match(r.o.checks[0].reason,/redacts the expiry date/);
   scenario.registry={status:503};r=await step(m.id);assert.equal(r.o.outcome,'runner_error');assert.equal(r.o.checks[0].assertion,'registry');
   const renewed=Date.now()+400*DAY;scenario.registry={status:200,expiresAt:renewed};scenario.registrar={status:200,expiresAt:renewed};r=await step(m.id);assert.equal(r.o.outcome,'pass');assert.equal(r.state.state,'Healthy');
-  const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal);assert.equal(renewal.event.incidentKey,warning.event.incidentKey);assert.equal(r.alerts.filter(a=>a.kind==='trigger').length,0,'Unknown registry data never opened an incident');
+  const renewal=r.alerts.find(a=>a.kind==='renewal');assert.ok(renewal);assert.equal(renewal.event.incidentKey,warning.event.incidentKey);assert.equal(r.alerts.filter(a=>a.kind==='trigger').length,0,'Unknown registry data never opened an incident');await pause(m.id);
  }
+ await provePingdomInventory({api,origin,ca,certs,scenario,registration,directory,webPort,tcpPort,tlsPort,dnsPort,key});
  assert.deepEqual([...diagnosticKinds].sort(),['TCP','DNS','TLS'].sort());
  console.log(`PROTOCOL-MONITORS completed one owner-to-runner lifecycle: emitted Worker + migrated D1, real Node runner per scheduled check, local TCP/TLS/DNS over HTTPS/RDAP fixtures behind production pinning.`);
 }finally{await close(web);await close(tcp);await close(tlsService);await close(dns);await worker?.dispose();await rm(directory,{recursive:true,force:true})}

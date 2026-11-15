@@ -26,7 +26,7 @@ export function showType(root,type){
   if(group.matches('label'))group.querySelector('input').disabled=!shown;
  }
  const apiUrl=control(root,'apiUrl');if(apiUrl)apiUrl.required=type==='api';
- const timeout=control(root,'timeoutSeconds');if(timeout)timeout.max=['api','mail'].includes(type)?'60':'10';
+ const timeout=control(root,'timeoutSeconds');if(timeout)timeout.max=['http','api','mail'].includes(type)?'60':'10';
  const url=control(root,'url');if(url)url.required=type==='http';
  for(const name of ['pingHost','udpHost','udpPort','udpPayload','udpExpected','tcpHost','tcpPort','dnsName','tlsHost','domainName']){const field=control(root,name);if(field)field.required=name.startsWith(type)}
  const privateGroup=root.querySelector('[data-private-network]'),privateField=control(root,'privateGrantRef');
@@ -45,9 +45,9 @@ export function fillProtocol(root,definition){
  const udp=definition.udp??{};set('udpHost',udp.host);set('udpPort',udp.port);set('udpPayload',udp.payloadHex);set('udpExpected',udp.expectedHex);set('udpMatch',udp.match??'exact');
  const tcp=definition.tcp??{},dns=definition.dns??{},tls=definition.tls??{},domain=definition.domain??{};
  set('tcpHost',tcp.host);set('tcpPort',tcp.port);control(root,'tcpReadBanner').checked=Boolean(tcp.readBanner);set('tcpBannerIncludes',tcp.bannerIncludes);
- set('dnsName',dns.name);set('dnsType',dns.recordType??'A');for(const box of root.querySelectorAll('[name="dnsResolver"]'))box.checked=(dns.resolvers??['cloudflare','google']).includes(box.value);
+ set('dnsNameserver',dns.nameserver);set('dnsName',dns.name);set('dnsType',dns.recordType??'A');for(const box of root.querySelectorAll('[name="dnsResolver"]'))box.checked=(dns.resolvers??['cloudflare','google']).includes(box.value);
  set('dnsExpected',lines(dns.expect?.values));set('dnsMatch',dns.expect?.match??'exact');control(root,'dnsAbsent').checked=Boolean(dns.expect?.absent);set('dnsApproved',lines(dns.approved?.values));
- set('tlsHost',tls.host);set('tlsPort',tls.port??443);set('tlsWarnDays',days(tls.warnDays??[30,14,7]));set('tlsOwner',tls.owner);
+ set('tlsFailBeforeDays',tls.failBeforeDays);set('tlsHost',tls.host);set('tlsPort',tls.port??443);set('tlsWarnDays',days(tls.warnDays??[30,14,7]));set('tlsOwner',tls.owner);
  set('domainName',domain.name);set('domainWarnDays',days(domain.warnDays??[60,30,14,7]));set('domainOwner',domain.owner);
  set('protocolLatency',PROTOCOL_TYPES.includes(definition.type)&&definition.assertions?.latencyMs!==undefined?definition.assertions.latencyMs/1000:'');
  control(root,'checkType').value=checkTypeOf(definition);
@@ -70,10 +70,10 @@ export function readProtocol(root,type){
  if(type==='dns'){
   const expected=valueLines(control(root,'dnsExpected').value),approved=valueLines(control(root,'dnsApproved').value),absent=control(root,'dnsAbsent').checked;
   if(absent&&expected.length)throw Error('Choose either expected values or that the record must not exist.');
-  settings={name:value('dnsName'),recordType:value('dnsType'),resolvers:[...root.querySelectorAll('[name="dnsResolver"]:checked')].map(box=>box.value),
+  settings={name:value('dnsName'),recordType:value('dnsType'),resolvers:[...root.querySelectorAll('[name="dnsResolver"]:checked')].map(box=>box.value).concat(value('dnsNameserver')?['nameserver']:[]),...(value('dnsNameserver')?{nameserver:value('dnsNameserver')}:{}),
    ...(absent?{expect:{absent:true}}:expected.length?{expect:{values:expected,match:value('dnsMatch')}}:{}),...(approved.length?{approved:{values:approved}}:{})};
  }
- if(type==='tls')settings={host:value('tlsHost'),port:Number(value('tlsPort')||443),...(dayList(value('tlsWarnDays'),'Certificate warnings')?{warnDays:dayList(value('tlsWarnDays'),'Certificate warnings')}:{}),...(value('tlsOwner')?{owner:value('tlsOwner')}:{})};
+ if(type==='tls')settings={...(value('tlsFailBeforeDays')===''?{}:{failBeforeDays:Number(value('tlsFailBeforeDays'))}),host:value('tlsHost'),port:Number(value('tlsPort')||443),...(dayList(value('tlsWarnDays'),'Certificate warnings')?{warnDays:dayList(value('tlsWarnDays'),'Certificate warnings')}:{}),...(value('tlsOwner')?{owner:value('tlsOwner')}:{})};
  if(type==='domain')settings={name:value('domainName'),...(dayList(value('domainWarnDays'),'Registration warnings')?{warnDays:dayList(value('domainWarnDays'),'Registration warnings')}:{}),...(value('domainOwner')?{owner:value('domainOwner')}:{})};
  return {settings,assertions:type!=='domain'&&latency?{latencyMs:Number(latency)}:{}};
 }

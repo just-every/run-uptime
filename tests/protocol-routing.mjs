@@ -27,6 +27,7 @@ net.connect=function(options,...rest){
  if(typeof options!=='object'||options.host!==PUBLIC)return connect.call(this,options,...rest);
  // A port that drops every packet: the connection neither opens nor fails until the check's timeout.
  // Like a real connect attempt, it keeps the process alive until the check gives up and destroys it.
+ if(options.port===587&&env.PROTOCOL_SMTP_PORT)return connect.call(this,{...options,host:'127.0.0.1',port:Number(env.PROTOCOL_SMTP_PORT)},...rest);
  if(env.PROTOCOL_TCP_MODE==='blackhole'){const socket=new net.Socket(),pending=setTimeout(()=>{},60000);socket.once('close',()=>clearTimeout(pending));return socket}
  // Port 53 is the zone's name server; any other port is the monitored TCP service.
  return connect.call(this,{...options,host:'127.0.0.1',port:Number(options.port===53?env.PROTOCOL_DNS_PORT:env.PROTOCOL_TCP_PORT)},...rest);

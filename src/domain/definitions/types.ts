@@ -192,10 +192,11 @@ export type DnsExpectedAnswer=
  |{absent?:never;values:readonly string[];match?:'exact'|'includes'};
 export interface DnsSettings {
  name:string;recordType?:'A'|'AAAA'|'CNAME'|'MX'|'TXT'|'NS'|'SOA'|'SRV'|'CAA';
- resolvers?:readonly ('cloudflare'|'google'|'authoritative')[];
+ resolvers?:readonly ('cloudflare'|'google'|'authoritative'|'nameserver')[];
+ nameserver?:string;
  expect?:DnsExpectedAnswer;approved?:{values:readonly string[]};
 }
-export interface TlsSettings {host:string;port?:number;warnDays?:readonly number[];owner?:string}
+export interface TlsSettings {host:string;port?:number;warnDays?:readonly number[];failBeforeDays?:number;owner?:string}
 export interface DomainSettings {name:string;warnDays?:readonly number[];owner?:string}
 interface ProtocolCommon extends MonitorCommon {url?:string;assertions?:{latencyMs?:number};slow?:SlowPolicy}
 export type TcpMonitorDefinition=ProtocolCommon&Exclude<NetworkScope,{network:'synthetic'}>&{type:'tcp';tcp:TcpSettings};

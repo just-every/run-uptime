@@ -8,6 +8,7 @@ export const RESOLVERS={
  cloudflare:{name:'Cloudflare',url:'https://cloudflare-dns.com/dns-query'},
  google:{name:'Google',url:'https://dns.google/resolve'},
  authoritative:{name:'Authoritative server'},
+ nameserver:{name:'Named server'},
 };
 export const DEFAULT_RESOLVERS=['cloudflare','google'];
 export const RECORD_TYPES=['A','AAAA','CNAME','MX','TXT','NS','SOA','SRV','CAA'];
@@ -68,17 +69,27 @@ async function zoneServer(get,name){
  }
  return {detail:'no name server was found for the zone'};
 }
+// Resolve every address before contacting the exact configured server. A mixed public/private answer is refused.
+async function namedServer(get,host){
+ if(publicAddress(host))return {host,address:host};
+ const responses=await Promise.all(['A','AAAA'].map(type=>queryResolver(get,'cloudflare',host,type)));
+ if(responses.some(r=>!['answer','nxdomain'].includes(r.status)))return {detail:'the named server could not be resolved'};
+ const addresses=responses.flatMap(r=>r.answers);
+ if(!addresses.length||responses.some(r=>r.more)||addresses.some(a=>!publicAddress(a)))return {detail:'the named server has no complete safe public address set'};
+ return {host,address:addresses[0]};
+}
 /** The zone's authoritative server, asked without recursion. `ask(address,bytes)` sends one framed query over TCP port 53. */
-export async function queryAuthoritative(get,ask,name,type){
- const started=Date.now(),unavailable=(detail,server)=>({id:'authoritative',status:'unavailable',answers:[],ms:Date.now()-started,detail:detail.slice(0,120),...(server?{server}:{})});
- const zone=await zoneServer(get,name);if(!zone.host)return unavailable(zone.detail);
+export async function queryAuthoritative(get,ask,name,type,nameserver){
+ const id=nameserver?'nameserver':'authoritative';
+ const started=Date.now(),unavailable=(detail,server)=>({id,status:'unavailable',answers:[],ms:Date.now()-started,detail:detail.slice(0,120),...(server?{server}:{})});
+ const zone=nameserver?await namedServer(get,nameserver):await zoneServer(get,name);if(!zone.host)return unavailable(zone.detail);
  const server=`${zone.host} ${zone.address}`.slice(0,300),query=encodeQuery(name,type),asked=Date.now();
  let response;
  try{response=decodeResponse(await ask(zone.address,query.bytes),query.id,type)}
  catch(error){return unavailable(error?.category==='vantage'?error.reason:`the name server could not be asked (${String(error?.reason??error?.message??'error').slice(0,60)})`,server)}
  const ms=Date.now()-asked;
- if(!response.authoritative)return {...unavailable('the name server did not answer authoritatively',server),ms};
- const base={id:'authoritative',rcode:response.rcode,ms,server};
+ if(!nameserver&&!response.authoritative)return {...unavailable('the name server did not answer authoritatively',server),ms};
+ const base={id,rcode:response.rcode,ms,server};
  if(response.rcode===3)return {...base,status:'nxdomain',answers:[]};
  if(response.rcode===2)return {...base,status:'servfail',answers:[]};
  if(response.rcode===5)return {...base,status:'refused',answers:[]};
@@ -88,5 +99,5 @@ export async function queryAuthoritative(get,ask,name,type){
 }
 /** DNS facts for one attempt: every selected resolver, queried together. */
 export async function dnsFacts(get,settings,ask){
- return {name:settings.name,type:settings.recordType,resolvers:await Promise.all(settings.resolvers.map(id=>id==='authoritative'?queryAuthoritative(get,ask,settings.name,settings.recordType):queryResolver(get,id,settings.name,settings.recordType)))};
+ return {name:settings.name,type:settings.recordType,resolvers:await Promise.all(settings.resolvers.map(id=>['authoritative','nameserver'].includes(id)?queryAuthoritative(get,ask,settings.name,settings.recordType,id==='nameserver'?settings.nameserver:undefined):queryResolver(get,id,settings.name,settings.recordType)))};
 }
