@@ -3088,7 +3088,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "1e616473523e1c79581761a1976fa8ffecbcf0a0238c2ee8faacaefed9aec137",
+      "sha256": "3dcae3939be7cacb0ef3ea1a92bd67624da1cb12d15c753fabd99fe1bea259ef",
       "executable": false
     },
     "RELEASE.json": {
@@ -9123,6 +9123,10 @@
       "sha256": "116a1d7b9a48ba11ec3e30c036b605aa95188a101f003130e28386a1aafab3c8",
       "executable": false
     },
+    "tests/archive-feedback-support.mjs": {
+      "sha256": "f56b3025ea810b7da146bb364f125f7a26804be5a2c4d9f5e2ff25b419244608",
+      "executable": false
+    },
     "tests/archive-fixture.mjs": {
       "sha256": "f069e3656f147da786c91cbdef5abdf0789e67bb3395f4914f0de4969ada2d12",
       "executable": false
@@ -9407,6 +9411,10 @@
       "sha256": "f5ca3ad8785c7972d68d53fa1187de268490993a58ceb93bcf320872b18d2849",
       "executable": false
     },
+    "tests/location-enrollment-support.mjs": {
+      "sha256": "ae8b6416fcdfa05b89f1249aa0ebd0d51657b250e515208f7759f0dc4040bcf4",
+      "executable": false
+    },
     "tests/mail-edges.mjs": {
       "sha256": "9d0eb50a2e6860ea2e514bf7c3adad86c2b51a10709c495a6c9b0eaffe1ed43e",
       "executable": false
@@ -9432,7 +9440,7 @@
       "executable": false
     },
     "tests/management-support.mjs": {
-      "sha256": "c335396bafb826025f1568dc6f920d911b04f5837924fce1571949337b4789ab",
+      "sha256": "5ea832a300013a61aff2fc85938ba4ebfe01818988f7c2576579b844f8a13bfd",
       "executable": false
     },
     "tests/metrics-fixture.mjs": {
