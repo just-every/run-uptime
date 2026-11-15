@@ -2076,7 +2076,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "f2a51872748dd48de01b1cfa022282ff93bfdeed4362c3d9b2029372503b1b23",
+      "sha256": "49345a80c79127eea44a649eae591a14547e864165cb71a2e3897d9a89cf3cd4",
       "executable": false
     },
     "docs/limits.md": {
@@ -2088,7 +2088,7 @@
       "executable": false
     },
     "docs/mfa.md": {
-      "sha256": "c8ea9d04bf79f2b9e9f3bd1e99235d9d42bd4b7120d783a5d727d3079aaf0ab4",
+      "sha256": "174e49f30d421e596155873c392982a67f27e50491e820b8afff5fbd5e575632",
       "executable": false
     },
     "docs/migrating-betterstack.md": {
@@ -2564,7 +2564,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "23e07fcc1b99d1ccb6a8ed4d2e49874562fbeda36fc9e2ad233905a5088babeb",
+      "sha256": "02c1bdaa96bb846af9dfd8a0b04e3aec5ea5de7b60b12fee156668ab1473d896",
       "executable": false
     },
     "package.json": {
@@ -2688,7 +2688,7 @@
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "e2b228c0e52762389b58a99a128caa84b78296650866c149441bf4e2f6498acf",
+      "sha256": "81d43ef70fb23553be894cc18779625facee7c7efb7e4076dba3b553866edef2",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -3088,7 +3088,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "4deebb00bd0bdecd020fa45ef4742651fd3178c5c896dce0ffdb1161d22a821d",
+      "sha256": "ac23b21bd29615f07f8f9989c242e8ee3e093620590f88ea48265842cb4f868b",
       "executable": false
     },
     "RELEASE.json": {
@@ -7435,6 +7435,10 @@
       "sha256": "f1b9444a251ac757a0656d0d55760703de3ef5b7498f1f1ab0f74b826c8a16cc",
       "executable": false
     },
+    "src/domain/destination-refusal.ts": {
+      "sha256": "51d49ae4002562648185ea62f47590146d3fab4f48f646c38f8bdafadd6fcf42",
+      "executable": false
+    },
     "src/domain/dev-personas.ts": {
       "sha256": "a706bae5778b30a77746bdef3e64ef44e48e3b9dff772d07c595016542635ea7",
       "executable": false
@@ -7836,7 +7840,7 @@
       "executable": false
     },
     "src/domain/notification-destinations.server.ts": {
-      "sha256": "432181e465f6a63aaab60e1ae6eaa4cd6f47feacdfdd9793274983cbd5cdbdff",
+      "sha256": "d683717894b58bdf64d016c5e3cad94895c4c72ff3d0d4575ac49f24aea2c2af",
       "executable": false
     },
     "src/domain/notification-fallback.server.ts": {
@@ -9740,7 +9744,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "0292353350324c828593807f6a048a6c203963fe5d0425d98cfce2165fe1d90a",
+      "sha256": "77764d0fc7cbbc439162e573dac45198c5315103d7d079152e97bcb1eb4cccd6",
       "executable": false
     },
     "tests/service-catalog-auth0-support.mjs": {

@@ -10,13 +10,19 @@ The CLI selects the checkout's pinned Node 22.20.0 for application commands. Use
 
 ## Clone and start
 
-One line installs `rer`, clones Uptime into `run-uptime` and starts it:
+Two steps. Step 1 installs `rer`; Node does not need to be installed first:
 
 ```sh
-curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
+curl -fsSL https://runeditrun.com/install.sh | sh
 ```
 
-Git is required; rer brings Node and pnpm. Already have Node 22 or later? `npx -y @runeditrun/rer dev just-every/run-uptime` does the same. If the installer prints a line that puts `rer` on your PATH, run that line too. To start it again later, run the same line from the same folder, or `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout:
+Step 2 clones Uptime into `run-uptime`, sets it up and starts it:
+
+```sh
+rer dev just-every/run-uptime
+```
+
+Git is required; rer brings Node and pnpm. If the installer says `rer` is not on your PATH yet, start it by its full path instead: `$HOME/.local/bin/rer dev just-every/run-uptime`. Already have Node 22 or later? `npx -y @runeditrun/rer dev just-every/run-uptime` does both steps at once. To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout:
 
 ```sh
 rer setup

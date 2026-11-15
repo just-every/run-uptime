@@ -8,6 +8,7 @@ import {resolveSlackWebhook} from '../base/modules/integrations/slack/protocol.t
 import {parseAddress} from '../base/modules/mail/src/core/validation.mjs'
 import type {Bindings} from './control.server.ts'
 import type {NotificationCredential} from './notification-credentials.server.ts'
+import {destinationRefusal} from './destination-refusal.ts'
 import {webhookInput,webhookMetadata,webhookConfigText} from './notification-webhook.ts'
 const webhookFields=['webhookTemplate','webhookHeaders','webhookSigning'];
 function webhookOnly(kind:string,input:any){if(kind!=='webhook'&&webhookFields.some(key=>Object.hasOwn(input,key)))throw Error('Webhook configuration requires a webhook destination')}
@@ -15,7 +16,7 @@ function name(value:unknown){if(typeof value!=='string'||!value.trim()||value.le
 function secret(){return [...crypto.getRandomValues(new Uint8Array(32))].map(b=>b.toString(16).padStart(2,'0')).join('')}
 async function endpointFor(kind:string,input:any){
  if(kind==='email'){try{const parsed=parseAddress(input.address);if(parsed.name||parsed.email!==input.address)throw Error();return parsed.email as string}catch{throw Error('Enter a single email address')}}
- try{const endpoint=validateDestination(input.url).href;return kind==='slack'?await resolveSlackWebhook(async()=>endpoint,'validation'):endpoint}catch{throw Error(kind==='slack'?'Enter a valid hooks.slack.com incoming webhook URL':'Enter a public HTTPS URL without credentials or fragments')}
+ try{const endpoint=validateDestination(input.url).href;return kind==='slack'?await resolveSlackWebhook(async()=>endpoint,'validation'):endpoint}catch{throw Error(kind==='slack'?'Enter a valid hooks.slack.com incoming webhook URL':destinationRefusal(input.url))}
 }
 export async function destinations(env:Bindings,{readOnly=false}:{readOnly?:boolean}={}){
  const validated=readOnly?undefined:await ensureNotificationCustody(env);

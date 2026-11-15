@@ -35,15 +35,24 @@
 
 Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.5.11. This release record is v0.5.12. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
 
+Two steps, and Node does not need to be installed first. Step 1 installs `rer`:
+
 ```sh
-curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
+curl -fsSL https://runeditrun.com/install.sh | sh
 ```
 
-That one line installs `rer`, clones Uptime and starts it; Node does not need to be installed first. If you already have Node, use this alternative:
+Step 2 clones Uptime into `run-uptime`, sets it up and starts it:
+
+```sh
+rer dev just-every/run-uptime
+```
+
+If the installer says `rer` is not on your PATH yet, start it by its full path instead: `$HOME/.local/bin/rer dev just-every/run-uptime`. Already have Node 22 or later? This does both steps at once:
 
 ```sh
 npx -y @runeditrun/rer dev just-every/run-uptime
 ```
+
 To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then these from the checkout instead:
 
 ```sh
@@ -119,7 +128,7 @@ curl --fail --silent --show-error --request POST "${target_url}/control" --heade
 
 The synthetic target binds only to `127.0.0.1`. Its owner-only grant at `.wrangler/state/synthetic-grant.json` records the current process, port, allowed paths and expiry; each probe must match that grant, and the runner checks the fixture's process and response identity. `/health` is an allowed monitor path. `POST /control` is a local fixture control, not a probe target. This walkthrough demonstrates the bundled fixture only; it does not establish the health of an external service or another network vantage.
 
-Local archive export and import require `UPTIME_ACCESS_COOKIE` holding a live native Base session cookie with second-factor verification from the previous five minutes. Obtain a native session with `node scripts/mfa.mjs local-session --origin APP_ORIGIN` and verify before stopping dev, keep the cookie in your private terminal environment, and then run the transfer. A receiving installation needs its own freshly verified owner. Enroll a second factor under **Settings › People**; each later sign-in asks for it before the console opens. See the repository's `docs/mfa.md` for the console steps and the API/CLI alternative.
+Local archive export and import require `UPTIME_ACCESS_COOKIE` holding a live native Base session cookie with second-factor verification from the previous five minutes. Obtain a native session with `rer run --script scripts/mfa.mjs local-session --origin APP_ORIGIN` and verify before stopping dev, keep the cookie in your private terminal environment, and then run the transfer. A receiving installation needs its own freshly verified owner. Enroll a second factor under **Settings › People**; each later sign-in asks for it before the console opens. See the repository's `docs/mfa.md` for the console steps and the API/CLI alternative.
 
 ## Reset the local installation
 
