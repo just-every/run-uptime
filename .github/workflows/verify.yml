@@ -183,6 +183,7 @@ jobs:
       - nightly-proof
       - build
       - prepare
+      - contract-docs
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 1
@@ -199,10 +200,14 @@ jobs:
           SKIP: ${{ needs.plan.outputs.skip }}
           BUILD: ${{ needs.build.result }}
           PREPARE: ${{ needs.prepare.result }}
+          CONTRACT_DOCS: ${{ needs.contract-docs.result }}
           TIER: ${{ needs.plan.outputs.tier }}
         run: |
           set -euo pipefail
           test "$PLAN" = success
+          case "$CONTRACT_DOCS" in
+            failure|cancelled) exit 1 ;;
+          esac
           case "$PUSH_PROOF:$NIGHTLY_PROOF" in
             *failure*|*cancelled*) exit 1 ;;
           esac
@@ -215,6 +220,20 @@ jobs:
 
           if [ "$HAS_SHARDS" = true ]; then test "$BUILD" = success; else test "$BUILD" = skipped; fi
           if [ "$COVERAGE" = full ] && [ "$TIER" != nightly ]; then test "$PREPARE" = success; else test "$PREPARE" = skipped; fi
+  contract-docs:
+    needs: plan
+    if: ${{ needs.plan.outputs.has_shards == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22.20.0
+          package-manager-cache: false
+      - run: node src/base/contract-docs.mjs check
   build:
     needs: plan
     if: ${{ needs.plan.outputs.has_shards == 'true' }}
@@ -244,7 +263,6 @@ jobs:
           node-version: 22.20.0
           package-manager-cache: false
       - run: node scripts/edition-authoring/cli.mjs check
-      - run: node src/base/contract-docs.mjs check
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec rer install
       - name: Build exact verification checkout once
