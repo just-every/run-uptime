@@ -1,0 +1,38 @@
+before: 47 journeys assigned exactly once in 8 shards
+push-1: node tests/flow-journey.mjs ; node tests/maintenance-windows.mjs ; node tests/metrics.mjs
+push-2: node tests/notification-recovery.mjs ; node tests/roster-erasure.mjs ; node tests/owner-editor-browser.mjs ; node tests/alert-drill.mjs
+push-3: node tests/command-journey.mjs ; node tests/definitions-import.mjs ; node tests/signed-runner.mjs ; node tests/api-transaction-journey.mjs ; node tests/failure-page-journey.mjs ; node tests/business-provisioned.mjs
+push-4: node tests/control-runtime.mjs ; node tests/notify-delivery.mjs ; node tests/network-mixed-dns.mjs ; node tests/agent-rate-overrun.mjs ; node tests/resilience/watches.mjs ; node tests/public-paths.mjs ; node tests/hosted-alerts.mjs
+push-5: node tests/notification-fallback.mjs ; node tests/mail-journey.mjs ; node tests/agent-erasure.mjs ; node tests/udp-monitors.mjs ; node tests/operator-security.mjs ; node tests/probe-native-evidence.mjs ; node tests/hosted-auth-browser.mjs
+push-6: node tests/contact-schedules.mjs ; node tests/incident-work.mjs ; node tests/private-network.mjs ; node tests/agent-door.mjs ; node tests/alert-routes.mjs ; node tests/archive-roundtrip.mjs ; node tests/webhook-custom.mjs
+push-7: node tests/discovery-jobs.mjs ; node tests/protocol-monitors.mjs ; node tests/reporting.mjs ; node tests/agent-query-token.mjs ; node tests/catalog.mjs ; node tests/access-matrix.mjs ; node tests/read-api.mjs
+push-8: node tests/browser-suites.mjs ; node tests/slow-responses.mjs ; node tests/owner-deploy-lifecycle.mjs ; node tests/ping-monitors.mjs ; node tests/erasure-audit.mjs ; node tests/tls-auth.mjs
+push: 47 journeys assigned exactly once in 8 shards
+push-1: node tests/agent-door.mjs ; node tests/probe-native-evidence.mjs
+push-2: node tests/flow-journey.mjs ; node tests/agent-query-token.mjs ; node tests/api-transaction-journey.mjs ; node tests/alert-drill.mjs
+push-3: node tests/notification-recovery.mjs ; node tests/owner-deploy-lifecycle.mjs ; node tests/agent-rate-overrun.mjs ; node tests/resilience/watches.mjs ; node tests/operator-security.mjs ; node tests/metrics.mjs ; node tests/hosted-alerts.mjs
+push-4: node tests/command-journey.mjs ; node tests/mail-journey.mjs ; node tests/definitions-import.mjs ; node tests/ping-monitors.mjs ; node tests/catalog.mjs ; node tests/webhook-custom.mjs ; node tests/business-provisioned.mjs
+push-5: node tests/archive-roundtrip.mjs ; node tests/protocol-monitors.mjs ; node tests/network-mixed-dns.mjs ; node tests/signed-runner.mjs ; node tests/erasure-audit.mjs ; node tests/failure-page-journey.mjs
+push-6: node tests/control-runtime.mjs ; node tests/slow-responses.mjs ; node tests/private-network.mjs ; node tests/roster-erasure.mjs ; node tests/owner-editor-browser.mjs ; node tests/tls-auth.mjs ; node tests/hosted-auth-browser.mjs
+push-7: node tests/notification-fallback.mjs ; node tests/browser-suites.mjs ; node tests/notify-delivery.mjs ; node tests/agent-erasure.mjs ; node tests/udp-monitors.mjs ; node tests/maintenance-windows.mjs ; node tests/read-api.mjs
+push-8: node tests/contact-schedules.mjs ; node tests/discovery-jobs.mjs ; node tests/incident-work.mjs ; node tests/reporting.mjs ; node tests/alert-routes.mjs ; node tests/access-matrix.mjs ; node tests/public-paths.mjs
+nightly: 47 journeys assigned exactly once in 8 shards
+push-1: node tests/flow-journey.mjs ; node tests/maintenance-windows.mjs ; node tests/metrics.mjs
+push-2: node tests/notification-recovery.mjs ; node tests/roster-erasure.mjs ; node tests/owner-editor-browser.mjs ; node tests/alert-drill.mjs
+push-3: node tests/command-journey.mjs ; node tests/definitions-import.mjs ; node tests/signed-runner.mjs ; node tests/api-transaction-journey.mjs ; node tests/failure-page-journey.mjs ; node tests/business-provisioned.mjs
+push-4: node tests/control-runtime.mjs ; node tests/notify-delivery.mjs ; node tests/network-mixed-dns.mjs ; node tests/agent-rate-overrun.mjs ; node tests/resilience/watches.mjs ; node tests/public-paths.mjs ; node tests/hosted-alerts.mjs
+push-5: node tests/notification-fallback.mjs ; node tests/mail-journey.mjs ; node tests/agent-erasure.mjs ; node tests/udp-monitors.mjs ; node tests/operator-security.mjs ; node tests/probe-native-evidence.mjs ; node tests/hosted-auth-browser.mjs
+push-6: node tests/contact-schedules.mjs ; node tests/incident-work.mjs ; node tests/private-network.mjs ; node tests/agent-door.mjs ; node tests/alert-routes.mjs ; node tests/archive-roundtrip.mjs ; node tests/webhook-custom.mjs
+push-7: node tests/discovery-jobs.mjs ; node tests/protocol-monitors.mjs ; node tests/reporting.mjs ; node tests/agent-query-token.mjs ; node tests/catalog.mjs ; node tests/access-matrix.mjs ; node tests/read-api.mjs
+push-8: node tests/browser-suites.mjs ; node tests/slow-responses.mjs ; node tests/owner-deploy-lifecycle.mjs ; node tests/ping-monitors.mjs ; node tests/erasure-audit.mjs ; node tests/tls-auth.mjs
+release: 47 journeys assigned exactly once in 8 shards
+push-1: node tests/flow-journey.mjs ; node tests/maintenance-windows.mjs ; node tests/metrics.mjs
+push-2: node tests/notification-recovery.mjs ; node tests/roster-erasure.mjs ; node tests/owner-editor-browser.mjs ; node tests/alert-drill.mjs
+push-3: node tests/command-journey.mjs ; node tests/definitions-import.mjs ; node tests/signed-runner.mjs ; node tests/api-transaction-journey.mjs ; node tests/failure-page-journey.mjs ; node tests/business-provisioned.mjs
+push-4: node tests/control-runtime.mjs ; node tests/notify-delivery.mjs ; node tests/network-mixed-dns.mjs ; node tests/agent-rate-overrun.mjs ; node tests/resilience/watches.mjs ; node tests/public-paths.mjs ; node tests/hosted-alerts.mjs
+push-5: node tests/notification-fallback.mjs ; node tests/mail-journey.mjs ; node tests/agent-erasure.mjs ; node tests/udp-monitors.mjs ; node tests/operator-security.mjs ; node tests/probe-native-evidence.mjs ; node tests/hosted-auth-browser.mjs
+push-6: node tests/contact-schedules.mjs ; node tests/incident-work.mjs ; node tests/private-network.mjs ; node tests/agent-door.mjs ; node tests/alert-routes.mjs ; node tests/archive-roundtrip.mjs ; node tests/webhook-custom.mjs
+push-7: node tests/discovery-jobs.mjs ; node tests/protocol-monitors.mjs ; node tests/reporting.mjs ; node tests/agent-query-token.mjs ; node tests/catalog.mjs ; node tests/access-matrix.mjs ; node tests/read-api.mjs
+push-8: node tests/browser-suites.mjs ; node tests/slow-responses.mjs ; node tests/owner-deploy-lifecycle.mjs ; node tests/ping-monitors.mjs ; node tests/erasure-audit.mjs ; node tests/tls-auth.mjs
+Push scheduling estimates: mean 576.125s, max 581s, ratio 1.00846170535908. Estimates are not measured CI durations.
+PASS: complete coverage, unchanged task commands, unchanged nightly/release allocation, tier matrices, browser engines and evidence routing.

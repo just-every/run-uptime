@@ -1,0 +1,82 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+  "run": 43728070013,
+  "shards": [
+    {
+      "shard": "push-1",
+      "job": 132854520508,
+      "wall_seconds": 534,
+      "journey_step_seconds": 500,
+      "started_at": "2026-11-15T15:08:06Z",
+      "completed_at": "2026-11-15T15:17:00Z",
+      "conclusion": "success"
+    },
+    {
+      "shard": "push-2",
+      "job": 132854520549,
+      "wall_seconds": 616,
+      "journey_step_seconds": 533,
+      "started_at": "2026-11-15T15:08:06Z",
+      "completed_at": "2026-11-15T15:18:22Z",
+      "conclusion": "success"
+    },
+    {
+      "shard": "push-3",
+      "job": 132854520441,
+      "wall_seconds": 683,
+      "journey_step_seconds": 652,
+      "started_at": "2026-11-15T15:08:05Z",
+      "completed_at": "2026-11-15T15:19:28Z",
+      "conclusion": "success"
+    },
+    {
+      "shard": "push-4",
+      "job": 132854520457,
+      "wall_seconds": 516,
+      "journey_step_seconds": 484,
+      "started_at": "2026-11-15T15:08:05Z",
+      "completed_at": "2026-11-15T15:16:41Z",
+      "conclusion": "success"
+    },
+    {
+      "shard": "push-5",
+      "job": 132854520495,
+      "wall_seconds": 735,
+      "journey_step_seconds": 700,
+      "started_at": "2026-11-15T15:08:05Z",
+      "completed_at": "2026-11-15T15:20:20Z",
+      "conclusion": "success"
+    },
+    {
+      "shard": "push-6",
+      "job": 132854520445,
+      "wall_seconds": 655,
+      "journey_step_seconds": 619,
+      "started_at": "2026-11-15T15:08:06Z",
+      "completed_at": "2026-11-15T15:19:01Z",
+      "conclusion": "success"
+    },
+    {
+      "shard": "push-7",
+      "job": 132854520514,
+      "wall_seconds": 865,
+      "journey_step_seconds": 820,
+      "started_at": "2026-11-15T15:08:06Z",
+      "completed_at": "2026-11-15T15:22:31Z",
+      "conclusion": "success"
+    },
+    {
+      "shard": "push-8",
+      "job": 132854520595,
+      "wall_seconds": 732,
+      "journey_step_seconds": 691,
+      "started_at": "2026-11-15T15:08:06Z",
+      "completed_at": "2026-11-15T15:20:18Z",
+      "conclusion": "success"
+    }
+  ],
+  "mean_wall_seconds": 667.0,
+  "longest_wall_seconds": 865,
+  "longest_to_mean": 1.2968515742128937
+}

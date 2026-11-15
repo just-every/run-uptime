@@ -1,0 +1,130 @@
+{
+  "files": [
+    {
+      "blob": "b6b06d2ddbd31ecc7d01a76d746482225dc10c67",
+      "bytes": 8850,
+      "path": "REPORT.md",
+      "sha256": "d2cd2937e6f9a713881ffc66accd75368ec53139414fe794239f93fa461ded5e"
+    },
+    {
+      "blob": "dad0500835b738288185361feaacc4717cb71498",
+      "bytes": 25829,
+      "path": "base-adaptation-check.json",
+      "sha256": "8ab4453593087197a278e3449fe439e9df9c45a9a43234a3ae22adf15983e25b"
+    },
+    {
+      "blob": "513a1434863c63397953300bc7e39ee67cfb220c",
+      "bytes": 347,
+      "path": "base-adaptation-record.json",
+      "sha256": "a24cc469b81467e97f55514c42c1cc7af35788d1faa6d4e3d6a3571a9cb6b808"
+    },
+    {
+      "blob": "3d4aca316374a2efcb478a921c3e6d0038af5bff",
+      "bytes": 1105263,
+      "path": "ci-failed-push7-attempt1.txt",
+      "sha256": "80dc9f1167b565742c8ac738cfbd53f8ee814240e84564e81cc1568181ba8af8"
+    },
+    {
+      "blob": "4f8030ea638338a0cdbe1e90c95a9399744622c8",
+      "bytes": 52415,
+      "path": "ci-jobs-attempt1.json",
+      "sha256": "1656a0de8ef1119fccc125488df14ce06bcac255d081c9861595afafeef112a9"
+    },
+    {
+      "blob": "d67b6ab3163012cfdbc0dd826696f61268ca8ac4",
+      "bytes": 52925,
+      "path": "ci-jobs-final.json",
+      "sha256": "dfb601b4654cc9c4d425e422a208813edd93a895ba32d16d6a7563ed9e247a36"
+    },
+    {
+      "blob": "9c960323e75320f8934787a79733fd9b0b77610d",
+      "bytes": 46034,
+      "path": "ci-receipts-first.json",
+      "sha256": "b8c49da2d2a56727d0c5184dcfbe3f0ff742ff8028869274b4ffe7f4e9cae78a"
+    },
+    {
+      "blob": "dc468030d34dd16c2e4a9536f3b3d1e9dcd43ae3",
+      "bytes": 45324,
+      "path": "ci-receipts.json",
+      "sha256": "8983e317ba22e0ef5515f5386be4f4d5c7ad5ac211effaef4776887ed321f6fa"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "contract-check.txt",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "5264b819338162fa591e3491750f4d4254761914",
+      "bytes": 2216,
+      "path": "durations.json",
+      "sha256": "927da40aafe7835028079715e52284b1c50219e2ae06459f176803b85769626f"
+    },
+    {
+      "blob": "34a48e0cc37e6939beaaaed05a1639fe3c852bd4",
+      "bytes": 52404,
+      "path": "original-ci-jobs.json",
+      "sha256": "fd29476691c6ed7dee6d763110bb3f6491bc01f40633035d2ef0d7631dce567f"
+    },
+    {
+      "blob": "8c77e0dfb9f725cafd630a24921ec999afafbfcd",
+      "bytes": 92,
+      "path": "product-ref.txt",
+      "sha256": "ba396622ecc48224f2d9ca95d7ea0b9c1c88a7467b6a6a6508fb09bd23d440ed"
+    },
+    {
+      "blob": "cb310ceb57f5603dd407d766153c9c4b6f9e8853",
+      "bytes": 8773,
+      "path": "receipt.json",
+      "sha256": "d8ff256a553e95ee32eb8cc4f4dfcf072fa3d4f5041dcf18668a2432a8d4ce38"
+    },
+    {
+      "blob": "b4425f13e625a349ca947f4151431dc43e76c63b",
+      "bytes": 2633,
+      "path": "shard-plan-check.mjs",
+      "sha256": "a2059bc10d96bb46832804ee4d67b1bfa68f7bddf1d6f8f8e9ca0b4e18c10860"
+    },
+    {
+      "blob": "3487b083fb8c91922c7539a9333b6736ba93dc0b",
+      "bytes": 6862,
+      "path": "shard-plan-check.txt",
+      "sha256": "8f4cf579b6703da6ba9d7f42fc31f93a0522fe9c45b2477577d57c626d54e250"
+    },
+    {
+      "blob": "98a876253e99662fb9456b130c14e27d5bcc638e",
+      "bytes": 18500,
+      "path": "shards-after.json",
+      "sha256": "e218020b71c8c3fc5c54b4e7e598aac2166c3170ec1a67b86d7a0204c8fdd311"
+    },
+    {
+      "blob": "5d15be09269c9fc43af885531c37bb93ca6e4166",
+      "bytes": 9985,
+      "path": "shards-before.json",
+      "sha256": "1eb627a98753018184e79ea807b482caa89eb50b288324a669fe70c0118cd52a"
+    },
+    {
+      "blob": "ac6efb5ff0d394c8cce4ceea7ddbf25b7d936f36",
+      "bytes": 422647,
+      "path": "source-lock-check.json",
+      "sha256": "c92923284db03f0f1a6139db8b5a1a874e106cc42adca5b5c41399dbd80e214f"
+    },
+    {
+      "blob": "8879dd38726168b7a95edc5cba1211662d455c77",
+      "bytes": 244,
+      "path": "typecheck-before.txt",
+      "sha256": "a0dadc4568e40e8278c20608553a2a976025e550252be4373d5af07726b2b658"
+    },
+    {
+      "blob": "8879dd38726168b7a95edc5cba1211662d455c77",
+      "bytes": 244,
+      "path": "typecheck.txt",
+      "sha256": "a0dadc4568e40e8278c20608553a2a976025e550252be4373d5af07726b2b658"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-stranger33-trips-1-c1",
+  "product_head": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+  "ref": "refs/heads/evidence/main-uptime-stranger33-trips-1-c1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-stranger33-trips-1-c1"
+}

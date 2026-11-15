@@ -1,0 +1,818 @@
+{
+  "push": [
+    {
+      "name": "push-1",
+      "seconds": 573,
+      "tasks": [
+        {
+          "name": "agent-door",
+          "browser": true,
+          "commands": [
+            "node tests/agent-door.mjs"
+          ]
+        },
+        {
+          "name": "probe-native-evidence",
+          "browser": true,
+          "commands": [
+            "node tests/probe-native-evidence.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-2",
+      "seconds": 572,
+      "tasks": [
+        {
+          "name": "flow-journey",
+          "browser": true,
+          "commands": [
+            "node tests/flow-journey.mjs"
+          ]
+        },
+        {
+          "name": "agent-query-token",
+          "browser": true,
+          "commands": [
+            "node tests/agent-query-token.mjs"
+          ]
+        },
+        {
+          "name": "api-transaction-journey",
+          "browser": true,
+          "commands": [
+            "node tests/api-transaction-journey.mjs"
+          ]
+        },
+        {
+          "name": "alert-drill",
+          "browser": true,
+          "commands": [
+            "node tests/alert-drill.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "all",
+      "evidence": false
+    },
+    {
+      "name": "push-3",
+      "seconds": 581,
+      "tasks": [
+        {
+          "name": "notification-recovery",
+          "browser": true,
+          "commands": [
+            "node tests/notification-recovery.mjs"
+          ]
+        },
+        {
+          "name": "owner-deploy-lifecycle",
+          "browser": true,
+          "commands": [
+            "node tests/owner-deploy-lifecycle.mjs"
+          ]
+        },
+        {
+          "name": "agent-rate-overrun",
+          "browser": true,
+          "commands": [
+            "node tests/agent-rate-overrun.mjs"
+          ]
+        },
+        {
+          "name": "resilience/watches",
+          "browser": true,
+          "commands": [
+            "node tests/resilience/watches.mjs"
+          ]
+        },
+        {
+          "name": "operator-security",
+          "browser": true,
+          "commands": [
+            "node tests/operator-security.mjs"
+          ]
+        },
+        {
+          "name": "metrics",
+          "browser": true,
+          "commands": [
+            "node tests/metrics.mjs"
+          ]
+        },
+        {
+          "name": "hosted-alerts",
+          "browser": true,
+          "commands": [
+            "node tests/hosted-alerts.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-4",
+      "seconds": 580,
+      "tasks": [
+        {
+          "name": "command-journey",
+          "browser": true,
+          "commands": [
+            "node tests/command-journey.mjs"
+          ]
+        },
+        {
+          "name": "mail-journey",
+          "browser": true,
+          "commands": [
+            "node tests/mail-journey.mjs"
+          ]
+        },
+        {
+          "name": "definitions-import",
+          "browser": true,
+          "commands": [
+            "node tests/definitions-import.mjs"
+          ]
+        },
+        {
+          "name": "ping-monitors",
+          "browser": true,
+          "commands": [
+            "node tests/ping-monitors.mjs"
+          ]
+        },
+        {
+          "name": "catalog",
+          "browser": true,
+          "commands": [
+            "node tests/catalog.mjs"
+          ]
+        },
+        {
+          "name": "webhook-custom",
+          "browser": true,
+          "commands": [
+            "node tests/webhook-custom.mjs"
+          ]
+        },
+        {
+          "name": "business-provisioned",
+          "browser": true,
+          "commands": [
+            "node tests/business-provisioned.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-5",
+      "seconds": 581,
+      "tasks": [
+        {
+          "name": "archive-roundtrip",
+          "browser": true,
+          "commands": [
+            "node tests/archive-roundtrip.mjs"
+          ]
+        },
+        {
+          "name": "protocol-monitors",
+          "browser": true,
+          "commands": [
+            "node tests/protocol-monitors.mjs"
+          ]
+        },
+        {
+          "name": "network-mixed-dns",
+          "browser": true,
+          "commands": [
+            "node tests/network-mixed-dns.mjs"
+          ]
+        },
+        {
+          "name": "signed-runner",
+          "browser": true,
+          "commands": [
+            "node tests/signed-runner.mjs"
+          ]
+        },
+        {
+          "name": "erasure-audit",
+          "browser": true,
+          "commands": [
+            "node tests/erasure-audit.mjs"
+          ]
+        },
+        {
+          "name": "failure-page-journey",
+          "browser": true,
+          "commands": [
+            "node tests/failure-page-journey.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-6",
+      "seconds": 571,
+      "tasks": [
+        {
+          "name": "control-runtime",
+          "browser": true,
+          "commands": [
+            "node tests/control-runtime.mjs"
+          ]
+        },
+        {
+          "name": "slow-responses",
+          "browser": true,
+          "commands": [
+            "node tests/slow-responses.mjs"
+          ]
+        },
+        {
+          "name": "private-network",
+          "browser": true,
+          "commands": [
+            "node tests/private-network.mjs"
+          ]
+        },
+        {
+          "name": "roster-erasure",
+          "browser": true,
+          "commands": [
+            "node tests/roster-erasure.mjs"
+          ]
+        },
+        {
+          "name": "owner-editor-browser",
+          "browser": true,
+          "commands": [
+            "node tests/owner-editor-browser.mjs"
+          ]
+        },
+        {
+          "name": "tls-auth",
+          "browser": true,
+          "commands": [
+            "node tests/tls-auth.mjs"
+          ]
+        },
+        {
+          "name": "hosted-auth-browser",
+          "browser": true,
+          "commands": [
+            "node tests/hosted-auth-browser.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-7",
+      "seconds": 571,
+      "tasks": [
+        {
+          "name": "notification-fallback",
+          "browser": true,
+          "commands": [
+            "node tests/notification-fallback.mjs"
+          ]
+        },
+        {
+          "name": "browser-suites",
+          "browser": true,
+          "hosted": true,
+          "commands": [
+            "pnpm run build",
+            "pnpm run spec:check",
+            "pnpm run typecheck",
+            "pnpm run test:base",
+            "node tests/browser-suites.mjs"
+          ]
+        },
+        {
+          "name": "notify-delivery",
+          "browser": true,
+          "commands": [
+            "node tests/notify-delivery.mjs"
+          ]
+        },
+        {
+          "name": "agent-erasure",
+          "browser": true,
+          "commands": [
+            "node tests/agent-erasure.mjs"
+          ]
+        },
+        {
+          "name": "udp-monitors",
+          "browser": true,
+          "commands": [
+            "node tests/udp-monitors.mjs"
+          ]
+        },
+        {
+          "name": "maintenance-windows",
+          "browser": true,
+          "commands": [
+            "node tests/maintenance-windows.mjs"
+          ]
+        },
+        {
+          "name": "read-api",
+          "browser": true,
+          "commands": [
+            "node tests/read-api.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": true
+    },
+    {
+      "name": "push-8",
+      "seconds": 580,
+      "tasks": [
+        {
+          "name": "contact-schedules",
+          "browser": true,
+          "commands": [
+            "node tests/contact-schedules.mjs"
+          ]
+        },
+        {
+          "name": "discovery-jobs",
+          "browser": true,
+          "commands": [
+            "node tests/discovery-jobs.mjs"
+          ]
+        },
+        {
+          "name": "incident-work",
+          "browser": true,
+          "commands": [
+            "node tests/incident-work.mjs"
+          ]
+        },
+        {
+          "name": "reporting",
+          "browser": true,
+          "commands": [
+            "node tests/reporting.mjs"
+          ]
+        },
+        {
+          "name": "alert-routes",
+          "browser": true,
+          "commands": [
+            "node tests/alert-routes.mjs"
+          ]
+        },
+        {
+          "name": "access-matrix",
+          "browser": true,
+          "commands": [
+            "node tests/access-matrix.mjs"
+          ]
+        },
+        {
+          "name": "public-paths",
+          "browser": true,
+          "commands": [
+            "node tests/public-paths.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    }
+  ],
+  "nightly": [
+    {
+      "name": "push-1",
+      "seconds": 485,
+      "tasks": [
+        {
+          "name": "flow-journey",
+          "browser": true,
+          "commands": [
+            "node tests/flow-journey.mjs"
+          ]
+        },
+        {
+          "name": "maintenance-windows",
+          "browser": true,
+          "commands": [
+            "node tests/maintenance-windows.mjs"
+          ]
+        },
+        {
+          "name": "metrics",
+          "browser": true,
+          "commands": [
+            "node tests/metrics.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "all",
+      "evidence": false
+    },
+    {
+      "name": "push-2",
+      "seconds": 476,
+      "tasks": [
+        {
+          "name": "notification-recovery",
+          "browser": true,
+          "commands": [
+            "node tests/notification-recovery.mjs"
+          ]
+        },
+        {
+          "name": "roster-erasure",
+          "browser": true,
+          "commands": [
+            "node tests/roster-erasure.mjs"
+          ]
+        },
+        {
+          "name": "owner-editor-browser",
+          "browser": true,
+          "commands": [
+            "node tests/owner-editor-browser.mjs"
+          ]
+        },
+        {
+          "name": "alert-drill",
+          "browser": true,
+          "commands": [
+            "node tests/alert-drill.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-3",
+      "seconds": 486,
+      "tasks": [
+        {
+          "name": "command-journey",
+          "browser": true,
+          "commands": [
+            "node tests/command-journey.mjs"
+          ]
+        },
+        {
+          "name": "definitions-import",
+          "browser": true,
+          "commands": [
+            "node tests/definitions-import.mjs"
+          ]
+        },
+        {
+          "name": "signed-runner",
+          "browser": true,
+          "commands": [
+            "node tests/signed-runner.mjs"
+          ]
+        },
+        {
+          "name": "api-transaction-journey",
+          "browser": true,
+          "commands": [
+            "node tests/api-transaction-journey.mjs"
+          ]
+        },
+        {
+          "name": "failure-page-journey",
+          "browser": true,
+          "commands": [
+            "node tests/failure-page-journey.mjs"
+          ]
+        },
+        {
+          "name": "business-provisioned",
+          "browser": true,
+          "commands": [
+            "node tests/business-provisioned.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-4",
+      "seconds": 485,
+      "tasks": [
+        {
+          "name": "control-runtime",
+          "browser": true,
+          "commands": [
+            "node tests/control-runtime.mjs"
+          ]
+        },
+        {
+          "name": "notify-delivery",
+          "browser": true,
+          "commands": [
+            "node tests/notify-delivery.mjs"
+          ]
+        },
+        {
+          "name": "network-mixed-dns",
+          "browser": true,
+          "commands": [
+            "node tests/network-mixed-dns.mjs"
+          ]
+        },
+        {
+          "name": "agent-rate-overrun",
+          "browser": true,
+          "commands": [
+            "node tests/agent-rate-overrun.mjs"
+          ]
+        },
+        {
+          "name": "resilience/watches",
+          "browser": true,
+          "commands": [
+            "node tests/resilience/watches.mjs"
+          ]
+        },
+        {
+          "name": "public-paths",
+          "browser": true,
+          "commands": [
+            "node tests/public-paths.mjs"
+          ]
+        },
+        {
+          "name": "hosted-alerts",
+          "browser": true,
+          "commands": [
+            "node tests/hosted-alerts.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-5",
+      "seconds": 486,
+      "tasks": [
+        {
+          "name": "notification-fallback",
+          "browser": true,
+          "commands": [
+            "node tests/notification-fallback.mjs"
+          ]
+        },
+        {
+          "name": "mail-journey",
+          "browser": true,
+          "commands": [
+            "node tests/mail-journey.mjs"
+          ]
+        },
+        {
+          "name": "agent-erasure",
+          "browser": true,
+          "commands": [
+            "node tests/agent-erasure.mjs"
+          ]
+        },
+        {
+          "name": "udp-monitors",
+          "browser": true,
+          "commands": [
+            "node tests/udp-monitors.mjs"
+          ]
+        },
+        {
+          "name": "operator-security",
+          "browser": true,
+          "commands": [
+            "node tests/operator-security.mjs"
+          ]
+        },
+        {
+          "name": "probe-native-evidence",
+          "browser": true,
+          "commands": [
+            "node tests/probe-native-evidence.mjs"
+          ]
+        },
+        {
+          "name": "hosted-auth-browser",
+          "browser": true,
+          "commands": [
+            "node tests/hosted-auth-browser.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-6",
+      "seconds": 483,
+      "tasks": [
+        {
+          "name": "contact-schedules",
+          "browser": true,
+          "commands": [
+            "node tests/contact-schedules.mjs"
+          ]
+        },
+        {
+          "name": "incident-work",
+          "browser": true,
+          "commands": [
+            "node tests/incident-work.mjs"
+          ]
+        },
+        {
+          "name": "private-network",
+          "browser": true,
+          "commands": [
+            "node tests/private-network.mjs"
+          ]
+        },
+        {
+          "name": "agent-door",
+          "browser": true,
+          "commands": [
+            "node tests/agent-door.mjs"
+          ]
+        },
+        {
+          "name": "alert-routes",
+          "browser": true,
+          "commands": [
+            "node tests/alert-routes.mjs"
+          ]
+        },
+        {
+          "name": "archive-roundtrip",
+          "browser": true,
+          "commands": [
+            "node tests/archive-roundtrip.mjs"
+          ]
+        },
+        {
+          "name": "webhook-custom",
+          "browser": true,
+          "commands": [
+            "node tests/webhook-custom.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-7",
+      "seconds": 486,
+      "tasks": [
+        {
+          "name": "discovery-jobs",
+          "browser": true,
+          "commands": [
+            "node tests/discovery-jobs.mjs"
+          ]
+        },
+        {
+          "name": "protocol-monitors",
+          "browser": true,
+          "commands": [
+            "node tests/protocol-monitors.mjs"
+          ]
+        },
+        {
+          "name": "reporting",
+          "browser": true,
+          "commands": [
+            "node tests/reporting.mjs"
+          ]
+        },
+        {
+          "name": "agent-query-token",
+          "browser": true,
+          "commands": [
+            "node tests/agent-query-token.mjs"
+          ]
+        },
+        {
+          "name": "catalog",
+          "browser": true,
+          "commands": [
+            "node tests/catalog.mjs"
+          ]
+        },
+        {
+          "name": "access-matrix",
+          "browser": true,
+          "commands": [
+            "node tests/access-matrix.mjs"
+          ]
+        },
+        {
+          "name": "read-api",
+          "browser": true,
+          "commands": [
+            "node tests/read-api.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": false
+    },
+    {
+      "name": "push-8",
+      "seconds": 476,
+      "tasks": [
+        {
+          "name": "browser-suites",
+          "browser": true,
+          "hosted": true,
+          "commands": [
+            "pnpm run build",
+            "pnpm run spec:check",
+            "pnpm run typecheck",
+            "pnpm run test:base",
+            "node tests/browser-suites.mjs"
+          ]
+        },
+        {
+          "name": "slow-responses",
+          "browser": true,
+          "commands": [
+            "node tests/slow-responses.mjs"
+          ]
+        },
+        {
+          "name": "owner-deploy-lifecycle",
+          "browser": true,
+          "commands": [
+            "node tests/owner-deploy-lifecycle.mjs"
+          ]
+        },
+        {
+          "name": "ping-monitors",
+          "browser": true,
+          "commands": [
+            "node tests/ping-monitors.mjs"
+          ]
+        },
+        {
+          "name": "erasure-audit",
+          "browser": true,
+          "commands": [
+            "node tests/erasure-audit.mjs"
+          ]
+        },
+        {
+          "name": "tls-auth",
+          "browser": true,
+          "commands": [
+            "node tests/tls-auth.mjs"
+          ]
+        }
+      ],
+      "browser": true,
+      "engines": "chromium",
+      "evidence": true
+    }
+  ]
+}

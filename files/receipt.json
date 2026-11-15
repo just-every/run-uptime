@@ -1,0 +1,239 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15T15:29:05.434872+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-stranger33-trips-1-c1",
+  "head": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+  "base": "2045014b15f76380b5d7493c0c42b2caa430f88b",
+  "original_round": "6903eaf187eede00fc0f20abc3b34b00ad00449b",
+  "carry": "c301503815cbd82853caee4b9482730037d15114",
+  "carry_tree": "3437ba7f1e803e85c1733b7b68173e5584a11cb4",
+  "original_tree": "3437ba7f1e803e85c1733b7b68173e5584a11cb4",
+  "commits": "7e4e51b86b8f7081719eae4aa1fad74849ca2607 Run Edit Run fleet <fleet@runeditrun.com> | Run Edit Run fleet <fleet@runeditrun.com>\n73b0d3124e9692f7d32a54aabea0ed11c8c2434e Run Edit Run fleet <fleet@runeditrun.com> | Run Edit Run fleet <fleet@runeditrun.com>\nc301503815cbd82853caee4b9482730037d15114 Run Edit Run fleet <fleet@runeditrun.com> | Run Edit Run fleet <fleet@runeditrun.com>",
+  "checks": [
+    {
+      "command": "node --check scripts/verification-plan.mjs",
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "head": "73b0d3124e9692f7d32a54aabea0ed11c8c2434e"
+    },
+    {
+      "command": "node --check .github/scripts/verify-ci.mjs",
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "head": "73b0d3124e9692f7d32a54aabea0ed11c8c2434e"
+    },
+    {
+      "command": "node scripts/verify-ci.mjs --check-workflows",
+      "exit": 0,
+      "stdout_sha256": "df3db00e082bf57a0cdc3b200dc667334accd27d53f6187d6380c889e4c8f7ef",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "head": "73b0d3124e9692f7d32a54aabea0ed11c8c2434e"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "stdout_sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "head": "73b0d3124e9692f7d32a54aabea0ed11c8c2434e"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "stdout_sha256": "f7e0f3a376d99ce41a9b65a6e16c4145fa552cd71acc1edf2b6cc2f202617e4f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "head": "73b0d3124e9692f7d32a54aabea0ed11c8c2434e"
+    }
+  ],
+  "journey_file_count_before": 47,
+  "journey_file_count_after": 47,
+  "shard_count_before": 8,
+  "shard_count_after": 8,
+  "clause_status_changes": [],
+  "default": "Preserve main example.org external-check default",
+  "product_status": "clean",
+  "ci_status": "completed/success",
+  "clause_status_counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clause_status_counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "touched_diff_files": [
+    ".github/scripts/verify-ci.mjs",
+    ".github/workflows/verify.yml",
+    "base-copies.json",
+    "scripts/verification-plan.mjs",
+    "sources.lock.json"
+  ],
+  "typecheck": {
+    "command": "pnpm run typecheck",
+    "exit": 0,
+    "node": "24.19.0",
+    "pnpm": "10.12.4",
+    "output": "typecheck.txt"
+  },
+  "pushes": [
+    {
+      "head": "c301503815cbd82853caee4b9482730037d15114",
+      "branch": "cloud/main-uptime-stranger33-trips-1-c1",
+      "result": "PUSH_OK",
+      "skip_ci": true
+    },
+    {
+      "head": "73b0d3124e9692f7d32a54aabea0ed11c8c2434e",
+      "branch": "cloud/main-uptime-stranger33-trips-1-c1",
+      "result": "PUSH_OK",
+      "skip_ci": false
+    },
+    {
+      "head": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+      "branch": "cloud/main-uptime-stranger33-trips-1-c1",
+      "result": "PUSH_OK",
+      "skip_ci": false
+    }
+  ],
+  "identity_audit": {
+    "command": "git log origin/main..HEAD --format=\"%an <%ae>%n%cn <%ce>%n%(trailers:only,unfold)\"",
+    "candidate_commits": 3,
+    "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+    "trailers": []
+  },
+  "correction": {
+    "cause": "Base verify-base --offline adaptation-modified record for tier-aware .github/workflows/verify.yml",
+    "command": "node scripts/edition-authoring/cli.mjs adapt-base .github/workflows/verify.yml",
+    "validation": "node scripts/edition-authoring/cli.mjs verify-base --offline",
+    "result": "passed",
+    "changes": [
+      "base-copies.json",
+      "sources.lock.json"
+    ]
+  },
+  "ci_first_candidate": {
+    "head": "73b0d3124e9692f7d32a54aabea0ed11c8c2434e",
+    "run": 43726790128,
+    "status": "completed",
+    "conclusion": "failure",
+    "failed_job": 132850558872,
+    "failed_step": "Run this shard",
+    "reason": "Stale workflow adaptation acknowledgement; corrected in final head"
+  },
+  "ci_run": 43728070013,
+  "ci_url": "https://github.com/just-every/run-uptime/actions/runs/43728070013",
+  "ci_durations": {
+    "repository": "just-every/run-uptime",
+    "head": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+    "run": 43728070013,
+    "shards": [
+      {
+        "shard": "push-1",
+        "job": 132854520508,
+        "wall_seconds": 534,
+        "journey_step_seconds": 500,
+        "started_at": "2026-11-15T15:08:06Z",
+        "completed_at": "2026-11-15T15:17:00Z",
+        "conclusion": "success"
+      },
+      {
+        "shard": "push-2",
+        "job": 132854520549,
+        "wall_seconds": 616,
+        "journey_step_seconds": 533,
+        "started_at": "2026-11-15T15:08:06Z",
+        "completed_at": "2026-11-15T15:18:22Z",
+        "conclusion": "success"
+      },
+      {
+        "shard": "push-3",
+        "job": 132854520441,
+        "wall_seconds": 683,
+        "journey_step_seconds": 652,
+        "started_at": "2026-11-15T15:08:05Z",
+        "completed_at": "2026-11-15T15:19:28Z",
+        "conclusion": "success"
+      },
+      {
+        "shard": "push-4",
+        "job": 132854520457,
+        "wall_seconds": 516,
+        "journey_step_seconds": 484,
+        "started_at": "2026-11-15T15:08:05Z",
+        "completed_at": "2026-11-15T15:16:41Z",
+        "conclusion": "success"
+      },
+      {
+        "shard": "push-5",
+        "job": 132854520495,
+        "wall_seconds": 735,
+        "journey_step_seconds": 700,
+        "started_at": "2026-11-15T15:08:05Z",
+        "completed_at": "2026-11-15T15:20:20Z",
+        "conclusion": "success"
+      },
+      {
+        "shard": "push-6",
+        "job": 132854520445,
+        "wall_seconds": 655,
+        "journey_step_seconds": 619,
+        "started_at": "2026-11-15T15:08:06Z",
+        "completed_at": "2026-11-15T15:19:01Z",
+        "conclusion": "success"
+      },
+      {
+        "shard": "push-7",
+        "job": 132854520514,
+        "wall_seconds": 865,
+        "journey_step_seconds": 820,
+        "started_at": "2026-11-15T15:08:06Z",
+        "completed_at": "2026-11-15T15:22:31Z",
+        "conclusion": "success"
+      },
+      {
+        "shard": "push-8",
+        "job": 132854520595,
+        "wall_seconds": 732,
+        "journey_step_seconds": 691,
+        "started_at": "2026-11-15T15:08:06Z",
+        "completed_at": "2026-11-15T15:20:18Z",
+        "conclusion": "success"
+      }
+    ],
+    "mean_wall_seconds": 667.0,
+    "longest_wall_seconds": 865,
+    "longest_to_mean": 1.2968515742128937
+  },
+  "gh_calls": 10,
+  "source_lock_sha256": "3599f6bb254ecf608425790a89b39367fb97d703f7cad377d18e1b91b9980670",
+  "base_copies_sha256": "4e30904092aee5c3cf4bf7e7f30cb22c6ce487c811e7d2bac433628d4351e077",
+  "product_remote_ref": "7e4e51b86b8f7081719eae4aa1fad74849ca2607\trefs/heads/cloud/main-uptime-stranger33-trips-1-c1",
+  "final_metadata_checks": [
+    {
+      "command": "node scripts/edition-authoring/cli.mjs adapt-base .github/workflows/verify.yml",
+      "exit": 0,
+      "head": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+      "output": "base-adaptation-record.json",
+      "stdout_sha256": "a24cc469b81467e97f55514c42c1cc7af35788d1faa6d4e3d6a3571a9cb6b808"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs verify-base --offline",
+      "exit": 0,
+      "head": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+      "output": "base-adaptation-check.json",
+      "stdout_sha256": "8ab4453593087197a278e3449fe439e9df9c45a9a43234a3ae22adf15983e25b"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "head": "7e4e51b86b8f7081719eae4aa1fad74849ca2607",
+      "output": "source-lock-check.json",
+      "stdout_sha256": "c92923284db03f0f1a6139db8b5a1a874e106cc42adca5b5c41399dbd80e214f"
+    }
+  ]
+}

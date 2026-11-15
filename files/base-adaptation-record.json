@@ -1,0 +1,11 @@
+{
+  "adapted": ".github/workflows/verify.yml",
+  "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+  "sha256": "09fe6d2a0b274d4925950ef0ddde9c8c7099e15edb5333a601ead2bbcec73a86",
+  "acknowledged": {
+    "sha256": "c07494f247f9cff9e8cf843e3ba6d4b93b639dff02ef0b63da04b2882b62a502",
+    "mode": "100644"
+  },
+  "record": "base-copies.json"
+}
+
