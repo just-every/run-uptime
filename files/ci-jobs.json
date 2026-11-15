@@ -1,0 +1,382 @@
+[
+  {
+    "id": 132937929213,
+    "name": "plan",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415/job/132937929213",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T19:57:28Z",
+        "completed_at": "2026-11-15T19:57:28Z"
+      },
+      {
+        "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T19:57:28Z",
+        "completed_at": "2026-11-15T19:57:32Z"
+      },
+      {
+        "name": "Check reusable workflow permissions",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T19:57:32Z",
+        "completed_at": "2026-11-15T19:57:32Z"
+      },
+      {
+        "name": "Look up complete nightly marker",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 4,
+        "started_at": "2026-11-15T19:57:32Z",
+        "completed_at": "2026-11-15T19:57:32Z"
+      },
+      {
+        "name": "Run node .github/scripts/verify-ci.mjs --plan",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-15T19:57:32Z",
+        "completed_at": "2026-11-15T19:57:35Z"
+      },
+      {
+        "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-15T19:57:35Z",
+        "completed_at": "2026-11-15T19:57:35Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-15T19:57:35Z",
+        "completed_at": "2026-11-15T19:57:35Z"
+      }
+    ]
+  },
+  {
+    "id": 132937981938,
+    "name": "prepare",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415/job/132937981938",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T19:57:39Z",
+        "completed_at": "2026-11-15T19:57:40Z"
+      },
+      {
+        "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T19:57:40Z",
+        "completed_at": "2026-11-15T19:57:44Z"
+      },
+      {
+        "name": "Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T19:57:44Z",
+        "completed_at": "2026-11-15T19:57:45Z"
+      },
+      {
+        "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-15T19:57:45Z",
+        "completed_at": "2026-11-15T19:57:49Z"
+      },
+      {
+        "name": "Install and package without credential environment",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-15T19:57:49Z",
+        "completed_at": "2026-11-15T19:58:06Z"
+      },
+      {
+        "name": "Retain inert deployment artifact and digest",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-15T19:58:06Z",
+        "completed_at": "2026-11-15T19:58:08Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-15T19:58:08Z",
+        "completed_at": "2026-11-15T19:58:08Z"
+      },
+      {
+        "name": "Post Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-15T19:58:08Z",
+        "completed_at": "2026-11-15T19:58:08Z"
+      },
+      {
+        "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-15T19:58:08Z",
+        "completed_at": "2026-11-15T19:58:08Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-11-15T19:58:08Z",
+        "completed_at": "2026-11-15T19:58:08Z"
+      }
+    ]
+  },
+  {
+    "id": 132937982016,
+    "name": "build",
+    "status": "completed",
+    "conclusion": "failure",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415/job/132937982016",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T19:57:40Z",
+        "completed_at": "2026-11-15T19:57:41Z"
+      },
+      {
+        "name": "Set runner-owned browser cache",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T19:57:41Z",
+        "completed_at": "2026-11-15T19:57:41Z"
+      },
+      {
+        "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T19:57:41Z",
+        "completed_at": "2026-11-15T19:57:44Z"
+      },
+      {
+        "name": "Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-15T19:57:44Z",
+        "completed_at": "2026-11-15T19:57:46Z"
+      },
+      {
+        "name": "Set runner-owned pnpm store",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-15T19:57:46Z",
+        "completed_at": "2026-11-15T19:57:46Z"
+      },
+      {
+        "name": "Cache runner-owned dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-15T19:57:46Z",
+        "completed_at": "2026-11-15T19:57:47Z"
+      },
+      {
+        "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-15T19:57:47Z",
+        "completed_at": "2026-11-15T19:57:51Z"
+      },
+      {
+        "name": "Run node scripts/edition-authoring/cli.mjs check",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-15T19:57:51Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Run node src/base/contract-docs.mjs check",
+        "status": "completed",
+        "conclusion": "failure",
+        "number": 9,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Run pnpm install --frozen-lockfile",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 10,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Run pnpm exec rer install",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 11,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Build exact verification checkout once",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 12,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Bind shared output to this source and run",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 13,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Share verification output with this run's shards",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 14,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 25,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Post Cache runner-owned dependencies",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 26,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Post Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 27,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 28,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 29,
+        "started_at": "2026-11-15T19:57:52Z",
+        "completed_at": "2026-11-15T19:57:52Z"
+      }
+    ]
+  },
+  {
+    "id": 132937983424,
+    "name": "light",
+    "status": "completed",
+    "conclusion": "skipped",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415/job/132937983424",
+    "steps": []
+  },
+  {
+    "id": 132938057376,
+    "name": "shards (${{ matrix.name }})",
+    "status": "completed",
+    "conclusion": "skipped",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415/job/132938057376",
+    "steps": []
+  },
+  {
+    "id": 132938057730,
+    "name": "nightly-proof",
+    "status": "completed",
+    "conclusion": "skipped",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415/job/132938057730",
+    "steps": []
+  },
+  {
+    "id": 132938130792,
+    "name": "verify",
+    "status": "completed",
+    "conclusion": "failure",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415/job/132938130792",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T19:58:13Z",
+        "completed_at": "2026-11-15T19:58:13Z"
+      },
+      {
+        "name": "Require the selected coverage and its proof",
+        "status": "completed",
+        "conclusion": "failure",
+        "number": 2,
+        "started_at": "2026-11-15T19:58:13Z",
+        "completed_at": "2026-11-15T19:58:13Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T19:58:13Z",
+        "completed_at": "2026-11-15T19:58:13Z"
+      }
+    ]
+  },
+  {
+    "id": 132938131466,
+    "name": "full-push-proof",
+    "status": "completed",
+    "conclusion": "skipped",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415/job/132938131466",
+    "steps": []
+  }
+]

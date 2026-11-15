@@ -1,0 +1,25 @@
+{
+  "repository": "just-every/run-uptime",
+  "head": "d600eba12c99ca0865b91f77b12556f9aad314c6",
+  "read_epoch": 1794773544.2740343,
+  "gh_calls_total": 6,
+  "command": "gh api repos/just-every/run-uptime/actions/runs?head_sha=d600eba12c99ca0865b91f77b12556f9aad314c6&per_page=100",
+  "exit_code": 0,
+  "runs": [
+    {
+      "id": 43755285415,
+      "name": "Verify",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "d600eba12c99ca0865b91f77b12556f9aad314c6",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43755285415"
+    }
+  ],
+  "jobs_read_epoch": 1794773556.8497157,
+  "accepted_exception": "Only contract-docs check drift on ACCEPTANCE.md; verify coverage job fails because build failed and shards were skipped. This is explicitly allowed by the task; raw workflow conclusion remains failure.",
+  "failed_jobs": [
+    132937982016,
+    132938130792
+  ],
+  "ready_under_brief_exception": true
+}

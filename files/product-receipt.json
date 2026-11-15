@@ -1,0 +1,12 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-mail-off-1",
+  "head": "d600eba12c99ca0865b91f77b12556f9aad314c6",
+  "base": "c1e8376c7dfd6ed601b6fe993567237449fc7143",
+  "pushed": true,
+  "push_epoch": 1794772643.6715918,
+  "pushed_at": "2026-11-15T19:57:23.671628+00:00",
+  "identity_audit": true,
+  "product_only": true,
+  "remote_head_verified": "d600eba12c99ca0865b91f77b12556f9aad314c6"
+}

@@ -1,0 +1,32 @@
+{
+  "optional": [
+    {
+      "id": "worker",
+      "required": true,
+      "status": "ready",
+      "missingEnvironment": []
+    },
+    {
+      "id": "operator-sign-in-mail",
+      "required": false,
+      "status": "optional-disabled",
+      "missingEnvironment": [],
+      "mailOff": true
+    }
+  ],
+  "required": [
+    {
+      "id": "worker",
+      "required": true,
+      "status": "ready",
+      "missingEnvironment": []
+    },
+    {
+      "id": "operator-sign-in-mail",
+      "required": true,
+      "status": "disabled-required",
+      "missingEnvironment": [],
+      "mailOff": true
+    }
+  ]
+}

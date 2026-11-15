@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "recorded_epoch": 1794772667.429012,
+  "checks": [
+    {
+      "log": "hosted-auth.log",
+      "bytes": 840,
+      "sha256": "4cea991801e2be073888def60e5e3761e7b1249041ea2be084164dd15c6fdc27",
+      "exit_code": 0
+    },
+    {
+      "log": "owner-deploy.log",
+      "bytes": 638,
+      "sha256": "745f77e1f4e500f92d2df971af0f9531cf1bcf65518b3b3ba540e01648163bde",
+      "exit_code": 0
+    },
+    {
+      "log": "startup-public-paths.log",
+      "bytes": 35480,
+      "sha256": "f42f9731910048d4dddb0cea61d5ff881fc80fe2a1a40a8c76c7d05a93e41b6c",
+      "exit_code": 0
+    },
+    {
+      "log": "hosted-alerts.log",
+      "bytes": 3426,
+      "sha256": "c8003ef20e998b94f64fee6c73a01e0c1c0087f678864080eb4c45d3d589e48f",
+      "exit_code": 0
+    },
+    {
+      "log": "typecheck.log",
+      "bytes": 138,
+      "sha256": "082376976f3e4068dd8a26755949aff84ec020ebc240fa9c72eb2cac492d0f6b",
+      "exit_code": 0
+    },
+    {
+      "log": "contract-generation.log",
+      "bytes": 70,
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422",
+      "exit_code": 0
+    }
+  ],
+  "additional_checks": {
+    "rer_setup": 0,
+    "rer_build": 0,
+    "spec_generate": 0,
+    "source_lock_check": 0,
+    "diff_check": 0
+  },
+  "contract_views": "Generated and checked, then restored from origin/main; not committed",
+  "scope": "Touched checks only; full exact-SHA Verify pending",
+  "node": "22.20.0",
+  "browser": "/usr/bin/chromium",
+  "candidate_head": "d600eba12c99ca0865b91f77b12556f9aad314c6",
+  "verification_timing": "Touched tests ran before commit against the candidate product code; branch Verify is the exact-commit full wall."
+}

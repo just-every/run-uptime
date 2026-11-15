@@ -1,0 +1,130 @@
+{
+  "files": [
+    {
+      "blob": "3a2af75ffe3070f00937e202648be17e2f57f3ba",
+      "bytes": 7589,
+      "path": "REPORT.md",
+      "sha256": "686f29adba431d9cd5bf1064fbc0de601ca616758ee2dba8fe1aaf698943a5ba"
+    },
+    {
+      "blob": "36f0533f05f482af7601acaf8a090ba036f7943b",
+      "bytes": 10156,
+      "path": "build.log",
+      "sha256": "a79879a7d06c595ac0583799531956bdecde6e30af7505f172187744608524b4"
+    },
+    {
+      "blob": "30f6848302985a424fb93a84f12390a30650e978",
+      "bytes": 1674,
+      "path": "checks-receipt.json",
+      "sha256": "76c11e895d9f1a3ab804f785b3a53e00152c794339838a1ab06cd678529505a6"
+    },
+    {
+      "blob": "c819c24b588d80b3e34131f1a40fdbbef4cdbf56",
+      "bytes": 1316,
+      "path": "ci-failure-receipt.json",
+      "sha256": "6cd9406b1cf92ae4aa82adf0fb6593f02e76a2e72b89b28e2b22d958205f1ae9"
+    },
+    {
+      "blob": "8836d1cb07f48308cc8e07e3045a649b2d5156e4",
+      "bytes": 11769,
+      "path": "ci-jobs.json",
+      "sha256": "bf6c0432d228940dea3e23da12a77c51a63cf70788b240e293f8b57559e9dad7"
+    },
+    {
+      "blob": "c251b86cae6130a2a73c91c9297ea4b49928e2aa",
+      "bytes": 956,
+      "path": "ci-receipt.json",
+      "sha256": "39d3dea13532f4ab13f7bad22473c736b80b27a845f9aaf9bd832adf63304d5a"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "contract-generation.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "58d6563bf82db6e47834c13b615e2aebaa80cdc8",
+      "bytes": 3426,
+      "path": "hosted-alerts.log",
+      "sha256": "c8003ef20e998b94f64fee6c73a01e0c1c0087f678864080eb4c45d3d589e48f"
+    },
+    {
+      "blob": "7a6ee09a8ff68e2700d2052a80f5f3ffd738ebe6",
+      "bytes": 840,
+      "path": "hosted-auth.log",
+      "sha256": "4cea991801e2be073888def60e5e3761e7b1249041ea2be084164dd15c6fdc27"
+    },
+    {
+      "blob": "b5fa2f8868c1d84ca3b0777d5961ddf171269d9d",
+      "bytes": 124584,
+      "path": "mail-off-login-1440.png",
+      "sha256": "6107cf652344a284fa0ec8c40d06096abeba0b2feab9190b1fca341a76b20a35"
+    },
+    {
+      "blob": "13627891016c71b679b6aa2d9dd614c73c7143b9",
+      "bytes": 55685,
+      "path": "mail-off-login-390.png",
+      "sha256": "a7aae25c4dccb5260a0f9b43488b09fb0b03b34c35828019dc1dc2fca13dfc2f"
+    },
+    {
+      "blob": "d2f4ff7857b2be9107171fe1a919593c19a89b1b",
+      "bytes": 307,
+      "path": "mail-off-receipt.json",
+      "sha256": "31debac633aaed670942798c508aa28382126115c6fd7044e9a50528771bfcc8"
+    },
+    {
+      "blob": "afe697f14019348df6931f69c471cec86a84ed0d",
+      "bytes": 604,
+      "path": "operations-receipt.json",
+      "sha256": "108f43e98cf180d3a91ccdbc1be1f5212783c4f7d413f8e3f55fc6c844e4e37a"
+    },
+    {
+      "blob": "64d5215424a615c8267e21226173aa2d694b8196",
+      "bytes": 417,
+      "path": "owner-deploy-receipt.json",
+      "sha256": "1db0ad38bdb50361ba2cd210afc82292ff170ca90fa24e3a716b97eaae0f23d9"
+    },
+    {
+      "blob": "93df434f859409fae36fcb37d776202885396710",
+      "bytes": 638,
+      "path": "owner-deploy.log",
+      "sha256": "745f77e1f4e500f92d2df971af0f9531cf1bcf65518b3b3ba540e01648163bde"
+    },
+    {
+      "blob": "aca9531e02fc2d6fd5d585f65878f3db78c5d2e0",
+      "bytes": 421,
+      "path": "product-receipt.json",
+      "sha256": "5d5d8154217c164c3b0bf9da9bbbc567d722f76bb519879041395b2dee0f6684"
+    },
+    {
+      "blob": "db797cd6f5fdfff2f75b2e6a1d3bc8f987f796d4",
+      "bytes": 423124,
+      "path": "source-lock-check.log",
+      "sha256": "7ae0502ed7116894f98434187c65827d4506b47ed57d02e817f7c3c752db1385"
+    },
+    {
+      "blob": "9ee780c73181fc20065135462a8f62dd28a21c31",
+      "bytes": 184,
+      "path": "spec-generation.log",
+      "sha256": "77636668dd3e62cd916e4812390b99433c94b59d2445e883fa055b5c874fae51"
+    },
+    {
+      "blob": "e3c4ff7f8654938813869cd844dafedd58344ee5",
+      "bytes": 35480,
+      "path": "startup-public-paths.log",
+      "sha256": "f42f9731910048d4dddb0cea61d5ff881fc80fe2a1a40a8c76c7d05a93e41b6c"
+    },
+    {
+      "blob": "b57779ca02d7fe76bfb3b712b5cd01d730babe43",
+      "bytes": 138,
+      "path": "typecheck.log",
+      "sha256": "082376976f3e4068dd8a26755949aff84ec020ebc240fa9c72eb2cac492d0f6b"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-mail-off-1",
+  "product_head": "d600eba12c99ca0865b91f77b12556f9aad314c6",
+  "ref": "refs/heads/evidence/main-uptime-mail-off-1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-mail-off-1"
+}

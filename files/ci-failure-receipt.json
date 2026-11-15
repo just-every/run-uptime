@@ -1,0 +1,46 @@
+{
+  "run_id": 43755285415,
+  "head": "d600eba12c99ca0865b91f77b12556f9aad314c6",
+  "raw_conclusion": "failure",
+  "build_job": 132937982016,
+  "build_step": "Run node src/base/contract-docs.mjs check",
+  "build_diagnostics": [
+    "Contract prose: 0 errors, 0 warnings.",
+    "ACCEPTANCE.md: generated content differs; run contract-docs write.",
+    "Process completed with exit code 1."
+  ],
+  "dependent_job": 132938130792,
+  "dependent_step": "Require the selected coverage and its proof",
+  "dependent_reason": "SHARDS skipped; BUILD failure; PREPARE success; plan success. Coverage requires successful shards/build.",
+  "log_commands": [
+    {
+      "argv": [
+        "gh",
+        "run",
+        "view",
+        "43755285415",
+        "--repo",
+        "just-every/run-uptime",
+        "--job",
+        "132937982016",
+        "--log-failed"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "gh",
+        "run",
+        "view",
+        "43755285415",
+        "--repo",
+        "just-every/run-uptime",
+        "--job",
+        "132938130792",
+        "--log-failed"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "publication_note": "Actual diagnostic lines retained here. Raw workflow logs are held locally because they contain environment display blocks; no environment dumps are published."
+}
