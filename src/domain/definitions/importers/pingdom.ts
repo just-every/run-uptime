@@ -8,7 +8,7 @@ import {pingdomProtocol} from './pingdom-protocol.ts'
 const transaction=(v:any)=>v&&['script','recording'].includes(v.type)&&typeof v.name==='string'&&Number.isInteger(v.interval)&&(Array.isArray(v.steps)||v.steps==='[withheld]')
 function records(text:string){
  const parsed=jsonValues(text,'Pingdom file'),values=parsed.length===1&&Array.isArray(parsed[0])?parsed[0] as any[]:parsed
- if(!values.length||values.some((value:any)=>!value||typeof value!=='object'||Array.isArray(value)||(!value.check||typeof value.check!=='object')&&!transaction(value)))throw new DefinitionFileError('Use saved Pingdom HTTP check details with a check object, or a documented TMS detail object with type, name, interval and steps. Summary lists do not contain complete settings.')
+ if(!values.length||values.some((value:any)=>!value||typeof value!=='object'||Array.isArray(value)||(!value.check||typeof value.check!=='object')&&!transaction(value)))throw new DefinitionFileError('Use saved Pingdom check details with a check object, or a documented TMS detail object with type, name, interval and steps. Summary lists do not contain complete settings.')
  return values.map((value:any)=>transaction(value)?value:value.check)
 }
 function map(entry:SourceEntry):Mapping{
