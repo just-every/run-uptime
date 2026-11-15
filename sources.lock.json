@@ -9600,7 +9600,7 @@
       "executable": false
     },
     "tests/pingdom-inventory-support.mjs": {
-      "sha256": "68553fccb07b9369f95f26f5066ed39b15f389a406d914e43241baf5c1c0e9c5",
+      "sha256": "2a68d972c8783939a9ee0707a9e2ce96ec2d23b4da825652c225992500d24714",
       "executable": false
     },
     "tests/plain-monitor-text-support.mjs": {

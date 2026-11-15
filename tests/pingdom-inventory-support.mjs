@@ -21,6 +21,8 @@ export async function provePingdomInventory({api,origin,certs,scenario,registrat
  assert.equal(plan.status,200,JSON.stringify(plan.body));assert.equal(plan.body.entries.length,20,'twelve checks and eight explicit certificate companions');
  assert.equal(plan.body.counts.create,20,JSON.stringify(plan.body.entries));
  const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));
+ source[0].check.tags=[{name:'reviewed-catchup'}];
+ const catchup=await door.preview(source,'pingdom');assert.equal(catchup.status,200);assert.equal(catchup.body.counts.change,2,JSON.stringify(catchup.body.entries));assert.equal((await door.apply(catchup.body)).status,200);
  const monitors=(await api('/api/overview')).data.monitors.filter(m=>m.definition.name.startsWith('Inventory check '));
  assert.equal(monitors.length,20);assert.ok(monitors.every(m=>!m.definition.enabled));
  for(const m of monitors)assert.deepEqual((await api(`/api/monitors/${m.id}/history`)).data,[],'import never fabricates a run');
@@ -60,8 +62,9 @@ export async function provePingdomInventory({api,origin,certs,scenario,registrat
   const request=scenario.httpRequests.find(r=>r.url==='/inventory/8');assert.equal(request.method,'POST');assert.equal(request.body,'synthetic=ready');assert.equal(request.headers['x-inventory'],'synthetic');assert.equal(request.headers['content-type'],'application/x-www-form-urlencoded');
   assert.equal(edge.state.accepted.length,0,'SMTP probe never sends a message');assert.ok(edge.state.commands.includes('STARTTLS'));
   const first=byName('Inventory check 1'),current=(await api(`/api/overview?monitor=${first.id}`)).data.monitors[0];assert.equal((await api(`/api/monitors/${first.id}`,{...current.definition,enabled:true},{},'PATCH')).status,200);
-  source[0].check.tags=[{name:'reviewed-catchup'}];
-  const again=await door.preview(source,'pingdom');assert.equal(again.status,200);assert.equal(again.body.counts.create,0);assert.equal((await door.apply(again.body)).status,200);
+  const again=await door.preview(source,'pingdom');assert.equal(again.status,200);assert.deepEqual(again.body.counts,{create:0,change:0,unchanged:20,refused:0,unsupported:0});
+  source[0].check.tags.push({name:'changed-after-local-edits'});
+  const conflict=await door.preview(source,'pingdom');assert.equal(conflict.status,200);assert.ok(conflict.body.counts.refused>=1,'changed source cannot overwrite native edits');assert.equal(conflict.body.counts.create+conflict.body.counts.change,0,'no local configuration is offered for overwrite');
   const retained=(await api('/api/overview')).data.monitors.filter(m=>m.definition.name.startsWith('Inventory check '));assert.equal(retained.find(m=>m.id===first.id).definition.enabled,true,'catch-up preserves a locally resumed check');assert.ok(retained.filter(m=>m.id!==first.id).every(m=>!m.definition.enabled),'catch-up preserves local pauses, including the source-paused POST');assert.deepEqual(retained.map(m=>m.id).sort(),monitors.map(m=>m.id).sort());
   const resumed=retained.find(m=>m.id===first.id);assert.equal((await api(`/api/monitors/${first.id}`,{...resumed.definition,enabled:false},{},'PATCH')).status,200);
   console.log('PINGDOM-INVENTORY PASS: 12 source settings, 8 certificate companions, paused import/re-import, exact intervals/targets, signed scheduled HTTP/POST/body/headers/TCP/STARTTLS/ICMP/named-DNS execution and 7/30-day failure windows.');
