@@ -8392,7 +8392,7 @@
       "executable": false
     },
     "src/editor/monitor/discovery.mjs": {
-      "sha256": "87a6b4c20f5b3361958d9f6a4cb6640f93fbd01a4d5a8115f9dd5e5ba5c781e1",
+      "sha256": "3a06beb1e78d6364c689398c9f10c3efe396a10bef1e9d5c5c1a521496e0d8e3",
       "executable": false
     },
     "src/editor/monitor/erase.mjs": {
