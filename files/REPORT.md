@@ -69,3 +69,5 @@ The full plan is PLAN.md. Actual product/check receipts are RECEIPT.json, metada
 Explicitly selected non-secret packet files are published only under refs/heads/evidence/sd-uptime-release-0-5-12-refresh-1. Product checkout/head/index stay unchanged during evidence publication. Evidence publication is separate from READY/PUSHED custody and never proves acceptance or release completion. After verified evidence return, delete the successful scratch clone and its dependencies as required.
 
 Blocking issues: none observed locally. Terminal CI custody: READY: exact-SHA Verify completed successfully.
+
+Initial evidence transfer readback: the 27-file packet at a6229dae10c01fc57b2235ec096f1ffdec5b465d was fetched independently and every manifest/file hash matched. transfer-readback.json preserves that actual receipt. The final evidence publication adds this receipt and this report note; its exact head is carried in the terminal EVIDENCE line.

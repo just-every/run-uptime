@@ -13,10 +13,10 @@
       "sha256": "6477a73658e33d575836e551958070e6e4795f4439092465ce4ac49e5584869c"
     },
     {
-      "blob": "ade685832bd223af3b347b72b6fd1a9e9c0f891c",
-      "bytes": 8411,
+      "blob": "d2138e9666d16c351164458ad38b6698d8ec43ce",
+      "bytes": 8757,
       "path": "REPORT.md",
-      "sha256": "b9748b86d1b5482ea371a4921d9b2cfb223500b4d8795d63408d657962f90291"
+      "sha256": "8f3b44e5b5872d602c78548c250a89c178923410f71ac624181288f7b5e92e0e"
     },
     {
       "blob": "55bfeff023c4ae17dc59e12f86f446b1960e6b53",
@@ -155,6 +155,12 @@
       "bytes": 21,
       "path": "start-stamp.txt",
       "sha256": "c87a86f4b5d2ee97ccf4e85489c02ca4d1445cac59f36da4f260a40f920af716"
+    },
+    {
+      "blob": "52821d608c22be890041e24aec8daed98e4b666e",
+      "bytes": 5280,
+      "path": "transfer-readback.json",
+      "sha256": "4714210783171e4c5ba222aa5699136ee1e436d30006d08e02ea539852559531"
     },
     {
       "blob": "8bde231b6b4d04901f63fbc33d0e2b2f2050d1a0",
