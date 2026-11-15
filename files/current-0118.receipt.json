@@ -1,0 +1,33 @@
+{
+  "command": [
+    "unshare",
+    "--user",
+    "--map-root-user",
+    "--net",
+    "strace",
+    "-f",
+    "-e",
+    "trace=network",
+    "-o",
+    "/home/agent/rer-consolidation/work/gr-rer-dryrun-output-1/packet/current-0118.network.txt",
+    "/home/agent/rer-consolidation/work/gr-rer-dryrun-output-1/tools/node_modules/node/bin/node",
+    "/home/agent/rer-consolidation/work/gr-rer-dryrun-output-1/tools/node_modules/@runeditrun/rer/bin/rer.mjs",
+    "deploy",
+    "--dry-run"
+  ],
+  "cwd": "/home/agent/rer-consolidation/work/gr-rer-dryrun-output-1/uptime",
+  "environment_policy": "constructed allowlist only; isolated empty HOME; exact Node/pnpm PATH; CI=true; RER_NO_UPDATE_CHECK=1; RER_NODE_AUTO=0; WRANGLER_SEND_METRICS=false; TZ=UTC; LANG=C.UTF-8; no provider/application credentials or env-file",
+  "started_at": "2026-11-15T11:37:52Z",
+  "ended_at": "2026-11-15T11:38:22Z",
+  "exit_code": 0,
+  "heading_count": 2,
+  "completion_count": 2,
+  "stdout_bytes": 26,
+  "stderr_bytes": 27824,
+  "executed_rer_version": "0.2.118",
+  "consumer_tracked_pin": "0.2.113 (unchanged)",
+  "node_version": "v22.20.0",
+  "network_isolation": "new user and network namespaces; no external interfaces",
+  "outbound_syscall_lines": [],
+  "source_mode": "released npm 0.2.118"
+}

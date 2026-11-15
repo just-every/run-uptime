@@ -1,0 +1,22 @@
+{
+  "tag": "gr-rer-dryrun-output-1",
+  "status": "pushed-awaiting-ci",
+  "updated_at": "2026-11-15T11:47:10Z",
+  "repository": "runeditrun/base",
+  "branch": "cloud/gr-rer-dryrun-output-1",
+  "head": "34847bae3f640486f16d42affb2274f32075248a",
+  "pr_url": "https://github.com/runeditrun/base/pull/862",
+  "ci_run_ids": [
+    43710227680
+  ],
+  "ci_status": "in_progress (last observed exact-SHA discovery)",
+  "before_heading_count": 2,
+  "after_heading_count": 1,
+  "before_exit": 0,
+  "after_exit": 0,
+  "provider_requests": 0,
+  "clause_status_changes": [],
+  "uptime_status": "no-change; consumer only; no candidate or product push",
+  "blockers": [],
+  "evidence_publication": "separate evidence refs; not a READY or landing signal"
+}

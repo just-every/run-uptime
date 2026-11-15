@@ -1,0 +1,12 @@
+{
+  "assertions_passed": true,
+  "before_sections": 2,
+  "after_sections": 1,
+  "all_bullet_lines_identical": true,
+  "lines": [
+    "  - CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (Create an account API token at https://dash.cloudflare.com/profile/api-tokens with these account permissions: Workers Scripts: Edit, D1: Edit. Copy your account ID from the Cloudflare dashboard.)",
+    "  - OWNER_EMAIL",
+    "  - production sign-in mail: MAIL_FROM (a real sender on your provider's verified domain; bare address or Display Name <address>), MAIL_API_KEY or SENDGRID_API_KEY or MAIL_PROVIDER_API_KEY, or an approved Auth SSO install",
+    "  - owner name (--owner-name or rer setup)"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "commands": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "cwd": "uptime",
+      "exit_code": 0
+    },
+    {
+      "command": "npm install --prefix ../tools --no-audit --no-fund node@22.20.0 @runeditrun/rer@0.2.118",
+      "cwd": "uptime",
+      "exit_code": 0
+    },
+    {
+      "command": "pnpm install --filter seeds-base --frozen-lockfile",
+      "cwd": "base",
+      "exit_code": 0
+    }
+  ],
+  "published_rer_integrity": "sha512-bRR06ezNrbkyDYiyOFdQpKEkeBZZfql9OqYm+Nm625u6HcKE8PzUTghjQsIfkdDKjVxc3LzP10RrBiazTyELAg==",
+  "exact_node": "22.20.0",
+  "pnpm": "10.12.4"
+}

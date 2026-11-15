@@ -1,0 +1,249 @@
+1382  socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 21
+1382  bind(21, {sa_family=AF_UNIX, sun_path="/tmp/rer-job-4c02f4a2-a225-4adf-a7a3-9dbcf1b9bc9d.sock"}, 110) = 0
+1382  listen(21, 511)                   = 0
+1382  socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 22
+1382  bind(22, {sa_family=AF_UNIX, sun_path="/tmp/rer-policy-20b5f7d7-1f19-448e-9774-bba9c350a925.sock"}, 110) = 0
+1382  listen(22, 511)                   = 0
+1382  socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 21
+1382  bind(21, {sa_family=AF_UNIX, sun_path="/tmp/rer-job-3057e7b8-c0d3-4e96-9639-976b9e1cf32b.sock"}, 110) = 0
+1382  listen(21, 511)                   = 0
+1382  socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 22
+1382  bind(22, {sa_family=AF_UNIX, sun_path="/tmp/rer-policy-c8b695a0-4c47-4e2b-a041-1bf94c954f86.sock"}, 110) = 0
+1382  listen(22, 511)                   = 0
+1382  socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0, [23, 24]) = 0
+1382  setsockopt(23, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+1382  setsockopt(23, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+1382  setsockopt(24, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+1382  setsockopt(24, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+1382  socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0, [25, 26]) = 0
+1382  setsockopt(25, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+1382  setsockopt(25, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+1382  setsockopt(26, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+1382  setsockopt(26, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+1393  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1393  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1393  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1397  +++ exited with 0 +++
+1396  +++ exited with 0 +++
+1398  +++ exited with 0 +++
+1395  +++ exited with 0 +++
+1394  +++ exited with 0 +++
+1401  +++ exited with 0 +++
+1402  +++ exited with 0 +++
+1400  +++ exited with 0 +++
+1403  +++ exited with 0 +++
+1399  +++ exited with 0 +++
+1393  +++ exited with 0 +++
+1382  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1393, si_uid=0, si_status=0, si_utime=33 /* 0.33 s */, si_stime=18 /* 0.18 s */} ---
+1382  shutdown(25, SHUT_WR)             = 0
+1382  shutdown(23, SHUT_WR)             = 0
+1382  socket(AF_INET, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, IPPROTO_IP) = 23
+1382  setsockopt(23, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0
+1382  bind(23, {sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+1382  listen(23, 511)                   = 0
+1382  getsockname(23, {sa_family=AF_INET, sin_port=htons(36643), sin_addr=inet_addr("127.0.0.1")}, [128 => 16]) = 0
+1382  socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0, [23, 24]) = 0
+1382  setsockopt(23, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+1382  setsockopt(23, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+1382  setsockopt(24, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+1382  setsockopt(24, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+1382  socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0, [25, 26]) = 0
+1382  setsockopt(25, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+1382  setsockopt(25, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+1382  setsockopt(26, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+1382  setsockopt(26, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+1404  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1404  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1404  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1419  +++ exited with 0 +++
+1418  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1419, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---
+1420  +++ exited with 0 +++
+1418  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1420, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---
+1418  +++ exited with 0 +++
+1417  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1418, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---
+1417  +++ exited with 0 +++
+1416  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1417, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---
+1421  +++ exited with 0 +++
+1416  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1421, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(1, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(1, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1416  getsockname(2, {sa_family=AF_UNIX}, [128 => 2]) = 0
+1416  getsockopt(2, SOL_SOCKET, SO_TYPE, [1], [4]) = 0
+1428  +++ exited with 0 +++
+1429  +++ exited with 0 +++
+1438  +++ exited with 0 +++
+1435  +++ exited with 0 +++
+1434  +++ exited with 0 +++
+1433  +++ exited with 0 +++
+1436  +++ exited with 0 +++
+1432  +++ exited with 0 +++
+1431  +++ exited with 0 +++
+1437  +++ exited with 0 +++
+1430  +++ exited with 0 +++
+1426  +++ exited with 0 +++
+1424  +++ exited with 0 +++
+1425  +++ exited with 0 +++
+1423  +++ exited with 0 +++
+1422  +++ exited with 0 +++
+1443  +++ exited with 0 +++
+1446  +++ exited with 0 +++
+1445  +++ exited with 0 +++
+1444  +++ exited with 0 +++
+1440  +++ exited with 0 +++
+1439  +++ exited with 0 +++
+1427  +++ exited with 0 +++
+1442  +++ exited with 0 +++
+1441  +++ exited with 0 +++
+1416  +++ exited with 0 +++
+1415  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1416, si_uid=0, si_status=0, si_utime=862 /* 8.62 s */, si_stime=384 /* 3.84 s */} ---
+1415  +++ exited with 0 +++
+1404  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1415, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---
+1407  +++ exited with 0 +++
+1406  +++ exited with 0 +++
+1408  +++ exited with 0 +++
+1409  +++ exited with 0 +++
+1405  +++ exited with 0 +++
+1414  +++ exited with 0 +++
+1413  +++ exited with 0 +++
+1411  +++ exited with 0 +++
+1412  +++ exited with 0 +++
+1410  +++ exited with 0 +++
+1404  +++ exited with 0 +++
+1382  --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=1404, si_uid=0, si_status=0, si_utime=25 /* 0.25 s */, si_stime=9 /* 0.09 s */} ---
+1382  shutdown(25, SHUT_WR)             = 0
+1382  shutdown(23, SHUT_WR)             = 0
+1387  +++ exited with 0 +++
+1386  +++ exited with 0 +++
+1385  +++ exited with 0 +++
+1383  +++ exited with 0 +++
+1384  +++ exited with 0 +++
+1391  +++ exited with 0 +++
+1390  +++ exited with 0 +++
+1392  +++ exited with 0 +++
+1389  +++ exited with 0 +++
+1388  +++ exited with 0 +++
+1382  +++ exited with 0 +++

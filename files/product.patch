@@ -1,0 +1,114 @@
+commit 34847bae3f640486f16d42affb2274f32075248a
+Author:     Run Edit Run fleet <fleet@runeditrun.com>
+AuthorDate: Sun Nov 15 11:42:19 2026 +0000
+Commit:     Run Edit Run fleet <fleet@runeditrun.com>
+CommitDate: Sun Nov 15 11:42:19 2026 +0000
+
+    Render nested deploy dry-run summary once
+---
+ cli/deploy-command.mjs                               | 18 ++++++++++++------
+ default-seed/scripts/base-cli/cli/deploy-command.mjs | 18 ++++++++++++------
+ default-seed/scripts/base-cli/inventory.json         |  4 ++--
+ 3 files changed, 26 insertions(+), 14 deletions(-)
+
+diff --git a/cli/deploy-command.mjs b/cli/deploy-command.mjs
+index 02fb29c..80ff9d5 100644
+--- a/cli/deploy-command.mjs
++++ b/cli/deploy-command.mjs
+@@ -26,6 +26,10 @@ import { keepHookSecrets } from './deploy-secrets.mjs';
+ import { withoutLocalSettings, refuseLocalEnvOutput } from './local-env.mjs';
+ import { deployProductDirectory, deployProductArguments, DeployProductError } from './deploy-product.mjs';
+ 
++// A hook may wrap this controller. Its needs return to the caller, which renders
++// the combined dry-run summary once after every local plan step has succeeded.
++const deferDryRunSummary = Symbol('defer dry-run summary');
++
+ export function validateDeployOptions(options) {
+  const changes = [options.remove && '--remove', options.setSecret && '--set-secret', options.unsetSecret && '--unset-secret', options.rotateSecret && '--rotate-secret', options.reopenInstallationKey && '--reopen-installation-key'].filter(Boolean);
+  if (changes.length > 1 || changes.length && options.dryRun) throw invalid(`Use ${changes.join(', ')}${options.dryRun ? ' and --dry-run' : ''} on separate runs.`);
+@@ -88,16 +92,18 @@ export async function deployCommand(context) {
+   const plan = result?.plan ?? (!planned ? undefined : (await owner(['local-plan', '--declaration', path, '--environment', options.environment ?? 'production', ...await deployProductArguments(root, deployProductDirectory(declaration))], production.env, { cwd: root, localOnlyKeys })).plan);
+   result = { ...result, dryRun: true, deployed: false, providerChecked: false, plan };
+   const { signIn, mailOff } = await requireProductionAuth({ root, declaration, env: production.env, setupManifest, setupSeed: context.setupSeed, adapter, declarationPath: path, options }) ?? {};
+-  if (mailOff) store.report(mailOffNotice(mailOff, options.environment ?? 'production'), { names: mailOff.credentialNames });
+-  // The one completion line: rer's own plan step (or its deliberate skip) succeeded. A hook's own line says only that the hook finished.
+-  store.report('deploy: local dry run complete; no credentials were needed, no Cloudflare requests were made and nothing was changed remotely. Target secrets and remote readiness were not checked.');
+   const needed = [...new Set([...neededForRealDeploy({ declaration, env: production.env, signIn, secretsChecked: false }), ...(result.neededForRealDeploy ?? []), ...(extraNeeded ?? [])])];
+-  reportNeeded(store, needed);
+-  if (declaration.secrets?.some(item => item.binding === 'INSTALLATION_KEY')) store.report('deploy: INSTALLATION_KEY is a private generated binding; INSTALLATION_KEY_PREVIOUS is optional and managed only during rotation or an explicit retired-key reopen. Values are withheld.');
++  if (!context[deferDryRunSummary]) {
++   if (mailOff) store.report(mailOffNotice(mailOff, options.environment ?? 'production'), { names: mailOff.credentialNames });
++   // The one completion line: rer's own plan step (or its deliberate skip) succeeded. A hook's own line says only that the hook finished.
++   store.report('deploy: local dry run complete; no credentials were needed, no Cloudflare requests were made and nothing was changed remotely. Target secrets and remote readiness were not checked.');
++   reportNeeded(store, needed);
++   if (declaration.secrets?.some(item => item.binding === 'INSTALLATION_KEY')) store.report('deploy: INSTALLATION_KEY is a private generated binding; INSTALLATION_KEY_PREVIOUS is optional and managed only during rotation or an explicit retired-key reopen. Values are withheld.');
++  }
+   return needed.length && result && typeof result === 'object' ? { ...result, neededForRealDeploy: needed } : result;
+  };
+  const runHook = hookContext => options.dryRun ? withLocalDeployPlan(async () => {
+-  try { return await adapter.deploy(hookContext); }
++  try { return await adapter.deploy({ ...hookContext, [deferDryRunSummary]: true }); }
+   catch (error) {
+    // Production-only owner/input preflights may refuse before the hook builds.
+    // An offline plan defers those inputs, retaining the refusal as guidance.
+diff --git a/default-seed/scripts/base-cli/cli/deploy-command.mjs b/default-seed/scripts/base-cli/cli/deploy-command.mjs
+index 02fb29c..80ff9d5 100644
+--- a/default-seed/scripts/base-cli/cli/deploy-command.mjs
++++ b/default-seed/scripts/base-cli/cli/deploy-command.mjs
+@@ -26,6 +26,10 @@ import { keepHookSecrets } from './deploy-secrets.mjs';
+ import { withoutLocalSettings, refuseLocalEnvOutput } from './local-env.mjs';
+ import { deployProductDirectory, deployProductArguments, DeployProductError } from './deploy-product.mjs';
+ 
++// A hook may wrap this controller. Its needs return to the caller, which renders
++// the combined dry-run summary once after every local plan step has succeeded.
++const deferDryRunSummary = Symbol('defer dry-run summary');
++
+ export function validateDeployOptions(options) {
+  const changes = [options.remove && '--remove', options.setSecret && '--set-secret', options.unsetSecret && '--unset-secret', options.rotateSecret && '--rotate-secret', options.reopenInstallationKey && '--reopen-installation-key'].filter(Boolean);
+  if (changes.length > 1 || changes.length && options.dryRun) throw invalid(`Use ${changes.join(', ')}${options.dryRun ? ' and --dry-run' : ''} on separate runs.`);
+@@ -88,16 +92,18 @@ export async function deployCommand(context) {
+   const plan = result?.plan ?? (!planned ? undefined : (await owner(['local-plan', '--declaration', path, '--environment', options.environment ?? 'production', ...await deployProductArguments(root, deployProductDirectory(declaration))], production.env, { cwd: root, localOnlyKeys })).plan);
+   result = { ...result, dryRun: true, deployed: false, providerChecked: false, plan };
+   const { signIn, mailOff } = await requireProductionAuth({ root, declaration, env: production.env, setupManifest, setupSeed: context.setupSeed, adapter, declarationPath: path, options }) ?? {};
+-  if (mailOff) store.report(mailOffNotice(mailOff, options.environment ?? 'production'), { names: mailOff.credentialNames });
+-  // The one completion line: rer's own plan step (or its deliberate skip) succeeded. A hook's own line says only that the hook finished.
+-  store.report('deploy: local dry run complete; no credentials were needed, no Cloudflare requests were made and nothing was changed remotely. Target secrets and remote readiness were not checked.');
+   const needed = [...new Set([...neededForRealDeploy({ declaration, env: production.env, signIn, secretsChecked: false }), ...(result.neededForRealDeploy ?? []), ...(extraNeeded ?? [])])];
+-  reportNeeded(store, needed);
+-  if (declaration.secrets?.some(item => item.binding === 'INSTALLATION_KEY')) store.report('deploy: INSTALLATION_KEY is a private generated binding; INSTALLATION_KEY_PREVIOUS is optional and managed only during rotation or an explicit retired-key reopen. Values are withheld.');
++  if (!context[deferDryRunSummary]) {
++   if (mailOff) store.report(mailOffNotice(mailOff, options.environment ?? 'production'), { names: mailOff.credentialNames });
++   // The one completion line: rer's own plan step (or its deliberate skip) succeeded. A hook's own line says only that the hook finished.
++   store.report('deploy: local dry run complete; no credentials were needed, no Cloudflare requests were made and nothing was changed remotely. Target secrets and remote readiness were not checked.');
++   reportNeeded(store, needed);
++   if (declaration.secrets?.some(item => item.binding === 'INSTALLATION_KEY')) store.report('deploy: INSTALLATION_KEY is a private generated binding; INSTALLATION_KEY_PREVIOUS is optional and managed only during rotation or an explicit retired-key reopen. Values are withheld.');
++  }
+   return needed.length && result && typeof result === 'object' ? { ...result, neededForRealDeploy: needed } : result;
+  };
+  const runHook = hookContext => options.dryRun ? withLocalDeployPlan(async () => {
+-  try { return await adapter.deploy(hookContext); }
++  try { return await adapter.deploy({ ...hookContext, [deferDryRunSummary]: true }); }
+   catch (error) {
+    // Production-only owner/input preflights may refuse before the hook builds.
+    // An offline plan defers those inputs, retaining the refusal as guidance.
+diff --git a/default-seed/scripts/base-cli/inventory.json b/default-seed/scripts/base-cli/inventory.json
+index bae9160..025c41f 100644
+--- a/default-seed/scripts/base-cli/inventory.json
++++ b/default-seed/scripts/base-cli/inventory.json
+@@ -1,6 +1,6 @@
+ {
+   "version": 1,
+-  "cliVersion": "0.2.118-dev.g0ef27d31",
++  "cliVersion": "0.2.118",
+   "onboarding": "../base-onboarding",
+   "onboardingFiles": {
+     "README.md": {
+@@ -799,7 +799,7 @@
+     },
+     "cli/deploy-command.mjs": {
+       "source": "cli/deploy-command.mjs",
+-      "sha256": "793eb5906fe3041e2fa97377e77e14e90f952711feff60419da6b1252baad168"
++      "sha256": "317770e7356f4732eeaac5b498631f0ad8a75a6c33bba0d07e370b0be8f04812"
+     },
+     "cli/deploy-config.mjs": {
+       "source": "cli/deploy-config.mjs",

@@ -1,0 +1,6 @@
+{
+  "repository": "runeditrun/base",
+  "branch": "cloud/gr-rer-dryrun-output-1",
+  "initial_head": "c3a38757f6ab6246f61aeca5eb9f4f83efd5f88f",
+  "tracked_status": "M cli/deploy-command.mjs\n M default-seed/scripts/base-cli/cli/deploy-command.mjs\n M default-seed/scripts/base-cli/inventory.json"
+}

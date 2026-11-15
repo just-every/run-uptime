@@ -1,0 +1,18 @@
+{
+  "repository": "just-every/run-uptime",
+  "status": "no-change",
+  "role": "unchanged real consumer; no product candidate",
+  "head": "2045014b15f76380b5d7493c0c42b2caa430f88b",
+  "branch": "cloud/gr-rer-dryrun-output-1",
+  "tracked_status": "",
+  "package_pin": "0.2.113",
+  "installed_package_restored": "0.2.113",
+  "contract_before_sha256": "15145d9425bbeedd7716aaa06134e91aedbcc8f76c0ef93847220175fc4f9ca5",
+  "contract_after_sha256": "15145d9425bbeedd7716aaa06134e91aedbcc8f76c0ef93847220175fc4f9ca5",
+  "clause_status_changes": [],
+  "product_commit_created": false,
+  "product_branch_pushed": false,
+  "pr_created": false,
+  "ci_run_ids": [],
+  "notes": "Only disposable ignored dependencies/build products were used; no adoption, contract, pin, lockfile or application source change."
+}

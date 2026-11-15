@@ -1,0 +1,158 @@
+TAP version 13
+# (node:2161) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a dry run does not plan against the stand-in declaration a validated hook names, and prints one completion line
+ok 1 - a dry run does not plan against the stand-in declaration a validated hook names, and prints one completion line
+  ---
+  duration_ms: 755.200292
+  type: 'test'
+  ...
+# Subtest: a dry run whose own plan step fails prints no completion line and names the step, not a deployment record
+ok 2 - a dry run whose own plan step fails prints no completion line and names the step, not a deployment record
+  ---
+  duration_ms: 576.943157
+  type: 'test'
+  ...
+# Subtest: a dry run lists the owner name a real deploy still needs until it is supplied
+ok 3 - a dry run lists the owner name a real deploy still needs until it is supplied
+  ---
+  duration_ms: 954.422649
+  type: 'test'
+  ...
+# (node:2243) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: the public deploy dry run reaches offline seed hooks and reports unchecked providers with or without a hook
+ok 4 - the public deploy dry run reaches offline seed hooks and reports unchecked providers with or without a hook
+  ---
+  duration_ms: 4343.917315
+  type: 'test'
+  ...
+# Subtest: deploy dry run prints a local plan without credentials or provider access while deploy keeps its refusals
+ok 5 - deploy dry run prints a local plan without credentials or provider access while deploy keeps its refusals
+  ---
+  duration_ms: 6972.669306
+  type: 'test'
+  ...
+# Dry run: exit 0; deploy: complete (exit 0)\\nChecking pinned pnpm\\n10.12.4\\nWould deploy:\\n  Worker: synthetic-base-1-production\\n  D1 database: synthetic-base-1-production-db (1 declared migration)\\n  Secret inputs: 2 required, 1 optional\\n  Public settings: 3; scheduled triggers: 0\\n  Cloudflare token permissions: Workers Scripts: Edit, D1: Edit\\n  Pending migrations: unknown until the hosted databases are checked.\\nFull plan: repeat this command with --json. Redacted capture log: .seed/installer/install.log\\ndeploy: local dry run complete; no credentials were needed, no Cloudflare requests were made and nothing was changed remotely. Target secrets and remote readiness were not checked.\\nNeeded for a real deploy (this dry run went ahead without them):\\n  - CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (Create an account API token at https://dash.cloudflare.com/profile/api-tokens with these account permissions: Workers Scripts: Edit, D1: Edit. Copy your account ID from the Cloudflare dashboard.)\\n  - FIXTURE_GOOGLE_ID\\n  - FIXTURE_GOOGLE_SECRET\\n
+# Real deploy: exit 3; CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required to deploy to your Cloudflare account. Nothing was deployed.\\nCreate an account API token at https://dash.cloudflare.com/profile/api-tokens with these account permissions: Workers Scripts: Edit, D1: Edit. Copy your account ID from the Cloudflare dashboard.\\nSet them in your environment or an owned 0600 --env-file, then run the same deploy command again.
+# Subtest: a dry run whose seed step stops on missing inputs prints its list once, then one failure and the same dry run to repeat
+ok 6 - a dry run whose seed step stops on missing inputs prints its list once, then one failure and the same dry run to repeat
+  ---
+  duration_ms: 1592.646042
+  type: 'test'
+  ...
+# (node:2687) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Checking pinned pnpm
+# 10.12.4
+# Checking pinned pnpm
+# 10.12.4
+# Checking pinned pnpm
+# 10.12.4
+# Deploying the production environment to your Cloudflare account.
+# Your application is live on your Cloudflare account at https://fixture-production.fixture-account.workers.dev.
+# Checking pinned pnpm
+# 10.12.4
+# Deploying the production environment to your Cloudflare account.
+# Your application is live on your Cloudflare account at https://fixture-production.fixture-account.workers.dev.
+# Subtest: rer deploy accepts the declared adapter mail credential and preserves its environment mapping
+    # Subtest: sendgrid
+    ok 1 - sendgrid
+      ---
+      duration_ms: 2201.794186
+      type: 'test'
+      ...
+# Checking pinned pnpm
+# 10.12.4
+# Checking pinned pnpm
+# 10.12.4
+# Checking pinned pnpm
+# 10.12.4
+# Deploying the production environment to your Cloudflare account.
+# Your application is live on your Cloudflare account at https://fixture-production.fixture-account.workers.dev.
+# Checking pinned pnpm
+# 10.12.4
+# Deploying the production environment to your Cloudflare account.
+# Your application is live on your Cloudflare account at https://fixture-production.fixture-account.workers.dev.
+    # Subtest: resend
+    ok 2 - resend
+      ---
+      duration_ms: 1759.035778
+      type: 'test'
+      ...
+    1..2
+ok 7 - rer deploy accepts the declared adapter mail credential and preserves its environment mapping
+  ---
+  duration_ms: 3963.864591
+  type: 'test'
+  ...
+# Subtest: public deploy dry-run accepts reserved fixture senders while real deploy preserves sender refusals
+ok 8 - public deploy dry-run accepts reserved fixture senders while real deploy preserves sender refusals
+  ---
+  duration_ms: 26254.393261
+  type: 'test'
+  ...
+# Human fixture dry run: exit 0; deploy: complete (exit 0)\\nChecking pinned pnpm\\n10.12.4\\nWould deploy:\\n  Worker: fixture-production\\n  D1 databases: none\\n  R2 storage: fixture-production-files\\n  Secret inputs: 0 required, 0 optional\\n  Public settings: 3; scheduled triggers: 0\\n  Cloudflare token permissions: Workers Scripts: Edit, Workers R2 Storage: Edit\\n  Pending migrations: unknown until the hosted databases are checked.\\nFull plan: repeat this command with --json. Redacted capture log: .seed/installer/install.log\\ndeploy: local dry run complete; no credentials were needed, no Cloudflare requests were made and nothing was changed remotely. Target secrets and remote readiness were not checked.\\nNeeded for a real deploy (this dry run went ahead without them):\\n  - CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (Create an account API token at https://dash.cloudflare.com/profile/api-tokens with these account permissions: Workers Scripts: Edit, Workers R2 Storage: Edit. Copy your account ID from the Cloudflare dashboard.)\\n  - production sign-in mail: MAIL_FROM is invalid or a placeholder sender. Replace it with a real sender address on your mail provider's verified domain (a bare address or Display Name <address>). Edit vars.MAIL_FROM in deploy.json, then run rer deploy --dry-run again.\\nReal deploy: exit 4; deploy: failed (exit 4)\\nChecking pinned pnpm\\n10.12.4\\nMAIL_FROM is invalid or a placeholder sender. Replace it with a real sender address on your mail provider's verified domain (a bare address or Display Name <address>). Edit vars.MAIL_FROM in deploy.json, then run rer deploy --dry-run again. Nothing was built or uploaded.\\n
+# JSON fixture dry run: exit 0; {"version":1,"verb":"deploy","event":"result","ok":true,"exitCode":0,"dryRun":true,"deployed":false,"providerChecked":false,"plan":{"worker":"fixture-production","d1":[],"r2":[{"binding":"FILES","name":"fixture-production-files"}],"kv":[],"queues":[],"durableObjects":[],"services":[],"secrets":[],"vars":["MAIL_PROVIDER","MAIL_FROM","MAIL_API_KEY"],"crons":[]},"neededForRealDeploy":["CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (Create an account API token at https://dash.cloudflare.com/profile/api-tokens with these account permissions: Workers Scripts: Edit, Workers R2 Storage: Edit. Copy your account ID from the Cloudflare dashboard.)","production sign-in mail: MAIL_FROM is invalid or a placeholder sender. Replace it with a real sender address on your mail provider's verified domain (a bare address or Display Name <address>). Edit vars.MAIL_FROM in deploy.json, then run rer deploy --dry-run again."]}\\nChecking pinned pnpm\\n10.12.4\\nWould deploy:\\n  Worker: fixture-production\\n  D1 databases: none\\n  R2 storage: fixture-production-files\\n  Secret inputs: 0 required, 0 optional\\n  Public settings: 3; scheduled triggers: 0\\n  Cloudflare token permissions: Workers Scripts: Edit, Workers R2 Storage: Edit\\n  Pending migrations: unknown until the hosted databases are checked.\\nFull plan: repeat this command with --json. Redacted capture log: .seed/installer/install.log\\ndeploy: local dry run complete; no credentials were needed, no Cloudflare requests were made and nothing was changed remotely. Target secrets and remote readiness were not checked.\\nNeeded for a real deploy (this dry run went ahead without them):\\n  - CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (Create an account API token at https://dash.cloudflare.com/profile/api-tokens with these account permissions: Workers Scripts: Edit, Workers R2 Storage: Edit. Copy your account ID from the Cloudflare dashboard.)\\n  - production sign-in mail: MAIL_FROM is invalid or a placeholder sender. Replace it with a real sender address on your mail provider's verified domain (a bare address or Display Name <address>). Edit vars.MAIL_FROM in deploy.json, then run rer deploy --dry-run again.\\nReal deploy: exit 4; {"version":1,"verb":"deploy","event":"error","code":"safety_refusal","message":"MAIL_FROM is invalid or a placeholder sender. Replace it with a real sender address on your mail provider's verified domain (a bare address or Display Name <address>). Edit vars.MAIL_FROM in deploy.json, then run rer deploy --dry-run again. Nothing was built or uploaded.","exitCode":4}\\n{"version":1,"verb":"deploy","event":"result","ok":false,"exitCode":4}\\nChecking pinned pnpm\\n10.12.4\\n
+# Subtest: rer deploy --dry-run names a mapped mail credential once
+ok 9 - rer deploy --dry-run names a mapped mail credential once
+  ---
+  duration_ms: 466.732806
+  type: 'test'
+  ...
+# Subtest: the public secret-only deploy enforces seed policy on mapped and direct credentials before provider access
+ok 10 - the public secret-only deploy enforces seed policy on mapped and direct credentials before provider access
+  ---
+  duration_ms: 4174.562405
+  type: 'test'
+  ...
+# MAIL_PROVIDER_API_KEY: exit=3; provider requests=0
+# EMAIL_API_KEY: exit=3; provider requests=0
+# bin/rer.mjs: exit=3; provider requests=0
+# (node:3829) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: rer deploy (native route) says mail is off only while no declared mail secret is bound, and set-secret lines keep secret names intact
+ok 11 - rer deploy (native route) says mail is off only while no declared mail secret is bound, and set-secret lines keep secret names intact
+  ---
+  duration_ms: 3564.344426
+  type: 'test'
+  ...
+# Subtest: rer deploy (hook route) says mail is off only while no declared mail secret is bound, and set-secret lines keep secret names intact
+ok 12 - rer deploy (hook route) says mail is off only while no declared mail secret is bound, and set-secret lines keep secret names intact
+  ---
+  duration_ms: 3252.409215
+  type: 'test'
+  ...
+# Subtest: a value that appears inside other text is still redacted, while the names around it are not
+ok 13 - a value that appears inside other text is still redacted, while the names around it are not
+  ---
+  duration_ms: 1403.244177
+  type: 'test'
+  ...
+# Subtest: a seed that declares no mail credential names keeps today's off line even with mail secrets bound
+ok 14 - a seed that declares no mail credential names keeps today's off line even with mail secrets bound
+  ---
+  duration_ms: 1426.643824
+  type: 'test'
+  ...
+# Subtest: a dry run says it did not read the bound secrets instead of claiming no mail credential is bound
+ok 15 - a dry run says it did not read the bound secrets instead of claiming no mail credential is bound
+  ---
+  duration_ms: 430.982963
+  type: 'test'
+  ...
+# Subtest: mail.credentialSecretNames must name secrets the deployment declares, without duplicates
+ok 16 - mail.credentialSecretNames must name secrets the deployment declares, without duplicates
+  ---
+  duration_ms: 1306.564281
+  type: 'test'
+  ...
+1..16
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62039.425629

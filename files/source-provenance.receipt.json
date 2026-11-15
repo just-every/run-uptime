@@ -1,0 +1,15 @@
+{
+  "before_base_sha": "c3a38757f6ab6246f61aeca5eb9f4f83efd5f88f",
+  "candidate_sha": "34847bae3f640486f16d42affb2274f32075248a",
+  "source_path": "cli/deploy-command.mjs",
+  "released_version": "0.2.118",
+  "released_source_sha256": "793eb5906fe3041e2fa97377e77e14e90f952711feff60419da6b1252baad168",
+  "base_before_source_sha256": "793eb5906fe3041e2fa97377e77e14e90f952711feff60419da6b1252baad168",
+  "candidate_source_sha256": "317770e7356f4732eeaac5b498631f0ad8a75a6c33bba0d07e370b0be8f04812",
+  "packed_candidate_source_sha256": "317770e7356f4732eeaac5b498631f0ad8a75a6c33bba0d07e370b0be8f04812",
+  "maintained_copy_source_sha256": "317770e7356f4732eeaac5b498631f0ad8a75a6c33bba0d07e370b0be8f04812",
+  "packed_candidate_tarball_sha256": "f6b07611325cf1a2bc1ceed44ae44cbd12f08510471f56775e4c5070378b49e5",
+  "build_command": "node scripts/rer-package.mjs --out ../candidate-artifacts",
+  "tracked_uptime_pin_unchanged": "0.2.113",
+  "temporary_consumer_resolution": "node_modules symlink only; released and candidate packages outside checkout; project dispatcher bin/rer.mjs; no tracked pin or lockfile edit"
+}

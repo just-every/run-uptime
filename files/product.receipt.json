@@ -1,0 +1,25 @@
+{
+  "tag": "gr-rer-dryrun-output-1",
+  "repository": "runeditrun/base",
+  "branch": "cloud/gr-rer-dryrun-output-1",
+  "head": "34847bae3f640486f16d42affb2274f32075248a",
+  "tree": "792ce8c8f75c58fa8adb8e149c99db0d722408e1",
+  "origin_main": "c3a38757f6ab6246f61aeca5eb9f4f83efd5f88f",
+  "remote_branch_head": "34847bae3f640486f16d42affb2274f32075248a",
+  "remote_matches": true,
+  "tracked_status": "",
+  "candidate_commits": [
+    "34847bae3f640486f16d42affb2274f32075248a"
+  ],
+  "changed_files": [
+    "cli/deploy-command.mjs",
+    "default-seed/scripts/base-cli/cli/deploy-command.mjs",
+    "default-seed/scripts/base-cli/inventory.json"
+  ],
+  "pr_url": "https://github.com/runeditrun/base/pull/862",
+  "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "trailers": "",
+  "hooks_active": true,
+  "captured_at": "2026-11-15T11:43:41Z"
+}

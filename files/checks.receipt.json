@@ -1,0 +1,30 @@
+{
+  "touched_tests": {
+    "command": "node --test --test-concurrency=1 cli/deploy-dry-run.test.mjs cli/deploy-dry-run-hook.test.mjs cli/deploy-mail-notice.test.mjs cli/deploy-mail-binding.test.mjs",
+    "exit_code": 0,
+    "tests": 18,
+    "pass": 18,
+    "fail": 0
+  },
+  "compiler": {
+    "command": "node ../uptime/node_modules/typescript/bin/tsc --allowJs --noEmit --skipLibCheck --target ES2022 --module NodeNext --typeRoots ../uptime/node_modules/@types cli/deploy-command.mjs",
+    "exit_code": 0,
+    "scope": "JavaScript compiler/import graph validation; no checkJs strict inference claim"
+  },
+  "export_check": {
+    "command": "node --test --test-concurrency=1 --test-name-pattern=\"portable CLI source inventory is deterministic\" cli/cli.test.mjs",
+    "exit_code": 0,
+    "pass": 1,
+    "fail": 0
+  },
+  "diff_check": {
+    "command": "git diff --check",
+    "exit_code": 0
+  },
+  "exporter": {
+    "command": "node scripts/export-cli.mjs default-seed",
+    "exit_code": 0
+  },
+  "full_suite": "not run locally; natural exact-SHA PR Verify is the full wall",
+  "permanent_tests_added": 0
+}

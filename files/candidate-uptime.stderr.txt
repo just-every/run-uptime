@@ -1,0 +1,555 @@
+Checking pinned pnpm
+10.12.4
+Building your application
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../base/run-site" without a file extension (src/site/docs/build/site.ts:2:44). Add the file extension
+  - import "../../run" without a file extension (src/site/docs/build/site.ts:3:21). Add the file extension
+  - import "./icon-head" without a file extension (src/base/run-site.ts:1:26). Add the file extension
+  - import "../base/run-pricing" without a file extension (src/site/run.ts:1:28). Add the file extension
+  - import "./run-chooser-style" without a file extension (src/base/run-site.ts:2:29). Add the file extension
+  - import "../base/run-site" without a file extension (src/site/run.ts:2:30). Add the file extension
+  - import "./identity" without a file extension (src/base/run-site.ts:11:53). Add the file extension
+  - import "./theme-frame" without a file extension (src/base/run-site.ts:12:21). Add the file extension
+  - import "./hosting-page" without a file extension (src/base/run-site.ts:13:34). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+vite v8.2.4 building client environment for production...
+transforming...
+✓ 240 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/client/.assetsignore                                0.02 kB
+dist/client/assets/SiteHeader-DgNqAB8-.css               7.65 kB │ gzip:   2.52 kB
+dist/client/assets/styles-CspfDIiD.css                  10.23 kB │ gzip:   2.88 kB
+dist/client/assets/_console-CLxSzSu9.js                  0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors._id.edit-B6nzK_sT.js     0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors._id.index-C8lmHdx1.js    0.07 kB │ gzip:   0.08 kB
+dist/client/assets/app.monitors.new-B6nzK_sT.js          0.07 kB │ gzip:   0.08 kB
+dist/client/assets/useRouter-CwjitLz4.js                 0.15 kB │ gzip:   0.14 kB
+dist/client/assets/docs.index-D4Co9aBZ.js                1.51 kB │ gzip:   0.57 kB
+dist/client/assets/SiteHeader-lq6RhGfc.js                2.47 kB │ gzip:   0.99 kB
+dist/client/assets/docs._slug-COiUCUfV.js                3.56 kB │ gzip:   1.24 kB
+dist/client/assets/preload-helper-DB7eREMW.js            6.82 kB │ gzip:   3.02 kB
+dist/client/assets/styles-fFZTPy7p.js                    7.28 kB │ gzip:   2.60 kB
+dist/client/assets/jsx-runtime-Cltr0gcK.js               8.43 kB │ gzip:   3.21 kB
+dist/client/assets/react-CgYkgSSX.js                     9.38 kB │ gzip:   3.58 kB
+dist/client/assets/NotFound-BG9K3c7l.js                 12.22 kB │ gzip:   4.14 kB
+dist/client/assets/index-Bb0FLMxw.js                   810.59 kB │ gzip: 252.88 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.81s
+[PLUGIN_TIMINGS] Plugin hooks ran for 3.1s of this 3.8s build (83%).
+The slowest hooks, timed inside each callback (the wait before a callback starts is excluded, the time it awaits is included):
+  - rer:private-archives writeBundle (33%, 1.2s, 1 call)
+Additional hook time came from the hooks below and from hooks under 1s.
+2 hooks are listed without a time. Their calls overlapped, so the time inside one call includes work from other calls. To find their cost, profile the build with `node --cpu-prof`:
+  - tanstack-start-core:import-protection resolveId (574 calls)
+  - vite:asset load (6 calls)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+vite v8.2.4 building ssr environment for production...
+transforming...
+✓ 1749 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/server/wrangler.json                                           1.56 kB │ gzip:   0.76 kB
+dist/server/.vite/manifest.json                                    11.42 kB │ gzip:   1.65 kB
+dist/server/assets/SiteHeader-DgNqAB8-.css                          7.65 kB │ gzip:   2.52 kB
+dist/server/assets/styles-CspfDIiD.css                             10.23 kB │ gzip:   2.88 kB
+dist/server/assets/_console-Ba5X7t_q.js                             0.20 kB │ gzip:   0.15 kB
+dist/server/assets/app.monitors.new-C0bawMUp.js                     0.22 kB │ gzip:   0.16 kB
+dist/server/assets/app.monitors._id.index-DXboJ7oU.js               0.22 kB │ gzip:   0.17 kB
+dist/server/assets/app.monitors._id.edit-B9vCdBwx.js                0.23 kB │ gzip:   0.17 kB
+dist/server/assets/empty-plugin-adapters-D_0twvAa.js                0.28 kB │ gzip:   0.18 kB
+dist/server/assets/start-Bp2t1o0g.js                                0.28 kB │ gzip:   0.20 kB
+dist/server/assets/useRouter-DVA3ZGiS.js                            1.15 kB │ gzip:   0.54 kB
+dist/server/assets/rolldown-runtime-DC62tzP2.js                     1.44 kB │ gzip:   0.67 kB
+dist/server/assets/useMatch-DKHsqT--.js                             1.53 kB │ gzip:   0.71 kB
+dist/server/assets/monitor-editor-path-DI1AzMkS.js                  1.59 kB │ gzip:   0.61 kB
+dist/server/assets/_tanstack-start-manifest_v-Don_MNdS.js           2.55 kB │ gzip:   0.70 kB
+dist/server/assets/docs.index-BFO_Zi37.js                           3.70 kB │ gzip:   1.02 kB
+dist/server/assets/crypto-c5c57a0W.js                               4.29 kB │ gzip:   1.61 kB
+dist/server/assets/hash-CtBERG7v.js                                 4.66 kB │ gzip:   2.14 kB
+dist/server/assets/storage-CzrwTL5J.js                              5.13 kB │ gzip:   2.06 kB
+dist/server/assets/SiteHeader-Cgg1BjtJ.js                           5.70 kB │ gzip:   1.73 kB
+dist/server/assets/tslib.es6-CQmLnqu5.js                            5.75 kB │ gzip:   2.26 kB
+dist/server/assets/react-dom-OB40rE-n.js                            6.67 kB │ gzip:   1.97 kB
+dist/server/assets/docs._slug-BCEl5p7D.js                           8.39 kB │ gzip:   2.27 kB
+dist/server/assets/alert-drill-scheduler.server-DPyCuC3i.js         8.51 kB │ gzip:   2.60 kB
+dist/server/assets/ClientOnly-B5BL1WjV.js                           9.40 kB │ gzip:   3.45 kB
+dist/server/assets/styles-BkAVAmpW.js                              13.71 kB │ gzip:   3.91 kB
+dist/server/assets/NotFound-DSYJyq8U.js                            13.99 kB │ gzip:   4.50 kB
+dist/server/assets/useSelector-BwnDjWY2.js                         15.48 kB │ gzip:   5.32 kB
+dist/server/assets/react-B-MKOOcn.js                               16.24 kB │ gzip:   5.02 kB
+dist/server/assets/jsx-runtime-vOMkI1k2.js                         17.14 kB │ gzip:   4.48 kB
+dist/server/assets/notification-credentials.server-DQN3SciC.js     20.94 kB │ gzip:   6.16 kB
+dist/server/assets/crypto-BWdMWgnW.js                              27.53 kB │ gzip:   8.73 kB
+dist/server/assets/protocol-pd-B2lzU.js                            29.02 kB │ gzip:   7.91 kB
+dist/server/assets/Match-qokUVZx6.js                              122.96 kB │ gzip:  29.80 kB
+dist/server/assets/undo-snapshot-CFNM5wYx.js                      297.39 kB │ gzip:  77.28 kB
+dist/server/assets/router-BqnAMQ83.js                             618.69 kB │ gzip: 177.27 kB
+dist/server/assets/authority.server-CfIPaZr1.js                   851.31 kB │ gzip: 206.38 kB
+dist/server/assets/archive.server-BIPruIPp.js                   1,407.86 kB │ gzip: 362.97 kB
+dist/server/assets/pdf-BfuqqyrX.js                              1,958.74 kB │ gzip: 622.61 kB
+dist/server/index.js                                            2,901.39 kB │ gzip: 713.41 kB
+
+[INEFFECTIVE_DYNAMIC_IMPORT] src/domain/notification-credentials.server.ts is dynamically imported by src/domain/notification-webhook.ts but also statically imported by src/domain/alert-drill-scheduler.server.ts, src/domain/alert-drills.server.ts, src/domain/alert-teams.server.ts, src/domain/archive.server.ts, src/domain/health.server.ts, ..., dynamic import will not move module into another chunk.
+
+✓ built in 5.98s
+Your application is built
+deploy: resource plan (provider state not queried):
+{
+  "environment": "production",
+  "plan": {
+    "version": 1,
+    "worker": "uptime-monitor-production",
+    "compatibilityDate": "2026-09-08",
+    "compatibilityFlags": [
+      "nodejs_compat"
+    ],
+    "d1": [
+      {
+        "binding": "DB",
+        "name": "uptime-monitor-production-db",
+        "migrations": [
+          {
+            "name": "0001_uptime.sql",
+            "sha256": "9d847bb037a73619e59f913dad87a810fb455b5b0ec63d7f4f281d2143778d32"
+          },
+          {
+            "name": "0002_manual_slots.sql",
+            "sha256": "5f2ad59d50474e40a6b421394fc1c389242107b7dffa40cff180f195d428468c"
+          },
+          {
+            "name": "0003_runner_contact.sql",
+            "sha256": "65296e8ff0497d341d381ae0b5d9a2628e518b3516badcb7956d9f61d86c8336"
+          },
+          {
+            "name": "0004_heartbeat_authority.sql",
+            "sha256": "b1cfe257f174a89584e601c30b442f5a1fb88ac681fa7d6227815578db829a6f"
+          },
+          {
+            "name": "0005_operator_auth.sql",
+            "sha256": "86c87c79b2f8c2199a20908bf4451d3cdad61316aacec7d79c4851fd841ca04b"
+          },
+          {
+            "name": "0006_heartbeat_limits.sql",
+            "sha256": "ed553444fee71f41bd8727511daedff7add4699fb2cc9b7b1f974fe085f69e5c"
+          },
+          {
+            "name": "0007_integrations.sql",
+            "sha256": "1a24ad5a3b682c5bb3ab53966732a62ea97a7e7a23a16effbefbd0a908722509"
+          },
+          {
+            "name": "0008_notifications.sql",
+            "sha256": "6e40b68add4f3fae271c50d914f8be176de15fe1e6096341d55d56a70e2d77ad"
+          },
+          {
+            "name": "0009_notification_custody.sql",
+            "sha256": "5b3c25a4f96264bf8f82e06a18425013cbc5fca47da1790f511f5f3d07aa2e72"
+          },
+          {
+            "name": "0010_notification_recovery.sql",
+            "sha256": "a55da553cf20508fd333da769217ca8b78b7a5a00aa80a0aa4b008fa0d88536c"
+          },
+          {
+            "name": "0011_development_outbox.sql",
+            "sha256": "45d6b03eadfe1e91737763ae85cdff74e7216f859869e34431550bba48294996"
+          },
+          {
+            "name": "0012_archive_history.sql",
+            "sha256": "d8ed77a160a4fefc0935e6da34b97328b206861a32aa6699c40168d11c3089e6"
+          },
+          {
+            "name": "0013_runner_registration.sql",
+            "sha256": "0459ae91df9f6cccf18ad4f33a8e6a0300d6dd4d685dbaf2c8effdf9800a2414"
+          },
+          {
+            "name": "0014_portability.sql",
+            "sha256": "c7db9042f6d5c571e10297c02df858ad2f3466beb4fa85649fee407cc228747b"
+          },
+          {
+            "name": "0015_portability_restore_receipt.sql",
+            "sha256": "36c1df9c749d77b2a92b15e2daa55e9b9d1db0d5c4932a7bccd3c828fb02ee04"
+          },
+          {
+            "name": "0016_owner_claim.sql",
+            "sha256": "c3ffe653727bb4867b064dc2489df5013613f08f4b5998d2fe2b6a8485cdb815"
+          },
+          {
+            "name": "0017_first_run.sql",
+            "sha256": "7eb6957812d4a3ebc5459926af62a467646a213fbf64d33a6ce1ffe0ddd0befe"
+          },
+          {
+            "name": "0018_dev_sessions.sql",
+            "sha256": "18754583983c09f3624038131c1b03fadecb8375dddb0a5d09c449a4238ce298"
+          },
+          {
+            "name": "0019_domain_rules_step_up.sql",
+            "sha256": "e41c7f1381f547582148cdf247b521d7f166461ab24058ace95acdf21839e815"
+          },
+          {
+            "name": "0020_audit_erasure.sql",
+            "sha256": "5dcf619c5f1184b42890d685f9eddeb6a99b51fa6bd1e8b78a5d56fb2247eca3"
+          },
+          {
+            "name": "0021_public_rate_limits.sql",
+            "sha256": "2c2dc08a8c688cae7a2e2c1d20a94f8905b466b04595c12198bae6a2d2601952"
+          },
+          {
+            "name": "0022_resilient_monitoring.sql",
+            "sha256": "2f136e3052ee5613a256421a2ca1b2e4a5e6f9f1ad6162659a6d9fd2e1a9a7b1"
+          },
+          {
+            "name": "0023_migrated_runner_contact.sql",
+            "sha256": "c3de257b4004908b86e2912a271939c4416bfcf1911afebfa9184688b29eaf98"
+          },
+          {
+            "name": "0024_projection_transaction.sql",
+            "sha256": "f3eae25d0f09d148c9b94ce23e7a72f64a89ca5ddafc405ba1273fcc8659f3f1"
+          },
+          {
+            "name": "0025_attempt_checkpoint.sql",
+            "sha256": "baa73d311588fc1a93054115eae11f8b8ac129c95668e421adfca423a40a03c8"
+          },
+          {
+            "name": "0026_definition_batches.sql",
+            "sha256": "094700cf85f64723aa098f06e33f319f823d8eba87f8d45aa9d85d79e175ed18"
+          },
+          {
+            "name": "0027_alert_drills.sql",
+            "sha256": "3444df3b1ff86e4eefcdc546c1adf6193f74f7ec728bd7281bd63c0ecd8fa2cf"
+          },
+          {
+            "name": "0028_discovery_jobs.sql",
+            "sha256": "ba57ed03917d0ec39b608e3fa052e6f9539372cc9be4aa04b6b1ac6bd2d9b298"
+          },
+          {
+            "name": "0028_identity_providers.sql",
+            "sha256": "f879fb86b079e591dfe4a8513752a8e0394e252b940aa35d3f7430f27b7382c6"
+          },
+          {
+            "name": "0029_external_check.sql",
+            "sha256": "1dcbc18a0165104a2d7434e005330b49f401e6f81147b60e4e10b8906e975bc8"
+          },
+          {
+            "name": "0029_provider_control.sql",
+            "sha256": "f19cc7a792538a8ff36d87760a3cad58fccab0316984488d1834af14fbf37cfe"
+          },
+          {
+            "name": "0030_dependencies.sql",
+            "sha256": "3481d8aef870a9eda153a1617e99bb71a408e61a25dea92bb132efa7dd1c2526"
+          },
+          {
+            "name": "0031_idp_owner.sql",
+            "sha256": "a870102648a2226b18a2fe8168d096389b698af88333d112fa8137e582fc2b33"
+          },
+          {
+            "name": "0032_provider_pins.sql",
+            "sha256": "f0cfb6b3740869fd098ee449efb25807f8b1ef51c353fd07bafeb00ce38aeb63"
+          },
+          {
+            "name": "0033_dependency_setup.sql",
+            "sha256": "7b36f7e1fb0991fe3e808613d911393bbad3386ead06427082c69a48c5738108"
+          },
+          {
+            "name": "0034_dependency_approval.sql",
+            "sha256": "7d3742369189b69ea28bdc000097f150f83221c6474f7e177c7b5590691b67e9"
+          },
+          {
+            "name": "0035_runner_capabilities.sql",
+            "sha256": "d5578b08f8f3c9dac655c83a0dca787bdafd5c580db8b91d60a230f287d71908"
+          },
+          {
+            "name": "0036_attempt_receipt_clocks.sql",
+            "sha256": "c751b3812386accdb25aa02bcb77624df76b95a7ce9d460bcc95a5f34bf57e2e"
+          },
+          {
+            "name": "0037_owner_signin.sql",
+            "sha256": "98da904e768e35b43fb1be83d9dcc9c9b5d86ab3a795234ed5223c4fddc567d9"
+          },
+          {
+            "name": "0038_cron_runs.sql",
+            "sha256": "284898ef5e3cda3cf3b9e757c9727ef5bdf511579c58efad6a2be8a93b730512"
+          },
+          {
+            "name": "0039_incident_work.sql",
+            "sha256": "c4ede05472a8ced846a9fed5058291d2653c2722e9c49bc38b037080b61748f5"
+          },
+          {
+            "name": "0040_alert_routes.sql",
+            "sha256": "b9648bfe8fba6c5cc004b68583b6a4c1f507b7c74204da2c27db596154cc8a7b"
+          },
+          {
+            "name": "0041_heartbeat_jobs.sql",
+            "sha256": "b6d15ff7f496e6d2d3ec6925c5b3f450553e72a770f340a28d746fa58d3aa06f"
+          },
+          {
+            "name": "0042_webhook_templates.sql",
+            "sha256": "cd9f2febd897f73b02ab4f19c24fdd96d71430194650c170ea96aaf42ae90867"
+          },
+          {
+            "name": "0043_notification_preferences.sql",
+            "sha256": "2af9f9d4af38f5cfda4ef6296f8dd2022259a74dda987a53770b9ceb426c2871"
+          },
+          {
+            "name": "0044_contact_schedules.sql",
+            "sha256": "84e2a688ef9177dada22b3960290f1f2bf4c359678373920a497050501b0d784"
+          },
+          {
+            "name": "0045_slow_acknowledgements.sql",
+            "sha256": "ad9b34dcb3bf90fa938e44841b3b49549dd675c316dbb808116361329bf98a6a"
+          },
+          {
+            "name": "0046_heartbeat_url.sql",
+            "sha256": "e94f5c533eff95b9713686453dd342c13697059ad9de7ac077c1b2dc9ff0c7cb"
+          },
+          {
+            "name": "0047_failure_snapshots.sql",
+            "sha256": "ea9422db640242b88c62269b6a5097bc0ff05d22db612146ae6583ac301935c0"
+          },
+          {
+            "name": "0048_failure_page_policy.sql",
+            "sha256": "953a96230cb1c91236ac84884868d4f28ae41440dcfa3037a5480077117436c1"
+          },
+          {
+            "name": "0049_auxiliary_attempts.sql",
+            "sha256": "ed9352627364a607ef5ffb2d8b4b17b499a2735b96cf1d297339f00fa8485f12"
+          },
+          {
+            "name": "0050_auxiliary_kick_lease.sql",
+            "sha256": "8d9388d45986fc1827af3aac0118ba42f2ded9bcbdd415c11b8706543c556883"
+          },
+          {
+            "name": "0050_business_import_door.sql",
+            "sha256": "4e3c7f7765646090ec369015cb26647b3a47afda8eefa037f60bac661ebb0502"
+          },
+          {
+            "name": "0051_import_custody_replace.sql",
+            "sha256": "3c18b6de3352ded7465ff87b628d0cad84472f475fe545e98cce78407e9a38ea"
+          },
+          {
+            "name": "0052_import_door_apply_failure.sql",
+            "sha256": "bdc6bd58960fad7e54db54222a2d5a9b885fc618bc7c12d16c34b36b27b0191d"
+          },
+          {
+            "name": "0053_import_door_scopes.sql",
+            "sha256": "7cafaf021f480ebe3711f7599d72b6bb6c35b11c3c466f2b50a0242221c4302b"
+          },
+          {
+            "name": "0054_business_import_undos.sql",
+            "sha256": "98165552550df85e808b48a0fa3fc68dbdb43a45fda626910b43fcd0284f1d16"
+          },
+          {
+            "name": "0055_business_import_writes.sql",
+            "sha256": "a9574c82bd33f1008f6d9d29e54f7f4c2fc2d26ef859b199f6ef7a9a6241dc72"
+          },
+          {
+            "name": "0056_import_door_archive.sql",
+            "sha256": "6a99800f2320007a4e784d896c9cb2bd96a48992b137289b090a9214f36b9e13"
+          },
+          {
+            "name": "0057_location_names.sql",
+            "sha256": "e347f1474ff961010aa7a1316eb36bac19e78b7e7df8224451838301906821b9"
+          },
+          {
+            "name": "0058_cleanup_debt_and_effect_grants.sql",
+            "sha256": "ec97c34e5ca8e7dbb433d67b4c00199e9f456ff09f826a33c6a72556b71cc496"
+          },
+          {
+            "name": "0059_notification_retry.sql",
+            "sha256": "db0c32af1f935425cbdf6557efa6efe9460a0f087c7cc9f8f65f03e8d252cbab"
+          },
+          {
+            "name": "0060_notification_fallback.sql",
+            "sha256": "020137f881122057faab9dfa1a0e08f50c90325bc863a63afcd397d15fecea22"
+          },
+          {
+            "name": "0061_contact_quiet.sql",
+            "sha256": "f4636e861f2b99f335055afb60dbadea92b36c9aa3c73c3ff12e82743e813b22"
+          },
+          {
+            "name": "0062_external_check_follow.sql",
+            "sha256": "cd60ec36a47c19a9ec362231660f2eaf0c9e324f16efe169ca827a55211def5f"
+          },
+          {
+            "name": "0063_location_join_keys.sql",
+            "sha256": "57dc9b898f6d4a2604b95486ba614c5e2689f41188af6a31cb6b7fed89f18729"
+          },
+          {
+            "name": "0064_service_catalog.sql",
+            "sha256": "47fb8b01c8eaffb73f41ab7bcc41ccd6d005ba2f8af862cd3250d3726d7b16dc"
+          },
+          {
+            "name": "0065_discovery_sources.sql",
+            "sha256": "860679eee72eb83c133c95426c6cdce1ec59daa6cc6d4263b18f73d77d6fff05"
+          },
+          {
+            "name": "0066_rum_beacon.sql",
+            "sha256": "f6bee1bd87771fba11cf415b69d333b7cb8f6207c3a0e4ec30ed6767a8ff38a4"
+          },
+          {
+            "name": "0067_edition_access.sql",
+            "sha256": "a957a0446d041671ad56cc6651100761b02387fd0135ca25249cb736d70e6a71"
+          },
+          {
+            "name": "0068_mfa.sql",
+            "sha256": "4ebe7fe13fc4159eaff2928d6688e47751b8f7633881fa358084bf0f37ebaecd"
+          },
+          {
+            "name": "0069_alert_teams_filters.sql",
+            "sha256": "7ccebc40420ab93140102f7c25d60a868ae18f826e86921e29c74ac9da792ffc"
+          },
+          {
+            "name": "0070_incident_mentions.sql",
+            "sha256": "e120beb54378febcc7b5ddd41629041b6f42072535b455b190e6f46f72e841a4"
+          },
+          {
+            "name": "0071_edition_credentials.sql",
+            "sha256": "1fad3925d5aa36cc3c67687856eb7818a179e0524e623e0f479ee94fd399af03"
+          },
+          {
+            "name": "0072_named_alert_routes.sql",
+            "sha256": "c20e33a418b172e9f42ce55922e491f0eb7e6a2e19d55f37909293252a9ab72d"
+          },
+          {
+            "name": "0073_scheduled_reports.sql",
+            "sha256": "1ecbd3132947bc4208c389e211913c0a689eb0ce94400a6e18cdc951136463f2"
+          },
+          {
+            "name": "0074_discovery_authority.sql",
+            "sha256": "1ca56266a126be1f07f952d748d6b4945b1cdc2480bafd898938f6bfb8237042"
+          },
+          {
+            "name": "0075_recurring_reports.sql",
+            "sha256": "c4d828c039fa56b8c74bd91f1fe6bcedc433ca46db6a327efd1a46b851025f93"
+          },
+          {
+            "name": "0077_rum_percentile_erasure.sql",
+            "sha256": "60984388c36a7e790ffe7eb357336d7eddbf6b97e5c2a4007578f9d6dadebcca"
+          },
+          {
+            "name": "0078_source_history.sql",
+            "sha256": "e66ce54cf7bdfb3e22d5af4d5480e1bdab31a69878c1a5cde07a3de4e113ebb2"
+          },
+          {
+            "name": "0079_agent_door.sql",
+            "sha256": "016d8a98b964385f5c4a13447361c3c783910a76aaf4606b0e0081482bc819cc"
+          },
+          {
+            "name": "0080_business_settings.sql",
+            "sha256": "a16f736a781aa3fe02a2e090c993f8c360c904f9fb6d86126acdab6e1f24e773"
+          },
+          {
+            "name": "0081_business_people.sql",
+            "sha256": "51aa39622d866b987d71b6e37c9a8300e7f24c54a55611edaab669ed051b01cd"
+          },
+          {
+            "name": "0082_agent_native_proof.sql",
+            "sha256": "bcb541ecc5d1d854adde6ffd9e58662e6aa0506e8f5e4b32afdd4e24401fe6fa"
+          },
+          {
+            "name": "0083_agent_work.sql",
+            "sha256": "608658a596975fe50cd2cbfaf86e097f82615d723aa387d48490f7501fdec9f2"
+          },
+          {
+            "name": "0084_agent_door_relay.sql",
+            "sha256": "65c1145737677a899510997635b04af277860e595290ff074a592518bd641b96"
+          },
+          {
+            "name": "0085_incident_mention_dispatch.sql",
+            "sha256": "19987ac3ef708548a04429e049b51007c40d3c2a64f53ae8ee58a4069c54a4f2"
+          },
+          {
+            "name": "0086_alert_drill_schedules.sql",
+            "sha256": "3cdc7d47766d0c5780c986994b7eacd9e21fb7d13a3d2e4ada0d77e7b2dc7b0f"
+          },
+          {
+            "name": "0087_agent_actor_refs.sql",
+            "sha256": "3f13337235f27b29a4ad35b0dfb0ac43e45387fb5166ac88e38aa1744bebf4d7"
+          },
+          {
+            "name": "0088_agent_door_retired_refs_relay_privacy.sql",
+            "sha256": "461edf0df24c49280dacd75f542761e7a3d7a4a8a88c19f66db8c795ad01e263"
+          },
+          {
+            "name": "0089_business_retired.sql",
+            "sha256": "f4191e16de2873d86af749cfa2f80d09be6870d211be21249ef2d6640eddebc3"
+          }
+        ]
+      }
+    ],
+    "r2": [],
+    "queues": [],
+    "durableObjects": [],
+    "secrets": [
+      {
+        "binding": "SESSION_SECRET",
+        "environment": "SESSION_SECRET"
+      },
+      {
+        "binding": "SETUP_TOKEN",
+        "environment": "SETUP_TOKEN"
+      },
+      {
+        "binding": "OWNER_EMAIL",
+        "environment": "OWNER_EMAIL"
+      },
+      {
+        "binding": "MAIL_FROM",
+        "environment": "MAIL_FROM"
+      },
+      {
+        "binding": "UPTIME_RUNNER_KEY",
+        "environment": "UPTIME_RUNNER_KEY"
+      },
+      {
+        "binding": "SENDGRID_API_KEY",
+        "environment": "SENDGRID_API_KEY"
+      }
+    ],
+    "crons": [
+      "* * * * *"
+    ],
+    "vars": {
+      "UPTIME_DEPLOY_ENVIRONMENT": "production"
+    }
+  },
+  "pendingVariables": [
+    "UPTIME_ORIGIN"
+  ]
+}
+deploy: Cloudflare assigns the hosted origin and UPTIME_ORIGIN during deployment.
+deploy: dry run complete; no deployment occurred and no provider request was made.
+deploy: local dry run complete; no credentials were needed, no Cloudflare requests were made and nothing was changed remotely. Target secrets and remote readiness were not checked.
+Needed for a real deploy (this dry run went ahead without them):
+  - CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (Create an account API token at https://dash.cloudflare.com/profile/api-tokens with these account permissions: Workers Scripts: Edit, D1: Edit. Copy your account ID from the Cloudflare dashboard.)
+  - OWNER_EMAIL
+  - production sign-in mail: MAIL_FROM (a real sender on your provider's verified domain; bare address or Display Name <address>), MAIL_API_KEY or SENDGRID_API_KEY or MAIL_PROVIDER_API_KEY, or an approved Auth SSO install
+  - owner name (--owner-name or rer setup)
