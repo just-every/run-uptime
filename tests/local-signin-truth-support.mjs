@@ -87,9 +87,8 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
    assert.equal((await session.json()).operator.email,'synthetic-uptime-812@example.test','existing local sign-in selects the invited account');
    const people=await(await page.request.get(origin+'/auth/operators')).json();assert.equal(people.find(person=>person.email==='synthetic-uptime-812@example.test')?.status,'active');
    checks.push({screen:'local-handoff',existingDoor:true,invitedAccountAccepted:true});
-   // Reuse the documented picker for the role that promises monitoring reads.
-   await p.goto(origin+'/signin');
-   await p.getByRole('link',{name:/Synthetic local read-only/}).click();
+   // Follow the printed command for the role that promises monitoring reads.
+   await signIn('read-only');
    await p.waitForURL(url=>url.pathname.startsWith('/app'));
    const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'synthetic-uptime-local-reader',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}}});
    assert.equal(created.status(),201);const monitor=await created.json();

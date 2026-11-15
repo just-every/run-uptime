@@ -2620,7 +2620,7 @@
       "executable": false
     },
     "public/assets/access-member-controls.js": {
-      "sha256": "c5b98a7512819332989b1844e2ae4a7c49e54e09cc433aa2fd573a5455908634",
+      "sha256": "2924b345434e574db24c3906c86c4d1724a4f942e43e6a5dc120b205b7df0e07",
       "executable": false
     },
     "public/assets/alert-route-check.js": {
@@ -9408,7 +9408,7 @@
       "executable": false
     },
     "tests/local-signin-truth-support.mjs": {
-      "sha256": "f8b36aad66954c18d4dee0e28285f391a2bae9174ac357b5907f7082b0f0244c",
+      "sha256": "5329aa050838669e0391dc36104bfa103b83d88728912ea51c06ef0e32c4c497",
       "executable": false
     },
     "tests/location-enrollment-support.mjs": {
