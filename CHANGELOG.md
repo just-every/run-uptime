@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+## 0.5.13 — 2026-11-15
+
+Patch release from `main`; previous version 0.5.12. Repeated console page loads no longer exhaust the static-resource allowance and leave pages on **Loading…**. Runner enrollment, reviewed imports, backup feedback and sensitive-action confirmations are clearer. The checkout retains `@runeditrun/rer` 0.2.113; this release does not add a production mail-off setup. No migration or new required settings; monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13.
+
+### Console loading and request limits
+
+- **Keep console pages loading across repeated visits and tabs.** Static resources have a larger per-client allowance, separate from API admission. Fingerprinted production JS/CSS build assets cache publicly for one year as immutable; stable public filenames revalidate after one minute. Development assets keep Vite revalidation and HMR. These allowances remain estimates, not measured capacity.
+- **Explain a refused refresh and wait before retrying.** A rate-limited console read shows a notice, keeps target health Unknown and waits for the server's Retry-After before retrying. A refused action is never replayed automatically. Existing API limits and route authentication remain in effect.
+
+### Locations, imports and everyday operations
+
+- **Recover a location's join command.** A location that has not joined offers **Show join command** after a reload. The replacement one-time key invalidates the previous key; joined or removed locations cannot renew it. Local commands use `rer run --script`, so an installer-only computer needs no separate Node on PATH. The panel explains that the location is named after where it runs and can be renamed.
+- **Review monitor changes by name.** Bulk label editing offers named dependency choices. Change previews show readable durations, Yes/No values and location names; a refused pasted URL remains identifiable. Import and discovery explanations describe unsupported behavior and runner-local credentials in plain language without changing supported mappings or granting delivery authority.
+- **See useful backup feedback.** A successful restore refreshes past imports without a page reload. A backup refused because it predates later erasures explains that nothing was restored and asks for a new source backup with the later erasure journal. Restore still requires an empty installation and keeps monitoring paused and alerts held.
+- **Confirm sensitive removals.** Removing a second factor now needs a confirmation click, with an explicit warning for the last factor. Destination and operator erasure receipts show a readable reference that preserves the original receipt identity. Maintenance cancellation names the monitor and window without internal identifiers; cancelling does not resume a paused monitor.
+- Slow-response choices use location names. Failure snapshots distinguish repeated attempts and explain when the practice target or a monitor has no saved snapshot. Monitor selection has a monitor-specific accessible name.
+- Local invitations give the invited person's `rer dev --as EMAIL` command and explain that no email was sent. Keep the printed sign-in link private. The heartbeat Bash wrapper can use rer's installed runtime when Node is absent from PATH; output bounds and job exit handling are preserved. Installation, runner, backup and second-factor guides follow those command paths.
+
+### Maintenance
+
+- Push Verify shards account for observed agent and archive journey times while retaining the eight-job allocation and the existing nightly/release allocation. The workflow passes its selected tier to each shard. Console journeys cover repeated cold page loads, API overrun and Retry-After recovery; public-path checks cover production cache behavior.
+
+### Upgrading from 0.5.12
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately; for a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide; without it export is refused and writes nothing. Keep that cookie private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. No migration is added and no new setting is required. The exact `@runeditrun/rer` pin remains 0.2.113. Existing monitors, history, incidents, destinations and private settings are retained.
+
+### Known issues
+
+- Production setup still requires a mail provider and verified sender; an installation without a mail provider is not supported by this release's native setup and deployment configuration. Local development and demo outbox behavior is unchanged.
+- The known issues listed under 0.5.12 and earlier releases remain: earlier heartbeat output is not rewritten, UptimeRobot monitor CSV import and restoration of the erased-people list remain unavailable, an empty company decision feed is not refused, and response bodies over 64 KiB still fail the check. Bounded-memory archive restore, operation at 500 monitors with 90 days of history, time-range selection and console chunk-transfer controls remain unestablished or unavailable. Keep the earlier upgrade cautions when upgrading from an older version.
+
 ## 0.5.12 — 2026-11-15
 
 Patch release from `main`; previous version 0.5.11. Mail and API checks have dedicated editors, monitoring-only accounts can read the console without write controls, and Pingdom imports preserve more check settings. Monitor details, erasure receipts and installed PDF reports are easier to use. The checkout keeps its current `@runeditrun/rer` pin at 0.2.113. No migration or new required settings; monitors, history, incidents, destinations and private settings are kept on upgrade.
