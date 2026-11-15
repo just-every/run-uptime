@@ -64,13 +64,13 @@ Open the address printed as `RER_READY` and complete the browser sign-in handoff
 
 The app origin serves its Lobby at `/` and documentation at `/docs`. The separate marketing site is `https://run-uptime.com/`, with a `/run` page: `rer build --site` writes it to `dist/site`, and `rer dev` serves it at `RER_SITE`. Vite provides assets and HMR. Stop the app and its owned runner and practice target with `rer dev --stop`, including before deployment, export, import or reset.
 
-Use `rer describe` for commands and flags, `rer check --profile first-party` for the read-only contract check, and `rer doctor` to compare your Node and pnpm with the pinned versions (run it under Node 22.20.0) and check that local state is safe. Doctor also lists the inputs a deployment needs (Cloudflare, the selected mail provider and the like) as “Optional for local use; needed to deploy”. On a local install these are expected to be missing until you deploy, so it says “Local checks need attention” and exits 3 even when the local app is healthy. Read the Node and pnpm lines, not the exit code. The structural check works before dependency installation. Private settings are `data/local-secrets.json` (0600); durable data is `.wrangler/state`. There is no automatic credential rotation. See [OPERATIONS.md](OPERATIONS.md) for state custody and recovery.
+Use `rer describe` for commands and flags, `rer check --profile first-party` for the read-only contract check, and `rer doctor` to compare your Node and pnpm with the pinned versions (run it under Node 22.20.0) and check that local state is safe. Doctor also lists the inputs a deployment needs (Cloudflare, the selected mail provider and the like) as “Optional for local use; needed to deploy”. These deployment inputs are optional for local use. If doctor reports “Local checks need attention” and exits 3, read the named local checks and correct them before continuing. The structural check works before dependency installation. Private settings are `data/local-secrets.json` (0600); durable data is `.wrangler/state`. There is no automatic credential rotation. See [OPERATIONS.md](OPERATIONS.md) for state custody and recovery.
 
 ## Supply owner setup answers
 
 For a non-interactive setup, supply the owner explicitly. A checkout already set up preserves its existing owner.
 
-After the installer (or `npx -y @runeditrun/rer install just-every/run-uptime`) and `rer install just-every/run-uptime`, use, from the checkout:
+After installing `rer` and cloning with `rer install just-every/run-uptime` (or using `npx -y @runeditrun/rer install just-every/run-uptime` with Node 22 or later), use, from the checkout:
 
 ```sh
 rer setup --owner-email owner@example.test --owner-name "Local Owner" --non-interactive
@@ -125,7 +125,7 @@ Local archive export and import require `UPTIME_ACCESS_COOKIE` holding a live na
 
 ## Reset the local installation
 
-Reset removes your monitors and history, so back them up first. The simplest backup is in the console while dev is running: open **Settings › Backup and files** and choose **Download backup** (it asks for a second factor first; enrol one under **Settings › People › Manage second factors** if you have none). Then stop dev and reset:
+Reset removes your monitors and history, so back them up first. The simplest backup is in the console while dev is running: open **Settings › Backup and files** and choose **Download backup** (it asks for a second factor first; enrol one under **Settings › People › Manage second factors** if you have none). Check that the downloaded backup exists and opens as JSON containing your monitors before continuing. Then stop dev and reset:
 
 ```sh
 rer dev --stop
@@ -136,8 +136,10 @@ rer setup --owner-email owner@example.test --non-interactive
 To back up from the command line instead, follow the `UPTIME_ACCESS_COOKIE` steps above and join the commands with `&&`, so a refused export stops before anything is removed. A bare `rer export` with no cookie is always refused (`session_required`), and in a pasted block the lines after it would still run:
 
 ```sh
-rer dev --stop && rer export --output exports/uptime.rer && rer reset --yes --non-interactive && rer setup --owner-email owner@example.test --non-interactive
+rer dev --stop && rer export --output exports/uptime.rer && test -s exports/uptime.rer
 ```
+
+Check that export succeeded and the new backup contains your monitors before running `rer reset --yes --non-interactive`, then `rer setup --owner-email owner@example.test --non-interactive`.
 
 Reset lists and removes only local data, generated settings, command captures and CLI bookkeeping. It retains source, dependencies, external archives and deployment receipts. A second reset succeeds with an empty inventory. Reset refuses while dev or transfer owns the installation.
 

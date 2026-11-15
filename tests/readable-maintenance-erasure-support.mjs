@@ -64,6 +64,18 @@ export async function proveReadableMaintenanceAndErasure(page,origin,monitor,{pr
  const planned=await current();assert.equal(planned.revision,before.revision+1);
  assert.deepEqual(planned.definition.maintenanceWindows.find(w=>w.id===preview.window.id),preview.window,'the exact reviewed window is saved unchanged');
  assert.equal(planned.definition.enabled,false,'planning does not resume the paused monitor');
+ await page.getByRole('button',{name:'Cancel window',exact:true}).click();
+ const cancellation=page.getByRole('dialog',{name:'Cancel maintenance window',exact:true});
+ await cancellation.locator('#maintenance-confirm-cancel:enabled').waitFor();
+ assert.ok((await cancellation.innerText()).includes(monitor.definition.name),'cancellation names the reviewed monitor');
+ assert.ok((await cancellation.innerText()).includes(preview.window.name),'cancellation names the reviewed window');
+ await assertPlainMonitorText(cancellation);assert.ok(!(await cancellation.innerText()).includes(monitor.id));
+ await accessible(cancellation);await screenshots('maintenance-cancellation');
+ await cancellation.getByRole('button',{name:'Cancel window',exact:true}).click();await cancellation.waitFor({state:'detached'});
+ const cancelled=await current();assert.equal(cancelled.revision,planned.revision+1);
+ assert.ok(!cancelled.definition.maintenanceWindows?.some(w=>w.id===preview.window.id),'only the reviewed window is cancelled');
+ assert.equal(cancelled.definition.enabled,false,'cancellation does not resume the paused monitor');
+
  await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-ready').waitFor();
  await page.locator('#erase-monitor').click();
  const confirmation=page.getByRole('dialog',{name:'Erase monitor?',exact:true});

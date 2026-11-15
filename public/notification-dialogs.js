@@ -107,7 +107,8 @@ export function showErasureReceipt(receipt,{name,onClose=()=>{}}={}){
  const dialog=document.createElement('dialog');dialog.className='editor notification-dialog erasure-receipt';dialog.setAttribute('aria-labelledby','erasure-receipt-heading');
  const heading=document.createElement('h2');heading.id='erasure-receipt-heading';heading.textContent='Erasure complete';
  const description=document.createElement('p'),completed=document.createElement('time');completed.dateTime=new Date(receipt.completedAt).toISOString();completed.textContent=new Date(receipt.completedAt).toLocaleString();description.append(`${receipt.entityKind} erased at `,completed,'.');
- const reference=document.createElement('p');reference.textContent=`Receipt: ${receipt.id}`;reference.style.overflowWrap='anywhere';
+ const reference=document.createElement('p');reference.className='erasure-reference';reference.append('Receipt reference');
+ const value=document.createElement('span');value.className='erasure-reference-value';value.textContent='ER-'+receipt.id.replaceAll('-','').toUpperCase().match(/.{1,8}/g).join('-');reference.append(value);
  const labels={notification_destinations:'Destinations',notification_credentials:'Stored credentials',notification_jobs:'Notification jobs',integration_attempts:'Delivery attempts',integration_deliveries:'Delivery records',integration_resolutions:'Delivery resolutions',integration_replays:'Replay records',notification_claim_custody:'Delivery authorizations',alert_drills:'Alert drills',archive_history:'Archived history copies',rer_mail_development_outbox:'Local development messages'};
  const totals={};for(const [table,count] of Object.entries(receipt.counts)){const label=receipt.entityKind==='monitor'?table:labels[table]??'Other dependent records';totals[label]=(totals[label]??0)+Number(count)}
  const entries=Object.entries(totals);if(receipt.entityKind==='monitor')entries.sort((a,b)=>b[1]-a[1]);

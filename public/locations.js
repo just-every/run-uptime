@@ -44,12 +44,12 @@ export const addingLocation=()=>adding!==null;
 // On this computer the same script runs with rer's own Node (rer run --script), so an installer user with no Node on PATH can run it.
 const command=({origin,joinKey},local)=>`curl -fsSL ${origin}/uptime-runner.mjs -o uptime-runner.mjs && ${local?'rer run --script':'node'} uptime-runner.mjs ${origin} ${joinKey}`;
 const localOnly=origin=>{try{const host=new URL(origin).hostname;return ['127.0.0.1','localhost','[::1]'].includes(host)||host.endsWith('.localhost')}catch{return false}};
-const showCommand=result=>{const local=localOnly(result.origin);adding={runnerId:result.runnerId,name:result.networkLabel,command:command(result,local),local,checkAll:true};render()};
+const showCommand=(result,render)=>{const local=localOnly(result.origin);adding={runnerId:result.runnerId,name:result.networkLabel,command:command(result,local),local,checkAll:true};render()};
 // A new location: the server makes its runner and one-time join key; its name follows from where it joins from.
 export async function startAdding({api,action,render}){
  const result=await action(()=>api('/api/runners','POST',{}),{pending:'Adding a location…',success:''});
  if(!result.ok)return;
- showCommand(result.result);
+ showCommand(result.result,render);
  // Below the list on a narrow screen: bring the panel to the top of the view.
  const panel=document.querySelector('#add-location');
  if(matchMedia('(max-width: 1199px)').matches)panel?.scrollIntoView({block:'start'});
@@ -60,7 +60,7 @@ export function bindLocations({area,right,data,api,action,refresh,render}){
  const table=area.querySelector('#locations-table');
  if(firstMount(table))table.addEventListener('click',async event=>{
   const rename=event.target.closest('[data-rename]'),remove=event.target.closest('[data-remove]'),join=event.target.closest('[data-join]');
-  if(join){const result=await action(()=>api(`/api/runners/${encodeURIComponent(join.dataset.join)}/join-command`,'POST',{}),{pending:'Making a new join command…',success:''});if(result.ok){showCommand(result.result);document.querySelector('#copy-location-command')?.focus({preventScroll:true})}return}
+  if(join){const result=await action(()=>api(`/api/runners/${encodeURIComponent(join.dataset.join)}/join-command`,'POST',{}),{pending:'Making a new join command…',success:''});if(result.ok){showCommand(result.result,render);document.querySelector('#copy-location-command')?.focus({preventScroll:true})}return}
   if(rename)renameDialog({runner:activeLocations(data()).find(r=>r.runnerId===rename.dataset.rename),api,action,refresh});
   if(remove){
    const place=activeLocations(data()).find(r=>r.runnerId===remove.dataset.remove);

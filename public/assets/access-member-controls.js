@@ -75,7 +75,7 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
     ?await request('/auth/invite','POST',{email,displayName,role:'member',returnTo:'/'})
     :await request('/api/access/invitations','POST',{email,displayName,role,scopes:scopes(invite),returnTo:'/app'});
    const message=result.delivery==='not_sent'
-    ?`Invitation recorded for ${email}. No email was sent. ${result.local?'On this computer, open the private RER_OPEN link printed by rer dev, then visit /signin and choose the invited account. Keep that link private; it gives access to this local install.':'Use the demo sign-in page to choose the invited account.'}`
+    ?`Invitation recorded for ${email}. No email was sent. ${result.local?'On this computer, run rer dev --as ${email} from the Uptime checkout, then open the new private RER_OPEN link it prints. Keep that link private; it gives access to this local install.':'Use the demo sign-in page to choose the invited account.'}`
     :`Invitation sent to ${email}.`;
    invite.reset();showScopes();await load(message);
   }catch(error){say(`Not sent: ${refused(error).replace(/\.$/,'')}.`,helper)}

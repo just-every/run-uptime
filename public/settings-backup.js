@@ -7,6 +7,8 @@ import {renderDefinitions} from './definitions.js';
 export function renderBackup({area,api,action}){
  patch(area,'<div class="settings-area"><section class="ui-card set-card archive-backup" id="backup" data-owned="backup" aria-labelledby="backup-heading"></section><div class="settings-area" id="monitor-files" data-owned="definitions"></div></div>');
  const backup=area.querySelector('#backup'),files=area.querySelector('#monitor-files');
- if(firstMount(backup))mountBackup(backup,{api,action});
- if(firstMount(files))renderDefinitions({area:files,action});
+ if(firstMount(files)){
+  const refreshImports=renderDefinitions({area:files,action});
+  if(firstMount(backup))mountBackup(backup,{api,action,onRestored:refreshImports});
+ }
 }

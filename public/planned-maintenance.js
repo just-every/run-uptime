@@ -93,7 +93,7 @@ export async function cancelMaintenanceWindow({monitor,windowId,api,action}){
   if(!dialog.isConnected)return;
   const current=overview.monitors.find(m=>m.id===monitor.id),window=current?.definition.maintenanceWindows?.find(w=>w.id===windowId);
   if(!window)throw Error('This maintenance window no longer exists. Close this dialog to refresh the monitor.');
-  status.textContent=`Cancel “${window.name}” for ${current.definition.name} (${current.id}), revision ${current.revision}? ${windowDescription(window)}. ${modeDescription(window.mode)}. Past results and maintenance periods remain in history.`;
+  status.textContent=`Cancel “${window.name}” for ${current.definition.name}? ${windowDescription(window)}. ${modeDescription(window.mode)}. Past results and maintenance periods remain in history.`;
   confirm.disabled=false;
   confirm.onclick=async()=>{
    if(busy)return;busy=true;let failure='Cancellation could not complete.';

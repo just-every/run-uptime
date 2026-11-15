@@ -15,7 +15,7 @@ export async function firstRunComplete(env:Pick<Bindings,'DB'>){
  return Boolean(await env.DB.prepare('SELECT completed_at FROM uptime_first_run WHERE id=1').first())
 }
 const FORM_LIMIT=16384
-const BAD_SITE='Use a public website address, such as yourcompany.com or https://yourcompany.com/shop. An address with a password, or on a private network, cannot be checked.'
+const BAD_SITE='Use a public website address, such as example.com or https://example.com/shop. An address with a password, or on a private network, cannot be checked.'
 // The external check URL is not asked here; it is set in Settings. An installation that has none takes this one, so a
 // monitor on one location can still confirm an outage.
 const DEFAULT_EXTERNAL='https://example.org/'
