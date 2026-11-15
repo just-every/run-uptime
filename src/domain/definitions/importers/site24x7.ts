@@ -30,7 +30,7 @@ function savedMonitor(value:any){
  if(!Number.isFinite(frequency)||frequency<=0||!Number.isSafeInteger(frequency*60000)||frequency>1440)return {refused:'Site24x7 check_frequency must be a documented interval in minutes, at most one day.'}
  if(!Number.isInteger(value.timeout)||value.timeout<1||value.timeout>45)return {refused:'Site24x7 timeout must be a whole number of seconds from 1 to 45.'}
  const timeoutMs=Math.max(kind==='PING'?8000:50,Math.min(10000,value.timeout*1000))
- const differences=[`Site24x7 ${kind} is imported paused; check_frequency ${value.check_frequency} minutes becomes ${frequency*60000} ms.`, `Source timeout ${value.timeout*1000} ms becomes ${timeoutMs} ms.`, 'Checks use local-a on your own runner; Site24x7 locations are not reproduced. Review local confirmation/recovery (two scheduled results) and retry policy (no retries) before enabling.',...NOT_CONVERTED]
+ const differences=[`Site24x7 ${kind} is imported paused; check_frequency ${value.check_frequency} minutes becomes ${frequency*60000} ms.`, `Source timeout ${value.timeout*1000} ms becomes ${timeoutMs} ms.`, 'Checks run from your first location; Site24x7 locations are not reproduced. Review local confirmation/recovery (two scheduled results) and retry policy (no retries) before enabling.',...NOT_CONVERTED]
  const common={name:value.display_name,enabled:false,intervalMs:frequency*60000,timeoutMs,probes:['local-a'],failureQuorum:1,retries:0,confirmSlots:2,recoverSlots:2,freshnessMs:Math.min(86400000,Math.max(180000,frequency*180000))}
  const mapped=new Set(['display_name','type','monitor_type','monitor_id','check_frequency','timeout'])
  const done=(definition:Record<string,unknown>,fields:string[])=>{
