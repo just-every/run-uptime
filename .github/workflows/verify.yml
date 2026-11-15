@@ -111,6 +111,7 @@ jobs:
       - name: Run this shard
         env:
           SHARD: ${{ matrix.name }}
+          TIER: ${{ needs.plan.outputs.tier }}
           UPTIME_VERIFY_BUILD: ${{ runner.temp }}/uptime-verify-build
         run: node .github/scripts/verify-ci.mjs "$SHARD"
       - name: Retain browser suite logs of a failed shard

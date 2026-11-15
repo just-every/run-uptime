@@ -56,12 +56,18 @@ const seconds={
  "business-provisioned": 11,
  "owner-editor-browser": 52
 };
+function shards(weights){
 const bins=Array.from({length:8},(_,index)=>({name:'push-'+(index+1),seconds:0,tasks:[]}));
-for(const task of [...tasks.push].sort((a,b)=>(seconds[b.name]??60)-(seconds[a.name]??60))){
+for(const task of [...tasks.push].sort((a,b)=>(weights[b.name]??60)-(weights[a.name]??60))){
  const bin=[...bins].sort((a,b)=>a.seconds-b.seconds||a.name.localeCompare(b.name))[0];
- bin.tasks.push(task);bin.seconds+=seconds[task.name]??60;
+ bin.tasks.push(task);bin.seconds+=weights[task.name]??60;
 }
-export const plan={push:bins.map(bin=>({...bin,browser:true,engines:bin.tasks.some(task=>task.name==='flow-journey')?'all':'chromium',evidence:bin.tasks.some(task=>task.name==='browser-suites')}))};
-// Nightly keeps its reuse proof and exercises the same journeys; all-tier matrices deduplicate them.
-plan.nightly=plan.push;
-export const allShards=plan.push;
+return bins.map(bin=>({...bin,browser:true,engines:bin.tasks.some(task=>task.name==='flow-journey')?'all':'chromium',evidence:bin.tasks.some(task=>task.name==='browser-suites')}));
+}
+// Retain the existing nightly and release allocation. All-tier matrices select
+// these same-named shards once, rather than running the journeys twice.
+export const allShards=shards(seconds);
+// Push run 43714780460 outgrew the old fallback (60 s) for agent-door and
+// archive-roundtrip's 19 s estimate. Budget their observed whole-file times;
+// keep the journeys intact and the job limit unchanged.
+export const plan={push:shards({...seconds,'agent-door':555,'archive-roundtrip':270}),nightly:allShards};
