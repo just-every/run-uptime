@@ -128,6 +128,7 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.equal(partialProvider.uploads.length, 1);
   assert.equal(partialProvider.state.secrets.find(item => item.name === 'SENDGRID_API_KEY')?.value, 'test-only-sendgrid-key', 'explicit SendGrid maps the shared MAIL_API_KEY to its native Worker secret');
   assert.equal(partialProvider.state.secrets.find(item => item.name === 'MAIL_PROVIDER')?.value, 'sendgrid');
+  assert.ok(!partialProvider.state.secrets.some(item => item.name === 'MAIL_API_KEY'), 'the shared input is not uploaded as a second Worker secret');
   assert.ok((await state(interruptedRoot)).receipt);
   assert.ok((await readFile(join(interruptedRoot, '.rer/deploy/production.secrets.env'))).equals(partialSecrets), 'resume preserves secret bytes');
   assert.ok(partialProvider.healthRequests > 0, 'resumed deployment verifies the served deployment identity');

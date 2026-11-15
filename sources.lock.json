@@ -9576,7 +9576,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "b0b9d5507a2d1448f471119cfc34ba42ec9f4e7741a8fb2d6eb56979c82f6ada",
+      "sha256": "1307f38726bc0a1714059989037bd8d326cbe59ca7342f67ff2d9aee4daf226d",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/auth.mjs": {
