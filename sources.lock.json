@@ -9356,7 +9356,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "bc5865d7c5ee831606c3deccd2da47bf3952e8dd9a2cf9dc6c836b4ddbfdb351",
+      "sha256": "1f72f095826f6d9206b7cebd15f15d7831f251571da1463cc561d59ce7a29f2f",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -9428,7 +9428,7 @@
       "executable": false
     },
     "tests/mail-off-support.mjs": {
-      "sha256": "05dbbc690590d60c9f5201893a1c5a140ea4c9f6b7221fb84ca323f5dd3edb57",
+      "sha256": "8bfc8600a69a2fed598aba80964d6bb14dfd87f0236112dcd5a62ae17b4a481b",
       "executable": false
     },
     "tests/mail-provider-fixture.mjs": {
@@ -9576,7 +9576,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "584d39bf0c0a607e8484f326284ef94ec626517851ca0984c8b27cc5bc7ead81",
+      "sha256": "b0b9d5507a2d1448f471119cfc34ba42ec9f4e7741a8fb2d6eb56979c82f6ada",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/auth.mjs": {
@@ -10032,7 +10032,7 @@
       "executable": false
     },
     "wrangler.jsonc": {
-      "sha256": "3a3a807386d102b0dad1acb3ec18b50fd7cd05f14350f36985a802ec2e444472",
+      "sha256": "6903c0fe1a87d8294667f3d258a64998edfe8df1db5c459be81ad45194ea5e2a",
       "executable": false
     }
   }

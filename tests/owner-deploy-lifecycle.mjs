@@ -15,7 +15,11 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.equal(provider.state.databases.length, 0);
   assert.equal(provider.uploads.length, 0);
   provider.delayCreatedDatabaseListing();
-  const first = await deploy(root, provider, t.signal);
+  // Older installations have no provider selection; their native SendGrid
+  // credential must still pass preflight and reach the deployed Worker.
+  const first = await deploy(root, provider, t.signal, [], {inputs: {
+    OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@synthetic-uptime.dev', SENDGRID_API_KEY: 'test-only-sendgrid-key',
+  }});
   assert.equal(first.code, 0, JSON.stringify(first));
   assert.equal(first.result?.ok, true);
   assert.equal(first.result.deployed, true);
@@ -35,8 +39,9 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.ok(provider.state.assetRequests.length > 0, 'the package verifies an uploaded static asset');
   assert.ok(provider.state.schedules.some(schedule=>schedule.cron),'deployed monitoring has a scheduled trigger');
   const uploaded = provider.state.secrets.find(item => item.name === 'SENDGRID_API_KEY');
-  assert.equal(uploaded?.value, 'test-only-sendgrid-key', 'MAIL_API_KEY reaches the Worker as the key its selected provider reads');
+  assert.equal(uploaded?.value, 'test-only-sendgrid-key', 'an existing SendGrid credential reaches the Worker without a provider selection');
   assert.ok(!provider.state.secrets.some(item => item.name === 'MAIL_API_KEY'), 'the shared name is a deploy input, not a second Worker secret');
+  assert.ok(!provider.state.secrets.some(item => item.name === 'MAIL_PROVIDER'), 'an omitted provider keeps the native SendGrid fallback');
   const migrations = migrationRows(provider);
   assert.ok(migrations.length > 0, 'the real controller records applied migrations');
   assert.ok(migrations.every(row => row.state === 'applied'));
@@ -121,6 +126,8 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
     assert.equal(partialProvider.state.writes.filter(row => row.body?.sql?.startsWith('INSERT INTO d1_migrations') && row.body.sql.includes(migration.name)).length, 1, 'each migration is claimed once');
   }
   assert.equal(partialProvider.uploads.length, 1);
+  assert.equal(partialProvider.state.secrets.find(item => item.name === 'SENDGRID_API_KEY')?.value, 'test-only-sendgrid-key', 'explicit SendGrid maps the shared MAIL_API_KEY to its native Worker secret');
+  assert.equal(partialProvider.state.secrets.find(item => item.name === 'MAIL_PROVIDER')?.value, 'sendgrid');
   assert.ok((await state(interruptedRoot)).receipt);
   assert.ok((await readFile(join(interruptedRoot, '.rer/deploy/production.secrets.env'))).equals(partialSecrets), 'resume preserves secret bytes');
   assert.ok(partialProvider.healthRequests > 0, 'resumed deployment verifies the served deployment identity');

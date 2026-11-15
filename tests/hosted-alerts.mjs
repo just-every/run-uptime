@@ -15,6 +15,8 @@ const directory=await mkdtemp(join(tmpdir(),'uptime-hosted-alerts-')),origin='ht
 const headerSecret=randomBytes(32).toString('hex');
 const received=[],mail=[];let requests=0;
 const bindings={...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-550'};
+// Legacy hosted installs select SendGrid through the runtime fallback.
+delete bindings.MAIL_PROVIDER;
 let worker;
 try{
  const outbound=async request=>{

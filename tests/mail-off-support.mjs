@@ -26,6 +26,29 @@ export async function proveMailOff() {
  const declaration=JSON.parse(await readFile('deploy.json','utf8'));
  const env={...bindings,CLOUDFLARE_ACCOUNT_ID:'1'.repeat(32),CLOUDFLARE_API_TOKEN:'synthetic-uptime-611',UPTIME_WORKER_NAME:'synthetic-uptime-612',UPTIME_ORIGIN:'https://uptime.example.test'};
  validateConfiguration(env,{scope:'deploy'});
+ // A provider declaration belongs to deploy secrets; each selected provider
+ // and the legacy omitted-provider case must still pass the ordinary doors.
+ for(const [provider,credentials] of [
+  [undefined,{SENDGRID_API_KEY:'synthetic-uptime-621'}],
+  ['sendgrid',{SENDGRID_API_KEY:'synthetic-uptime-622'}],
+  ['resend',{MAIL_PROVIDER_API_KEY:'synthetic-uptime-623'}],
+  ['cloudflare',{CLOUDFLARE_MAIL_API_KEY:'synthetic-uptime-624',MAIL_ACCOUNT_ID:'synthetic-uptime-625'}],
+  ['rer',{MAIL_API_KEY:'synthetic-uptime-626',MAIL_RELAY_URL:'https://synthetic-uptime-627.example.test/'}],
+ ]) {
+  const enabled={...env,MAIL_FROM:'sender@synthetic-uptime.dev',...credentials};
+  if(provider===undefined)delete enabled.MAIL_PROVIDER;else enabled.MAIL_PROVIDER=provider;
+  validateConfiguration(enabled,{scope:'deploy'});
+  const declarationForProvider=selectMailDeclaration(declaration,enabled);
+  const planForProvider=deploymentPlan({migrations:[]},enabled);
+  for(const name of Object.keys(credentials)) {
+   assert.ok(declarationForProvider.secrets.some(secret=>secret.binding===name));
+   assert.ok(planForProvider.secrets.some(secret=>secret.binding===name));
+  }
+  // Base preflight takes the shared key input for Cloudflare; the native
+  // deployment binds that input under CLOUDFLARE_MAIL_API_KEY.
+  const preflight=provider==='cloudflare'?{...enabled,MAIL_API_KEY:credentials.CLOUDFLARE_MAIL_API_KEY}:enabled;
+  await requireProductionAuth({root:process.cwd(),declaration:declarationForProvider,env:preflight,setupManifest:manifest,adapter:commandAdapter,options:{dryRun:false}});
+ }
  const selected=selectMailDeclaration(declaration,env);
  const plan=deploymentPlan({migrations:[]},env);
  assert.ok(plan.secrets.some(s=>s.binding==='MAIL_PROVIDER'));
