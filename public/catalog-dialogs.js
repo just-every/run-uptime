@@ -2,7 +2,7 @@ import { escape } from './console-format.js';
 import {locationNamer} from './monitor-rules.js';
 import {changeMarkup} from './definition-changes.js';
 const metadata = ['project', 'environment', 'service', 'group', 'tags', 'owner', 'outcome', 'dependencies'];
-const labels = { project: 'Project', environment: 'Environment', service: 'Service', group: 'Group', tags: 'Tags (comma-separated)', owner: 'Accountable owner', outcome: 'Intended customer outcome', dependencies: 'Dependency monitor IDs (comma-separated)' };
+const labels = { project: 'Project', environment: 'Environment', service: 'Service', group: 'Group', tags: 'Tags (comma-separated)', owner: 'Accountable owner', outcome: 'Intended customer outcome', dependencies: 'Depends on' };
 // Check from: the live locations, in the console's order (see public/locations.js), the first three ticked: a monitor checks
 // from up to three. Each ticked location is sent as one check's runner, so the new monitors check from exactly those.
 const PROBES = ['local-a', 'local-b', 'local-c'];
@@ -21,19 +21,26 @@ function limitLocations(form) {
 const list = value => value.split(',').map(part => part.trim()).filter(Boolean);
 // New monitors take labels as an optional fold (and no dependencies: a list of new monitors has none yet); editing labels shows them all.
 const fieldsFor = edit => edit ? metadata : metadata.filter(name => name !== 'dependencies');
-function metadataGrid(edit = false) {
-    return `<div class="catalog-grid">${fieldsFor(edit).map(name => `<div>${edit ? `<label><input type="checkbox" name="set-${name}">Replace ${escape(labels[name])}</label>` : ''}<label>${escape(labels[name])}<input name="${name}"${name === 'outcome' ? ' maxlength="500"' : ['tags', 'dependencies'].includes(name) ? '' : ' maxlength="' + (name === 'environment' ? 80 : 100) + '"'}></label>${name === 'owner' ? '<p class="ui-helper">A label only; it grants no access.</p>' : ''}</div>`).join('')}</div>`;
+// Dependencies are picked by monitor name, never typed as ids. Only editing existing monitors can set them.
+function dependencyField(others) {
+    const choices = others.length ? others.map(m => `<label class="check-row"><input type="checkbox" name="dependencies" value="${escape(m.id)}">${escape(m.definition.name)}</label>`).join('') : '<p class="ui-helper">No other monitors to depend on.</p>';
+    return `<label><input type="checkbox" name="set-dependencies">Replace ${escape(labels.dependencies)}</label><fieldset class="catalog-dependencies"><legend>${escape(labels.dependencies)}</legend>${choices}</fieldset>`;
 }
-function metadataMarkup(edit = false) {
-    const grid = metadataGrid(edit);
+function metadataGrid(edit = false, others = []) {
+    return `<div class="catalog-grid">${fieldsFor(edit).map(name => name === 'dependencies' ? `<div>${dependencyField(others)}</div>` : `<div>${edit ? `<label><input type="checkbox" name="set-${name}">Replace ${escape(labels[name])}</label>` : ''}<label>${escape(labels[name])}<input name="${name}"${name === 'outcome' ? ' maxlength="500"' : name === 'tags' ? '' : ' maxlength="' + (name === 'environment' ? 80 : 100) + '"'}></label>${name === 'owner' ? '<p class="ui-helper">A label only; it grants no access.</p>' : ''}</div>`).join('')}</div>`;
+}
+function metadataMarkup(edit = false, others = []) {
+    const grid = metadataGrid(edit, others);
     if (!edit)
         return `<details class="catalog-metadata"><summary>Labels (optional)</summary>${grid}</details>`;
     return `<fieldset class="catalog-metadata"><legend>Labels</legend><p class="ui-helper">Choose the fields to replace. A chosen empty field clears that label on every selected monitor.</p>${grid}</fieldset>`;
 }
 function readMetadata(form, edit) {
-    return Object.fromEntries(fieldsFor(edit).filter(name => edit ? form.elements.namedItem('set-' + name).checked : form.elements.namedItem(name).value.trim()).map(name => {
+    return Object.fromEntries(fieldsFor(edit).filter(name => edit ? form.elements.namedItem('set-' + name).checked : name !== 'dependencies' && form.elements.namedItem(name).value.trim()).map(name => {
+        if (name === 'dependencies')
+            return [name, [...form.querySelectorAll('[name=dependencies]:checked')].map(box => box.value)];
         const value = form.elements.namedItem(name).value.trim();
-        return [name, ['tags', 'dependencies'].includes(name) ? list(value) : value];
+        return [name, name === 'tags' ? list(value) : value];
     }));
 }
 function trafficMarkup(plan) {
@@ -44,7 +51,7 @@ const display = value => Array.isArray(value) ? value.map(display).join(', ') : 
 const every = ms => ms % 60000 === 0 ? `${ms / 60000} min` : `${ms / 1000} s`;
 function entryMarkup(entry, selectable, runners) {
     const accepted = ['create', 'change'].includes(entry.action), d = entry.target;
-    return `<tr><td data-label="Row">${escape(entry.label)}</td><td data-label="Monitor">${escape(entry.name ?? 'Unavailable monitor')}${d?.url ? `<small>${escape(d.url)}</small>` : ''}</td><td data-label="Result">${accepted && selectable ? `<label><input type="checkbox" data-plan-index="${entry.index}"${entry.selected === false ? '' : ' checked'}>Select ${escape(entry.label)} to ${escape(entry.action)}</label>` : escape(entry.action)}${entry.reason ? `<p>${escape(entry.reason)}</p>` : ''}</td><td data-label="Review">${d ? `<p>${entry.selected === false ? (d.enabled ? 'Enabled if selected' : 'Paused if selected') : (d.enabled ? 'Enabled after apply' : 'Paused after apply')} · every ${escape(every(d.intervalMs))} · ${escape(d.probes.map(locationNamer(d, runners)).join(', '))}</p><p>Type: ${escape(d.type)}${d.assertions?.bodyIncludes ? ` · Required text: ${escape(d.assertions.bodyIncludes)}` : ''}</p>${!entry.changes ? metadata.filter(name => d[name]?.length).map(name => `<p>${escape(labels[name])}: ${escape(display(d[name]))}</p>`).join('') : ''}` : ''}${(entry.changes ?? []).map(changeMarkup).join('')}${(entry.differences ?? []).map(text => `<p>${escape(text)}</p>`).join('')}</td></tr>`;
+    return `<tr><td data-label="Row">${escape(entry.label)}</td><td data-label="Monitor">${escape(entry.name ?? entry.url ?? 'Unavailable monitor')}${d?.url ? `<small>${escape(d.url)}</small>` : ''}</td><td data-label="Result">${accepted && selectable ? `<label><input type="checkbox" data-plan-index="${entry.index}"${entry.selected === false ? '' : ' checked'}>Select ${escape(entry.label)} to ${escape(entry.action)}</label>` : escape(entry.action)}${entry.reason ? `<p>${escape(entry.reason)}</p>` : ''}</td><td data-label="Review">${d ? `<p>${entry.selected === false ? (d.enabled ? 'Enabled if selected' : 'Paused if selected') : (d.enabled ? 'Enabled after apply' : 'Paused after apply')} · every ${escape(every(d.intervalMs))} · ${escape(d.probes.map(locationNamer(d, runners)).join(', '))}</p><p>Type: ${escape(d.type)}${d.assertions?.bodyIncludes ? ` · Required text: ${escape(d.assertions.bodyIncludes)}` : ''}</p>${!entry.changes ? metadata.filter(name => d[name]?.length).map(name => `<p>${escape(labels[name])}: ${escape(display(d[name]))}</p>`).join('') : ''}` : ''}${(entry.changes ?? []).map(changeMarkup).join('')}${(entry.differences ?? []).map(text => `<p>${escape(text)}</p>`).join('')}</td></tr>`;
 }
 function previewMarkup(plan, runners) {
     return `<h3 tabindex="-1">Review the plan</h3><p>${Object.entries(plan.counts).map(([key, n]) => `${escape(n)} ${escape(key)}`).join(' · ')}</p>${trafficMarkup(plan)}${(plan.unsupported ?? []).map(text => `<p class="ui-callout">${escape(text)}</p>`).join('')}<div class="catalog-plan-table"><table class="ui-table ui-table--stack-md"><thead><tr><th scope="col">Row</th><th scope="col">Monitor</th><th scope="col">Result</th><th scope="col">Review</th></tr></thead><tbody>${plan.entries.map(entry => entryMarkup(entry, plan.source.startsWith('catalog.add.'), runners)).join('')}</tbody></table></div>`;
@@ -128,12 +135,12 @@ const undoLink = (status, text, onClick) => {
         link.addEventListener('click', onClick);
     status.append(link);
 };
-export function openCatalogDialog({ api, action, kind, monitors = [], runners = [], onApplied }) {
+export function openCatalogDialog({ api, action, kind, monitors = [], others = [], runners = [], onApplied }) {
     const edit = kind === 'edit', clone = kind === 'clone', title = edit ? 'Edit monitor labels' : `${kind[0].toUpperCase() + kind.slice(1)} selected monitors`, opener = document.activeElement;
     const dialog = document.createElement('dialog');
     dialog.className = 'catalog-dialog';
     dialog.setAttribute('aria-labelledby', 'catalog-dialog-heading');
-    dialog.innerHTML = `<form><h2 id="catalog-dialog-heading">${escape(title)}</h2><p>${monitors.length} selected monitors:</p><ul class="catalog-selection">${monitors.map(m => `<li>${escape(m.definition.name)}</li>`).join('')}</ul>${edit || clone ? metadataMarkup(edit) : ''}${clone ? '<label><input name="enableAfterCreate" type="checkbox">Enable after create — start scheduled checks when this batch is applied</label>' : ''}<p class="catalog-dialog-error ui-callout error" role="alert" hidden></p><div class="catalog-preview" aria-live="polite"></div><p class="catalog-plan-status" role="status">Nothing has changed. Preview first.</p><div class="catalog-dialog-actions"><button type="button" data-close>Cancel</button><button type="submit" class="primary">Preview</button><button type="button" data-apply disabled>Apply selected accepted rows</button></div></form>`;
+    dialog.innerHTML = `<form><h2 id="catalog-dialog-heading">${escape(title)}</h2><p>${monitors.length} selected monitor${monitors.length === 1 ? '' : 's'}:</p><ul class="catalog-selection">${monitors.map(m => `<li>${escape(m.definition.name)}</li>`).join('')}</ul>${edit || clone ? metadataMarkup(edit, others) : ''}${clone ? '<label><input name="enableAfterCreate" type="checkbox">Enable after create — start scheduled checks when this batch is applied</label>' : ''}<p class="catalog-dialog-error ui-callout error" role="alert" hidden></p><div class="catalog-preview" aria-live="polite"></div><p class="catalog-plan-status" role="status">Nothing has changed. Preview first.</p><div class="catalog-dialog-actions"><button type="button" data-close>Cancel</button><button type="submit" class="primary">Preview</button><button type="button" data-apply disabled>Apply selected accepted rows</button></div></form>`;
     document.body.append(dialog);
     const form = dialog.querySelector('form'), resultHost = dialog.querySelector('.catalog-preview'), status = dialog.querySelector('.catalog-plan-status'), errorHost = dialog.querySelector('[role=alert]'), apply = dialog.querySelector('[data-apply]'), previewButton = form.querySelector('[type=submit]');
     function close() {

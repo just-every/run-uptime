@@ -66,7 +66,7 @@ export function mountDiscovery({form,overview,openCheck,showManualForm,onCheck,f
  const restart=()=>{control?.abort();control=new AbortController();show('checking')};
  async function begin(){
   const text=input.value.trim();entered=text;onCheck?.();
-  if(!text){fail('Enter the address of your website, such as https://example.com.');input.focus();return}
+  if(!text){fail('Enter the address of your website, such as https://yourcompany.com.');input.focus();return}
   const url=SCHEME.test(text)?text:`https://${text}`;
   input.value=url;feedback.textContent='';
   restart();const say=showProgress(url);say();

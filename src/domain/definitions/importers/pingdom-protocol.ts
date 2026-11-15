@@ -2,12 +2,12 @@ import type {Mapping} from './types.ts'
 export function pingdomProtocol(kind:string,s:any,check:any,common:Record<string,unknown>,differences:string[]):Mapping{
  const finish=(definition:Record<string,unknown>):Mapping=>({definition:{...common,...definition},differences})
  if(kind==='tcp'){
-  if(s.stringtosend)return {unsupported:'Pingdom TCP stringtosend requires a request/response protocol check; it is not reduced to a connection-only TCP-001 monitor.'}
+  if(s.stringtosend)return {unsupported:'Pingdom TCP stringtosend requires a request/response protocol check; it is not reduced to a connection-only TCP port monitor.'}
   return finish({type:'tcp',tcp:{host:check.hostname,port:s.port,...(s.stringtoexpect?{bannerIncludes:s.stringtoexpect}:{})},timeoutMs:3000,assertions:{}})
  }
  if(kind==='smtp'){
   if(typeof s.encryption!=='boolean')return {refused:'Pingdom SMTP detail must explicitly name encryption.'}
-  if(s.username||s.password)return {unsupported:'Pingdom SMTP credentials require reviewed installation-local MAIL-001 rebinding.'}
+  if(s.username||s.password)return {unsupported:'Pingdom SMTP credentials are not copied; review the mail monitor and re-enter its credential on this installation.'}
   differences.push('SMTP encryption uses STARTTLS on submission ports and implicit TLS on port 465; the native runner verifies the TLS identity and greeting, without sending mail.')
   return finish({type:'mail',mail:{protocol:'smtp',host:check.hostname,port:s.port??(s.encryption?587:25),security:s.encryption?(s.port===465?'tls':'starttls'):'none'},timeoutMs:30000,assertions:{}})
  }

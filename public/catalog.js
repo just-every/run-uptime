@@ -44,7 +44,7 @@ export function createCatalog({ api, action }) {
         return (current?.data.monitors ?? []).filter(m => selected.has(m.id));
     }
     function open(kind) {
-        openCatalogDialog({ api, action, kind, monitors: chosen(), runners: current?.data.runner?.runners ?? [], onApplied: result => {
+        openCatalogDialog({ api, action, kind, monitors: chosen(), others: (current?.data.monitors ?? []).filter(m => !selected.has(m.id)), runners: current?.data.runner?.runners ?? [], onApplied: result => {
                 lastBatch = result.batchId;
                 showBatch();
             } });

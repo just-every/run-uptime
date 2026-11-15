@@ -24,11 +24,11 @@ export function startLocations(runners:Runner[],type:string){
  const active=runners.filter(row=>row.revoked_at===null),joined=active.filter(row=>row.last_contact_at!==null)
  return (joined.length?joined:active.slice(0,1)).slice(0,type==='flow'?2:3).map(row=>({runnerId:row.runner_id,networkLabel:row.network_label}))
 }
-const COST_UNKNOWN='COST-001 has not published prices, so no USD amount is shown.'
+const COST_UNKNOWN='Prices are not published yet, so no USD amount is shown.'
 export function costOf(definition:any,locations:number){
  const runsPerDay=Math.round(DAY/definition.intervalMs)*locations
  return {state:'unknown' as const,usd:null,reason:COST_UNKNOWN,monitorRunsPerDay:runsPerDay,probes:locations,
-  ...(definition.type==='flow'?{browserMinutes:{state:'unknown' as const,reason:'Browser-minutes depend on each run’s length, and COST-001 has not published their price.'}}:{})}
+  ...(definition.type==='flow'?{browserMinutes:{state:'unknown' as const,reason:'Browser-minutes depend on each run’s length, and their price is not published yet.'}}:{})}
 }
 export function trafficOf(definition:any,locations:number){
  const perLocationPerDay=Math.round(DAY/definition.intervalMs)
@@ -36,7 +36,7 @@ export function trafficOf(definition:any,locations:number){
 }
 function credentialNeeds(candidate:Candidate){
  const status=candidate.proposal?.definition.assertions?.status
- if(candidate.kind==='api'&&(status===401||status===403))return `None to see that it answers: it answers ${status} without a key. Checking signed-in responses needs a request credential on your runner (API-002).`
+ if(candidate.kind==='api'&&(status===401||status===403))return `None to see that it answers: it answers ${status} without a key. Checking signed-in responses needs a request credential on your runner.`
  return 'None: a public check that sends no request credential.'
 }
 export function proposalView({run,previous,monitors,decisions,runners,others}:{run:Run;previous:Run|null;monitors:Monitor[];decisions:Map<string,any>;runners:Runner[];others:{sourceId:string;label:string;candidates:Candidate[]}[]}){

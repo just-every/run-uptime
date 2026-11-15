@@ -30,14 +30,16 @@ function browserArtifacts(parent,s){
  node('h3','Browser console errors and warnings',parent);
  if(a.console.length){const list=node('ul',undefined,parent);for(const line of a.console){const item=node('li',`${line.type}: ${line.text}`,list);item.style.overflowWrap='anywhere'}}else paragraph(parent,'No retained console errors or warnings. Capture may be unavailable or removed by policy.');
 }
-export function renderSnapshots(target,items,name=()=>'Unavailable location'){
+export function renderSnapshots(target,items,name=()=>'Unavailable location',emptyReason=''){
  target.replaceChildren();
- if(!items.length){paragraph(target,'No retained failure snapshots in this selection. Missing snapshots are not evidence of success.');return}
+ if(!items.length){paragraph(target,`No retained failure snapshots in this selection. ${emptyReason?emptyReason+' ':''}Missing snapshots are not evidence of success.`);return}
+ // A check that was retried leaves one snapshot per attempt at the same time, so the list says which attempt each is.
+ const attempts=new Map();for(const row of items){const key=`${row.slot_id}|${row.probe}`;attempts.set(key,(attempts.get(key)??0)+1)}
  for(const row of items){
   const s=row.snapshot;
   if(s.unavailable){paragraph(target,`Snapshot unavailable: capture failed its safety checks. The failed attempt remains recorded (${name(row.probe,row)}).`);continue}
   const protocol=['TCP','TLS','DNS','UDP','PING','MAIL'].includes(s.method),flow=Boolean(s.artifacts||row.flow),details=node('details',undefined,target);details.className='failure-snapshot';
-  node('summary',`${protocol?`${s.method} failure`:flow?'Browser flow failure':`HTTP ${s.status??'unavailable'}`} · ${name(row.probe,row)} · ${new Date(row.captured_at).toLocaleString()}`,details);
+  node('summary',`${protocol?`${s.method} failure`:flow?'Browser flow failure':`HTTP ${s.status??'unavailable'}`} · ${name(row.probe,row)}${attempts.get(`${row.slot_id}|${row.probe}`)>1?` · attempt ${row.attempt+1}`:''} · ${new Date(row.captured_at).toLocaleString()}`,details);
   paragraph(details,`Revision ${row.revision} · attempt ${row.attempt+1} · ${s.durationMs} ms`);
   const raw=node('details',undefined,details);node('summary','Raw data',raw);
   const reference=paragraph(raw,`Immutable reference: observation ${row.observation_id} · slot ${row.slot_id}`);reference.style.overflowWrap='anywhere';

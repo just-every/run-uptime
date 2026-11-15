@@ -130,7 +130,7 @@ export async function proveDiscoverySources({launch,evidence}){
   }
   assert.ok(all.some(p=>p.kind==='tls')&&all.some(p=>p.kind==='dns')&&all.some(p=>p.kind==='api')&&all.some(p=>p.kind==='host'),'HTTP, API and protocol proposals');
   const browserProposal=all.find(p=>p.kind==='browser');assert.ok(browserProposal,'a browser proposal');assert.equal(browserProposal.cost.browserMinutes.state,'unknown','browser-minutes are Unknown too');
-  assert.ok(first.spec.proposals.find(p=>p.url.endsWith('/v1/orders')).credentials.includes('API-002'),'an API route that wants a key names the credential it needs');
+  assert.ok(first.spec.proposals.find(p=>p.url.endsWith('/v1/orders')).credentials.includes('request credential'),'an API route that wants a key names the credential it needs');
   const wwwOf=name=>first[name].proposals.find(p=>p.kind==='host'&&p.url===`https://${host('www')}/`);
   assert.deepEqual(wwwOf('domain').duplicates.monitors.map(m=>m.id),[existing.id],'a proposal of a monitored address names that monitor');
   assert.ok(wwwOf('domain').duplicates.proposals.some(p=>p.sourceId===sources.cloudflare),'and the other source that proposes it');

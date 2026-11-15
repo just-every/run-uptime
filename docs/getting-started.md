@@ -12,7 +12,7 @@ If the installer prints a line that puts `rer` on your PATH, run that line too. 
 
 ## Explicit owner setup
 
-To choose an owner or supply setup answers yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout, before `rer dev`:
+To choose an owner or supply setup answers yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout, before `rer dev`:
 
 ```sh
 rer setup --owner-email EMAIL --owner-name "NAME" --non-interactive
@@ -35,7 +35,7 @@ When you open `/setup`, Uptime asks your runner to visit that site and look arou
 ## Sign in and finish setup
 
 1. Open the address printed as `RER_READY` and complete the browser sign-in handoff from `rer dev`. Keep local access credentials private.
-2. First-run setup opens at `/setup`. Setup asks only for your website, and it is optional. Choose **Continue** (or **Skip**). If you gave a website and the runner is working, you land on its proposed monitors; otherwise on the form for your first monitor. The External check URL (https://example.org/ by default) is set in **Settings**.
+2. First-run setup opens at `/setup`. Setup asks only for your website, and it is optional. Choose **Continue** (or **Skip**). If you gave a website and the runner is working, you land on its proposed monitors; otherwise on the form for your first monitor. The External check URL (https://run-uptime.com/ by default) is set in **Settings**.
 
 The console is then at `/app`. Hosted email-link sign-in and notifications use a configured mail sender. Development and demo runs report successful sends without sending email. Setup can defer mail configuration; dev identity provides local owner access while you configure it.
 

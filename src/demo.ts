@@ -26,9 +26,9 @@ export async function seedDemo(input:Bindings,{ownerEmail,now}:{ownerEmail:strin
    passChecks:checks(json,true),failChecks:checks(json,false),status:200,...health.response,incident:{slotsBeforeEnd:641,failingSlots:4,status:503}},
   {id:'status-endpoint',input:{name:'Service status endpoint',type:'keyword',...status.input},
    passChecks:checks(body,true),failChecks:checks(body,false),status:200,...status.response},
-  {id:'docs-site',input:{name:'Public docs',type:'keyword',url:'https://run-uptime.com/docs',timeoutMs:10000,assertions:{status:200,bodyIncludes:'Uptime'}},
+  {id:'docs-site',input:{name:'Public docs',type:'keyword',url:'https://example.org/docs',timeoutMs:10000,assertions:{status:200,bodyIncludes:'Uptime'}},
    passChecks:checks(body,true),failChecks:checks(body,false),status:200,bytes:13938,baseMs:96,spreadMs:210},
-  {id:'run-page',input:{name:'Install guide',type:'http',url:'https://run-uptime.com/run',timeoutMs:10000,assertions:{status:200,latencyMs:3000}},
+  {id:'run-page',input:{name:'Install guide',type:'http',url:'https://example.org/run',timeoutMs:10000,assertions:{status:200,latencyMs:3000}},
    passChecks:checks(latency,true),failChecks:checks(latency,false),status:200,bytes:8106,baseMs:88,spreadMs:190},
  ]
  const history:HistoryMonitor[]=monitors.map(({input:definition,...m})=>{
@@ -50,7 +50,7 @@ export async function seedDemo(input:Bindings,{ownerEmail,now}:{ownerEmail:strin
  }
  statements.push(env.DB.prepare('INSERT INTO uptime_first_run(id,completed_at) VALUES(1,CAST(? AS INTEGER)) ON CONFLICT DO NOTHING').bind(created))
  // example.com is the editor's own suggestion, so a hosted visitor's first monitor must not share a site with the
- // installation's External check URL; the Worker confirms outages against example.org instead.
+ // installation's External check URL; the Worker confirms outages against run-uptime.com instead.
  if(hosted)statements.push(env.DB.prepare("INSERT INTO external_check(id,url,updated_at) VALUES(1,'https://example.org/',CAST(? AS INTEGER)) ON CONFLICT(id) DO UPDATE SET url=excluded.url,updated_at=excluded.updated_at").bind(created))
  await env.DB.batch(statements)
  await seedDestinations(env,ownerEmail,created)

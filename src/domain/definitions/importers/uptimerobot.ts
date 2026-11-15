@@ -98,7 +98,7 @@ function map(entry:SourceEntry):Mapping{
  if(m.followRedirections===false)differences.push('UptimeRobot did not follow redirects; Uptime follows them, validating each hop.')
  if(m.sslExpirationReminder===true||m.domainExpirationReminder===true)differences.push('Certificate and domain expiry reminders are not reproduced.')
  const regions=Array.isArray(m.regionalData?.REGION)?m.regionalData.REGION.map(String):[]
- differences.push(`UptimeRobot's ${regions.length?`${list(regions)} region`:'own'} vantage is not reproduced. Uptime checks from probe local-a on your own runner; add a second runner network or a canary URL before enabling it.`)
+ differences.push(`UptimeRobot's ${regions.length?`${list(regions)} region`:'own'} vantage is not reproduced. Uptime checks from your first location; add a second runner network or a canary URL before enabling it.`)
  if(third&&'notes' in third)differences.push(...third.notes)
  return {definition:{...common,type:type==='KEYWORD'?'keyword':'http',url:m.url,method,assertions,timeoutMs:chosenTimeout,probes:['local-a'],failureQuorum:1,...(request?{request}:{}),...(m.checkSSLErrors===false&&/^https:/i.test(m.url)?{tlsTrust:{mode:'ignore',acknowledged:true}}:{})},differences}
 }

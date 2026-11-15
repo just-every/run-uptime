@@ -50,12 +50,12 @@ export function externalCheckOf(definition:any,settings:ExternalCheck){
 }
 // The owner reads this message beside the field, so a refused address says why in plain words, not the policy's own.
 function checkedUrl(value:unknown){
- if(typeof value!=='string'||!value.trim())throw Error('Enter a URL you do not run, such as https://example.com/.')
+ if(typeof value!=='string'||!value.trim())throw Error('Enter a URL you do not run, such as https://example.org/.')
  try{return publicTarget(value.trim()).href}catch(error){
   const reason=(error as Error).message
   if(/forbidden/.test(reason))throw Error('That is a private, loopback or link-local address. The External check URL must be a public website.')
   if(/requires HTTP/.test(reason))throw Error('The External check URL must start with http:// or https:// and cannot contain a user name, password or # fragment.')
-  throw Error('That is not a web address Uptime can check. Use a full address such as https://example.com/.')
+  throw Error('That is not a web address Uptime can check. Use a full address such as https://example.org/.')
  }
 }
 // A new URL reaches every monitor that follows Settings on its next check, so it is refused where a saved monitor would refuse

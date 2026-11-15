@@ -87,7 +87,7 @@ export function previewUptimeRobotWebhook(input){
 // Saved GET /user/alert-contacts and /user/all-alert-contacts responses, respectively
 // AlertContactDto and AllAlertContactDto in https://cdn.uptimerobot.com/api/openapi.yaml
 // (read 23 October 2026). This proposal never stores, creates, confirms or sends a contact.
-export const CONTACT_EXPORT_GUIDANCE='Review saved /user/alert-contacts or /user/all-alert-contacts through the read-only contact preview. Email and webhook kinds need local destination review; CHAT-001, PHONE-001 and ACCESS-001 own unsupported contacts and seat handoffs.';
+export const CONTACT_EXPORT_GUIDANCE='Review saved /user/alert-contacts or /user/all-alert-contacts through the read-only contact preview. Email and webhook contacts need a local destination reviewed by you. Chat, phone and mobile-app contacts and login seats are not supported yet.';
 const short=(value,fallback)=>typeof value==='string'&&value.trim()?value.replace(/[\x00-\x1f\x7f]/g,' ').trim().slice(0,100):fallback;
 function legacyTeams(value){try{const u=new URL(value);return u.protocol==='https:'&&(u.hostname.endsWith('.webhook.office.com')||u.hostname==='outlook.office.com'&&u.pathname.startsWith('/webhook/'))}catch{return false}}
 export function previewUptimeRobotContacts(input){
@@ -111,9 +111,9 @@ export function previewUptimeRobotContacts(input){
   }
   if(kind==='Webhook')return {...base,action:'review',destination:{kind:'webhook'},reason:'Review the saved official Webhook create payload through the existing template preview. AlertContactDto value/customValue do not specify template semantics; no URL, credentials or send authority are copied.'};
   const clause=['ProSms','SMS','Voice'].includes(kind)?'PHONE-001':['MobileAppOld','MobileApp','MobileAppIOS','MobileAppAndroid'].includes(kind)?'MOBILE-001':['Telegram','Slack','MSTeams','Discord','GoogleChat'].includes(kind)?'CHAT-001':'MIGRATE-001';
-  return {...base,action:'refused',clause,reason:`${kind} requires ${clause} migration and local recipient/consent review; no destination is created.`};
+  return {...base,action:'refused',clause,reason:`${kind} contacts are not supported yet. Review the recipient and consent yourself; no destination is created.`};
  });
  const counts={read:entries.length,review:entries.filter(e=>e.action==='review').length,refused:entries.filter(e=>e.action==='refused').length},byKind=Object.create(null);
  for(const e of entries){const count=byKind[e.kind]??={read:0,review:0,refused:0};count.read++;count[e.action]++}
- return {kind:'uptimerobot-contact-preview',readOnly:true,counts,byKind,entries,seats,seatCounts:{read:seats.length,login:seats.filter(s=>!s.notifyOnly).length,notifyOnly:seats.filter(s=>s.notifyOnly).length,refused:seats.length},differences:[CONTACT_EXPORT_GUIDANCE,'Contact status, contact thresholds/repeats, notification selections and source account membership do not authorize local delivery. Nothing is written, confirmed, invited or sent.','Incident comments and root cause are absent from these saved contact responses. The current published API exposes /incidents/{id}/comments and IncidentDetailDto.rootCause separately; importing them as labelled source history remains a HISTORY-001/INCIDENT-005 gap.']};
+ return {kind:'uptimerobot-contact-preview',readOnly:true,counts,byKind,entries,seats,seatCounts:{read:seats.length,login:seats.filter(s=>!s.notifyOnly).length,notifyOnly:seats.filter(s=>s.notifyOnly).length,refused:seats.length},differences:[CONTACT_EXPORT_GUIDANCE,'Contact status, contact thresholds/repeats, notification selections and source account membership do not authorize local delivery. Nothing is written, confirmed, invited or sent.','Incident comments and root cause are absent from these saved contact responses. The current published API exposes /incidents/{id}/comments and IncidentDetailDto.rootCause separately; importing them as labelled source history is not supported yet.']};
 }

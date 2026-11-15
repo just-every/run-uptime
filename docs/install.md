@@ -10,19 +10,13 @@ The CLI selects the checkout's pinned Node 22.20.0 for application commands. Use
 
 ## Clone and start
 
-Two steps. Step 1 installs `rer`; Node does not need to be installed first:
+One line installs `rer`, clones Uptime into `run-uptime` and starts it; Node does not need to be installed first:
 
 ```sh
-curl -fsSL https://runeditrun.com/install.sh | sh
+curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
 ```
 
-Step 2 clones Uptime into `run-uptime`, sets it up and starts it:
-
-```sh
-rer dev just-every/run-uptime
-```
-
-Git is required; rer brings Node and pnpm. If the installer says `rer` is not on your PATH yet, start it by its full path instead: `$HOME/.local/bin/rer dev just-every/run-uptime`. Already have Node 22 or later? `npx -y @runeditrun/rer dev just-every/run-uptime` does both steps at once. To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout:
+Git is required; rer brings Node and pnpm. The same path in two steps is `curl -fsSL https://runeditrun.com/install.sh | sh`, then `rer dev just-every/run-uptime`. Until the installer’s PATH change takes effect, use `$HOME/.local/bin/rer dev just-every/run-uptime`. Already have Node 22 or later? `npx -y @runeditrun/rer dev just-every/run-uptime` does the same. If the installer prints a line that puts `rer` on your PATH, run that line too. To start it again later, run the same line from the same folder, or `cd run-uptime && rer dev`. To choose the owner yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout:
 
 ```sh
 rer setup
@@ -33,7 +27,7 @@ rer dev
 
 ## Explicit owner setup
 
-To choose an owner or supply setup answers yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout, before `rer dev`:
+To choose an owner or supply setup answers yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout, before `rer dev`:
 
 ```sh
 rer setup --owner-email EMAIL --owner-name "NAME" --non-interactive
@@ -56,7 +50,7 @@ When you open `/setup`, Uptime asks your runner to visit that site and look arou
 ## Sign in and finish setup
 
 1. Open the address printed as `RER_READY` and complete the browser sign-in handoff from `rer dev`. Keep local access credentials private.
-2. First-run setup opens at `/setup`. Setup asks only for your website, and it is optional. Choose **Continue** (or **Skip**). If you gave a website and the runner is working, you land on its proposed monitors; otherwise on the form for your first monitor. The External check URL (https://example.org/ by default) is set in **Settings**.
+2. First-run setup opens at `/setup`. Setup asks only for your website, and it is optional. Choose **Continue** (or **Skip**). If you gave a website and the runner is working, you land on its proposed monitors; otherwise on the form for your first monitor. The External check URL (https://run-uptime.com/ by default) is set in **Settings**.
 
 The console is then at `/app`. Hosted email-link sign-in and notifications use a configured mail sender. Development and demo runs report successful sends without sending email. Setup can defer mail configuration; dev identity provides local owner access while you configure it.
 

@@ -94,6 +94,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/runners',body:'object'},
  {method:'PATCH',path:'/api/runners/:id',params:id,body:'object'},
  {method:'DELETE',path:'/api/runners/:id',params:id,body:'none'},
+ {method:'POST',path:'/api/runners/:id/join-command',params:id,body:'empty'},
  {method:'POST',path:'/api/runners/:id/check-all',params:id,body:'empty'},
  {method:'GET',path:'/api/external-check',body:'none'},
  {method:'POST',path:'/api/external-check',body:'object'},
