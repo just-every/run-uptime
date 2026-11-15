@@ -63,10 +63,10 @@ function day(metrics,enabled){
  return `<div class="monitor-day"><div class="coverage-bar" aria-hidden="true">${parts}</div><p class="monitor-share"><span class="ui-visually-hidden">Last 24 hours: </span>${escape(share)}${observed?'<span class="ui-visually-hidden"> passing</span>':''}</p></div>`;
 }
 
-// The tick is named for its job; aria-describedby adds which monitor. Healthy is a quiet dot, any other state its pill.
+// The checkbox names its monitor for screen readers; its tooltip stays short. Healthy is a quiet dot, any other state its pill.
 export function monitorRow(m,{runners,readUnavailable,selected,monitoringOnly=false}){
  const d=m.definition,state=shownState(m,readUnavailable),id=escape(m.id),href=escape(monitorHref(m.id));
  const mark=state==='Healthy'?'<span class="monitor-dot"><span class="ui-visually-hidden">Healthy</span></span>':'',pill=state==='Healthy'?'':`<span class="ui-pill state ${escape(state.toLowerCase())}">${escape(state)}</span>`;
  const warning=m.configurationWarning&&!monitoringOnly?`<a class="ui-link monitor-warning" href="${href}/edit">Needs a second location or an external check</a>`:'';
- return `<li class="monitor-row${selected?' is-selected':''}${monitoringOnly?' monitoring-only':''}" data-key="${id}">${monitoringOnly?'':`<input type="checkbox" id="catalog-select-${id}" data-monitor-select="${id}" ${tip('Select monitor',{describedBy:`monitor-link-${id}`})}${selected?' checked':''}>`}<div class="monitor-main"><div class="monitor-title">${mark}<a class="monitor-link" id="monitor-link-${id}" href="${href}"><span class="monitor-name">${escape(d.name)}</span></a>${pill}</div>${meta(m,state,runners)}${warning}</div>${day(m.availability?.last24h,d.enabled)}</li>`;
+ return `<li class="monitor-row${selected?' is-selected':''}${monitoringOnly?' monitoring-only':''}" data-key="${id}">${monitoringOnly?'':`<input type="checkbox" id="catalog-select-${id}" data-monitor-select="${id}" ${tip('Select monitor')} aria-labelledby="catalog-select-label-${id} monitor-link-${id}"${selected?' checked':''}><span id="catalog-select-label-${id}" class="ui-visually-hidden">Select</span>`}<div class="monitor-main"><div class="monitor-title">${mark}<a class="monitor-link" id="monitor-link-${id}" href="${href}"><span class="monitor-name">${escape(d.name)}</span></a>${pill}</div>${meta(m,state,runners)}${warning}</div>${day(m.availability?.last24h,d.enabled)}</li>`;
 }

@@ -55,8 +55,8 @@ node scripts/mfa.mjs status --origin https://your-app.example
 node scripts/mfa.mjs totp-enroll --origin https://your-app.example
 ```
 
-For a local checkout, start `rer dev`, then run `node scripts/mfa.mjs
-local-session --origin http://127.0.0.1:PORT` with the saved app origin. This uses
+For a local checkout, start `rer dev`, then run `rer run --script scripts/mfa.mjs
+local-session --origin http://127.0.0.1:PORT` with the saved app origin (with Node on your PATH, `node scripts/mfa.mjs` is the same command). This uses
 Base's existing local installation-authority endpoint and shows its new native
 session cookie once. Keep that cookie privately in `UPTIME_ACCESS_COOKIE`, then
 enroll or verify a second factor through the commands above. A dev-persona

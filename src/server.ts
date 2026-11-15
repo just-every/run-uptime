@@ -67,7 +67,7 @@ import {runnerScriptResponse} from './domain/runner-script.server.ts'
 // @ts-ignore Shared bounded credential diagnostics.
 import {runnerResultLimit} from './domain/credential-binding.mjs'
 import {signedRunnerBody} from './domain/runner-signature.server.ts'
-import {enrollRunner,authenticateRunner,createRunner,joinRunner,renameRunner,revokeRunner,listRunners,ensureFirstRunner,nameFromPlace,type Runner} from './domain/runner-registration.server.ts'
+import {enrollRunner,authenticateRunner,createRunner,renewJoinCommand,joinRunner,renameRunner,revokeRunner,listRunners,ensureFirstRunner,nameFromPlace,type Runner} from './domain/runner-registration.server.ts'
 import {configurationResponse,validateWorkerConfiguration} from './domain/startup-config.mjs'
 import {isPublicDocument,publicPath} from './domain/public-paths.ts'
 import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
@@ -287,6 +287,7 @@ api.post('/api/runners',async c=>c.json(await createRunner(c.env,c.get('input'))
 api.patch('/api/runners/:id',async c=>c.json(await renameRunner(c.env,c.req.param('id'),c.get('input'))))
 api.delete('/api/runners/:id',async c=>c.json(await revokeRunner(c.env,c.req.param('id'))))
 // "Check all monitors from here too": the location joins every monitor that has room for it, in one step.
+api.post('/api/runners/:id/join-command',async c=>c.json(await renewJoinCommand(c.env,c.req.param('id'))))
 api.post('/api/runners/:id/check-all',async c=>c.json(await checkAllFrom(c.env,c.req.param('id'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))
 // The installation-wide External check URL: owner session only, same origin, validated before it is stored.
 api.patch('/api/notifications/preferences',async c=>c.json(await saveNotificationPreferences(c.env,c.get('input'),{kind:'operator',ref:(await authenticatedSession(c.env,c.req.raw))!.operator.id})))

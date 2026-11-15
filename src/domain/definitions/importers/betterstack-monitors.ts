@@ -15,14 +15,14 @@ function map(value:any):Mapping{
  if(typeof a.url!=='string'||typeof a.pronounceable_name!=='string'||!a.pronounceable_name.trim())return {refused:'Better Stack monitor requires url and pronounceable_name.'}
  const third=thirdPartyService(a.url,a.pronounceable_name)
  if(third&&'definition' in third)return {definition:third.definition,differences:[...third.differences,'Better Stack regions, groups, contacts, maintenance and history require separate review.']}
- const handoffs:Record<string,string>={playwright:'FLOW-001/FLOW-002 browser steps',udp:'UDP-001 payload and response bytes',dns:'DNS-001 resolver and answer criteria',smtp:'MAIL-001 protocol and credentials',pop:'MAIL-001 protocol and credentials',imap:'MAIL-001 protocol and credentials'}
- if(!['status','expected_status_code','keyword','keyword_absence','ping','tcp'].includes(kind))return {unsupported:`Better Stack ${String(kind)} needs reviewed ${handoffs[kind]??'MIGRATE-003 monitor-type'} conversion; it is not reduced to an HTTP check.`}
+ const handoffs:Record<string,string>={playwright:'browser or multi-step checks',udp:'UDP payload and response bytes',dns:'DNS resolver and answer criteria',smtp:'mail protocol and credentials',pop:'mail protocol and credentials',imap:'mail protocol and credentials'}
+ if(!['status','expected_status_code','keyword','keyword_absence','ping','tcp'].includes(kind))return {unsupported:`Better Stack ${String(kind)} needs reviewed ${handoffs[kind]??'monitor-type'} conversion; it is not reduced to an HTTP check.`}
  if(!Number.isInteger(a.check_frequency)||a.check_frequency<5||a.check_frequency>86400)return {refused:'Better Stack check_frequency must be whole seconds from 5 to 86400.'}
  const protocol=['ping','tcp'].includes(kind),sourceTimeout=a.request_timeout??(protocol?5000:30)
  if(!Number.isInteger(sourceTimeout)||sourceTimeout<=0)return {refused:'Better Stack request_timeout must be a positive whole number.'}
  const timeoutMs=Math.max(kind==='ping'?8000:50,Math.min(10000,sourceTimeout*(protocol?1:1000)))
  const blocked=['auth_username','auth_password','request_headers','request_body','proxy_url','proxy_username','proxy_password'].filter(key=>present(a[key]))
- if(blocked.length)return {unsupported:`Better Stack ${kind}: ${blocked.join(', ')} need local API-002 credential review; no request values are copied.`}
+ if(blocked.length)return {unsupported:`Better Stack ${kind}: ${blocked.join(', ')} need a request credential kept on your runner; no request values are copied.`}
  if(a.verify_ssl!==undefined&&typeof a.verify_ssl!=='boolean')return {refused:'Better Stack verify_ssl must be a boolean.'}
  const regions=a.regions==null||Array.isArray(a.regions)&&!a.regions.length?['us','eu','as','au']:a.regions
  if(!Array.isArray(regions)||regions.some((r:any)=>!['us','eu','as','au'].includes(r))||new Set(regions).size!==regions.length)return {refused:'Better Stack regions must name distinct documented us, eu, as or au regions.'}
@@ -30,8 +30,8 @@ function map(value:any):Mapping{
  if(group!=null&&!(typeof group==='string'&&/^\d+$/.test(group)||Number.isSafeInteger(group)&&group>0))return {refused:'Better Stack monitor_group_id must be a group identifier.'}
  const differences=[`Imported paused. check_frequency ${a.check_frequency} seconds becomes ${a.check_frequency*1000} ms; request_timeout ${sourceTimeout} ${protocol?'milliseconds':'seconds'} becomes ${timeoutMs} ms.`,...regions.map((r:string)=>`Region ${r} is retained as a label; no installed geographic location matches it. Assign and verify your own runner location before enabling.`), 'Confirmation and recovery use two scheduled results, with no retries; source time-based confirmation, escalation, contacts, maintenance and history are not transferred. Oncall/Lamp handoffs and side-by-side cutover remain separate.',...(third&&'notes' in third?third.notes:[])]
  if(group!=null)differences.push(`Group ${group} becomes a label; the saved monitor page supplies its identifier, not its name or membership settings.`)
- if(present(a.ssl_expiration))differences.push('ssl_expiration requires a separate reviewed TLS-001 expiry monitor.')
- if(present(a.domain_expiration))differences.push('domain_expiration requires a separate reviewed DOMAIN-001 expiry monitor.')
+ if(present(a.ssl_expiration))differences.push('ssl_expiration requires a separate reviewed TLS certificate monitor.')
+ if(present(a.domain_expiration))differences.push('domain_expiration requires a separate reviewed domain expiry monitor.')
  if(a.effective_check_frequency!==undefined&&a.effective_check_frequency!==a.check_frequency)differences.push(`effective_check_frequency is ${a.effective_check_frequency}; the saved requested frequency is ${a.check_frequency}. Review the source frequency reason before enabling.`)
  const mapped=new Set(['url','pronounceable_name','monitor_type','check_frequency','request_timeout','regions','monitor_group_id','verify_ssl','http_method','required_keyword','expected_status_codes','port'])
  if(kind==='ping')mapped.add('ip_version')
@@ -43,12 +43,12 @@ function map(value:any):Mapping{
   return {definition:{...common,type:'ping',ping:{host:a.url,family:a.ip_version==='ipv6'?6:4},assertions:{}},differences}
  }
  if(kind==='tcp'){
-  if(typeof a.port!=='string'||!/^\d+$/.test(a.port))return {unsupported:'Better Stack TCP requires one explicit port; multi-port checks need separate TCP-001 monitors.'}
+  if(typeof a.port!=='string'||!/^\d+$/.test(a.port))return {unsupported:'Better Stack TCP requires one explicit port; multi-port checks need separate TCP monitors.'}
   differences.push('TCP performs one connection check and sends no payload; source banner criteria are not inferred.')
   return {definition:{...common,type:'tcp',tcp:{host:a.url,port:Number(a.port)},assertions:{}},differences}
  }
  const method=typeof a.http_method==='string'?a.http_method.toUpperCase():'GET'
- if(!['GET','HEAD','POST','PUT','PATCH','OPTIONS'].includes(method))return {refused:'Better Stack http_method has no supported HTTP-001 mapping.'}
+ if(!['GET','HEAD','POST','PUT','PATCH','OPTIONS'].includes(method))return {refused:'Better Stack http_method is not a request method Uptime supports.'}
  const assertions:Record<string,unknown>={status:['2xx']}
  if(kind==='expected_status_code'){
   if(!Array.isArray(a.expected_status_codes)||!a.expected_status_codes.length||a.expected_status_codes.some((n:any)=>!Number.isInteger(n)||n<100||n>599))return {refused:'Better Stack expected_status_codes must contain explicit HTTP status codes.'}

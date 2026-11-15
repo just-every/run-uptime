@@ -219,6 +219,14 @@ try{
    await page.getByRole('button',{name:'Resume',exact:true}).click();await page.locator('details#maintenance > summary').click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).click();await page.locator('#status-card').getByRole('button',{name:'End now',exact:true}).click();await page.getByRole('button',{name:'Quiet alerts for 15 min'}).waitFor();await page.getByRole('button',{name:'Pause',exact:true}).click();await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
    if(width===1440||width===390)await ruleEditJourney(page,width);
    await tabTo(page,page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await page.getByRole('heading',{name:'Destinations',exact:true}).waitFor();await audit(page,`notifications-${width}`);
+   const destinationResponse=await page.request.post(origin+'/api/notifications/destinations',{headers:{origin},data:{name:'Synthetic operations email',kind:'email',address:'synthetic-uptime-operations@example.test',enabled:false}});assert.equal(destinationResponse.status(),201);const destination=await destinationResponse.json();
+   await nextPoll(page);await page.locator(`[data-edit-destination="${destination.id}"]`).click();
+   await page.locator('[data-delete-destination]').click();const destinationErase=page.waitForResponse(r=>new URL(r.url()).pathname===`/api/notifications/destinations/${destination.id}`&&r.request().method()==='DELETE');
+   await page.getByRole('dialog').last().getByRole('button',{name:'Delete destination',exact:true}).click();const destinationReceipt=(await (await destinationErase).json()).receipt;
+   const receipt=page.getByRole('dialog',{name:'Erasure complete',exact:true});await receipt.waitFor();assert.ok(!(await receipt.innerText()).includes(destinationReceipt.id),'the raw destination receipt id stays private');
+   const reference=await receipt.locator('.erasure-reference-value').innerText();assert.equal(reference.replace(/^ER-/,'').replaceAll('-','').toLowerCase(),destinationReceipt.id.replaceAll('-',''),'display preserves the destination receipt identity');
+   await audit(page,`destination-erasure-${width}`);await receipt.getByRole('button',{name:'Close receipt',exact:true}).click();
+
    await page.getByRole('link',{name:'Backup and files',exact:true}).click();await page.waitForURL(origin+'/app/settings/backup');await ready(page);await page.getByRole('button',{name:'Download backup'}).waitFor();await audit(page,`archive-${width}`);
    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Download backup'}).click()]);await download.saveAs(resolve(out,`archive-${width}.json`));
    await proveReadableMaintenanceAndErasure(page,origin,monitor);await ready(page);

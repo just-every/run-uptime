@@ -176,5 +176,6 @@ export function renderDefinitions({area,action}){
   if(result.ok){state.opened.add(id);await loadBatches()}
  }
  $('#definition-export').onclick=()=>action(async()=>{const file=await send('/api/definitions/export'),url=URL.createObjectURL(new Blob([JSON.stringify(file,null,2)+'\n'],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='uptime.monitors.json';a.click();URL.revokeObjectURL(url)},{success:'Monitors exported.'});
- showBatches();loadBatches().catch(error=>{$('#definition-batches').innerHTML=`<p>${escape(error.message)}</p>`});
+ const refreshBatches=async()=>{state.batches=null;showBatches();try{await loadBatches()}catch(error){$('#definition-batches').innerHTML=`<p role="status">Past imports could not be refreshed. Reload this page to try again.</p>`}};
+ showBatches();void refreshBatches();return refreshBatches;
 }

@@ -66,7 +66,7 @@ export async function proveNativeManagement({origin,cookie,DB}){
   ['/api/notifications/destinations','POST',[],/object/i],
   ['/api/notifications/destinations','POST',{...destinationInput,url:'http://synthetic-uptime-36.example/'},/HTTPS/i],
   [contactPath,'PATCH',{...contactEdit,enabled:'yes'},/enabled/i],
-  [contactPath,'PATCH',{...contactEdit,url:'https://synthetic-uptime-36.example/#fragment'},/fragments/i],
+  [contactPath,'PATCH',{...contactEdit,url:'https://synthetic-uptime-36.example/#fragment'},/fragment/i],
  ])await refused(`${method} ${target} malformed native input`,target,method,body,{},400,error);
  assert.deepEqual(await revisions(),rows,'refusals leave every public revision exact');
  console.log('MANAGE-001 native management: direct create, edit and pause retain immutable public revisions; foreign-site and malformed monitor and contact writes preserve every durable table.');

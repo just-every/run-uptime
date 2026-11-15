@@ -10,13 +10,13 @@ The CLI selects the checkout's pinned Node 22.20.0 for application commands. Use
 
 ## Clone and start
 
-One line installs `rer`, clones Uptime into `run-uptime` and starts it:
+One line installs `rer`, clones Uptime into `run-uptime` and starts it; Node does not need to be installed first:
 
 ```sh
 curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
 ```
 
-Git is required; rer brings Node and pnpm. Already have Node 22 or later? `npx -y @runeditrun/rer dev just-every/run-uptime` does the same. If the installer prints a line that puts `rer` on your PATH, run that line too. To start it again later, run the same line from the same folder, or `cd run-uptime && rer dev`. To choose the owner yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout:
+Git is required; rer brings Node and pnpm. The same path in two steps is `curl -fsSL https://runeditrun.com/install.sh | sh`, then `rer dev just-every/run-uptime`. Until the installer’s PATH change takes effect, use `$HOME/.local/bin/rer dev just-every/run-uptime`. Already have Node 22 or later? `npx -y @runeditrun/rer dev just-every/run-uptime` does the same. If the installer prints a line that puts `rer` on your PATH, run that line too. To start it again later, run the same line from the same folder, or `cd run-uptime && rer dev`. To choose the owner yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout:
 
 ```sh
 rer setup
@@ -27,7 +27,7 @@ rer dev
 
 ## Explicit owner setup
 
-To choose an owner or supply setup answers yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout, before `rer dev`:
+To choose an owner or supply setup answers yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout, before `rer dev`:
 
 ```sh
 rer setup --owner-email EMAIL --owner-name "NAME" --non-interactive

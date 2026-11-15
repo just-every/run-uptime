@@ -1,3 +1,5 @@
+import {prepareArchiveFeedback,proveFencedArchiveFeedback,assertRestoredImportHistory} from './archive-feedback-support.mjs';
+import {joinFromLocations} from './location-enrollment-support.mjs';
 import {testAuthBindings,browserSignIn} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import assert from 'node:assert/strict';
@@ -55,17 +57,20 @@ try{
  const sourceExtra=additionalRunner(source,sourceSecond);
  let confirmed=false;for(let i=0;i<200;i++){const state=await (await sourcePage.request.get(source+'/api/overview')).json();if(state.monitors[0]?.state.state==='Failing'&&state.alerts.length){confirmed=true;break}await new Promise(r=>setTimeout(r,100))}assert.ok(confirmed,'source archive must contain actual confirmed failure and trigger');
  sourceRunner.kill('SIGTERM');await new Promise(r=>sourceRunner.once('exit',r));sourceExtra.kill('SIGTERM');await new Promise(r=>sourceExtra.once('exit',r));
+ const archiveFeedback=await prepareArchiveFeedback(sourcePage,source,dir);
  const response=await sourcePage.request.get(source+'/api/archive');assert.equal(response.status(),200);const archive=await response.json();assert.ok(archive.payload.tables.monitors.length>0);assert.ok(archive.payload.tables.observations.length>0,'restoration needs real recorded observations');assert.ok(archive.payload.tables.outbox.length>0,'quarantine assertion requires actual prior alerts');await writeFile(join(out,'source-private-archive.json'),JSON.stringify(archive,null,2),{mode:0o600});assert.ok(!Object.hasOwn(archive.payload.tables,'runner_contact'));
  const archiveFile=join(dir,'private-archive.json');await writeFile(archiveFile,JSON.stringify(archive),{mode:0o600});await sourcePage.close();
  const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));await login(page,origin);await page.getByRole('link',{name:'Locations',exact:true}).click();assert.equal(await page.locator('#locations-table tbody tr').first().locator('.ui-pill').textContent(),'Waiting to join');await page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}).click();await page.getByRole('link',{name:'Backup and files',exact:true}).click();
- await page.locator('#restore:not(:disabled)').waitFor();await page.locator('#restore').setInputFiles(archiveFile);await page.locator('#notice').filter({hasText:'Archive restored.'}).waitFor({timeout:15000});
+ await page.locator('#restore:not(:disabled)').waitFor();await proveFencedArchiveFeedback(page,origin,archiveFeedback);await page.locator('#restore').setInputFiles(archiveFile);await page.locator('#notice').filter({hasText:'Archive restored.'}).waitFor({timeout:15000});
+ await assertRestoredImportHistory(page);
  let overview=await (await page.request.get(origin+'/api/overview')).json();assert.ok(overview.monitors.every(m=>!m.definition.enabled&&m.state.state==='Paused'));assert.ok(overview.alerts.every(a=>a.status==='imported-inactive'));assert.equal(overview.runner.contact.state,'Never seen');
  const first=overview.monitors[0],old=archive.payload.tables.monitors.find(m=>m.id===first.id);assert.equal(first.revision,old.revision+1);
  await auditWidths(page,'restored-archive');
  await page.getByRole('link',{name:'Monitors',exact:true}).click();const monitorPage=`${origin}/app/monitors/${encodeURIComponent(first.id)}`;await page.locator(`.catalog-rows a.monitor-link[href="${new URL(monitorPage).pathname}"]`).click();await page.waitForURL(monitorPage);await page.locator('html.signed-in').waitFor();await page.locator('#monitor-state.badge').filter({hasText:'Paused'}).waitFor();await auditWidths(page,'restored-paused','Paused');
  // The receiving owner adds a second location, whose runner joins before the restored monitor is pointed at both.
- const receivingSecond=await (await page.request.post(origin+'/api/runners',{data:{networkLabel:'second-receiving-network'}})).json();additionalRunner(origin,receivingSecond);
+ const receivingSecond=await joinFromLocations(page,origin,{root,directory:dir});additionalRunner(origin,receivingSecond);
  for(const end=Date.now()+30000;!(await (await page.request.get(origin+'/api/runners')).json()).find(r=>r.runnerId===receivingSecond.runnerId).lastContactAt;){assert.ok(Date.now()<end,'the second receiving location joins');await new Promise(r=>setTimeout(r,250))}
+ await page.goto(origin+`/app/monitors/${first.id}`);await page.locator('.signed-in').waitFor();
  const identities=await (await page.request.get(origin+'/api/runners')).json();
  await page.getByRole('button',{name:'Resume',exact:true}).click();await page.locator('html.editor-context-ready').waitFor();for(const id of [identities.find(r=>r.builtIn).runnerId,receivingSecond.runnerId])await page.locator(`input[name=locations][value="${id}"]`).check();await page.getByRole('button',{name:'Save monitor'}).click();await page.getByRole('button',{name:'Resume',exact:true}).click();await page.getByRole('button',{name:'Pause',exact:true}).waitFor();
  runner=spawn(process.execPath,[join(root,'runners/src/private-runner.mjs')],{cwd:root,env:{...process.env,UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:runnerKey,UPTIME_GRANT_FILE:join(root,'data/synthetic-grant.json'),UPTIME_LOCAL_REVIEW:'true'},stdio:'pipe'});runner.stdout.on('data',c=>logs+=c);runner.stderr.on('data',c=>logs+=c);

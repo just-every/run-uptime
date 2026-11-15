@@ -128,7 +128,7 @@ Each monitor has a schedule and a few knobs that decide when a bad check becomes
 - **Extra attempts after a failure** (under **Advanced**) sets extra attempts inside a slot. A retry never erases an earlier failure and never counts as another slot.
 - **Failed checks in a row** sets how many consecutive scheduled slots must fail before the monitor is Failing.
 - **Back up after passing checks** sets how many consecutive fresh, passing scheduled slots are needed before it recovers.
-- **Failure agreement** requires two independent network labels, or one failing vantage whose external check (canary) passed in the same slot. A monitor on one network uses the External check URL in Settings (default `https://example.org/`): a change there reaches every such monitor's next check, without saving the monitor. A monitor can have its own URL instead, under **Advanced** in its form. Checks on the same network count once.
+- **Failure agreement** requires two independent network labels, or one failing vantage whose external check (canary) passed in the same slot. A monitor on one network uses the External check URL in Settings (default `https://run-uptime.com/`): a change there reaches every such monitor's next check, without saving the monitor. A monitor can have its own URL instead, under **Advanced** in its form. Checks on the same network count once.
 - **Unknown after (minutes)** (under **Advanced**) sets how long a result stays usable before it counts as expired.
 
 Because of confirmation and recovery, one blip does not wake you, and one lucky pass does not close an incident.

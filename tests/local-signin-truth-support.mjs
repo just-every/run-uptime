@@ -1,14 +1,13 @@
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {openGate} from './auth-test-support.mjs';
 import {proveReadOnlyConsole} from './access-member-controls-browser-support.mjs';
 import {completeBrowserSecondFactor} from './mfa-auth-support.mjs';
 
 // Part of COMMAND-JOURNEY's real local installation, with its actual
 // development mail adapter. Do not use the mail-provider test fixture here.
 export async function proveLocalSignInTruth({browser,page,origin,key,runRer,output}){
- const checks=[];
+ const checks=[],invitationCommands=new Map();
  if(output)await mkdir(output,{recursive:true});
  const unsigned=await browser.newContext({viewport:{width:1440,height:1000}});
  try{
@@ -63,7 +62,8 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
    assert.match(notice,/no (?:email|mail) was sent|not delivered/i,'development success is not delivery');
    assert.doesNotMatch(notice,/invitation sent/i,'no success claim without mail handoff');
    assert.match(notice,/RER_OPEN/,'explains the existing installation handoff');
-   assert.match(notice,/\/signin/,'names the existing account picker behind that handoff');
+   const command=/\brer dev --as (\S+)/.exec(notice);assert.ok(command,'the invitation supplies its local sign-in command');
+   invitationCommands.set(role,['dev','--as',command[1]]);assert.equal(command[1],email,'the command selects exactly the invited account');
    assert.doesNotMatch(notice,/[?&#](?:token|code|rer-dev)=|\b[0-9a-f]{8}-[0-9a-f-]{27,}\b/i,'feedback exposes no invitation credential or opaque account ID');
    assert.equal('token' in response||'code' in response||'id' in response,false,'invitation response discloses no authority');
    const people=await(await page.request.get(origin+'/auth/operators')).json();
@@ -79,16 +79,16 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
   // It does not send email or invent a new invitation/session mechanism.
   const invited=await browser.newContext({viewport:{width:1440,height:1000}});
   try{
-   await openGate(invited,origin,key);const p=await invited.newPage();await p.goto(origin+'/signin');
-   await p.getByRole('link',{name:/Synthetic local responder/}).click();
+   const p=await invited.newPage();
+   const signIn=async role=>{const launched=await runRer(invitationCommands.get(role)),link=launched.match(/^RER_OPEN (http:\/\/\S+)$/m)?.[1];assert.ok(link,'the invitation command returns a private handoff');assert.equal(new URL(link).origin,origin);await p.goto(link);await completeBrowserSecondFactor(p,origin)};
+   await signIn('responder');
    await p.waitForURL(url=>url.pathname.startsWith('/app'));
    const session=await invited.request.get(origin+'/auth/session');assert.equal(session.status(),200);
    assert.equal((await session.json()).operator.email,'synthetic-uptime-812@example.test','existing local sign-in selects the invited account');
    const people=await(await page.request.get(origin+'/auth/operators')).json();assert.equal(people.find(person=>person.email==='synthetic-uptime-812@example.test')?.status,'active');
-   checks.push({screen:'local-picker',existingDoor:true,invitedAccountAccepted:true});
-   // Reuse the documented picker for the role that promises monitoring reads.
-   await p.goto(origin+'/signin');
-   await p.getByRole('link',{name:/Synthetic local read-only/}).click();
+   checks.push({screen:'local-handoff',existingDoor:true,invitedAccountAccepted:true});
+   // Follow the printed command for the role that promises monitoring reads.
+   await signIn('read-only');
    await p.waitForURL(url=>url.pathname.startsWith('/app'));
    const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:'synthetic-uptime-local-reader',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}}});
    assert.equal(created.status(),201);const monitor=await created.json();
@@ -96,6 +96,6 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
    checks.push(await proveReadOnlyConsole({page:p,origin,monitorId:monitor.id,output}));
   }finally{await invited.close()}
   if(output)await writeFile(join(output,'browser-receipt.json'),JSON.stringify({journey:'COMMAND-JOURNEY local invitation and sign-in truth',checks},null,2)+'\n');
-  console.log('LOCAL-SIGNIN-TRUTH PASS: both local invitation doors disclose non-delivery, pending accounts and private handoff; fresh Lobby/login agree; existing gated picker admits invited account.');
+  console.log('LOCAL-SIGNIN-TRUTH PASS: both local invitation doors disclose non-delivery, pending accounts and private handoff; fresh Lobby/login agree; printed CLI handoffs admit the invited accounts.');
  }finally{await unsigned.close();await page.setViewportSize({width:1440,height:1000})}
 }

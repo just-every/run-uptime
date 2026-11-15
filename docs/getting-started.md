@@ -12,7 +12,7 @@ If the installer prints a line that puts `rer` on your PATH, run that line too. 
 
 ## Explicit owner setup
 
-To choose an owner or supply setup answers yourself, run `npx -y @runeditrun/rer install just-every/run-uptime`, then from the checkout, before `rer dev`:
+To choose an owner or supply setup answers yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout, before `rer dev`:
 
 ```sh
 rer setup --owner-email EMAIL --owner-name "NAME" --non-interactive

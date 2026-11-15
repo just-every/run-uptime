@@ -56,6 +56,17 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
    await row.locator('summary').click();const before=(await DB.prepare('SELECT * FROM uptime_member_roles WHERE operator_id=?').bind(reader.id).first());
    await row.getByRole('button',{name:'Save assignment',exact:true}).click();await panel.getByRole('status').filter({hasText:'Assignment unchanged.'}).waitFor();assert.deepEqual(await DB.prepare('SELECT * FROM uptime_member_roles WHERE operator_id=?').bind(reader.id).first(),before);
    await row.locator('summary').click();const removed=await stepup(()=>row.getByRole('button',{name:'Remove member',exact:true}).click(),'DELETE','/api/access/members/'+reader.id);await panel.getByRole('status').filter({hasText:'Member removed.'}).waitFor();removed();await shot('removal-complete');assert.equal((await call('/api/access/self',undefined,{cookie:reader.cookie})).status,401);
+   const erasedRow=panel.locator(`[data-member-id="${reader.id}"]`);await erasedRow.locator('summary').click();
+   const erasedEmail=await erasedRow.locator('small').innerText().then(text=>text.split(' · ')[0]);
+   await erasedRow.getByRole('button',{name:/^Erase /}).click();
+   const confirmation=page.getByRole('dialog',{name:'Erase operator?',exact:true});await confirmation.getByRole('textbox').fill(erasedEmail);
+   const erasedResponse=page.waitForResponse(r=>new URL(r.url()).pathname===`/api/operators/${reader.id}/erase`&&r.request().method()==='POST');
+   await confirmation.getByRole('button',{name:'Erase operator',exact:true}).click();const erased=await (await erasedResponse).json();
+   const receipt=page.getByRole('dialog',{name:'Erasure complete',exact:true});await receipt.waitFor();
+   assert.ok(!(await receipt.innerText()).includes(erased.receipt.id),'the stored operator receipt id is kept off the screen');
+   const reference=await receipt.locator('.erasure-reference-value').innerText();assert.equal(reference.replace(/^ER-/,'').replaceAll('-','').toLowerCase(),erased.receipt.id.replaceAll('-',''),'the readable reference preserves the original receipt identity');
+   await shot('operator-erasure-reference');await receipt.getByRole('button',{name:'Close receipt',exact:true}).click();
+
    await page.addScriptTag({path:new URL('../node_modules/axe-core/axe.min.js',import.meta.url).pathname});assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.filter(v=>['serious','critical'].includes(v.impact)).map(v=>v.id),[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    if(process.env.UPTIME_SCREENSHOTS){await mkdir(process.env.UPTIME_SCREENSHOTS,{recursive:true});await panel.screenshot({path:join(process.env.UPTIME_SCREENSHOTS,`member-lifecycle-${width}.png`)})}
   }

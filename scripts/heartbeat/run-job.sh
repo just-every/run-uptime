@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bash + curl + Node 22+. One private state directory per monitor, on one host.
+# Bash + curl + Node 22+ (or rer, which brings its own Node). One private state directory per monitor, on one host.
 set -u
 umask 077
 : "${UPTIME_HEARTBEAT_URL:?Set the receipt URL without a state suffix}"
@@ -28,13 +28,15 @@ header = "Authorization: Bearer $UPTIME_HEARTBEAT_TOKEN"
 header = "X-Heartbeat-Sequence: $sequence"
 CURL
 }
+# The output filter is a Node script: node when it is on PATH, otherwise rer's own Node (an installer-only computer has no node).
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if command -v node >/dev/null 2>&1; then capture=(node "$here/output-body.mjs")
+elif command -v rer >/dev/null 2>&1; then capture=(rer run --script "$here/output-body.mjs")
+else echo 'Needs Node 22 or later on PATH, or rer (it brings its own Node).' >&2; exit 69; fi
 printf '{}' > "$lock/empty.json"
 ping_job start "$lock/empty.json" >/dev/null || exit 69
 # Drain all command output while retaining only a body which fits the 10 KiB ingress bound.
-"$@" 2>&1 | node --input-type=module -e '
-let chunks=[],size=0;for await(const chunk of process.stdin){if(size<8000){const kept=chunk.subarray(0,8000-size);chunks.push(kept);size+=kept.length}}
-let output=Buffer.concat(chunks).toString("utf8"),body;while(Buffer.byteLength(body=JSON.stringify({output}))>10000)output=output.slice(0,-100);process.stdout.write(body);
-' > "$lock/output.json"
+"$@" 2>&1 | "${capture[@]}" > "$lock/output.json"
 results=("${PIPESTATUS[@]}")
 result="${results[0]}"
 if [[ ${results[1]} -ne 0 ]]; then echo 'Command output capture failed; no finish receipt was sent.' >&2; [[ "$result" -ne 0 ]] && exit "$result"; exit 74; fi

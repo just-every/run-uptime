@@ -42,8 +42,10 @@ The monitor’s **Browser flow** panel shows the current combination and lets yo
 From the installed checkout on every assigned runner machine:
 
 ```sh
-pnpm exec playwright install chromium firefox webkit
+rer run --script node_modules/playwright/cli.js install chromium firefox webkit
 ```
+
+The [no-Node installer](/docs/install) supplies `rer` and its private Node runtime; neither `node` nor `pnpm` needs to be on your PATH. Run this inside an installed Uptime checkout. On another runner machine, follow that installation guide first.
 
 Restart the private runner after installing or removing an engine. It tests each engine at enrollment and reports the available engines in `GET /api/runners`. A missing, disabled or failed selected engine produces Unknown with that engine’s name; it never substitutes another browser. `UPTIME_RUNNER_BROWSER=off` disables all flows. Set `UPTIME_RUNNER_BROWSERS=chromium,firefox` to permit only those engines on a particular runner. The default permits all three. Keep the runner’s ordinary signed-in operating-system HOME; browser profiles and temporary files remain separate per-run directories.
 

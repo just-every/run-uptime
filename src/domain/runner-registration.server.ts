@@ -64,15 +64,25 @@ export async function enrollRunner(env:Bindings,text:string,timestamp:string,sig
 // location command carries the one-time join key and this installation's address (origin); `key` serves runners started with
 // UPTIME_RUNNER_ID and UPTIME_RUNNER_KEY (docs/runner.md) and stops working when a runner joins with the join key.
 const joinHash=(joinKey:string)=>sha(`uptime-location-join.${joinKey}`)
+const newJoinKey=()=>btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
 export async function createRunner(env:Bindings,input:any){
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>k!=='networkLabel'))throw Error('Invalid runner settings');
  await ensureFirstRunner(env);
  const runnerId=`self-${crypto.randomUUID()}`,registeredAt=Date.now(),key=crypto.randomUUID()+crypto.randomUUID(),named=input.networkLabel!==undefined;
- const joinKey=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+ const joinKey=newJoinKey();
  const networkLabel=named?label(input.networkLabel):distinctName(generatedName(runnerId),(await env.DB.prepare('SELECT network_label FROM runners').all<{network_label:string}>()).results.map(r=>r.network_label));
  const ciphertext=await seal(await custody(env),JSON.stringify(['uptime-runner-key-v1',runnerId,registeredAt]),{key});
  await env.DB.prepare('INSERT INTO runners(runner_id,registered_at,network_label,key_ciphertext,named_by,join_hash) VALUES(?,?,?,?,?,?)').bind(runnerId,registeredAt,networkLabel,ciphertext,named?'owner':'default',await joinHash(joinKey)).run();
  return {runnerId,networkLabel,key,joinKey,origin:env.UPTIME_ORIGIN}
+}
+// A location that has not joined yet shows its command again with a new one-time join key (the page that first showed it is
+// gone after a reload). The old key stops working; a location that already joined, or was removed, has no command to show.
+export async function renewJoinCommand(env:Bindings,id:string){
+ const joinKey=newJoinKey()
+ const renewed=await env.DB.prepare('UPDATE runners SET join_hash=? WHERE runner_id=? AND revoked_at IS NULL AND last_contact_at IS NULL AND join_hash IS NOT NULL AND legacy_key=0').bind(await joinHash(joinKey),id).run()
+ if(!renewed.meta.changes)throw Error('This location has already joined, or was removed')
+ const row=await env.DB.prepare('SELECT runner_id,network_label FROM runners WHERE runner_id=?').bind(id).first<{runner_id:string;network_label:string}>()
+ return {runnerId:id,networkLabel:row!.network_label,joinKey,origin:env.UPTIME_ORIGIN}
 }
 // A runner joining with its command's join key, once: it receives this location's runner key, minted now, so the key that signs
 // its requests is known only to it, and the join key is spent. null when the key is unknown, spent, or its location removed.

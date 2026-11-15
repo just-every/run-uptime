@@ -14,12 +14,12 @@ function records(text:string){
 function map(entry:SourceEntry):Mapping{
  const check=entry.value,http=check.type?.http
  const kind=check.type&&typeof check.type==='object'&&!Array.isArray(check.type)&&Object.keys(check.type).length===1?Object.keys(check.type)[0]:String(check.type)
- if(!['http','tcp','smtp','ping','dns'].includes(kind))return {unsupported:`Pingdom ${kind}: FLOW-001/FLOW-002 or MIGRATE-002 settings require reviewed conversion. Transaction steps are not reduced to a URL check.`}
+ if(!['http','tcp','smtp','ping','dns'].includes(kind))return {unsupported:`Pingdom ${kind}: settings need to be rebuilt as a browser or multi-step check and reviewed. Transaction steps are not reduced to a URL check.`}
  const settings=check.type[kind]
  if(!settings||typeof settings!=='object'||Array.isArray(settings))return {refused:'Pingdom check type needs its saved settings object.'}
  const filters=check.probe_filters
  if(filters!==undefined&&(!Array.isArray(filters)||filters.some((v:any)=>typeof v!=='string'||!v.trim())))return {refused:'Pingdom probe_filters must be a list of named probe filters.'}
- if(filters?.length)return {refused:`Pingdom probe filters ${filters.map((v:string)=>`“${v.slice(0,100)}”`).join(', ')} have no matching installed geographic location. PROBE-001 location choices need owner review; these filters are not silently replaced by local-a.`}
+ if(filters?.length)return {refused:`Pingdom probe filters ${filters.map((v:string)=>`“${v.slice(0,100)}”`).join(', ')} have no matching installed geographic location. Choose the locations to check from yourself; these filters are not silently replaced by your first location.`}
  let tags:string[]|undefined
  if(check.tags!==undefined){
   if(!Array.isArray(check.tags)||check.tags.some((tag:any)=>!tag||typeof tag.name!=='string'||!tag.name.trim()))return {refused:'Pingdom tags must be saved Tag objects with nonempty names.'}

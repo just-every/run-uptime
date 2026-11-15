@@ -2,6 +2,7 @@ import {escape} from './console-format.js';
 import {dialogFocusReturn} from './notification-dialogs.js';
 import {patch} from './dom-patch.js';
 import {scheduleDescription} from './assets/alert-route-markup.js';
+import {locationNamer} from './monitor-rules.js';
 
 const policyPath=id=>`/api/monitors/${encodeURIComponent(id)}/slow-policy`;
 const explanation='Slow notices track response time separately from downtime. They do not open outage incidents or reduce uptime. A latency assertion can still fail a check as down.';
@@ -9,21 +10,22 @@ function styles(){
  if(document.querySelector('link[href="/slow-policy.css"]'))return;
  const link=document.createElement('link');link.rel='stylesheet';link.href='/slow-policy.css';document.head.append(link);
 }
-function summaryMarkup(slow,destinations){
+function summaryMarkup(slow,destinations,definition){
  if(!slow)return '<p><strong>Slow notices are off.</strong></p>';
  const evaluation=slow.mode==='percentile'?`p${slow.percentile} over ${slow.slots} scheduled slots`:`${slow.slots} consecutive scheduled slot${slow.slots===1?'':'s'}`;
- const locations=slow.locations==='all'?'All configured locations':slow.locations.join(', ');
+ const locations=slow.locations==='all'?'All configured locations':slow.locations.map(locationNamer(definition)).join(', ');
  const route=slow.destinationIds===null?'Inherit this monitor’s alert route':!slow.destinationIds.length?'No recipients selected':destinations?slow.destinationIds.map(id=>destinations.find(d=>d.id===id)?.name??'Missing destination').join(', '):`${slow.destinationIds.length} selected destination${slow.destinationIds.length===1?'':'s'}`;
  const schedules=destinations&&slow.destinationIds?.length?`<details><summary>Contact schedules</summary><ul>${slow.destinationIds.map(id=>`<li>${escape(destinations.find(d=>d.id===id)?.name??'Missing destination')}: ${escape(scheduleDescription(slow.contactSettings?.[id]))}</li>`).join('')}</ul></details>`:'';
  return `<p><strong>Slow notices are on.</strong> Above ${escape(slow.thresholdMs)} ms · ${escape(evaluation)}.</p><p>Locations: ${escape(locations)}.</p><p>Recipients: ${escape(route)}.</p>${schedules}`;
 }
 export function slowPolicyPanel(monitor){
  if(monitor.definition.type==='heartbeat')return '';
- return `<section class="ui-card panel slow-policy-panel" aria-labelledby="slow-policy-heading" data-owned="${escape(monitor.id)}"><h2 id="slow-policy-heading">Slow-response notices</h2><div id="slow-policy-summary" role="status">${summaryMarkup(monitor.definition.slow)}</div><button type="button" id="edit-slow-policy">Edit slow-response policy</button></section>`;
+ return `<section class="ui-card panel slow-policy-panel" aria-labelledby="slow-policy-heading" data-owned="${escape(monitor.id)}"><h2 id="slow-policy-heading">Slow-response notices</h2><div id="slow-policy-summary" role="status">${summaryMarkup(monitor.definition.slow,undefined,monitor.definition)}</div><button type="button" id="edit-slow-policy">Edit slow-response policy</button></section>`;
 }
-function locationMarkup(probes,slow){
+function locationMarkup(probes,slow,definition){
+ const name=locationNamer(definition);
  const selected=slow?.locations==='all'?[]:slow?.locations??[];
- return probes.map((probe,index)=>`<label class="slow-choice" for="slow-location-${index}"><input type="checkbox" name="location" id="slow-location-${index}" value="${escape(probe)}" ${selected.includes(probe)?'checked':''}><span>${escape(probe)}</span></label>`).join('');
+ return probes.map((probe,index)=>`<label class="slow-choice" for="slow-location-${index}"><input type="checkbox" name="location" id="slow-location-${index}" value="${escape(probe)}" ${selected.includes(probe)?'checked':''}><span>${escape(name(probe))}</span></label>`).join('');
 }
 function contactScheduleMarkup(prefix,name,settings={}){
  return `<fieldset class="slow-contact-schedule"><legend>Schedule for ${escape(name)}</legend><div class="slow-field-grid">
@@ -52,7 +54,7 @@ function formMarkup({definition,destinations,slow}){
  <label class="slow-field" for="slow-percentile">Percentile<select id="slow-percentile" name="percentile">${[50,95,99].map(value=>`<option value="${value}" ${value===(slow?.percentile??95)?'selected':''}>p${value}</option>`).join('')}</select></label></div>
  <p class="ui-helper" id="slow-mode-help" aria-live="polite"></p>
  <label class="slow-field" for="slow-location-mode">Locations<select id="slow-location-mode" name="locationMode"><option value="all" ${!slow||slow.locations==='all'?'selected':''}>All configured locations</option><option value="selected" ${slow&&slow.locations!=='all'?'selected':''}>Selected locations</option></select></label>
- <fieldset id="slow-locations"><legend>Locations to evaluate</legend>${locationMarkup(definition.probes,slow)}</fieldset>
+ <fieldset id="slow-locations"><legend>Locations to evaluate</legend>${locationMarkup(definition.probes,slow,definition)}</fieldset>
  <label class="slow-field" for="slow-route-mode">Recipients for Slow and slow-recovered notices<select id="slow-route-mode" name="routeMode"><option value="inherit" ${slow?.destinationIds==null?'selected':''}>Inherit this monitor’s alert route</option><option value="selected" ${slow?.destinationIds!=null?'selected':''}>Only selected destinations</option></select></label>
  <fieldset id="slow-destinations"><legend>Local notification destinations</legend>${destinationMarkup(destinations,slow)}</fieldset>
  <p class="ui-helper" id="slow-route-help" aria-live="polite"></p>
@@ -171,7 +173,7 @@ export function bindSlowPolicyPanel(area,monitor,{api,action}){
  button.onclick=()=>openDialog(monitor,{api,action});
  api(policyPath(monitor.id)).then(data=>{
   if(!host.isConnected)return;
-  patch(host,summaryMarkup(data.slow,data.destinations)+statusMarkup(data.status));
+  patch(host,summaryMarkup(data.slow,data.destinations,monitor.definition)+statusMarkup(data.status));
   const ack=host.querySelector('#acknowledge-slow');
   if(ack)ack.onclick=()=>action(()=>api(`/api/monitors/${encodeURIComponent(monitor.id)}/slow-ack`,'POST',{eventId:data.status.id}),{pending:'Acknowledging Slow…',success:'Slow acknowledged. Reminders set to stop on acknowledgement will end; health is unchanged.'});
  },problem=>{if(host.isConnected)host.textContent=`Slow-response policy unavailable: ${problem.message}`});

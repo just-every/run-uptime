@@ -326,8 +326,8 @@ try{
   assert.deepEqual(plan.body.counts,{create:5,unchanged:0,change:0,refused:2,unsupported:5});assert.equal(plan.body.entries.length,12);
   assert.equal((await get('/api/overview')).monitors.length,before.monitors.length,'preview creates no monitor');
   const names=['synthetic-uptime-1','synthetic-uptime-2','synthetic-uptime-3','synthetic-uptime-4','synthetic-uptime-5'];
-  for(const entry of plan.body.entries.slice(0,5)){assert.equal(entry.action,'create',entry.reason);assert.ok(entry.differences.some(d=>d.includes('timeout')));assert.ok(entry.differences.some(d=>d.includes('local-a')))}
-  for(const [index,clause] of [[7,'FLOW-001'],[8,'TLS-001'],[9,'DOMAIN-001'],[10,'HEARTBEAT-004'],[11,'DNS-001']])assert.ok(plan.body.entries[index].reason.includes(clause));
+  for(const entry of plan.body.entries.slice(0,5)){assert.equal(entry.action,'create',entry.reason);assert.ok(entry.differences.some(d=>d.includes('timeout')));assert.ok(entry.differences.some(d=>d.includes('first location')&&!d.includes('local-a')))}
+  for(const [index,words] of [[7,'browser'],[8,'TLS certificate'],[9,'domain expiry'],[10,'heartbeat'],[11,'DNS']])assert.ok(plan.body.entries[index].reason.includes(words)&&!/[A-Z]{3,10}-\d{3}/.test(plan.body.entries[index].reason));
   assert.ok(plan.body.entries[0].differences.some(d=>d.includes('location_profile_id')));
   const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(applied.body.created.length,5);
   const rows=(await get('/api/overview')).monitors.filter(m=>names.includes(m.definition.name)),defs=names.map(name=>rows.find(m=>m.definition.name===name).definition);
@@ -352,7 +352,7 @@ try{
   assert.equal(plan.status,200,JSON.stringify(plan.body));assert.equal(plan.body.source,'betterstack-monitors');assert.deepEqual(plan.body.counts,{create:7,unchanged:0,change:0,refused:1,unsupported:4});assert.equal(plan.body.entries.length,12);
   assert.equal((await get('/api/overview')).monitors.length,0);await noSecrets('Better Stack preview',['synthetic-uptime-98','synthetic-uptime-99']);
   for(const entry of plan.body.entries.slice(0,6)){assert.equal(entry.action,'create',entry.reason);for(const region of ['us','eu'])assert.ok(entry.differences.some(d=>d.includes(`Region ${region}`)));assert.ok(entry.differences.some(d=>d.includes('Group 31')))}
-  for(const [index,clause] of [[7,'FLOW-001'],[8,'UDP-001'],[9,'DNS-001'],[11,'API-002']])assert.ok(plan.body.entries[index].reason.includes(clause));
+  for(const [index,words] of [[7,'browser or multi-step'],[8,'UDP'],[9,'DNS'],[11,'request credential']])assert.ok(plan.body.entries[index].reason.includes(words)&&!/[A-Z]{3,10}-\d{3}/.test(plan.body.entries[index].reason));
   assert.equal(plan.body.entries[6].target.service,'GitHub','provider status addresses still use the catalog');
   const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(applied.body.created.length,7);
   const rows=(await get('/api/overview')).monitors,defs=Array.from({length:7},(_,i)=>rows.find(m=>m.definition.name===`synthetic-uptime-${i+1}`).definition);
@@ -375,9 +375,9 @@ try{
   const get=async path=>{const response=await fetch(origin+path,{headers:{origin,cookie:owner}});assert.equal(response.status,200);return response.json()};await get('/api/overview');
   const door=definitionDoor({origin,cookie:owner}),saved=await readFile('tests/fixtures/pingdom-checks.synthetic.json'),plan=await door.preview(saved);
   assert.equal(plan.status,200,JSON.stringify(plan.body));assert.equal(plan.body.source,'pingdom');assert.deepEqual(plan.body.counts,{create:2,unchanged:0,change:0,refused:3,unsupported:2});assert.equal(plan.body.entries.length,7);assert.equal((await get('/api/overview')).monitors.length,0);
-  for(const filter of ['region: EU','region: NA'])assert.ok(plan.body.entries[1].reason.includes(filter));assert.ok(plan.body.entries[2].reason.includes('region: APAC'));assert.ok(plan.body.entries[1].reason.includes('PROBE-001'));
+  for(const filter of ['region: EU','region: NA'])assert.ok(plan.body.entries[1].reason.includes(filter));assert.ok(plan.body.entries[2].reason.includes('region: APAC'));assert.ok(!/[A-Z]{3,10}-\d{3}/.test(plan.body.entries[1].reason)&&plan.body.entries[1].reason.includes('Choose the locations'));
   assert.equal(plan.body.entries[3].action,'create');assert.equal(plan.body.entries[3].target.type,'tcp');
-  for(const [index,kind] of [[4,'script'],[5,'recording']]){assert.ok(plan.body.entries[index].reason.includes(kind)&&plan.body.entries[index].reason.includes('FLOW-001/FLOW-002'));assert.ok(plan.body.entries[index].label.includes(`synthetic-uptime-${index+1}`))}
+  for(const [index,kind] of [[4,'script'],[5,'recording']]){assert.ok(plan.body.entries[index].reason.includes(kind)&&/browser or multi-step check/.test(plan.body.entries[index].reason));assert.ok(plan.body.entries[index].label.includes(`synthetic-uptime-${index+1}`))}
   const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(applied.body.created.length,2);
   const definition=(await get('/api/overview')).monitors[0].definition;assert.equal(definition.name,'synthetic-uptime-1');assert.equal(definition.enabled,false);assert.deepEqual(definition.tags,['synthetic-uptime-1','synthetic-uptime-2']);assert.equal(definition.intervalMs,300000);assert.equal(definition.method,'GET');assert.equal(definition.timeoutMs,10000);assert.deepEqual(definition.assertions,{status:['2xx','3xx'],bodyIncludes:'ready',bodyExcludes:'failure'});
   const again=await door.preview(saved);assert.equal(again.status,200);assert.deepEqual(again.body.counts,{create:0,unchanged:2,change:0,refused:3,unsupported:2});assert.equal((await door.apply(plan.body)).status,200);assert.equal((await door.undo(applied.body)).status,200);assert.equal((await get('/api/overview')).monitors.length,2);assert.equal((await get('/api/overview')).monitors[0].definition.enabled,false);

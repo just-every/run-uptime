@@ -20,17 +20,17 @@ function records(text:string){
 // (read 23 October 2026). No account or live extraction is used.
 const present=(value:any)=>value!==undefined&&value!==null&&value!==''&&value!==false&&!(Array.isArray(value)&&!value.length)
 const methods:Record<string,string>={G:'GET',H:'HEAD',P:'POST',U:'PUT',D:'DELETE',A:'PATCH',OPTIONS:'OPTIONS'}
-const handoffs:Record<string,string>={REALBROWSER:'browser transactions need reviewed FLOW-001/FLOW-002 conversion', 'URL-SEQ':'transaction steps need reviewed FLOW-002 conversion',HOMEPAGE:'browser page-speed settings need PERF-001 conversion',SSL_CERT:'expiry reminders need TLS-001 conversion',DOMAINEXPIRY:'expiry reminders need DOMAIN-001 conversion',HEARTBEAT:'period and threshold review belongs to HEARTBEAT-004',UDP:'datagram payload and response criteria need UDP-001 conversion','PORT-POP':'mail protocol settings need MAIL-001 conversion','PORT-SMTP':'mail protocol settings need MAIL-001 conversion',SMTP:'mail transactions need MAIL-001 conversion'}
+const handoffs:Record<string,string>={REALBROWSER:'browser transactions need to be rebuilt as a browser or multi-step check and reviewed', 'URL-SEQ':'transaction steps need to be rebuilt as a multi-step check and reviewed',HOMEPAGE:'browser page-speed settings need a reviewed page-speed setup',SSL_CERT:'expiry reminders need a reviewed TLS certificate monitor',DOMAINEXPIRY:'expiry reminders need a reviewed domain expiry monitor',HEARTBEAT:'period and threshold need review as a heartbeat monitor',UDP:'datagram payload and response criteria need a reviewed UDP monitor','PORT-POP':'mail protocol settings need a reviewed mail monitor','PORT-SMTP':'mail protocol settings need a reviewed mail monitor',SMTP:'mail transactions need a reviewed mail monitor'}
 function savedMonitor(value:any){
  const kind=value.type as string
- if(!['URL','RESTAPI','PORT','PING','DNS'].includes(kind))return {unsupported:`Site24x7 ${kind}: ${handoffs[kind]??'this monitor has no saved-definition conversion in MIGRATE-004; retain the export and review infrastructure/APM records with Porthole or your observability system'}.`}
+ if(!['URL','RESTAPI','PORT','PING','DNS'].includes(kind))return {unsupported:`Site24x7 ${kind}: ${handoffs[kind]??'this monitor cannot be converted from a saved definition; retain the export and review infrastructure/APM records with Porthole or your observability system'}.`}
  if(value.check_frequency===undefined||value.timeout===undefined)return {unsupported:`Site24x7 ${kind}: the saved record lacks check_frequency or timeout. Save its complete monitor settings before conversion.`}
  for(const field of ['use_ipv6','use_ssl','invert_port_check','ignore_cert_err','dnssec'])if(value[field]!==undefined&&typeof value[field]!=='boolean')return {refused:`Site24x7 ${field} must be a boolean.`}
  const frequency=typeof value.check_frequency==='string'&&/^\d+(?:\.\d+)?$/.test(value.check_frequency)?Number(value.check_frequency):NaN
  if(!Number.isFinite(frequency)||frequency<=0||!Number.isSafeInteger(frequency*60000)||frequency>1440)return {refused:'Site24x7 check_frequency must be a documented interval in minutes, at most one day.'}
  if(!Number.isInteger(value.timeout)||value.timeout<1||value.timeout>45)return {refused:'Site24x7 timeout must be a whole number of seconds from 1 to 45.'}
  const timeoutMs=Math.max(kind==='PING'?8000:50,Math.min(10000,value.timeout*1000))
- const differences=[`Site24x7 ${kind} is imported paused; check_frequency ${value.check_frequency} minutes becomes ${frequency*60000} ms.`, `Source timeout ${value.timeout*1000} ms becomes ${timeoutMs} ms.`, 'Checks use local-a on your own runner; Site24x7 locations are not reproduced. Review local confirmation/recovery (two scheduled results) and retry policy (no retries) before enabling.',...NOT_CONVERTED]
+ const differences=[`Site24x7 ${kind} is imported paused; check_frequency ${value.check_frequency} minutes becomes ${frequency*60000} ms.`, `Source timeout ${value.timeout*1000} ms becomes ${timeoutMs} ms.`, 'Checks run from your first location; Site24x7 locations are not reproduced. Review local confirmation/recovery (two scheduled results) and retry policy (no retries) before enabling.',...NOT_CONVERTED]
  const common={name:value.display_name,enabled:false,intervalMs:frequency*60000,timeoutMs,probes:['local-a'],failureQuorum:1,retries:0,confirmSlots:2,recoverSlots:2,freshnessMs:Math.min(86400000,Math.max(180000,frequency*180000))}
  const mapped=new Set(['display_name','type','monitor_type','monitor_id','check_frequency','timeout'])
  const done=(definition:Record<string,unknown>,fields:string[])=>{
@@ -41,9 +41,9 @@ function savedMonitor(value:any){
  if(kind==='URL'||kind==='RESTAPI'){
   const blocked=['request_param','custom_headers','credential_profile_id','oauth2_provider','jwt_id','client_certificate_password','graphql','matching_keyword','unmatching_keyword','match_regex','response_headers_check','json_schema','json_schema_check'].filter(field=>present(value[field]))
   if(present(value.auth_method))blocked.push('auth_method')
-  if(blocked.length)return {unsupported:`Site24x7 ${kind}: ${blocked.join(', ')} require reviewed HTTP-001/API-002 conversion; no request values are copied.`}
-  if(value.ignore_cert_err===true)return {unsupported:'Site24x7 ignore_cert_err needs an explicit NETWORK-002 trust review; this slice does not grant an exception.'}
-  if(typeof value.http_method!=='string'||!methods[value.http_method])return {unsupported:`Site24x7 ${kind}: http_method ${String(value.http_method??'not supplied')} has no supported HTTP-001 mapping.`}
+  if(blocked.length)return {unsupported:`Site24x7 ${kind}: ${blocked.join(', ')} need review before they can be converted, and a request credential kept on your runner; no request values are copied.`}
+  if(value.ignore_cert_err===true)return {unsupported:'Site24x7 ignore_cert_err needs an explicit certificate trust review; this slice does not grant an exception.'}
+  if(typeof value.http_method!=='string'||!methods[value.http_method])return {unsupported:`Site24x7 ${kind}: http_method ${String(value.http_method??'not supplied')} is not a request method Uptime supports.`}
   if(typeof value.up_status_codes!=='string'||!value.up_status_codes.trim())return {unsupported:`Site24x7 ${kind}: save explicit up_status_codes; success criteria are not guessed.`}
   const codes=value.up_status_codes.split(',').map((code:string)=>code.trim()),status:(number|string)[]=[]
   for(const code of codes){
@@ -55,18 +55,18 @@ function savedMonitor(value:any){
  }
  if(kind==='PORT'){
   const blocked=['use_ssl','invert_port_check','command','matching_keyword','unmatching_keyword'].filter(field=>present(value[field]))
-  if(blocked.length)return {unsupported:`Site24x7 PORT: ${blocked.join(', ')} cannot be reduced to an open TCP port check; review TCP-001/MAIL-001 conversion.`}
+  if(blocked.length)return {unsupported:`Site24x7 PORT: ${blocked.join(', ')} cannot be reduced to an open TCP port check; review them as a TCP port or mail monitor.`}
   differences.push('host_name and port become a TCP connection check; no command is sent and no banner is asserted.')
   return done({type:'tcp',tcp:{host:value.host_name,port:value.port},assertions:{}},['host_name','port','use_ssl','invert_port_check'])
  }
  if(kind==='PING'){
-  differences.push('host_name becomes ICMP ping on a private runner: three packets, zero allowed loss and 1000 ms RTT; source threshold profiles and packet policy need explicit review (PING-001).')
+  differences.push('host_name becomes ICMP ping on a private runner: three packets, zero allowed loss and 1000 ms RTT; source threshold profiles and packet policy need explicit review.')
   return done({type:'ping',ping:{host:value.host_name,family:value.use_ipv6===true?6:4},assertions:{}},['host_name','use_ipv6'])
  }
  const resolver:Record<string,string>={'1.1.1.1':'cloudflare','8.8.8.8':'google'},types:Record<number,string>={1:'A',28:'AAAA',2:'NS',15:'MX',5:'CNAME',33:'SRV',16:'TXT',257:'CAA'}
- if(!resolver[value.dns_host]||Number(value.dns_port??53)!==53)return {unsupported:`Site24x7 DNS: resolver ${String(value.dns_host)} on port ${String(value.dns_port??53)} has no matching installed DNS-001 resolver choice; it is not replaced silently.`}
- if(!types[value.lookup_type])return {unsupported:`Site24x7 DNS: lookup_type ${String(value.lookup_type)} has no closed DNS-001 record-type mapping.`}
- if(value.dnssec===true||present(value.search_config))return {unsupported:'Site24x7 DNS: DNSSEC or search_config value/TTL criteria require reviewed DNS-001 conversion; they are not dropped.'}
+ if(!resolver[value.dns_host]||Number(value.dns_port??53)!==53)return {unsupported:`Site24x7 DNS: resolver ${String(value.dns_host)} on port ${String(value.dns_port??53)} has no matching resolver choice in Uptime; it is not replaced silently.`}
+ if(!types[value.lookup_type])return {unsupported:`Site24x7 DNS: lookup_type ${String(value.lookup_type)} is not a record type Uptime supports.`}
+ if(value.dnssec===true||present(value.search_config))return {unsupported:'Site24x7 DNS: DNSSEC or search_config value/TTL criteria need review as a DNS monitor; they are not dropped.'}
  differences.push(`domain_name and lookup_type become ${types[value.lookup_type]} through ${resolver[value.dns_host]}; transport becomes DNS-over-HTTPS instead of the source UDP/TCP resolver connection. No answer-value or TTL assertion was supplied.`)
  return done({type:'dns',dns:{name:value.domain_name,recordType:types[value.lookup_type],resolvers:[resolver[value.dns_host]]},assertions:{}},['dns_host','dns_port','domain_name','lookup_type','protocol','dnssec'])
 }
