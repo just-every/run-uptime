@@ -8,7 +8,7 @@ import tls from 'node:tls';
 import {Resolver} from 'node:dns/promises';
 
 const PUBLIC='93.184.216.34';
-const HOSTS=['ns1.protocol.test','tcp.protocol.test','tls.protocol.test','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'];
+const HOSTS=['smtp.protocol.test','ns1.protocol.test','tcp.protocol.test','tls.protocol.test','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'];
 const env=process.env;
 Resolver.prototype.resolve4=async host=>{
  assert.ok(HOSTS.includes(host),`unexpected lookup ${host}`);

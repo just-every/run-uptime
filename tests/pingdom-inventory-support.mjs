@@ -8,7 +8,7 @@ import {mailEdges} from './mail-edges.mjs';
 
 // Inventory shape only: these are synthetic targets, never the trial's targets.
 export const pingdomInventory=()=>Array.from({length:12},(_,i)=>({check:{
- id:11034001+i,name:`Inventory check ${i+1}`,hostname:i<8?'tls.protocol.test':i===8?'tcp.protocol.test':i===9?'canary.protocol.test':i===10?'ping.protocol.test':'shop.protocol.test',
+ id:11034001+i,name:`Inventory check ${i+1}`,hostname:i<8?'tls.protocol.test':i===8?'tcp.protocol.test':i===9?'smtp.protocol.test':i===10?'ping.protocol.test':'shop.protocol.test',
  resolution:[0,1,2,10].includes(i)?1:5,status:i===7?'paused':'up',sendnotificationwhendown:2,notifyagainevery:0,notifywhenbackup:true,
  ...(i<8?{responsetime_threshold:i===1?5000:30000}:{}),
  type:i<8?{http:{encryption:true,verify_certificate:true,url:`/inventory/${i+1}`,port:443,shouldcontain:'ready',ssl_down_days_before:i===2?30:7,...(i===7?{postdata:'synthetic=ready',requestheaders:{'content-type':'application/x-www-form-urlencoded','x-inventory':'synthetic'}}:{})}}:

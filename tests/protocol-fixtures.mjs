@@ -23,7 +23,7 @@ export async function certificates(dir){
  openssl(['req','-x509','-newkey','rsa:2048','-nodes','-keyout',ca.key,'-out',ca.cert,'-days','30','-subj','/CN=Protocol fixture test CA']);
  const host='tls.protocol.test';
  return {caPath:ca.cert,
-  web:await signed(dir,'web',['localhost','tls.protocol.test','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'],30,ca),
+  web:await signed(dir,'web',['localhost','smtp.protocol.test','tls.protocol.test','canary.protocol.test','cloudflare-dns.com','dns.google','data.iana.org','rdap.registry.test','rdap.registrar.test'],30,ca),
   expiring:await signed(dir,'expiring',[host],10,ca),wrongName:await signed(dir,'wrong-name',['other.protocol.test'],200,ca),
   selfSigned:await signed(dir,'self-signed',[host],200,null),renewed:await signed(dir,'renewed',[host],400,ca)};
 }

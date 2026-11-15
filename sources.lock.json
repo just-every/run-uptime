@@ -9600,7 +9600,7 @@
       "executable": false
     },
     "tests/pingdom-inventory-support.mjs": {
-      "sha256": "8beab119e5b330260400718d04090e72cf76664e42af6b4a5454ff3c18cae02f",
+      "sha256": "68553fccb07b9369f95f26f5066ed39b15f389a406d914e43241baf5c1c0e9c5",
       "executable": false
     },
     "tests/plain-monitor-text-support.mjs": {
@@ -9640,7 +9640,7 @@
       "executable": false
     },
     "tests/protocol-fixtures.mjs": {
-      "sha256": "56c383c54bf39b6b47966fc7c6e90d4f9ab00affdc184e746b8f6efc299601cc",
+      "sha256": "7ed7ca99b14278635aa6aeb3bad25eeef84b8c09abdd2d453fb9387a8b20eade",
       "executable": false
     },
     "tests/protocol-forms-browser-support.mjs": {
@@ -9652,7 +9652,7 @@
       "executable": false
     },
     "tests/protocol-routing.mjs": {
-      "sha256": "648065b7a709c40b34bce766eaab713a06ba3c8d36d3eb455f37ed28ccf321d5",
+      "sha256": "928fa3e5240090f3e5dc6a4517685b16a7d4094b8ec1b4350ca581e55c793dcd",
       "executable": false
     },
     "tests/public-paths-support.mjs": {
