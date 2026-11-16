@@ -26,6 +26,7 @@ export async function proveMailOff() {
  const declaration=JSON.parse(await readFile('deploy.json','utf8'));
  const env={...bindings,CLOUDFLARE_ACCOUNT_ID:'1'.repeat(32),CLOUDFLARE_API_TOKEN:'synthetic-uptime-611',UPTIME_WORKER_NAME:'synthetic-uptime-612',UPTIME_ORIGIN:'https://uptime.example.test'};
  validateConfiguration(env,{scope:'deploy'});
+ const operationsProviders={};
  // Public provider selection uses deploy secret transport; each selected provider
  // and the legacy omitted-provider case must still pass the ordinary doors.
  for(const [provider,credentials] of [
@@ -47,7 +48,7 @@ export async function proveMailOff() {
   // Base preflight takes the shared key input for Cloudflare; the native
   // deployment binds that input under CLOUDFLARE_MAIL_API_KEY.
   const inspected=await inspectOperations(process.cwd(),{...Object.fromEntries(JSON.parse(await readFile('OPERATIONS.json','utf8')).requiredEnvironment.map(n=>[n,'synthetic-uptime-613'])),...enabled});
-  if(provider!=='rer')assert.equal(inspected.ok,true,`operations accepts ${provider??'default SendGrid'}`);
+  if(provider!=='rer'){assert.equal(inspected.ok,true,`operations accepts ${provider??'default SendGrid'}`);operationsProviders[provider??'default SendGrid']=inspected.loops.find(loop=>loop.id==='operator-sign-in-mail').status;}
   const preflight=provider==='cloudflare'?{...enabled,MAIL_API_KEY:credentials.CLOUDFLARE_MAIL_API_KEY}:enabled;
   await requireProductionAuth({root:process.cwd(),declaration:declarationForProvider,env:preflight,setupManifest:manifest,adapter:commandAdapter,options:{dryRun:false}});
  }
@@ -60,7 +61,7 @@ export async function proveMailOff() {
  assert.equal(lifecycle.mailOffSignIn,commandAdapter.mailOffSignIn);
  const operations=JSON.parse(await readFile('OPERATIONS.json','utf8'));
  const opsEnv={...Object.fromEntries(operations.requiredEnvironment.map(n=>[n,'synthetic-uptime-613'])),...env};
- assert.equal((await inspectOperations(process.cwd(),opsEnv)).ok,true);
+ const offInspection=await inspectOperations(process.cwd(),opsEnv);assert.equal(offInspection.ok,true);operationsProviders.none=offInspection.loops.find(loop=>loop.id==='operator-sign-in-mail').status;
  for(const key of ['SENDGRID_API_KEY','MAIL_API_KEY','MAIL_PROVIDER_API_KEY','CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID','MAIL_RELAY_URL']) {
   const conflict={...env,[key]:'synthetic-uptime-614'};
   assert.throws(()=>validateConfiguration(conflict,{scope:'deploy'}));
@@ -150,7 +151,7 @@ export async function proveMailOff() {
   // Assertions use 1440 only; the proof captures the changed screen once at each width.
   if(process.env.UPTIME_AUTH_SHOTS){await mkdir(process.env.UPTIME_AUTH_SHOTS,{recursive:true});for(const width of [1440,390]){await page.setViewportSize({width,height:900});await page.screenshot({path:join(process.env.UPTIME_AUTH_SHOTS,`mail-off-login-${width}.png`),fullPage:true})}}
   assert.equal(mailRequests,0);
-  if(process.env.UPTIME_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_MAIL_OFF_RECEIPT,JSON.stringify({journey:'proveMailOff',setup:'native model -> bootstrap -> first-run',provider:answers.MAIL_PROVIDER,mailRequests,settingsSaved:true,invitationCounts:{before:beforeInvites,after:await counts()},productRolesRefused:['admin','editor','responder','read-only'],peopleMailOff:true,alertsMailOff:true,assertionWidth:1440,proofWidths:[1440,390],incidentOpened:true,incidentRecovered:true,privateDoorsProtected:true,unavailableAuthentication:true,unavailableAlerts:true},null,2)+'\n');
+  if(process.env.UPTIME_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_MAIL_OFF_RECEIPT,JSON.stringify({journey:'proveMailOff',setup:'native model -> bootstrap -> first-run',provider:answers.MAIL_PROVIDER,operationsProviders,mailRequests,settingsSaved:true,invitationCounts:{before:beforeInvites,after:await counts()},productRolesRefused:['admin','editor','responder','read-only'],peopleMailOff:true,alertsMailOff:true,assertionWidth:1440,proofWidths:[1440,390],incidentOpened:true,incidentRecovered:true,privateDoorsProtected:true,unavailableAuthentication:true,unavailableAlerts:true},null,2)+'\n');
   console.log('MAIL-OFF passed native setup, operations, deploy validation/preflight, fresh first-run, Settings, monitor failure/recovery, unavailable mail and protected hosted doors');
  } finally {await browser?.close();await runtime?.close();await rm(directory,{recursive:true,force:true})}
 }

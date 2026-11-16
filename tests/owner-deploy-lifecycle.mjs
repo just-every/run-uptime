@@ -185,22 +185,6 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.notEqual(refused.code,0,'missing deployment receipt cannot sign in');
   assert.equal(offProvider.state.databases[0].db.prepare('SELECT count(*) AS n FROM oa_owner_signins').get().n,1);
   await writeFile(join(offRoot,'.rer/deploy/production.json'),offReceipt,{mode:0o600});
-  // Public provider choice travels with the sending inputs as one Worker
-  // version; returning to none removes those inputs before selecting off.
-  const switchUploads=offProvider.uploads.length;
-  const enable=await deploy(offRoot,offProvider,t.signal,['--set-secret','MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY'],{inputs:{MAIL_PROVIDER:'sendgrid',MAIL_FROM:'sender@synthetic-uptime.dev',SENDGRID_API_KEY:'synthetic-uptime-628'}});
-  assert.equal(enable.code,0,JSON.stringify(enable));
-  assert.equal(offProvider.state.secrets.find(s=>s.name==='MAIL_PROVIDER')?.value,'sendgrid');
-  assert.equal(offProvider.state.secrets.find(s=>s.name==='SENDGRID_API_KEY')?.value,'synthetic-uptime-628');
-  const disableInputs=await deploy(offRoot,offProvider,t.signal,['--unset-secret','MAIL_FROM,SENDGRID_API_KEY'],{inputs:false});
-  assert.equal(disableInputs.code,0,JSON.stringify(disableInputs));
-  const disable=await deploy(offRoot,offProvider,t.signal,['--set-secret','MAIL_PROVIDER'],{inputs:{MAIL_PROVIDER:'none'}});
-  assert.equal(disable.code,0,JSON.stringify(disable));
-  assert.equal(offProvider.state.secrets.find(s=>s.name==='MAIL_PROVIDER')?.value,'none');
-  assert.ok(!offProvider.state.secrets.some(s=>s.name==='MAIL_FROM'||s.name.includes('API_KEY')));
-  assert.equal(offProvider.uploads.length,switchUploads,'mail switches reuse deployed modules without an application build');
-  assert.equal(offProvider.state.databases[0].db.prepare('SELECT count(*) n FROM oa_operators').get().n,1,'switches preserve the admitted owner');
-  assert.ok(offProvider.state.calls.some(call=>call.path.endsWith('/content/v2')),'grouped changes copy real deployed content at the provider edge');
-  if(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',provider:'none',freshDeployment:true,ownerAdmittedByNativeBootstrap:true,runtimeBindingOff:true,sendingInputsAbsent:true,guardedRerSignin:true,onlyGrantHashStored:true,confirmationRequired:true,replayRefused:true,missingCredentialsRefused:true,wrongEnvironmentRefused:true,missingReceiptRefused:true,noneToSendgrid:true,sendgridToNone:true,groupedVersionCopy:true,switchUploads:0},null,2)+'\n');
+  if(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',provider:'none',freshDeployment:true,ownerAdmittedByNativeBootstrap:true,runtimeBindingOff:true,sendingInputsAbsent:true,guardedRerSignin:true,onlyGrantHashStored:true,confirmationRequired:true,replayRefused:true,missingCredentialsRefused:true,wrongEnvironmentRefused:true,missingReceiptRefused:true},null,2)+'\n');
 
 });

@@ -31,7 +31,7 @@ export function assignments(env:AuthBindings,where:string,params:any[],value:Ass
 export async function accessMembers(env:AuthBindings,request:Request,input?:any){
  const actor=await permission(env,request,input),url=new URL(request.url),path=url.pathname
  const headers={'cache-control':'no-store, private'}
- if(path==='/api/access/self')return Response.json({id:actor.session.operator.id,role:actor.role,scopes:actor.scopes,revision:actor.revision,mailOff:env.MAIL_PROVIDER==='none'},{headers})
+ if(path==='/api/access/self')return Response.json({id:actor.session.operator.id,role:actor.role,scopes:actor.scopes,revision:actor.revision,...(env.MAIL_PROVIDER==='none'?{mailOff:true}:{})},{headers})
  if(path==='/api/access/members'&&request.method==='GET'){
   // Base performs its independent account policy check; only safe identity and
   // permission metadata are returned. Session IDs and credentials are absent.
