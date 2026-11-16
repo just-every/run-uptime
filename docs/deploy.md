@@ -140,18 +140,8 @@ With mail off, use `rer signin` (or `rer signin --environment NAME`) from the ch
 
 First-run setup, monitor checks, incident recovery and Settings remain available. Email-link and invitation requests return `503 mail_unavailable`, including for unknown addresses. Email alerts remain unavailable and are never recorded as sent; configure another supported destination for delivery. Webhook and Slack delivery keep their existing configuration requirements. Optional operations sign-in mail reports off; required delivery loops cannot claim readiness while off.
 
-With rer 0.2.121, enable SendGrid on this same Worker with its verified sender and key in the environment or an owned mode-0600 `deploy.env` file. That file supplies `MAIL_FROM` and `SENDGRID_API_KEY`; keep the key out of command arguments. The public selector may be assigned directly:
+This checkout adopts rer 0.2.121, which provides an opt-in public-setting switch. Uptime has not enabled that declaration yet: its existing omitted-selector SendGrid deployment must keep working. The lifecycle trial with public `MAIL_PROVIDER=none` plus optional secret transport refused that existing path before building or uploading: “MAIL_PROVIDER=none turns outbound email off, and SENDGRID_API_KEY would bind a way to send. Remove it or choose a mail provider. Nothing was built or uploaded.”
 
-```sh
-rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env
-```
-
-Switch back to none by removing the selector override and those sending inputs together:
-
-```sh
-rer deploy --unset-secret MAIL_PROVIDER --unset-secret MAIL_FROM --unset-secret SENDGRID_API_KEY
-```
-
-The grouped change restores the declared public `MAIL_PROVIDER=none` default in one Worker version. It keeps the same Worker, D1, admitted owner and signing keys. Remove sending inputs from the private environment file before a later plain deploy, and keep `MAIL_PROVIDER=none` there while email is off. For a named environment add `--environment NAME` to both commands. A plain deploy preserves a held provider override; it does not switch providers. Operations inspection validates local inputs; it does not prove provider delivery.
+For this checkout, `rer deploy --set-secret MAIL_PROVIDER` and `rer deploy --unset-secret MAIL_PROVIDER` remain unavailable because `deploy.json` does not declare that transport. A plain deploy preserves the held `none` selection. Keep an existing mail-off installation off until a supported declaration preserves the legacy path and passes the lifecycle journey; no in-place enable-email command is claimed here. Fresh deployments can still select an enabled provider explicitly and supply its verified sender and required inputs as described above. Operations inspection validates local inputs; it does not prove provider delivery.
 
 — Run Edit Run fleet, 2026-11-16

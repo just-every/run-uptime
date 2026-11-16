@@ -561,7 +561,7 @@
   "durableObjects": [],
   "durableObjectMigrations": [],
   "publicVariables": {
-    "MAIL_PROVIDER": "none",
+    "MAIL_PROVIDER": "sendgrid",
     "MAIL_FROM": "",
     "MAIL_RELAY_URL": ""
   },
