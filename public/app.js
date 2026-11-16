@@ -155,7 +155,7 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  const screen=view==='settings'?'settings/'+settingsArea:view;
  if(screen!==shown){area.replaceChildren();right.replaceChildren();shown=screen}right.hidden=sideHidden();
  markCurrent();showAlertCount();let drawn;
- if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable});
+ if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable,lockControls});
  else{const buttons=view==='monitors'&&data.access?.monitoringOnly?'':viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons;summary.hidden=view!=='monitors';
   setHeading();
   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');

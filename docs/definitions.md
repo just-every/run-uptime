@@ -74,7 +74,7 @@ The preview ends with a plan digest, the plan's fingerprint. **Apply** sends tha
 
 A new revision's first check is due no sooner than the shorter of its old and new intervals after the monitor's previous check started, so an applied change never makes checks run closer together than either cadence.
 
-For a file-created heartbeat, continue with [Incoming heartbeat](/docs/monitors#incoming-heartbeat): choose **Resume**, create a check-in URL or issue a header key for its active revision, then configure your job to send receipts. **Edit** opens the same monitor editor with **Scheduled job (heartbeat)** selected; **Heartbeat › Job schedule and runs** offers additional schedule settings.
+For a file-created heartbeat, continue with [Incoming heartbeat](/docs/monitors#incoming-heartbeat): choose **Resume**, create a check-in URL or issue a header key for its active revision, then configure your job to send receipts. **Edit** opens the same monitor editor with **Scheduled job (heartbeat)** selected; **Heartbeat › Job schedule and runs** offers additional schedule settings. Jobs using cron or a legacy period shorter than 30 seconds show **Edit job schedule** instead, with a reason on the monitor page; that opens their full schedule settings without converting them to an expected period.
 
 ## Undo
 

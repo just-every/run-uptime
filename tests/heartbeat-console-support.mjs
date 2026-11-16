@@ -27,8 +27,8 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   if(new URL(page.url()).pathname==='/setup'){await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'))}
   // A documented import creates a digest-bearing internal ID; only opened integration instructions show it.
   const fetcher=async(url,init)=>{const target=new URL(url),r=await api(target.pathname+target.search,init.body===undefined?undefined:JSON.parse(init.body),init.headers,init.method);return new Response(JSON.stringify(r.data),{status:r.status})};
-  const door=definitionDoor({origin,cookie,fetcher}),document={format:'uptime.monitors',version:5,monitors:[{name:'synthetic-uptime-801 nightly backup',type:'heartbeat',heartbeat:{maxAgeMs:300000},intervalMs:60000}]};
-  const plan=await door.preview(document);assert.equal(plan.status,200);const applied=await door.apply(plan.body);assert.equal(applied.status,200);const [importedId]=applied.body.created;
+  const door=definitionDoor({origin,cookie,fetcher}),document={format:'uptime.monitors',version:8,monitors:[{name:'synthetic-uptime-801 nightly backup',type:'heartbeat',heartbeat:{maxAgeMs:3600000,graceMs:300000},intervalMs:60000}]};
+  const plan=await door.preview(document);assert.equal(plan.status,200);const applied=await door.apply(plan.body);assert.equal(applied.status,200);const [importedId]=applied.body.created;assert.equal((await door.undo(applied.body)).status,200);
   await page.goto(origin+'/app/monitors/'+encodeURIComponent(importedId));await page.locator('#monitor-detail-heading').waitFor();
   assert.ok((await page.locator('.monitor-page-header').innerText()).includes(document.monitors[0].name));
   assert.doesNotMatch(await page.locator('.monitor-page-header').innerText(),/[a-f0-9]{64}/i);
@@ -36,6 +36,36 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   assert.doesNotMatch(await heartbeat.innerText(),/[a-f0-9]{64}/i,'expanded heartbeat summary has no internal digest');
   const integration=heartbeat.locator('.heartbeat-integration').first();await integration.locator('summary').click();assert.ok((await integration.innerText()).includes(importedId),'the receipt path remains available in integration instructions');await integration.locator('summary').click();
   await shot('imported-job-summary');
+  // An imported, undone job remains editable while paused.
+  await page.getByRole('button',{name:'Edit',exact:true}).click();
+  await page.locator('html.editor-context-ready').waitFor();
+  assert.equal(await page.getByRole('combobox',{name:'What to check',exact:true}).inputValue(),'heartbeat');
+  assert.equal(await page.getByLabel('Expected interval (seconds)',{exact:true}).inputValue(),'3600');
+  assert.equal(await page.getByLabel('Grace period (seconds)',{exact:true}).inputValue(),'300');
+  await shot('imported-job-editor');
+  await page.getByLabel('Grace period (seconds)',{exact:true}).fill('301');
+  await page.getByRole('button',{name:'Save monitor',exact:true}).click();
+  await page.waitForURL(url=>url.pathname==='/app/monitors/'+encodeURIComponent(importedId));
+  assert.equal((await read(importedId)).definition.heartbeat.graceMs,301000);
+  assert.equal((await read(importedId)).definition.enabled,false,'editing does not resume the imported job');
+  const jobs=page.locator('#heartbeat');if(!await jobs.evaluate(e=>e.open))await jobs.locator(':scope > summary').click();
+  // Keep the panel mounted across Resume, including its new revision.
+  await page.getByRole('button',{name:'Resume',exact:true}).click();
+  await page.locator('#action-notice').filter({hasText:'Monitor authorized and resumed'}).waitFor();
+  await page.waitForFunction(()=>document.querySelector('#content-area')?.getAttribute('aria-busy')==='false');
+  for(const control of [page.locator('#create-heartbeat-url'),page.getByRole('button',{name:'Save job settings',exact:true}),page.locator('#load-heartbeat-runs')])assert.equal(await control.isDisabled(),false,'Resume unlocks the mounted job controls without reloading');
+  await page.locator('#create-heartbeat-url').click();await page.getByRole('dialog').getByRole('button',{name:'Create check-in URL',exact:true}).click();
+  await page.waitForFunction(()=>Boolean(document.querySelector('#heartbeat-checkin-url')?.value));
+  const importedUrl=await page.locator('#heartbeat-checkin-url').inputValue();
+  assert.equal((await api(new URL(importedUrl).pathname,undefined,{cookie:''},'GET')).status,200);
+  await page.locator('#load-heartbeat-runs').click();await page.locator('.heartbeat-job-run').first().waitFor();
+  await page.locator('#job-grace').fill('300');
+  await page.getByRole('button',{name:'Save job settings',exact:true}).click();
+  await page.locator('#action-notice').filter({hasText:'Job settings saved'}).waitFor();
+  assert.equal((await read(importedId)).definition.heartbeat.graceMs,300000);
+  await shot('imported-job-resumed');
+  await page.getByRole('button',{name:'Pause',exact:true}).click();
+  await page.getByRole('button',{name:'Resume',exact:true}).waitFor();
   assert.equal((await api('/api/external-check',{url:'https://canary.runner-target.test/canary'})).status,200);
   await page.goto(origin+'/app/monitors');
   await page.getByRole('button',{name:'New monitor',exact:true}).click();
@@ -112,7 +142,8 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   const configured=page.waitForResponse(r=>new URL(r.url()).pathname===`/api/monitors/${id}/heartbeat-settings`&&r.request().method()==='POST');
   await page.getByRole('button',{name:'Save job settings',exact:true}).click();assert.equal((await configured).status(),200);
   await page.reload();await page.locator('#rules-card').waitFor();
-  if(!await cronFold.evaluate(e=>e.open))await cronFold.locator(':scope > summary').click();
+  await page.getByRole('link',{name:'Edit job schedule',exact:true}).click();
+  await cronFold.locator('#heartbeat-job-settings').waitFor({state:'visible'});
   await checkDetails.locator(':scope > summary').click();
   const panels=[checkDetails,page.locator('#rules-card'),page.locator('.heartbeat[aria-labelledby="heartbeat-heading"]'),page.locator('#heartbeat-checkin'),page.locator('#heartbeat-jobs > dl')];
   const summaries=await Promise.all(panels.map(panel=>panel.innerText()));
@@ -138,7 +169,7 @@ export async function proveHeartbeatConsole({origin,cookie,api,runner,advance}){
   advance(next.deadlineAt);await runner();assert.equal(await state(id),'Failing','cron fails at scheduled time plus grace');
   advance(next.deadlineAt+1);assert.equal((await api(cronPath,undefined,{cookie:''},'GET')).data.late,true);await runner();assert.equal(await state(id),'Healthy');
   assert.deepEqual(errors,[]);
-  const receipt={journey:'proveHeartbeatConsole',result:'passed',width:1440,proofWidths:output?[1440,390]:[],createdThroughForm:true,copyUrl:true,copyCommand:true,realInstallUrl:true,ingressState:'Unknown',scheduledState:'Healthy',periodMs:30000,graceMs:2000,beforeDeadline:'not Failing',atDeadline:'Failing',lateRecovery:'Healthy',cronSettingsSavedThroughForm:true,cronRulePanels:panels.length,cronAfterOldPeriod:afterOldPeriod,cronBeforeDeadline:'not Failing',cronAtDeadline:'Failing',cronLateRecovery:'Healthy',secretsInStorage:false};
+  const receipt={journey:'proveHeartbeatConsole',result:'passed',width:1440,proofWidths:output?[1440,390]:[],createdThroughForm:true,importedVersion:8,undoneJobEditedWhilePaused:true,resumeWithoutReload:true,resumedUrlSettingsHistoryUsable:true,copyUrl:true,copyCommand:true,realInstallUrl:true,ingressState:'Unknown',scheduledState:'Healthy',periodMs:30000,graceMs:2000,beforeDeadline:'not Failing',atDeadline:'Failing',lateRecovery:'Healthy',cronSettingsSavedThroughForm:true,cronRulePanels:panels.length,cronAfterOldPeriod:afterOldPeriod,cronBeforeDeadline:'not Failing',cronAtDeadline:'Failing',cronLateRecovery:'Healthy',secretsInStorage:false};
   if(output)await writeFile(join(output,'heartbeat-console.json'),JSON.stringify(receipt,null,2)+'\n');
   assert.equal((await api(`/api/monitors/${id}`,{...(await read(id)).definition,enabled:false},{},'PATCH')).status,200);
   console.log('Heartbeat console passed: create, copy real URL/command, actual check-in, signed Healthy, grace, exact-deadline Failing and late recovery.');

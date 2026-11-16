@@ -1,3 +1,4 @@
+import {deliveryLabel,simulatedDelivery} from './delivery-chain.js';
 import {escape} from './console-format.js';
 import {dependencySections} from './incident-dependencies.js';
 const at=value=>value===null?'—':new Date(value).toLocaleString();
@@ -14,7 +15,7 @@ function activity(entry){
  if(['maintenance_applied','pause_applied'].includes(entry.kind))return 'Revision '+d.revision+' · '+d.outcome;
  if(entry.kind==='notification_queued'||entry.kind==='escalation_queued')return (d.channel??'')+' · '+(d.destinationName??'');
  if(entry.kind==='notification_attempt'||entry.kind==='escalation_attempt')return 'Delivery attempt '+d.number;
- if(entry.kind==='notification_outcome'||entry.kind==='escalation_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome;return typeof outcome==='string'?outcome:outcome?.code??outcome?.status??outcome?.kind??'Outcome recorded'}
+ if(entry.kind==='notification_outcome'||entry.kind==='escalation_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome,state=typeof outcome==='string'?outcome:outcome?.kind,code=typeof outcome==='string'?d.code:outcome?.code;return simulatedDelivery({state,code})?'Simulated · no email sent':deliveryLabel(state)}
  return d.channel?'Recorded through '+d.channel:'';
 }
 function comment(c){

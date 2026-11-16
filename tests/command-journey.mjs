@@ -37,6 +37,19 @@ try {
  assert.equal(JSON.parse(settings).UPTIME_START_URL, startSite, 'the website reached the installation settings');
  await invoke(['setup', '--owner-email', 'journey@example.test', '--non-interactive']);
  assert.ok((await readFile(settingsPath)).equals(settings));
+ // Doctor reads the saved development mail settings without needing provider
+ // inputs in the command's environment, and refuses an invalid saved provider.
+ const doctorResult=text=>JSON.parse(text.split('\n').find(line=>line.startsWith('{')&&JSON.parse(line).event==='result'));
+ const doctor=doctorResult(await invoke(['doctor','--json']));assert.equal(doctor.ok,true);
+ assert.equal(doctor.diagnostics.operations.configuration,'valid');
+ try{
+  await writeFile(settingsPath,JSON.stringify({...JSON.parse(settings),MAIL_PROVIDER:'unsupported'}),{mode:0o600});
+  const invalid=scratch.start('node',[rer,'doctor','--json']);
+  try{assert.equal((await invalid.done).code,3);assert.equal(doctorResult(invalid.output).diagnostics.operations.configuration,'invalid')}
+  finally{await scratch.stop(invalid)}
+ }finally{await writeFile(settingsPath,settings,{mode:0o600})}
+ assert.equal(doctorResult(await invoke(['doctor','--json'])).ok,true);
+
  // Inspect the real production output of setup after it built with saved keys.
  // Credentials are compared in memory and never included in diagnostics.
  const keys = ['SESSION_SECRET', 'SETUP_TOKEN', 'UPTIME_RUNNER_KEY'].map(name => JSON.parse(settings)[name]);
