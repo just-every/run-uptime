@@ -6,7 +6,7 @@
   "toolchain": {
     "id": "runeditrun/edition-authoring",
     "version": "1.1.0",
-    "sha256": "8d25b7528ba7c5301de349b51b7e6ca44d6b87478f27b5685a5c07b567612e13"
+    "sha256": "fae294214f81f9890955eeeaf16a061aa45270bd8f5f6733c71d389969f5dece"
   },
   "components": [
     {
@@ -512,7 +512,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "a6564cb3b2386316d18c2b14fc346b78e34c84fbc1fd9208bfe77757305af4be",
+      "sha256": "fa670b834e81dd535c149e3617a74ed5bce533646d14b3a3359523bbea894f41",
       "executable": false
     },
     "BASELINE.md": {
@@ -3824,7 +3824,7 @@
       "executable": false
     },
     "scripts/edition-authoring/lock.mjs": {
-      "sha256": "c95f09ff1e0d7f457cc15a333d96d0c12c81337e2b37f7f10ddf2d10b60e72f2",
+      "sha256": "1eaece15094a293fef349382150b11aae68c8272edc682660b1d48879ecceb77",
       "executable": false
     },
     "scripts/edition-authoring/manifest.mjs": {
@@ -3868,7 +3868,7 @@
       "executable": false
     },
     "scripts/edition-authoring/README.md": {
-      "sha256": "260a65cb71882aaac144478eda7088444a39c60aba7bcf0bf668d6e08b4afe4a",
+      "sha256": "739f28757b1d8739f5b371ef9481a4fff2426ed4284601ece331f6a5d4ea50f9",
       "executable": false
     },
     "scripts/edition-authoring/release.mjs": {
@@ -4532,7 +4532,7 @@
       "executable": false
     },
     "SEED-COMMAND-CONTRACT.md": {
-      "sha256": "6962af387e2c7574ee1c61eec10e1b9ca8e655e1b7aa59bdc8e2c6d04abf2efb",
+      "sha256": "d284d8d6cb9b90c1b4a29bc562adacedcb49f8c28e799ac8cb692fb731bd85a9",
       "executable": false
     },
     "seed.json": {
@@ -4684,7 +4684,7 @@
       "executable": false
     },
     "src/base/modules/agent-door/ADOPTING.md": {
-      "sha256": "d97158c4d9af9a00a83b0f8a0dc52b80272858f5bea6ac509c4d093f67e7fb55",
+      "sha256": "db0b4718bc6578e01cb50cb6bbac46c732ecb7e2ce9ce2743fbaba26b3674c20",
       "executable": false
     },
     "src/base/modules/agent-door/adoption/penny/0106_agent_erasure_custody.sql": {
