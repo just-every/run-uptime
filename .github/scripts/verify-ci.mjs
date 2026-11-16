@@ -26,11 +26,11 @@ const [mode, tier, ...extra] = process.argv.slice(2);
 if (extra.length) throw Error('Too many verification arguments');
 if (mode === '--plan' && !tier) {
  const decision = await planVerification({plan, readers: reviewedReaders});
- // Push and nightly share journeys but retain separate whole-file allocations.
- // An all-tier run schedules the nightly/release allocation once.
+ // Release tags reuse the balanced push allocation; nightly keeps its own.
+ // An all-tier run schedules each same-named shard once.
  decision.matrix.include = [...new Map(decision.matrix.include.map(shard => [shard.name, shard])).values()];
  decision.matrix.include = decision.matrix.include.map(({name}) => {
-  const {browser, engines, evidence} = (decision.tier === 'push' ? plan.push : allShards).find(shard => shard.name === name);
+  const {browser, engines, evidence} = (decision.tier === 'nightly' ? plan.nightly : allShards).find(shard => shard.name === name);
   return {name, browser, engines, evidence};
  });
  const output = Object.entries({...decision, matrix: JSON.stringify(decision.matrix), readers: JSON.stringify(decision.readers), has_shards: decision.matrix.include.length > 0}).map(([key,value]) => key+'='+value+'\n').join('');
@@ -56,7 +56,7 @@ if (mode === '--plan' && !tier) {
  if (selected && !tasks[0].hosted && !shared) run('pnpm run build');
  for (const task of tasks) commands(task);
 } else {
- const selected = (['nightly', 'all'].includes(process.env.TIER) ? allShards : plan.push).find(shard => shard.name === mode);
+ const selected = (process.env.TIER === 'nightly' ? plan.nightly : allShards).find(shard => shard.name === mode);
  if (!selected || tier) throw Error('Usage: verify-ci.mjs SHARD');
  if (shared) await assertSharedBuild(shared);
  const hosted = selected.tasks.find(task => task.hosted);

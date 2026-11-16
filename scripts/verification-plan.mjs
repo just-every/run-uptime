@@ -64,10 +64,12 @@ for(const task of [...tasks.push].sort((a,b)=>(weights[b.name]??60)-(weights[a.n
 }
 return bins.map(bin=>({...bin,browser:true,engines:bin.tasks.some(task=>task.name==='flow-journey')?'all':'chromium',evidence:bin.tasks.some(task=>task.name==='browser-suites')}));
 }
-// Retain the existing nightly and release allocation. All-tier matrices select
-// these same-named shards once, rather than running the journeys twice.
-export const allShards=shards(seconds);
+// Keep the nightly allocation separate so its existing schedule is unchanged.
+const nightlyShards=shards(seconds);
 // Push run 43714780460 outgrew the old fallback (60 s) for agent-door and
 // archive-roundtrip's 19 s estimate. Budget their observed whole-file times;
 // keep the journeys intact and the job limit unchanged.
-export const plan={push:shards({...seconds,'agent-door':555,'archive-roundtrip':270}),nightly:allShards};
+// Branch pushes and releases share one allocation. All-tier matrices select
+// these same-named shards once, rather than running the journeys twice.
+export const allShards=shards({...seconds,'agent-door':555,'archive-roundtrip':270});
+export const plan={push:allShards,nightly:nightlyShards};
