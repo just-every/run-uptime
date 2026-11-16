@@ -1,0 +1,69 @@
+{
+  "sourceHeadBefore": "be708323f508df4bb0955c701763eb621f5dddff",
+  "candidateHead": "ac70a02db514090d5f50828071d2237f1abe8f22",
+  "branch": "cloud/main-uptime-tag-shards-1",
+  "selectedFilesBefore": 47,
+  "selectedFilesAfter": 47,
+  "tagShardJobsBefore": 8,
+  "tagShardJobsAfter": 8,
+  "branchAllocationUnchanged": true,
+  "nightlyAllocationUnchanged": true,
+  "tagUsesBranchAllocation": true,
+  "testFilesChanged": 0,
+  "clauseStatusChanges": [],
+  "planAndRunnerCheck": "passed",
+  "typecheck": "passed",
+  "workflowCheck": "passed",
+  "sourceLockCheck": "passed",
+  "contractCheck": "passed",
+  "publicationScan": "Fleet Mac lander owns the full publication scan; no Mac helper used in cloud.",
+  "tagRun": "Not run; synthetic ref used only for offline planning proof.",
+  "sourceLockRegeneratedLast": true,
+  "contractAndViewsUnchanged": true,
+  "beforeTagEstimate": {
+    "seconds": [
+      485,
+      476,
+      486,
+      485,
+      486,
+      1224,
+      486,
+      476
+    ],
+    "mean": 575.5,
+    "maximum": 1224,
+    "longestOverMean": 2.1268462206776717
+  },
+  "afterTagEstimate": {
+    "seconds": [
+      598,
+      572,
+      581,
+      580,
+      581,
+      538,
+      571,
+      583
+    ],
+    "mean": 575.5,
+    "maximum": 598,
+    "longestOverMean": 1.0390964378801042
+  },
+  "historicalPushJobs": {
+    "runId": 43728070013,
+    "seconds": [
+      534,
+      616,
+      683,
+      516,
+      735,
+      655,
+      865,
+      732
+    ],
+    "mean": 667,
+    "maximum": 865,
+    "longestOverMean": 1.2968515742128937
+  }
+}

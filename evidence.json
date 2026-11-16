@@ -1,0 +1,100 @@
+{
+  "files": [
+    {
+      "blob": "ad801e1ec1e48afb01acf8543bf69f1db41fd76d",
+      "bytes": 4012,
+      "path": "CI-RECEIPT.json",
+      "sha256": "802e4a4e145614acd33135f7b93f2dd915f3f05492926f914f8fa6f1cd35bd3b"
+    },
+    {
+      "blob": "1d2472832b25f7e5134c518380a0fd6c2e8db497",
+      "bytes": 1544,
+      "path": "LOCAL-RECEIPT.json",
+      "sha256": "e742ba26c061f603ccb8086bf0e83e3edc16437ca5f7813d4a9578a5047d1fd6"
+    },
+    {
+      "blob": "c4317edfcf58d20adcad5480c9851af8b4ac6851",
+      "bytes": 10299,
+      "path": "REPORT.md",
+      "sha256": "983d2b96a293c0b3fee0cddbf0c3ab5ee60005bd3660340740f356ea0a47e192"
+    },
+    {
+      "blob": "9bf4760cb6e196cae56e503fa6569970a61539dc",
+      "bytes": 476,
+      "path": "ci-discovery.json",
+      "sha256": "b087083d4f0166cbc6049dbdbf2dbbbe2f394694b35a3ebef7018c6c518359f1"
+    },
+    {
+      "blob": "b53e7ab91c8992450af6ced27c35bb766edabe3f",
+      "bytes": 6479,
+      "path": "ci-jobs.json",
+      "sha256": "9f8f46aa7d28582cbbdad1efd268553b9266dc4b73f4204841d98c17c4ff36a2"
+    },
+    {
+      "blob": "c4e6ae68e627d936e251053f1da459db47511231",
+      "bytes": 881,
+      "path": "ci-status.json",
+      "sha256": "a85fc101d9a883d6401fbfc41b679c336175a1f9aa78dde71974eb4c1d422513"
+    },
+    {
+      "blob": "55bfeff023c4ae17dc59e12f86f446b1960e6b53",
+      "bytes": 85,
+      "path": "commit-identities.txt",
+      "sha256": "148bad84b5b174568017df50d58e073566703d43c6c9fe7fa6f1af04420adf55"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "contract-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "a2c41756cde4a195fcbb71d0f86a2d52fd452be3",
+      "bytes": 13636,
+      "path": "plan-after.json",
+      "sha256": "217b1491e0603453ccfd0cba135bea14d1dc1a76786eaf3cfb6da80ad920bd53"
+    },
+    {
+      "blob": "03d4208649288a75d59d4488ef3e12104fcd0b26",
+      "bytes": 13638,
+      "path": "plan-before.json",
+      "sha256": "b78193f7e20c340bcd8715b4c61480e8a5e09b96ceb13299eee24edb3694ad1e"
+    },
+    {
+      "blob": "d084b21e67f6b6351ee97d97d2c4410ad8f99233",
+      "bytes": 6427,
+      "path": "plan-proof.mjs",
+      "sha256": "36b0b5d81317ba7a70eaad270a6a76a10579fa2400550d8586907340c3f717a4"
+    },
+    {
+      "blob": "3bfc832acf94a298061fadb0c838164be4550835",
+      "bytes": 934,
+      "path": "product-push.log",
+      "sha256": "81eb0cf01270a499b96ed0c492dc14970af101ddafb6c97fd5ce2c2db56b8b81"
+    },
+    {
+      "blob": "afe58e9fbd80bb0bc3f2a2f0e56ba88691f93130",
+      "bytes": 423124,
+      "path": "source-check.log",
+      "sha256": "a7275001400e999d48c01e9229285e76d38d122575036488ab4242b00aeb2540"
+    },
+    {
+      "blob": "ecb7bd75ec8979fcddd81492122346d7066e5083",
+      "bytes": 293,
+      "path": "typecheck.log",
+      "sha256": "cc45300edfded23998873688d5c494d3a49f67f2e527a64112ac6d0a98591e84"
+    },
+    {
+      "blob": "d8bffad4e16f13eb244b3f8baeac1f232676026d",
+      "bytes": 58,
+      "path": "workflow-check.log",
+      "sha256": "df3db00e082bf57a0cdc3b200dc667334accd27d53f6187d6380c889e4c8f7ef"
+    }
+  ],
+  "product_branch": "cloud/main-uptime-tag-shards-1",
+  "product_head": "ac70a02db514090d5f50828071d2237f1abe8f22",
+  "ref": "refs/heads/evidence/main-uptime-tag-shards-1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "main-uptime-tag-shards-1"
+}

@@ -1,0 +1,500 @@
+{
+  "stage": "after",
+  "expectedTestCount": 47,
+  "historicalPushSeconds": [
+    534,
+    616,
+    683,
+    516,
+    735,
+    655,
+    865,
+    732
+  ],
+  "tiers": {
+    "branch": {
+      "event": "push",
+      "ref": "refs/heads/cloud/main-uptime-tag-shards-1",
+      "tier": "push",
+      "matrix": [
+        {
+          "name": "push-1",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-2",
+          "browser": true,
+          "engines": "all",
+          "evidence": false
+        },
+        {
+          "name": "push-3",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-4",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-5",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-6",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-7",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": true
+        },
+        {
+          "name": "push-8",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        }
+      ],
+      "shards": [
+        {
+          "name": "push-1",
+          "files": [
+            "tests/agent-door.mjs",
+            "tests/probe-native-evidence.mjs"
+          ],
+          "estimatedJourneySeconds": 598,
+          "schedulerSeconds": 573
+        },
+        {
+          "name": "push-2",
+          "files": [
+            "tests/flow-journey.mjs",
+            "tests/agent-query-token.mjs",
+            "tests/api-transaction-journey.mjs",
+            "tests/alert-drill.mjs"
+          ],
+          "estimatedJourneySeconds": 572,
+          "schedulerSeconds": 572
+        },
+        {
+          "name": "push-3",
+          "files": [
+            "tests/notification-recovery.mjs",
+            "tests/owner-deploy-lifecycle.mjs",
+            "tests/agent-rate-overrun.mjs",
+            "tests/resilience/watches.mjs",
+            "tests/operator-security.mjs",
+            "tests/metrics.mjs",
+            "tests/hosted-alerts.mjs"
+          ],
+          "estimatedJourneySeconds": 581,
+          "schedulerSeconds": 581
+        },
+        {
+          "name": "push-4",
+          "files": [
+            "tests/command-journey.mjs",
+            "tests/mail-journey.mjs",
+            "tests/definitions-import.mjs",
+            "tests/ping-monitors.mjs",
+            "tests/catalog.mjs",
+            "tests/webhook-custom.mjs",
+            "tests/business-provisioned.mjs"
+          ],
+          "estimatedJourneySeconds": 580,
+          "schedulerSeconds": 580
+        },
+        {
+          "name": "push-5",
+          "files": [
+            "tests/archive-roundtrip.mjs",
+            "tests/protocol-monitors.mjs",
+            "tests/network-mixed-dns.mjs",
+            "tests/signed-runner.mjs",
+            "tests/erasure-audit.mjs",
+            "tests/failure-page-journey.mjs"
+          ],
+          "estimatedJourneySeconds": 581,
+          "schedulerSeconds": 581
+        },
+        {
+          "name": "push-6",
+          "files": [
+            "tests/control-runtime.mjs",
+            "tests/slow-responses.mjs",
+            "tests/private-network.mjs",
+            "tests/roster-erasure.mjs",
+            "tests/owner-editor-browser.mjs",
+            "tests/tls-auth.mjs",
+            "tests/hosted-auth-browser.mjs"
+          ],
+          "estimatedJourneySeconds": 538,
+          "schedulerSeconds": 571
+        },
+        {
+          "name": "push-7",
+          "files": [
+            "tests/notification-fallback.mjs",
+            "tests/browser-suites.mjs",
+            "tests/notify-delivery.mjs",
+            "tests/agent-erasure.mjs",
+            "tests/udp-monitors.mjs",
+            "tests/maintenance-windows.mjs",
+            "tests/read-api.mjs"
+          ],
+          "estimatedJourneySeconds": 571,
+          "schedulerSeconds": 571
+        },
+        {
+          "name": "push-8",
+          "files": [
+            "tests/contact-schedules.mjs",
+            "tests/discovery-jobs.mjs",
+            "tests/incident-work.mjs",
+            "tests/reporting.mjs",
+            "tests/alert-routes.mjs",
+            "tests/access-matrix.mjs",
+            "tests/public-paths.mjs"
+          ],
+          "estimatedJourneySeconds": 583,
+          "schedulerSeconds": 580
+        }
+      ],
+      "selectedExactlyOnce": true
+    },
+    "tag": {
+      "event": "push",
+      "ref": "refs/tags/v0.0.0",
+      "tier": "all",
+      "matrix": [
+        {
+          "name": "push-1",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-2",
+          "browser": true,
+          "engines": "all",
+          "evidence": false
+        },
+        {
+          "name": "push-3",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-4",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-5",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-6",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-7",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": true
+        },
+        {
+          "name": "push-8",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        }
+      ],
+      "shards": [
+        {
+          "name": "push-1",
+          "files": [
+            "tests/agent-door.mjs",
+            "tests/probe-native-evidence.mjs"
+          ],
+          "estimatedJourneySeconds": 598,
+          "schedulerSeconds": 573
+        },
+        {
+          "name": "push-2",
+          "files": [
+            "tests/flow-journey.mjs",
+            "tests/agent-query-token.mjs",
+            "tests/api-transaction-journey.mjs",
+            "tests/alert-drill.mjs"
+          ],
+          "estimatedJourneySeconds": 572,
+          "schedulerSeconds": 572
+        },
+        {
+          "name": "push-3",
+          "files": [
+            "tests/notification-recovery.mjs",
+            "tests/owner-deploy-lifecycle.mjs",
+            "tests/agent-rate-overrun.mjs",
+            "tests/resilience/watches.mjs",
+            "tests/operator-security.mjs",
+            "tests/metrics.mjs",
+            "tests/hosted-alerts.mjs"
+          ],
+          "estimatedJourneySeconds": 581,
+          "schedulerSeconds": 581
+        },
+        {
+          "name": "push-4",
+          "files": [
+            "tests/command-journey.mjs",
+            "tests/mail-journey.mjs",
+            "tests/definitions-import.mjs",
+            "tests/ping-monitors.mjs",
+            "tests/catalog.mjs",
+            "tests/webhook-custom.mjs",
+            "tests/business-provisioned.mjs"
+          ],
+          "estimatedJourneySeconds": 580,
+          "schedulerSeconds": 580
+        },
+        {
+          "name": "push-5",
+          "files": [
+            "tests/archive-roundtrip.mjs",
+            "tests/protocol-monitors.mjs",
+            "tests/network-mixed-dns.mjs",
+            "tests/signed-runner.mjs",
+            "tests/erasure-audit.mjs",
+            "tests/failure-page-journey.mjs"
+          ],
+          "estimatedJourneySeconds": 581,
+          "schedulerSeconds": 581
+        },
+        {
+          "name": "push-6",
+          "files": [
+            "tests/control-runtime.mjs",
+            "tests/slow-responses.mjs",
+            "tests/private-network.mjs",
+            "tests/roster-erasure.mjs",
+            "tests/owner-editor-browser.mjs",
+            "tests/tls-auth.mjs",
+            "tests/hosted-auth-browser.mjs"
+          ],
+          "estimatedJourneySeconds": 538,
+          "schedulerSeconds": 571
+        },
+        {
+          "name": "push-7",
+          "files": [
+            "tests/notification-fallback.mjs",
+            "tests/browser-suites.mjs",
+            "tests/notify-delivery.mjs",
+            "tests/agent-erasure.mjs",
+            "tests/udp-monitors.mjs",
+            "tests/maintenance-windows.mjs",
+            "tests/read-api.mjs"
+          ],
+          "estimatedJourneySeconds": 571,
+          "schedulerSeconds": 571
+        },
+        {
+          "name": "push-8",
+          "files": [
+            "tests/contact-schedules.mjs",
+            "tests/discovery-jobs.mjs",
+            "tests/incident-work.mjs",
+            "tests/reporting.mjs",
+            "tests/alert-routes.mjs",
+            "tests/access-matrix.mjs",
+            "tests/public-paths.mjs"
+          ],
+          "estimatedJourneySeconds": 583,
+          "schedulerSeconds": 580
+        }
+      ],
+      "selectedExactlyOnce": true
+    },
+    "nightly": {
+      "event": "schedule",
+      "ref": "refs/heads/main",
+      "tier": "nightly",
+      "matrix": [
+        {
+          "name": "push-1",
+          "browser": true,
+          "engines": "all",
+          "evidence": false
+        },
+        {
+          "name": "push-2",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-3",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-4",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-5",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-6",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-7",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": false
+        },
+        {
+          "name": "push-8",
+          "browser": true,
+          "engines": "chromium",
+          "evidence": true
+        }
+      ],
+      "shards": [
+        {
+          "name": "push-1",
+          "files": [
+            "tests/flow-journey.mjs",
+            "tests/maintenance-windows.mjs",
+            "tests/metrics.mjs"
+          ],
+          "estimatedJourneySeconds": 485,
+          "schedulerSeconds": 485
+        },
+        {
+          "name": "push-2",
+          "files": [
+            "tests/notification-recovery.mjs",
+            "tests/roster-erasure.mjs",
+            "tests/owner-editor-browser.mjs",
+            "tests/alert-drill.mjs"
+          ],
+          "estimatedJourneySeconds": 476,
+          "schedulerSeconds": 476
+        },
+        {
+          "name": "push-3",
+          "files": [
+            "tests/command-journey.mjs",
+            "tests/definitions-import.mjs",
+            "tests/signed-runner.mjs",
+            "tests/api-transaction-journey.mjs",
+            "tests/failure-page-journey.mjs",
+            "tests/business-provisioned.mjs"
+          ],
+          "estimatedJourneySeconds": 486,
+          "schedulerSeconds": 486
+        },
+        {
+          "name": "push-4",
+          "files": [
+            "tests/control-runtime.mjs",
+            "tests/notify-delivery.mjs",
+            "tests/network-mixed-dns.mjs",
+            "tests/agent-rate-overrun.mjs",
+            "tests/resilience/watches.mjs",
+            "tests/public-paths.mjs",
+            "tests/hosted-alerts.mjs"
+          ],
+          "estimatedJourneySeconds": 485,
+          "schedulerSeconds": 485
+        },
+        {
+          "name": "push-5",
+          "files": [
+            "tests/notification-fallback.mjs",
+            "tests/mail-journey.mjs",
+            "tests/agent-erasure.mjs",
+            "tests/udp-monitors.mjs",
+            "tests/operator-security.mjs",
+            "tests/probe-native-evidence.mjs",
+            "tests/hosted-auth-browser.mjs"
+          ],
+          "estimatedJourneySeconds": 486,
+          "schedulerSeconds": 486
+        },
+        {
+          "name": "push-6",
+          "files": [
+            "tests/contact-schedules.mjs",
+            "tests/incident-work.mjs",
+            "tests/private-network.mjs",
+            "tests/agent-door.mjs",
+            "tests/alert-routes.mjs",
+            "tests/archive-roundtrip.mjs",
+            "tests/webhook-custom.mjs"
+          ],
+          "estimatedJourneySeconds": 1224,
+          "schedulerSeconds": 483
+        },
+        {
+          "name": "push-7",
+          "files": [
+            "tests/discovery-jobs.mjs",
+            "tests/protocol-monitors.mjs",
+            "tests/reporting.mjs",
+            "tests/agent-query-token.mjs",
+            "tests/catalog.mjs",
+            "tests/access-matrix.mjs",
+            "tests/read-api.mjs"
+          ],
+          "estimatedJourneySeconds": 486,
+          "schedulerSeconds": 486
+        },
+        {
+          "name": "push-8",
+          "files": [
+            "tests/browser-suites.mjs",
+            "tests/slow-responses.mjs",
+            "tests/owner-deploy-lifecycle.mjs",
+            "tests/ping-monitors.mjs",
+            "tests/erasure-audit.mjs",
+            "tests/tls-auth.mjs"
+          ],
+          "estimatedJourneySeconds": 476,
+          "schedulerSeconds": 476
+        }
+      ],
+      "selectedExactlyOnce": true
+    }
+  },
+  "runnerDispatchMatchesPlan": true
+}

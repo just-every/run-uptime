@@ -1,0 +1,29 @@
+[
+  {
+    "conclusion": null,
+    "head_sha": "ac70a02db514090d5f50828071d2237f1abe8f22",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43884855569",
+    "status": "in_progress",
+    "observedAt": 1794839193.473163,
+    "githubCalls": 2,
+    "runId": 43884855569
+  },
+  {
+    "conclusion": null,
+    "head_sha": "ac70a02db514090d5f50828071d2237f1abe8f22",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43884855569",
+    "status": "in_progress",
+    "observedAt": 1794839493.4747126,
+    "githubCalls": 3,
+    "runId": 43884855569
+  },
+  {
+    "conclusion": "success",
+    "head_sha": "ac70a02db514090d5f50828071d2237f1abe8f22",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43884855569",
+    "status": "completed",
+    "observedAt": 1794839793.4774477,
+    "githubCalls": 4,
+    "runId": 43884855569
+  }
+]
