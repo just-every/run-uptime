@@ -2,23 +2,31 @@
 
 ## Unreleased
 
-## 0.5.14 — 2026-11-16
+## 0.5.15 — 2026-11-16
 
-Patch release from `main`; previous version 0.5.13. Hosted installations can deliberately run without outbound email on the exact `@runeditrun/rer` 0.2.118 pin. Public `/health` names the running package version. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are kept on upgrade.
+Patch release from `main`; previous version 0.5.13. Hosted installations can deliberately run without outbound email on the exact `@runeditrun/rer` 0.2.119 pin. First-run and sign-in pages explain mail-off operation, and invitations clearly refuse when email is off. Public `/health` names the running package version. Imported heartbeat controls and local diagnostics are corrected, and restored notification outcomes identify simulated email. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are kept on upgrade.
 
-Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13; this is not a new 0.5.14 capture.
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13; this is not a new 0.5.15 capture.
 
 ### Installation and health
 
 - **Choose to run without outbound email.** Select `MAIL_PROVIDER=none` explicitly and omit the sender and sending credentials. Missing or deferred provider selection does not mean off, and conflicting sending credentials are refused. Use guarded `rer signin` from the checkout that deployed the environment, keeping its deployment receipt and the deploying account's credentials.
+- **Explain mail-off sign-in and invitations.** First-run and sign-in pages say that email is off and point to guarded `rer signin`. Invitations are refused before any account or invitation is created, and the console explains that invitations need email.
 - **Keep mail-off limits explicit.** Email-link sign-in, invitations and email alerts are unavailable while mail is off; email alerts are never recorded as sent. First-run setup, monitor checks, incident recovery and Settings remain available. Other supported alert destinations retain their existing configuration requirements. Local development and demo mail behavior is unchanged.
 - **Identify the running version.** Public `/health` includes `buildVersion` from the running package, so an operator can identify the deployed application version.
+
+### Heartbeats, diagnostics and notification history
+
+- **Edit imported heartbeat jobs without losing their settings.** Expected-period jobs open in the monitor editor and retain existing job settings when saved. Cron and short-period jobs point to **Job schedule and runs**, where their full schedule remains available.
+- **Use the same mail defaults in operations diagnostics.** When `MAIL_PROVIDER` is unset, diagnostics check the default SendGrid configuration. Local diagnostics also validate saved development settings when present.
+- **Read restored notification outcomes accurately.** Incident activity identifies simulated email as **Simulated · no email sent**, including restored outcomes. Saving an email destination while mail is off explains why it cannot send.
+- Dependencies include re2js 2.8.7 and transitive seroval 1.6.11.
 
 ### Upgrading from 0.5.13
 
 Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately; for a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide; without it export is refused and writes nothing. Keep that cookie private.
 
-Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This installs the exact `@runeditrun/rer` 0.2.118 pin, replacing 0.2.113 from 0.5.13. Existing mail configuration is retained; mail-off is an explicit choice. Database migration inventory since 0.5.13: none (no migration files added or changed). No new setting is required. Existing monitors, history, incidents, destinations and private settings are retained.
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This installs the exact `@runeditrun/rer` 0.2.119 pin, replacing 0.2.113 from 0.5.13. Existing mail configuration is retained; mail-off is an explicit choice. Database migration inventory since 0.5.13: none (no migration files added or changed). No new setting is required. Existing monitors, history, incidents, destinations and private settings are retained.
 
 ### Known issues
 
