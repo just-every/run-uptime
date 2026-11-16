@@ -1,0 +1,9 @@
+{
+  "path": "/home/agent/rer-consolidation/work/push-rescue/gr-mt-uptime-dep-7-candidate.bundle",
+  "head": "a4270d81fa9b759438105bc4080bf1d6c2e6f034",
+  "sha256": "3d8e55962ef6ff421bd0bc60d08288379df06f0795272b5a49f3401386ed0590",
+  "bytes": 112139554,
+  "gitBundleVerify": "pass",
+  "completeHistory": true,
+  "publication": "recovery data only; product branch independently pushed and read back"
+}

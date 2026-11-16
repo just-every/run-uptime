@@ -1,0 +1,7 @@
+{
+  "status": "done",
+  "sha": "a4270d81fa9b759438105bc4080bf1d6c2e6f034",
+  "summary": "Updated direct re2js 2.8.6 to patched 2.8.7 and regenerated dependency/source locks only; published cloud/gr-mt-uptime-dep-7 with exact-SHA Verify green.",
+  "tests": "PASS: pnpm 10.12.4 frozen install; rer setup/build; pnpm typecheck; node tests/probe-native-evidence.mjs; spec generation/check; contract document check; source lock generation/check; publication COMPLETE/PASS with zero findings; exact-SHA Verify run 43818015581 completed/success.",
+  "security": true
+}

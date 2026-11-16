@@ -1,0 +1,100 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-16",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-dep-7",
+  "base": "91bdcfbac8b53121ccb1864873f19241c533bc4f",
+  "head": "a4270d81fa9b759438105bc4080bf1d6c2e6f034",
+  "dependency": {
+    "name": "re2js",
+    "before": "2.8.6",
+    "after": "2.8.7",
+    "patchedMinimum": "2.8.7",
+    "advisory": "GHSA-gg6h-894w-4m9c",
+    "vulnerableResolvedVersionsBefore": 1,
+    "vulnerableResolvedVersionsAfter": 0
+  },
+  "changedFiles": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "sources.lock.json"
+  ],
+  "contractStatusesBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "contractStatusesAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clauseStatusChanges": [],
+  "testFileChanges": [],
+  "testsAdded": 0,
+  "testsRemoved": 0,
+  "toolchain": {
+    "node": "v22.20.0",
+    "pnpm": "10.12.4"
+  },
+  "checks": [
+    {
+      "command": "pnpm add re2js@2.8.7 --save-exact --lockfile-only",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exitCode": 0,
+      "log": "install.log"
+    },
+    {
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exitCode": 0,
+      "receipt": "setup-receipt.json"
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exitCode": 0,
+      "log": "build.log"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exitCode": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "node tests/probe-native-evidence.mjs",
+      "exitCode": 0,
+      "log": "probe-native-evidence.log"
+    },
+    {
+      "command": "pnpm run spec:generate",
+      "exitCode": 0,
+      "log": "spec-generate.log",
+      "trackedChanges": false
+    },
+    {
+      "command": "pnpm run spec:check",
+      "exitCode": 0,
+      "log": "spec-check.log"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exitCode": 0,
+      "log": "contract-check.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exitCode": 0,
+      "receipt": "source-lock-check.json"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 0
+    }
+  ]
+}

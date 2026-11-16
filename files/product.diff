@@ -1,0 +1,80 @@
+commit a4270d81fa9b759438105bc4080bf1d6c2e6f034
+Author:     Run Edit Run fleet <fleet@runeditrun.com>
+AuthorDate: Mon Nov 16 06:30:41 2026 +0000
+Commit:     Run Edit Run fleet <fleet@runeditrun.com>
+CommitDate: Mon Nov 16 06:30:41 2026 +0000
+
+    Upgrade re2js to 2.8.7
+
+diff --git a/package.json b/package.json
+index 29f473b4..12655715 100644
+--- a/package.json
++++ b/package.json
+@@ -55,7 +55,7 @@
+     "jsonpathly": "3.0.1",
+     "pdf-lib": "1.17.1",
+     "qrcode": "1.5.4",
+-    "re2js": "2.8.6",
++    "re2js": "2.8.7",
+     "react": "19.2.8",
+     "react-dom": "19.2.8"
+   },
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 2c092022..ba269c01 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -37,8 +37,8 @@ importers:
+         specifier: 1.5.4
+         version: 1.5.4
+       re2js:
+-        specifier: 2.8.6
+-        version: 2.8.6
++        specifier: 2.8.7
++        version: 2.8.7
+       react:
+         specifier: 19.2.8
+         version: 19.2.8
+@@ -1455,9 +1455,9 @@ packages:
+     engines: {node: '>=10.13.0'}
+     hasBin: true
+ 
+-  re2js@2.8.6:
+-    resolution: {integrity: sha512-xLgQil4kIUCrAzVk9fRSkxkFNwmygLFjVxXrLc65aE1F0+Zsb8rxumFBy4XKyvgMCTL6kilDq3EZ0piE2dP/Dg==}
+-    engines: {node: '>=18.0.0'}
++  re2js@2.8.7:
++    resolution: {integrity: sha512-bRSL/vn3KAmlGfGNoVpcsBXLaVvl6AbuvMMWbz0m3vBj60nj+p2/biozfBUOSBP+5XTduF6mr6IO/ZVjmqqkVQ==}
++    engines: {node: '>=20.0.0'}
+ 
+   react-dom@19.2.8:
+     resolution: {integrity: sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==}
+@@ -2976,7 +2976,7 @@ snapshots:
+       pngjs: 5.0.0
+       yargs: 15.4.1
+ 
+-  re2js@2.8.6: {}
++  re2js@2.8.7: {}
+ 
+   react-dom@19.2.8(react@19.2.8):
+     dependencies:
+diff --git a/sources.lock.json b/sources.lock.json
+index c230e4c1..3bdcd162 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -2568,7 +2568,7 @@
+       "executable": false
+     },
+     "package.json": {
+-      "sha256": "08de97c365269b17a1cca8fed4c9dc77924f0ee784b7b62e97011dc9a919b0cf",
++      "sha256": "14e8a1c7be25d7a9e77bd36821c7cbbdb583a2208e3c0bf4910da6261425e8e8",
+       "executable": false
+     },
+     "patches/README.md": {
+@@ -2576,7 +2576,7 @@
+       "executable": false
+     },
+     "pnpm-lock.yaml": {
+-      "sha256": "00a6e3defa0644740dd82c51a7a79545d7508e30bd481214ee74b2953aa20a27",
++      "sha256": "f57d7587cef2b685057e9eecea6425994b9a55da2b8ae6960979bbe04732b05f",
+       "executable": false
+     },
+     "public/action-feedback.mjs": {

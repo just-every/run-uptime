@@ -1,0 +1,15 @@
+{
+  "head": "a4270d81fa9b759438105bc4080bf1d6c2e6f034",
+  "allCandidatesChecked": true,
+  "candidateCount": 1,
+  "commits": [
+    {
+      "sha": "a4270d81fa9b759438105bc4080bf1d6c2e6f034",
+      "authorName": "Run Edit Run fleet",
+      "authorEmail": "fleet@runeditrun.com",
+      "committerName": "Run Edit Run fleet",
+      "committerEmail": "fleet@runeditrun.com",
+      "trailers": ""
+    }
+  ]
+}
