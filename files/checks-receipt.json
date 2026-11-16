@@ -1,0 +1,58 @@
+{
+  "head": "359d6ef4f233d67b590941009e1ca1f4f4f9742f",
+  "node": "22.20.0",
+  "completedAt": "2026-11-16T21:14:55.376242+00:00",
+  "checks": [
+    {
+      "command": "pnpm run typecheck",
+      "exitCode": 0,
+      "output": "typecheck.log",
+      "outputSha256": "7e4f7ae0f4c407932230daa28bc4b08cff4437c2ad5f62dca8852758ddde0f08"
+    },
+    {
+      "command": "pnpm exec rer check --profile first-party --json",
+      "exitCode": 0,
+      "clauses": 1614,
+      "output": "structural-check.jsonl",
+      "outputSha256": "d514f71fef4b6b68d380fa36c3b6ce747af74de0772bf255292b0cf3908352e0"
+    },
+    {
+      "command": "node scripts/delivery/publish-spec.mjs --check",
+      "exitCode": 0,
+      "output": "spec-check.log",
+      "outputSha256": "9f87bd5dfd513f672e704a34dd46c7232f6b5a3eaf7ef36bec7abc8645e7c744"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "command": "node --test tests/owner-deploy-lifecycle.mjs (fleet identity and behaviour receipt enabled)",
+      "exitCode": 0,
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "output": "lifecycle-final.tap",
+      "durationMs": 142401.926823,
+      "behaviourReceipt": "mail-switch-receipt.json",
+      "outputSha256": "12fe87388db669e7d42c192281ba9b6738b3b7e5861f5129be11ad8cd6d653e6"
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/hosted-auth-browser.mjs",
+      "exitCode": 0,
+      "sourceHead": "bd5896f4d43306a924341cc79d3fc2fe9e530840",
+      "relevantSourcesUnchangedOnFinalHead": true,
+      "output": "hosted-auth-final.log",
+      "outputSha256": "e98ba021129683ae890d0fbf5f6d9134d30ffe37244b69adaef4b802624fc8f4"
+    },
+    {
+      "command": "node node_modules/@runeditrun/rer/cli/hosted-output.mjs",
+      "exitCode": 0,
+      "assets": 143,
+      "health": "identity",
+      "output": "hosted-output-final.log",
+      "outputSha256": "279ae5d16bd068559a3f6eee3575c72bc2ff312b6734edaffc69f99120c494ee"
+    }
+  ]
+}

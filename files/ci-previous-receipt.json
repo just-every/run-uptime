@@ -1,0 +1,15 @@
+{
+  "repository": "just-every/run-uptime",
+  "head_sha": "e947e280a8f8fe321b890a2c5c1ab8b9a2755df1",
+  "apiCalls": 7,
+  "lastQueryAt": "2026-11-16T21:00:32.208285+00:00",
+  "runs": [
+    {
+      "id": 43952887595,
+      "conclusion": "failure",
+      "head_sha": "e947e280a8f8fe321b890a2c5c1ab8b9a2755df1",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43952887595",
+      "status": "completed"
+    }
+  ]
+}

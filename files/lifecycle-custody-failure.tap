@@ -1,0 +1,34 @@
+TAP version 13
+# (node:3549) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: real rer deploy covers fresh custody, automatic legacy upgrade, conflicts, named keys, exact repeat, resume and foreign ownership refusal
+not ok 1 - real rer deploy covers fresh custody, automatic legacy upgrade, conflicts, named keys, exact repeat, resume and foreign ownership refusal
+  ---
+  duration_ms: 113840.290983
+  type: 'test'
+  location: '/workspace/run-uptime/tests/owner-deploy-lifecycle.mjs:13:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'none' !== 'sendgrid'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'sendgrid'
+  actual: 'none'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/run-uptime/tests/owner-deploy-lifecycle.mjs:183:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 114499.200906

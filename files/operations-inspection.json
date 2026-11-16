@@ -1,0 +1,160 @@
+{
+  "command": "node scripts/deployment/ops-config.mjs",
+  "node": "22.20.0",
+  "sourceHead": "359d6ef4f233d67b590941009e1ca1f4f4f9742f",
+  "timestamp": "2026-11-16T21:15:46.856308+00:00",
+  "rows": [
+    {
+      "case": "sendgrid",
+      "exitCode": 0,
+      "ok": true,
+      "configuration": "valid",
+      "loops": [
+        {
+          "id": "worker",
+          "required": true,
+          "status": "ready",
+          "missingEnvironment": []
+        },
+        {
+          "id": "operator-sign-in-mail",
+          "required": false,
+          "status": "ready",
+          "missingEnvironment": []
+        }
+      ],
+      "missingEnvironment": []
+    },
+    {
+      "case": "resend",
+      "exitCode": 0,
+      "ok": true,
+      "configuration": "valid",
+      "loops": [
+        {
+          "id": "worker",
+          "required": true,
+          "status": "ready",
+          "missingEnvironment": []
+        },
+        {
+          "id": "operator-sign-in-mail",
+          "required": false,
+          "status": "ready",
+          "missingEnvironment": []
+        }
+      ],
+      "missingEnvironment": []
+    },
+    {
+      "case": "cloudflare",
+      "exitCode": 0,
+      "ok": true,
+      "configuration": "valid",
+      "loops": [
+        {
+          "id": "worker",
+          "required": true,
+          "status": "ready",
+          "missingEnvironment": []
+        },
+        {
+          "id": "operator-sign-in-mail",
+          "required": false,
+          "status": "ready",
+          "missingEnvironment": []
+        }
+      ],
+      "missingEnvironment": []
+    },
+    {
+      "case": "none",
+      "exitCode": 0,
+      "ok": true,
+      "configuration": "valid",
+      "loops": [
+        {
+          "id": "worker",
+          "required": true,
+          "status": "ready",
+          "missingEnvironment": []
+        },
+        {
+          "id": "operator-sign-in-mail",
+          "required": false,
+          "status": "optional-disabled",
+          "missingEnvironment": [],
+          "mailOff": true
+        }
+      ],
+      "missingEnvironment": []
+    },
+    {
+      "case": "unset",
+      "exitCode": 0,
+      "ok": true,
+      "configuration": "valid",
+      "loops": [
+        {
+          "id": "worker",
+          "required": true,
+          "status": "ready",
+          "missingEnvironment": []
+        },
+        {
+          "id": "operator-sign-in-mail",
+          "required": false,
+          "status": "optional-disabled",
+          "missingEnvironment": [],
+          "mailOff": true
+        }
+      ],
+      "missingEnvironment": []
+    },
+    {
+      "case": "unset-with-key",
+      "exitCode": 1,
+      "ok": false,
+      "configuration": "invalid",
+      "loops": [
+        {
+          "id": "worker",
+          "required": true,
+          "status": "ready",
+          "missingEnvironment": []
+        },
+        {
+          "id": "operator-sign-in-mail",
+          "required": false,
+          "status": "optional-disabled",
+          "missingEnvironment": [],
+          "mailOff": true
+        }
+      ],
+      "missingEnvironment": []
+    },
+    {
+      "case": "unknown",
+      "exitCode": 1,
+      "ok": false,
+      "configuration": "invalid",
+      "loops": [
+        {
+          "id": "worker",
+          "required": true,
+          "status": "ready",
+          "missingEnvironment": []
+        },
+        {
+          "id": "operator-sign-in-mail",
+          "required": false,
+          "status": "invalid-mail-provider",
+          "missingEnvironment": [
+            "MAIL_PROVIDER"
+          ]
+        }
+      ],
+      "missingEnvironment": []
+    }
+  ]
+}

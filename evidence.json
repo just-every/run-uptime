@@ -1,0 +1,160 @@
+{
+  "files": [
+    {
+      "blob": "c26afc8d11071d749f6a8004f0b3b952bd7c54a4",
+      "bytes": 1818,
+      "path": "PLAN.md",
+      "sha256": "da5c9f768830236a3618f7d4f0d6dd0326df3afe4cc6ddcb5df2f9a5c6620c78"
+    },
+    {
+      "blob": "7c9abad2bf40b6cc36f69050bd56139f0e34e92e",
+      "bytes": 10050,
+      "path": "REPORT.md",
+      "sha256": "462da97a5b67cb2507ce771668e801a1d4ec8c89de4ab56e0e57e9cd545c79ac"
+    },
+    {
+      "blob": "36d6a701f6523bd9e41d2c0188142b52cc3ae2d6",
+      "bytes": 849,
+      "path": "candidate-identities.txt",
+      "sha256": "5d682e45e84532a90838b7ce0384c6d0d81be494247d2476969cb26f0808ea68"
+    },
+    {
+      "blob": "7f7984bc6fccc39bc526cadaff418dedb4b54071",
+      "bytes": 2029,
+      "path": "checks-receipt.json",
+      "sha256": "5c4dcf822b4389bbf47eecf4a60590bbec4a9b3defa4e539f12fef8e8d5b8049"
+    },
+    {
+      "blob": "516760b7ccd4f3300281b0fd0edc933a7260853e",
+      "bytes": 14711,
+      "path": "ci-discovery.json",
+      "sha256": "3fdb3d89e563d43ab9d5d911f733d1e8b49a78026ebf3b3ae573bf0e925eadfa"
+    },
+    {
+      "blob": "876cd64a3368bc42e7507e160531096b8b6210dc",
+      "bytes": 77661,
+      "path": "ci-failed-jobs.json",
+      "sha256": "287e9fa6cb2604d7993a97f44201e9d34f0fa553d1eb4bc4771ad49b8e6c670a"
+    },
+    {
+      "blob": "9a652e128051d222817f5fda067ba8948c3955a6",
+      "bytes": 14709,
+      "path": "ci-previous-discovery.json",
+      "sha256": "fa920a8b262c5ea78b509103ce9baaf11b1a0b017a09db5ab5e9d1db9bde7dd0"
+    },
+    {
+      "blob": "df7d3bb9136ff1cae044fa4187bb4109f3f9d71f",
+      "bytes": 13427,
+      "path": "ci-previous-push-6.log",
+      "sha256": "a31b1021db1ccb8603ac2d8423632278e10cd973b9f32541ff4995d7f33bef07"
+    },
+    {
+      "blob": "39afab540c4632d6f4bd5b294d205c23e36f73e3",
+      "bytes": 1115167,
+      "path": "ci-previous-push-7.log",
+      "sha256": "0bdc9cca56c62cbb39215e0ea2dd1b249d1b48580aa40958ea6b4aad06b81771"
+    },
+    {
+      "blob": "3dd06bb5c7006ce67f6a3a718b1300727011476b",
+      "bytes": 434,
+      "path": "ci-previous-receipt.json",
+      "sha256": "30af743a863e0da8b35336f345139738a002d707778f424e1a6b7cea6a3a02f8"
+    },
+    {
+      "blob": "52f233b4c97397c55dc635f2c2444f734355e673",
+      "bytes": 496,
+      "path": "ci-receipt.json",
+      "sha256": "5ee5e3bfd663339cbe660830ae343d41b1b30f039d5a27f932b361a2fee1583e"
+    },
+    {
+      "blob": "3f1163183454ed2d3ec1c6f7fde2e353302e052e",
+      "bytes": 840,
+      "path": "hosted-auth-final.log",
+      "sha256": "e98ba021129683ae890d0fbf5f6d9134d30ffe37244b69adaef4b802624fc8f4"
+    },
+    {
+      "blob": "f5454d04f49354c20d6ee0bea3e6a11b9021dad8",
+      "bytes": 171,
+      "path": "hosted-output-final.log",
+      "sha256": "279ae5d16bd068559a3f6eee3575c72bc2ff312b6734edaffc69f99120c494ee"
+    },
+    {
+      "blob": "33f7bd7d3efad3f2be3706a7af3a4a63c5f32a40",
+      "bytes": 1209,
+      "path": "lifecycle-custody-assumption.tap",
+      "sha256": "db48770fd7cf7a2e13971f2b1ab503592c3ddab09e7d9541f1c6bf7232d6d1bb"
+    },
+    {
+      "blob": "95148ea538f779fc652764fa618d79c102f38f0c",
+      "bytes": 1209,
+      "path": "lifecycle-custody-failure.tap",
+      "sha256": "e4e48a0ba9ae14104600107ed62f5b0b073469e54cdc2ebcfc6e13091f9d66ca"
+    },
+    {
+      "blob": "4bd3cfbdcc3952162959afd5986eb458eae9dd26",
+      "bytes": 645,
+      "path": "lifecycle-final.tap",
+      "sha256": "12fe87388db669e7d42c192281ba9b6738b3b7e5861f5129be11ad8cd6d653e6"
+    },
+    {
+      "blob": "2423a1b75313fc05e56af87cc7c4e3cf6f07b9d5",
+      "bytes": 1259,
+      "path": "lifecycle-initial.tap",
+      "sha256": "42b59d85d1ec097aea74ac8f1df8f92153f09c83b4c851b413ca0d5a8e6f9fed"
+    },
+    {
+      "blob": "9a31e9776ebdab68d28bcba85ac5755f5db0650b",
+      "bytes": 643,
+      "path": "lifecycle-parent-pass.tap",
+      "sha256": "c620bb5fa94b3f90881019972f0322a7df0e24e6e84b911122b39d49e7dc62f4"
+    },
+    {
+      "blob": "8da8dc0a3de80bc7c03fce9706637293f565c62f",
+      "bytes": 1269,
+      "path": "lifecycle-preflight-read-assumption.tap",
+      "sha256": "d3f1b1c67b404d3a797f5f31740f472adb12aa7294efe11c04bfd8a36c98a524"
+    },
+    {
+      "blob": "8527fc9173788fd598bd9ca074fb380835a7f09c",
+      "bytes": 555,
+      "path": "mail-switch-receipt.json",
+      "sha256": "0bf1b778c4a812d0ae651d5133399113cb3e932cbfaf3a30691137f0148f08be"
+    },
+    {
+      "blob": "ab7dc8c8bff8aa0dd2925fc8bf39a0a80d9b2249",
+      "bytes": 3602,
+      "path": "operations-inspection.json",
+      "sha256": "fe63e706a1416c4a557fb9987a8c0c1a86725caa4d0b0eba5c9e2c1c2509c49c"
+    },
+    {
+      "blob": "40eb2dcf545c68c69e0ad19a18a3940c86c10b7b",
+      "bytes": 1664,
+      "path": "product-provenance.json",
+      "sha256": "b83e6a5ec83dfd2799d51fc2f44ed2f2b77cc403068f73beb9d658b81f4c17b5"
+    },
+    {
+      "blob": "689b245116f0309de5351ad92f67175345384209",
+      "bytes": 62,
+      "path": "spec-check.log",
+      "sha256": "9f87bd5dfd513f672e704a34dd46c7232f6b5a3eaf7ef36bec7abc8645e7c744"
+    },
+    {
+      "blob": "69111d2125ef3ba27af3fa3f1054ea6051187c92",
+      "bytes": 101093,
+      "path": "structural-check.jsonl",
+      "sha256": "d514f71fef4b6b68d380fa36c3b6ce747af74de0772bf255292b0cf3908352e0"
+    },
+    {
+      "blob": "be2fad0ef134d6cf7ca938907af777a429921898",
+      "bytes": 138,
+      "path": "typecheck.log",
+      "sha256": "7e4f7ae0f4c407932230daa28bc4b08cff4437c2ad5f62dca8852758ddde0f08"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-mail-switch-2",
+  "product_head": "359d6ef4f233d67b590941009e1ca1f4f4f9742f",
+  "ref": "refs/heads/evidence/sd-uptime-mail-switch-2",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-mail-switch-2"
+}

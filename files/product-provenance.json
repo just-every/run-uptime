@@ -1,0 +1,62 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-mail-switch-2",
+  "head": "359d6ef4f233d67b590941009e1ca1f4f4f9742f",
+  "startingHead": "f5ae7e2e254bc90c64d2ec617e617a2fe3dd1ed9",
+  "originMain": "40a6a6d8104a7e4bc15ea89e47406f455a734fe9",
+  "startingHistoryRetained": true,
+  "cleanTrackedTree": true,
+  "identitiesAndTrailers": "all candidate commits fleet identity; no trailers",
+  "candidateCommitCount": 10,
+  "productChanges": [
+    "OPERATIONS.json",
+    "OPERATIONS.md",
+    "deploy.json",
+    "docs/deploy.md",
+    "management/integration/deployment-spec.json",
+    "rer-project.json",
+    "rer-setup.json",
+    "scripts/deployment/command.mjs",
+    "scripts/deployment/mail-config.mjs",
+    "scripts/deployment/ops-config.mjs",
+    "sources.lock.json",
+    "tests/mail-off-support.mjs",
+    "tests/owner-deploy-lifecycle.mjs",
+    "tests/owner-deploy-lifecycle/provider-fixture.mjs",
+    "wrangler.jsonc"
+  ],
+  "contractCounts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "touchedTestRegistrations": {
+    "before": 1,
+    "after": 1,
+    "added": 0
+  },
+  "lockSha256": "2d8c4b41d12380388c39a35e31b59e44dd0792e2377f0729b3e497522fcc650d",
+  "sourceLockCheck": "passed",
+  "publicationScan": "Mac fleet gate; unavailable in this cloud",
+  "timestamp": "2026-11-16T21:15:45.565757+00:00",
+  "touchedAssertScripts": {
+    "lifecycle": {
+      "before": 1,
+      "after": 1
+    },
+    "hostedAuth": {
+      "before": 1,
+      "after": 1
+    },
+    "added": 0
+  }
+}

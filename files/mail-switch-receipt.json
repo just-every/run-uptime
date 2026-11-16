@@ -1,0 +1,16 @@
+{
+  "journey": "real rer deploy lifecycle",
+  "omittedSelectorDefaultsToNone": true,
+  "omittedSelectorWithKeyRefused": true,
+  "ownedPrivateEnvFileEnable": true,
+  "explicitSendgridDeployment": true,
+  "noneToSendgrid": true,
+  "sendgridToUnsetDefaultNone": true,
+  "plainDeployPreservesSelection": true,
+  "workerSendingOverridesRemoved": true,
+  "workerAndDatabaseCustodyPreserved": true,
+  "admittedOwnerPreserved": true,
+  "installationKeysPreserved": true,
+  "workerCodePreserved": true,
+  "providerEdge": "fake Cloudflare; no real mail provider"
+}

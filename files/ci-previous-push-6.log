@@ -1,0 +1,87 @@
+shards (push-6)	Run this shard	﻿2026-11-16T20:45:54.9622543Z ##[group]Run node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9622888Z [36;1mnode .github/scripts/verify-ci.mjs "$SHARD"[0m
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9640548Z shell: /usr/bin/bash -e {0}
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9640762Z env:
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9640926Z   CI: true
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9641101Z   WRANGLER_SEND_METRICS: false
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9641336Z   PLAYWRIGHT_SKIP_BROWSER_GC: 1
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9641616Z   PLAYWRIGHT_BROWSERS_PATH: /home/runner/work/_temp/ms-playwright
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9641942Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9642208Z   TMPDIR: /tmp/uptime-verify-olRZcd
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9642441Z   TMP: /tmp/uptime-verify-olRZcd
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9642656Z   TEMP: /tmp/uptime-verify-olRZcd
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9642863Z   SHARD: push-6
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9643219Z   TIER: push
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9643472Z   UPTIME_VERIFY_BUILD: /home/runner/work/_temp/uptime-verify-build
+shards (push-6)	Run this shard	2026-11-16T20:45:54.9643926Z ##[endgroup]
+shards (push-6)	Run this shard	2026-11-16T20:45:55.0520457Z > node tests/control-runtime.mjs
+shards (push-6)	Run this shard	2026-11-16T20:45:55.9663157Z (node:3202) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-6)	Run this shard	2026-11-16T20:45:55.9664315Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-6)	Run this shard	2026-11-16T20:48:33.2731996Z RESTART-001 passed: repeated additive setup, exact persisted evidence/session/outbox continuity, single delivery per assigned probe, expired acceptance rejection, real scheduled recovery after process interruption, and an incident confirmed and recovered across a steadily lagging vantage.
+shards (push-6)	Run this shard	2026-11-16T20:49:14.3390943Z SCHEDULE-001 cadence revision passed: owner interval edit, next due readback, early refusal, signed scheduled and manual passes, immutable fixed selections and assignments, and delayed claims without catch-up checks.
+shards (push-6)	Run this shard	2026-11-16T20:49:27.9851392Z STATE-001 passed: two signed assigned runners, mixed-vantage Degraded, confirmed failure, manual-pass isolation, absent-probe Unknown, first complete scheduled Recovering and one recovery after the second complete scheduled pass with immutable evidence.
+shards (push-6)	Run this shard	2026-11-16T20:49:31.3335172Z PROBE STATE-001 expired-passing-coverage: two saved passing deadlines crossed with no runner invocation -> target and both regions Unknown, Incomplete coverage, denominator 2, original observation identities, exactly two target requests
+shards (push-6)	Run this shard	2026-11-16T20:49:32.0246230Z PROBE STATE-001 stale-restart: restarted emitted Worker on the same D1 and isolated clock -> identical owner history and durable records, zero new target requests and no trigger or recovery
+shards (push-6)	Run this shard	2026-11-16T20:49:35.3847666Z PROBE STATE-001 resumed-due-coverage: both signed production runners resumed -> Healthy Complete coverage, two new target checks, unchanged old history, no fabricated trigger or recovery; early polls execute no work
+shards (push-6)	Run this shard	2026-11-16T20:50:02.7198035Z RECOVERY-001 passed: separate empty D1 restore, forged revision/raw-body rejection, paused imported definitions, inactive imported outbox and no automatic execution/replay.
+shards (push-6)	Run this shard	2026-11-16T20:50:02.7199930Z CONTROL-001 passed: emitted Start/Hono Worker, real D1 migrations/native sessions, scoped signed runner, scheduled failure/recovery and manual evidence, rename lifecycle, notification authority isolation, archive/session revocation.
+shards (push-6)	Run this shard	2026-11-16T20:50:02.8188805Z > node tests/slow-responses.mjs
+shards (push-6)	Run this shard	2026-11-16T20:50:03.9635577Z (node:5946) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-6)	Run this shard	2026-11-16T20:50:03.9636187Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-6)	Run this shard	2026-11-16T20:50:03.9641507Z TAP version 13
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9606360Z SLOW-001 real-delay and console journeys passed; screenshots: /tmp/uptime-verify-olRZcd/r-rv8OsD/screens
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9617076Z # Subtest: Slow has its own contacts and report spans; recovery, percentile location windows and latency failures keep separate meanings
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9624183Z ok 1 - Slow has its own contacts and report spans; recovery, percentile location windows and latency failures keep separate meanings
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9625744Z   ---
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9626411Z   duration_ms: 134999.047505
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9626800Z   type: 'test'
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9627060Z   ...
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9630129Z 1..1
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9630443Z # tests 1
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9630804Z # suites 0
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9631134Z # pass 1
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9632401Z # fail 0
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9634456Z # cancelled 0
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9634858Z # skipped 0
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9635302Z # todo 0
+shards (push-6)	Run this shard	2026-11-16T20:52:18.9635690Z # duration_ms 135003.522852
+shards (push-6)	Run this shard	2026-11-16T20:52:19.0062039Z > node tests/private-network.mjs
+shards (push-6)	Run this shard	2026-11-16T20:53:05.9762909Z PRIVATE-001 PASS: authenticated runner grants; real HTTP failure/recovery, TCP and isolated browser; private/public/metadata/neighbor/port/expiry/identity/redirect fences; local authority excluded from portable definitions and archives; runner revocation.
+shards (push-6)	Run this shard	2026-11-16T20:53:06.0408671Z > node tests/roster-erasure.mjs
+shards (push-6)	Run this shard	2026-11-16T20:53:22.1617791Z PASS erasing an invited operator retires them from the Business roster; the other person's roster entry and agent records are intact.
+shards (push-6)	Run this shard	2026-11-16T20:53:22.2251249Z > node tests/owner-editor-browser.mjs
+shards (push-6)	Run this shard	2026-11-16T20:54:15.7193362Z OWNER-EDITOR passed: owner-only disabled 204, partial/malformed configuration refusal, native owner config, anonymous/member refusal, 1440 mount, two ordinary renewals beyond initial expiry preserving iframe/document/private draft, route transition, role-loss revocation and browser CSP refusal.
+shards (push-6)	Run this shard	2026-11-16T20:54:15.7928779Z > node tests/tls-auth.mjs
+shards (push-6)	Run this shard	2026-11-16T20:54:16.6711595Z (node:7826) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-6)	Run this shard	2026-11-16T20:54:16.6712412Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-6)	Run this shard	2026-11-16T20:55:27.4729187Z PASS keyword owner creation, scheduled signed HTTPS status and text failures, immutable history and recovery
+shards (push-6)	Run this shard	2026-11-16T20:55:33.1271140Z PROBE NETWORK-001 acceptance-1 matching: owner-created unchanged public HTTPS monitor -> signed pass, Healthy, one TLS connection, one HTTP request, fixed coverage and retained history
+shards (push-6)	Run this shard	2026-11-16T20:55:38.4330609Z PROBE NETWORK-001 acceptance-1 wrong-name: owner-created unchanged public HTTPS monitor -> signed target_failure, Failing, one TLS connection, zero HTTP request, fixed coverage and retained history
+shards (push-6)	Run this shard	2026-11-16T20:55:43.7046396Z PROBE NETWORK-001 acceptance-1 restored: owner-created unchanged public HTTPS monitor -> signed pass, Healthy, one TLS connection, one HTTP request, fixed coverage and retained history
+shards (push-6)	Run this shard	2026-11-16T20:55:48.8296203Z PROBE NETWORK-001 acceptance-1 short: unchanged owner-created public HTTPS monitor -> signed pass, status,body, Healthy; 2 TLS connections and 2 ordered requests, duration 217ms below saved 3000ms deadline
+shards (push-6)	Run this shard	2026-11-16T20:55:54.5832082Z PROBE NETWORK-001 acceptance-1 cycle: unchanged owner-created public HTTPS monitor -> signed target_failure, redirect, Failing; 6 TLS connections and 6 ordered requests, duration 633ms below saved 3000ms deadline
+shards (push-6)	Run this shard	2026-11-16T20:56:01.3104752Z PROBE NETWORK-001 acceptance-1 restart: receiver remains in cycle mode through two full saved-timeout quiet windows and persistent Worker restart -> zero extra connections or requests, no open sockets, identical failure history and incident
+shards (push-6)	Run this shard	2026-11-16T20:56:01.9615091Z PROBE NETWORK-001 acceptance-1 restored: unchanged owner-created public HTTPS monitor -> signed pass, status,body, Healthy; 2 TLS connections and 2 ordered requests, duration 217ms below saved 3000ms deadline
+shards (push-6)	Run this shard	2026-11-16T20:56:01.9755607Z PASS redirect-cycle exhaustion: bounded redirect target failure, verified receiver counts and ordered targets, quiescence through restart, ordinary due recovery and immutable earlier evidence
+shards (push-6)	Run this shard	2026-11-16T20:56:06.3322174Z DNS rebinding fixture: isolated emitted Worker migrated
+shards (push-6)	Run this shard	2026-11-16T20:56:07.2731390Z PROBE NETWORK-001 acceptance-1 allowed: signed pass, Healthy with Complete coverage; A connections 1, B connections 0 and requests 0, passing canary, immutable history
+shards (push-6)	Run this shard	2026-11-16T20:56:12.6104785Z PROBE NETWORK-001 acceptance-1 rebind: signed pass, Healthy with Complete coverage; A connections 1, B connections 0 and requests 0, passing canary, immutable history
+shards (push-6)	Run this shard	2026-11-16T20:56:17.9808045Z PROBE NETWORK-001 acceptance-1 forbidden: signed runner_error, Unknown with Incomplete coverage; A connections 0, B connections 0 and requests 0, passing canary, immutable history
+shards (push-6)	Run this shard	2026-11-16T20:56:23.2608631Z PROBE NETWORK-001 acceptance-1 restored: signed pass, Healthy with Complete coverage; A connections 1, B connections 0 and requests 0, passing canary, immutable history
+shards (push-6)	Run this shard	2026-11-16T20:56:23.2610423Z PASS DNS rebinding: validated A survives changed B before connection with verified Host and SNI; next due B is refused without a destination socket; ordinary due A and old history survive restart
+shards (push-6)	Run this shard	2026-11-16T20:56:23.3154226Z > node tests/hosted-auth-browser.mjs
+shards (push-6)	Run this shard	2026-11-16T20:56:32.4255044Z HOSTED-AUTH-BROWSER passed native HTTPS bootstrap, Open app login_hint prefill at 1440 without auto-submit, fresh-context magic link and confirmation; actual Origin, origin-only Referer and Secure Base owner session verified; outbound mail captured only in test
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5151235Z (node:8144) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5152004Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5335153Z file:///home/runner/work/run-uptime/run-uptime/scripts/deployment/mail-config.mjs:7
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5374886Z   if(conflicts.length)throw Error('mail-off-conflicting-credentials: '+conflicts.join(', '));
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5404456Z                             ^
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5464258Z 
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5464888Z Error: mail-off-conflicting-credentials: SENDGRID_API_KEY
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5465856Z     at mailBindings (file:///home/runner/work/run-uptime/run-uptime/scripts/deployment/mail-config.mjs:7:29)
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5466942Z     at selectMailDeclaration (file:///home/runner/work/run-uptime/run-uptime/scripts/deployment/mail-config.mjs:21:283)
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5468010Z     at Module.proveMailOff (file:///home/runner/work/run-uptime/run-uptime/tests/mail-off-support.mjs:42:32)
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5468925Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/hosted-auth-browser.mjs:184:1
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5469445Z 
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5469624Z Node.js v22.20.0
+shards (push-6)	Run this shard	2026-11-16T20:56:32.5911583Z ##[error]Process completed with exit code 1.
