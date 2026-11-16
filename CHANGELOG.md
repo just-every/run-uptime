@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+## 0.5.14 — 2026-11-16
+
+Patch release from `main`; previous version 0.5.13. Hosted installations can deliberately run without outbound email on the exact `@runeditrun/rer` 0.2.118 pin. Public `/health` names the running package version. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are kept on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13; this is not a new 0.5.14 capture.
+
+### Installation and health
+
+- **Choose to run without outbound email.** Select `MAIL_PROVIDER=none` explicitly and omit the sender and sending credentials. Missing or deferred provider selection does not mean off, and conflicting sending credentials are refused. Use guarded `rer signin` from the checkout that deployed the environment, keeping its deployment receipt and the deploying account's credentials.
+- **Keep mail-off limits explicit.** Email-link sign-in, invitations and email alerts are unavailable while mail is off; email alerts are never recorded as sent. First-run setup, monitor checks, incident recovery and Settings remain available. Other supported alert destinations retain their existing configuration requirements. Local development and demo mail behavior is unchanged.
+- **Identify the running version.** Public `/health` includes `buildVersion` from the running package, so an operator can identify the deployed application version.
+
+### Upgrading from 0.5.13
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately; for a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide; without it export is refused and writes nothing. Keep that cookie private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This installs the exact `@runeditrun/rer` 0.2.118 pin, replacing 0.2.113 from 0.5.13. Existing mail configuration is retained; mail-off is an explicit choice. Database migration inventory since 0.5.13: none (no migration files added or changed). No new setting is required. Existing monitors, history, incidents, destinations and private settings are retained.
+
+### Known issues
+
+- Switching a mail-off installation back to enabled email through `rer deploy` is not established by this release.
+- The other known issues listed under 0.5.13 and earlier releases remain: earlier heartbeat output is not rewritten, UptimeRobot monitor CSV import and restoration of the erased-people list remain unavailable, an empty company decision feed is not refused, and response bodies over 64 KiB still fail the check. Bounded-memory archive restore, operation at 500 monitors with 90 days of history, time-range selection and console chunk-transfer controls remain unestablished or unavailable. Keep the earlier upgrade cautions when upgrading from an older version.
+
+— Run Edit Run fleet, 2026-11-16
+
 ## 0.5.13 — 2026-11-15
 
 Patch release from `main`; previous version 0.5.12. Repeated console page loads no longer exhaust the static-resource allowance and leave pages on **Loading…**. Runner enrollment, reviewed imports, backup feedback and sensitive-action confirmations are clearer. The checkout retains `@runeditrun/rer` 0.2.113; this release does not add a production mail-off setup. No migration or new required settings; monitors, history, incidents, destinations and private settings are kept on upgrade.
