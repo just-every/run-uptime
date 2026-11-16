@@ -1,0 +1,81 @@
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 890f6b55..de0ddfc3 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -1508,8 +1508,8 @@ packages:
+     peerDependencies:
+       seroval: ^1.0
+ 
+-  seroval@1.6.7:
+-    resolution: {integrity: sha512-AeDcLh0yO2SFm9W71essgnSzLV9DI8ZH0x0knXn2DMnUZj728mpLbxjlbB6IqKCmqh8JA3cEqRyGoNkt584JcQ==}
++  seroval@1.6.11:
++    resolution: {integrity: sha512-hpb6XnMCGN/A+79Uf8V7/iTGkyyyazNn5X0CoCAp7Uy9vT3RT8jZ9GLcnxGoVjg3P8AArbe4ZVHq6C8oT2a0kA==}
+     engines: {node: '>=10'}
+ 
+   set-blocking@2.0.0:
+@@ -2500,8 +2500,8 @@ snapshots:
+     dependencies:
+       '@tanstack/history': 1.162.4
+       cookie-es: 3.1.1
+-      seroval: 1.6.7
+-      seroval-plugins: 1.6.7(seroval@1.6.7)
++      seroval: 1.6.11
++      seroval-plugins: 1.6.7(seroval@1.6.11)
+ 
+   '@tanstack/router-generator@1.167.40':
+     dependencies:
+@@ -2558,7 +2558,7 @@ snapshots:
+       '@tanstack/router-core': 1.171.34
+       '@tanstack/start-fn-stubs': 1.162.0
+       '@tanstack/start-storage-context': 1.167.36
+-      seroval: 1.6.7
++      seroval: 1.6.11
+ 
+   '@tanstack/start-fn-stubs@1.162.0': {}
+ 
+@@ -2577,7 +2577,7 @@ snapshots:
+       lightningcss: 1.33.0
+       pathe: 2.0.3
+       picomatch: 4.0.7
+-      seroval: 1.6.7
++      seroval: 1.6.11
+       source-map: 0.7.6
+       srvx: 0.11.22
+       tinyglobby: 0.2.17
+@@ -2609,7 +2609,7 @@ snapshots:
+       '@tanstack/start-storage-context': 1.167.36
+       fetchdts: 0.1.7
+       h3-v2: h3@2.0.1-rc.20
+-      seroval: 1.6.7
++      seroval: 1.6.11
+     transitivePeerDependencies:
+       - crossws
+ 
+@@ -3022,11 +3022,11 @@ snapshots:
+ 
+   semver@7.8.5: {}
+ 
+-  seroval-plugins@1.6.7(seroval@1.6.7):
++  seroval-plugins@1.6.7(seroval@1.6.11):
+     dependencies:
+-      seroval: 1.6.7
++      seroval: 1.6.11
+ 
+-  seroval@1.6.7: {}
++  seroval@1.6.11: {}
+ 
+   set-blocking@2.0.0: {}
+ 
+diff --git a/sources.lock.json b/sources.lock.json
+index 4da0ddde..d7758bbe 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -2576,7 +2576,7 @@
+       "executable": false
+     },
+     "pnpm-lock.yaml": {
+-      "sha256": "c8bf15533a71fcc1d3a1e32de5c064c6e666baf39f3ad465d84668a5de51c6d6",
++      "sha256": "898c36c822b8c91ab1b68196917dcab0cacc33dad5d157622c56138586e67d07",
+       "executable": false
+     },
+     "public/action-feedback.mjs": {

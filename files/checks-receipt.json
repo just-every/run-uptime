@@ -1,0 +1,190 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15",
+  "repository": "just-every/run-uptime",
+  "tag": "gr-mt-uptime-dep-6",
+  "branch": "cloud/gr-mt-uptime-dep-6",
+  "head": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b",
+  "toolchain": {
+    "node": "22.20.0",
+    "pnpm": "10.12.4"
+  },
+  "checks": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit": 0,
+      "artifact": "install-final.log"
+    },
+    {
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive (through cloud_run)",
+      "exit": 0,
+      "artifact": null,
+      "note": "Private setup log excluded because setup creates local authority; only command outcome retained."
+    },
+    {
+      "command": "npx -y @runeditrun/rer build (through cloud_run)",
+      "exit": 0,
+      "artifact": "build.log"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "artifact": "typecheck.log"
+    },
+    {
+      "command": "pnpm spec:generate",
+      "exit": 0,
+      "artifact": "spec-generate.log"
+    },
+    {
+      "command": "pnpm spec:check",
+      "exit": 0,
+      "artifact": "spec-check.log"
+    },
+    {
+      "command": "node seroval-probes.mjs CHECKOUT",
+      "exit": 0,
+      "artifact": "seroval-probes.log",
+      "probeGroups": 6
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "artifact": "source-lock.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "artifact": "source-check.log"
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/hosted-auth-browser.mjs",
+      "exit": 0,
+      "artifact": "hosted-auth-browser.log",
+      "width": 1440
+    },
+    {
+      "command": "Base publish-check on raw committed tree with matching project and repository URL",
+      "exit": 0,
+      "artifact": "publication-scan.json",
+      "status": "PASS",
+      "complete": true,
+      "findings": 0,
+      "head": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b"
+    }
+  ],
+  "counts": {
+    "vulnerableSerovalVersionsBefore": 1,
+    "vulnerableSerovalVersionsAfter": 0,
+    "serovalConsumerEdgesBefore": 5,
+    "serovalConsumerEdgesAfter": 5,
+    "reportedAdvisoryRangesCovered": 5,
+    "repositoryTestsAdded": 0,
+    "repositoryTestsRemoved": 0,
+    "repositoryTestsWeakened": 0,
+    "clausesChanged": 0,
+    "publicDoorCITasksBefore": 47,
+    "publicDoorCITasksAfter": 47
+  },
+  "scope": [
+    "pnpm-lock.yaml",
+    "sources.lock.json"
+  ],
+  "contractCounts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    }
+  },
+  "limitations": [
+    "Package probes cover representative repaired boundaries, not an application exploit reproduction.",
+    "Dependabot alert closure is not queried or claimed."
+  ],
+  "pending": [],
+  "sourceTree": "72548efa4b59a4253560302ba5402524988dfd96",
+  "base": "433f7138430fa08d14570a58eb46bc5a14d7fadc",
+  "review": {
+    "artifact": "independent-review.md",
+    "conclusion": "No concrete source-backed bypass or regression found."
+  },
+  "identity": {
+    "authors": [
+      "Run Edit Run fleet <fleet@runeditrun.com>"
+    ],
+    "committers": [
+      "Run Edit Run fleet <fleet@runeditrun.com>"
+    ],
+    "trailers": []
+  },
+  "exploration": [
+    {
+      "command": "pnpm update seroval@1.6.11 --depth 100 --lockfile-only",
+      "result": "Discarded because pnpm refreshed unrelated transitives."
+    },
+    {
+      "command": "go install github.com/gitleaks/gitleaks/v8@v8.30.1",
+      "result": "Unavailable Go compiler: /usr/bin/go rejected install; official release asset acquired with gh api instead and SHA256 verified."
+    },
+    {
+      "command": "external package probes, initial attempts",
+      "result": "Harness corrected for pnpm transitive module resolution and actual constructor-output security invariant; repository tests unchanged."
+    },
+    {
+      "command": "Base publish-check against original checkout with bare --repository slug",
+      "result": "Complete FAIL: invocation destination.invalid plus task-generated setup secrets/build/runtime artifacts in working-tree scan. No committed-tree secret finding. Corrected to raw committed blobs and URL destination with matching project ID; product commit unchanged.",
+      "artifact": "publication-scan-working-tree.json"
+    }
+  ],
+  "productPush": {
+    "branch": "cloud/gr-mt-uptime-dep-6",
+    "head": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b",
+    "status": "pushed",
+    "attempts": 1,
+    "artifact": "product-push.log"
+  },
+  "ci": {
+    "run_id": 43777108539,
+    "head": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/just-every/run-uptime/actions/runs/43777108539",
+    "artifact": "ci-verify-poll-3.json",
+    "polls": [
+      {
+        "conclusion": null,
+        "head_sha": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43777108539",
+        "status": "in_progress",
+        "run_id": 43777108539,
+        "polled_at": 1794787035
+      },
+      {
+        "conclusion": null,
+        "head_sha": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43777108539",
+        "status": "in_progress",
+        "run_id": 43777108539,
+        "polled_at": 1794787336
+      },
+      {
+        "conclusion": "success",
+        "head_sha": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/43777108539",
+        "status": "completed",
+        "run_id": 43777108539,
+        "polled_at": 1794787637
+      }
+    ]
+  },
+  "outcome": "fixed",
+  "completedAt": "2026-11-16T00:07:59.047864+00:00",
+  "custody": "READY"
+}

@@ -1,0 +1,198 @@
+[
+  {
+    "name": "@uptime/uptime-console",
+    "version": "0.5.13",
+    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo",
+    "private": true,
+    "dependencies": {
+      "@tanstack/react-router": {
+        "from": "@tanstack/react-router",
+        "version": "1.170.41",
+        "resolved": "https://registry.npmjs.org/@tanstack/react-router/-/react-router-1.170.41.tgz",
+        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+react-router@1.170.41_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/@tanstack/react-router",
+        "dependencies": {
+          "@tanstack/router-core": {
+            "from": "@tanstack/router-core",
+            "version": "1.171.34",
+            "resolved": "https://registry.npmjs.org/@tanstack/router-core/-/router-core-1.171.34.tgz",
+            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+router-core@1.171.34/node_modules/@tanstack/router-core",
+            "dependencies": {
+              "seroval": {
+                "from": "seroval",
+                "version": "1.6.11",
+                "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+              },
+              "seroval-plugins": {
+                "from": "seroval-plugins",
+                "version": "1.6.7",
+                "resolved": "https://registry.npmjs.org/seroval-plugins/-/seroval-plugins-1.6.7.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval-plugins@1.6.7_seroval@1.6.11/node_modules/seroval-plugins",
+                "dependencies": {
+                  "seroval": {
+                    "from": "seroval",
+                    "version": "1.6.11",
+                    "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "@tanstack/react-start": {
+        "from": "@tanstack/react-start",
+        "version": "1.168.60",
+        "resolved": "https://registry.npmjs.org/@tanstack/react-start/-/react-start-1.168.60.tgz",
+        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+react-start@1.168.60_esbuild@0.28.2_react-dom@19.2.8_react@19.2.8__react@19.2_8ddbe0c0528f716048f587da14329edb/node_modules/@tanstack/react-start",
+        "dependencies": {
+          "@tanstack/react-router": {
+            "from": "@tanstack/react-router",
+            "version": "1.170.41",
+            "resolved": "https://registry.npmjs.org/@tanstack/react-router/-/react-router-1.170.41.tgz",
+            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+react-router@1.170.41_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/@tanstack/react-router",
+            "dependencies": {
+              "@tanstack/router-core": {
+                "from": "@tanstack/router-core",
+                "version": "1.171.34",
+                "resolved": "https://registry.npmjs.org/@tanstack/router-core/-/router-core-1.171.34.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+router-core@1.171.34/node_modules/@tanstack/router-core",
+                "dependencies": {
+                  "seroval": {
+                    "from": "seroval",
+                    "version": "1.6.11",
+                    "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                  },
+                  "seroval-plugins": {
+                    "from": "seroval-plugins",
+                    "version": "1.6.7",
+                    "resolved": "https://registry.npmjs.org/seroval-plugins/-/seroval-plugins-1.6.7.tgz",
+                    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval-plugins@1.6.7_seroval@1.6.11/node_modules/seroval-plugins",
+                    "dependencies": {
+                      "seroval": {
+                        "from": "seroval",
+                        "version": "1.6.11",
+                        "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "@tanstack/react-start-client": {
+            "from": "@tanstack/react-start-client",
+            "version": "1.168.39",
+            "resolved": "https://registry.npmjs.org/@tanstack/react-start-client/-/react-start-client-1.168.39.tgz",
+            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+react-start-client@1.168.39_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/@tanstack/react-start-client",
+            "dependencies": {
+              "@tanstack/router-core": {
+                "from": "@tanstack/router-core",
+                "version": "1.171.34",
+                "resolved": "https://registry.npmjs.org/@tanstack/router-core/-/router-core-1.171.34.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+router-core@1.171.34/node_modules/@tanstack/router-core",
+                "dependencies": {
+                  "seroval": {
+                    "from": "seroval",
+                    "version": "1.6.11",
+                    "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                  },
+                  "seroval-plugins": {
+                    "from": "seroval-plugins",
+                    "version": "1.6.7",
+                    "resolved": "https://registry.npmjs.org/seroval-plugins/-/seroval-plugins-1.6.7.tgz",
+                    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval-plugins@1.6.7_seroval@1.6.11/node_modules/seroval-plugins",
+                    "dependencies": {
+                      "seroval": {
+                        "from": "seroval",
+                        "version": "1.6.11",
+                        "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                      }
+                    }
+                  }
+                }
+              },
+              "@tanstack/react-router": {
+                "from": "@tanstack/react-router",
+                "version": "1.170.41",
+                "resolved": "https://registry.npmjs.org/@tanstack/react-router/-/react-router-1.170.41.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+react-router@1.170.41_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/@tanstack/react-router",
+                "dependencies": {
+                  "@tanstack/router-core": {
+                    "from": "@tanstack/router-core",
+                    "version": "1.171.34",
+                    "resolved": "https://registry.npmjs.org/@tanstack/router-core/-/router-core-1.171.34.tgz",
+                    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+router-core@1.171.34/node_modules/@tanstack/router-core",
+                    "dependencies": {
+                      "seroval": {
+                        "from": "seroval",
+                        "version": "1.6.11",
+                        "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                      },
+                      "seroval-plugins": {
+                        "from": "seroval-plugins",
+                        "version": "1.6.7",
+                        "resolved": "https://registry.npmjs.org/seroval-plugins/-/seroval-plugins-1.6.7.tgz",
+                        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval-plugins@1.6.7_seroval@1.6.11/node_modules/seroval-plugins",
+                        "dependencies": {
+                          "seroval": {
+                            "from": "seroval",
+                            "version": "1.6.11",
+                            "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "@tanstack/start-client-core": {
+                "from": "@tanstack/start-client-core",
+                "version": "1.170.34",
+                "resolved": "https://registry.npmjs.org/@tanstack/start-client-core/-/start-client-core-1.170.34.tgz",
+                "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+start-client-core@1.170.34/node_modules/@tanstack/start-client-core",
+                "dependencies": {
+                  "@tanstack/router-core": {
+                    "from": "@tanstack/router-core",
+                    "version": "1.171.34",
+                    "resolved": "https://registry.npmjs.org/@tanstack/router-core/-/router-core-1.171.34.tgz",
+                    "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/@tanstack+router-core@1.171.34/node_modules/@tanstack/router-core",
+                    "dependencies": {
+                      "seroval": {
+                        "from": "seroval",
+                        "version": "1.6.11",
+                        "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                      },
+                      "seroval-plugins": {
+                        "from": "seroval-plugins",
+                        "version": "1.6.7",
+                        "resolved": "https://registry.npmjs.org/seroval-plugins/-/seroval-plugins-1.6.7.tgz",
+                        "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval-plugins@1.6.7_seroval@1.6.11/node_modules/seroval-plugins",
+                        "dependencies": {
+                          "seroval": {
+                            "from": "seroval",
+                            "version": "1.6.11",
+                            "resolved": "https://registry.npmjs.org/seroval/-/seroval-1.6.11.tgz",
+                            "path": "/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-6/repo/node_modules/.pnpm/seroval@1.6.11/node_modules/seroval"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

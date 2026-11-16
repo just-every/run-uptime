@@ -1,0 +1,26 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-15",
+  "command": "Base publish-check on raw committed tree",
+  "complete": true,
+  "status": "PASS",
+  "source": {
+    "commit": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b",
+    "tree": "72548efa4b59a4253560302ba5402524988dfd96"
+  },
+  "findings": 0,
+  "historyScanned": true,
+  "environmentChecked": true,
+  "scanner": {
+    "name": "gitleaks",
+    "version": "8.30.1"
+  },
+  "historyCounts": {
+    "commits": 1076,
+    "trees": 1057,
+    "blobs": 9338,
+    "commitMessages": 1076,
+    "tagMessages": 24
+  },
+  "rawArtifact": "publication-scan.json"
+}

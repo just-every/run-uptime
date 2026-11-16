@@ -1,0 +1,7 @@
+{
+  "status": "done",
+  "sha": "096f7a919d34f13dc29ba59fdd26e2a91b4cd92b",
+  "summary": "Upgraded every transitive seroval resolution from 1.6.7 to 1.6.11 and regenerated the source lock, covering all five reported advisories without unrelated upgrades. Named cloud branch pushed; exact-SHA Verify 43777108539 succeeded.",
+  "tests": "PASS: pnpm 10.12.4 frozen install under Node 22.20.0; RER setup and build; typecheck; spec generation/check; source-lock generation/check; 6 bounded seroval probe groups; hosted-auth-browser at 1440 using system Chromium; independent read-only patch review; complete exact-tree Base publication scan with zero findings; exact-SHA Verify 43777108539 completed/success.",
+  "security": true
+}

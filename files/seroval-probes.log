@@ -1,0 +1,7 @@
+PASS reachable dependency versions: 1.6.11
+PASS typed-array attacker-chosen typed-array constructor cannot control emitted code; Uint8Array round trip preserved
+PASS HTML-sensitive RegExp serialization and round trip
+PASS malformed array-like list nodes rejected by fromJSON/fromCrossJSON
+PASS forged stream/sequence marker objects remain ordinary data
+PASS legitimate cyclic structured-data round trip
+All 6 focused probe groups passed. These probes cover representative repaired boundaries; no application remote exploit is claimed.

@@ -1,0 +1,13 @@
+ WARN  Unsupported engine: wanted: {"node":"22.20.0"} (current: {"node":"v24.19.0","pnpm":"10.12.4"})
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 28, reused 0, downloaded 0, added 0
+Progress: resolved 55, reused 0, downloaded 0, added 0
+Progress: resolved 87, reused 0, downloaded 0, added 0
+Progress: resolved 125, reused 0, downloaded 0, added 0
+Progress: resolved 162, reused 0, downloaded 0, added 0
+Progress: resolved 203, reused 0, downloaded 0, added 0
+Progress: resolved 248, reused 0, downloaded 0, added 0
+Progress: resolved 293, reused 0, downloaded 0, added 0
+Progress: resolved 327, reused 0, downloaded 0, added 0, done
+
+Done in 9.1s using pnpm v10.12.4
