@@ -52,10 +52,13 @@ function titleBlock(m,readUnavailable){
  const d=m.definition,state=shownState(m,readUnavailable);
  const where=d.type==='heartbeat'?`<p class="subtitle monitor-target">Scheduled job · ${escape(d.name)}</p>`:`<p class="subtitle monitor-target ui-url">${breakableUrl(d.url)}</p>`;
  const chips=(d.network==='private'?'<a class="header-chip" href="#details">Private network</a>':'')+(d.tlsTrust?'<a class="header-chip" href="#details">Certificate exception</a>':'');
- return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(d.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}${m.preparedBy?`<p class="subtitle">Prepared by ${escape(m.preparedBy.label)}. Scheduled observations remain independent.</p>`:''}<p class="monitor-kind"><span class="keep-line">${escape(kinds[d.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(d.intervalMs))}${chips?` <span class="header-chips">${chips}</span>`:''}</p>`;
+ return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(d.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}${jobSettingsOnly(d)?`<p>${d.heartbeat?.cron?'This job uses a cron schedule':'This job uses a period shorter than the monitor editor supports'}; edit it in Job schedule and runs.</p>`:''}${m.preparedBy?`<p class="subtitle">Prepared by ${escape(m.preparedBy.label)}. Scheduled observations remain independent.</p>`:''}<p class="monitor-kind"><span class="keep-line">${escape(kinds[d.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(d.intervalMs))}${chips?` <span class="header-chips">${chips}</span>`:''}</p>`;
 }
+// The simple editor handles expected-period jobs. Cron and legacy short
+// periods keep their full schedule in the dedicated job settings panel.
+const jobSettingsOnly=d=>d.type==='heartbeat'&&(d.heartbeat?.cron||d.heartbeat?.maxAgeMs<30000);
 function actionButtons(m){
- const d=m.definition,edit=isFlow(d)||d.type==='heartbeat'?`<a class="ui-button" id="edit" href="/docs/definitions">${icon('pencil')}Edit in a file</a>`:`<button id="edit">${icon('pencil')}Edit</button>`;
+ const d=m.definition,edit=jobSettingsOnly(d)?`<a class="ui-button" id="edit" href="#heartbeat">${icon('pencil')}Edit job schedule</a>`:isFlow(d)?`<a class="ui-button" id="edit" href="/docs/definitions">${icon('pencil')}Edit in a file</a>`:`<button id="edit">${icon('pencil')}Edit</button>`;
  return `<button id="run-monitor" class="primary" ${d.enabled?'':'disabled'}>${icon('play')}Run now</button>${edit}<button id="pause"${d.enabled?'':' class="resume"'}>${icon(d.enabled?'pause':'play')}${d.enabled?'Pause':'Resume'}</button>`;
 }
 // The table shows a check of the monitor's current revision only: after a save, until the next history read brings one,
@@ -89,7 +92,7 @@ function draw(page){
  const flowHistory=area.querySelector('#flow-revisions');if(flowHistory&&seen.revisions)patch(flowHistory,flowRevisions(seen.revisions));
  syncPicker(root);
  // A read that lands while an action runs keeps the console's controls and links locked (public/app.js lockControls).
- if(area.getAttribute('aria-busy')==='true'){for(const control of area.querySelectorAll('button,input,select,textarea'))control.disabled=true;for(const link of area.querySelectorAll('a[href]'))link.setAttribute('aria-disabled','true')}
+ if(area.getAttribute('aria-busy')==='true')page.lockControls(true);
  refit(page);
  followLink(page);
 }
@@ -129,7 +132,7 @@ function renderMissing({header,actions,area,id}){
 }
 // header: the page header's title block (.top > div); actions: .actions; area: #content-area. While it shows a monitor the
 // console's header carries the page's header root, .monitor-page-header (public/monitor-page.css).
-export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable}){
+export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable,lockControls}){
  header.parentElement.classList.add('monitor-page-header');
  const m=data.monitors.find(m=>m.id===id);
  if(!m){renderMissing({header,actions,area,id});return}
@@ -138,7 +141,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  }
  const page=pageOf(m.id);
  if(!page.ui||area.querySelector('#monitor-page')?.dataset.monitor!==m.id)page.ui=freshUi();
- Object.assign(page,{m,data,readUnavailable,api,action,area,name:locationNamer(m.definition,data.runner.runners??[]),draw:()=>draw(page),refit:()=>refit(page),openFold:id=>openFold(page,id),deps:()=>deps(page)});
+ Object.assign(page,{m,data,readUnavailable,api,action,lockControls,area,name:locationNamer(m.definition,data.runner.runners??[]),draw:()=>draw(page),refit:()=>refit(page),openFold:id=>openFold(page,id),deps:()=>deps(page)});
  document.title=`${m.definition.name} · Uptime`;
  patch(header,titleBlock(m,readUnavailable));
  header.monitorPage=page;
@@ -150,6 +153,6 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  if(data.access?.monitoringOnly)return;
  const d=m.definition,where=joinNames([...new Set((d.probes??[]).map(page.name))])||'your locations';
  actions.querySelector('#run-monitor').onclick=()=>action(async()=>{const queued=await api(`/api/monitors/${m.id}/run`,'POST',{});return await waitForCheck({api,id:m.id,slotId:queued.slotId,name:page.name})},{pending:`Checking from ${where}…`,success:outcome=>outcome??'Check queued. Its result will appear in Recent checks.'});
- if(!isFlow(d)&&d.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit'};
+ if(!isFlow(d)&&!jobSettingsOnly(d))actions.querySelector('#edit').onclick=()=>{location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit'};
  actions.querySelector('#pause').onclick=()=>{if(!d.enabled&&Object.values(d.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit';return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...d,enabled:!d.enabled}),{pending:d.enabled?'Pausing monitor…':'Authorizing and resuming…',success:d.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};
 }

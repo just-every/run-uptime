@@ -31,6 +31,25 @@ export async function proveAlertPresentation({origin,cookie,notes,mode,destinati
    if(mode==='imported'){assert.equal(delivery.state,'imported-inactive');assert.match(reason,/import|restor/i);assert.match(reason,/held|will not.*sent|replay/i);assert.ok(!reason.includes(delivery.state))}
    if(mode==='hosted'){assert.doesNotMatch(pill,/simulat/i);assert.doesNotMatch(reason,/no email.*(?:left|sent)/i)}
   }
+  if(mode==='imported'){
+   const incident=own.find(d=>d.event.kind==='trigger'&&d.state==='imported-inactive');assert.ok(incident);
+   const heldLabel=await page.locator(`[data-key="delivery-${incident.id}"] .ui-pill`).innerText();
+   await page.goto(origin+'/app/monitors/'+encodeURIComponent(incident.event.monitorId));
+   const fold=page.locator('#incidents');if(!await fold.evaluate(e=>e.open))await fold.locator(':scope > summary').click();
+   const notes=page.locator('[data-incident-work]').first();await notes.click();
+   await page.locator('.incident-timeline').waitFor();
+   const timeline=page.locator('.incident-timeline'),text=await timeline.innerText();
+   assert.ok(!text.includes('imported-inactive'),'restored incident history never shows the stored inactive code');
+   const outcomeRows=timeline.locator('li').filter({has:page.locator('strong',{hasText:/notification outcome|escalation outcome|delivery resolution/})});
+   assert.ok(await outcomeRows.count());
+   for(const outcome of await outcomeRows.locator('.incident-prose').allTextContents())assert.doesNotMatch(outcome,/[_-]/,'notification outcomes are readable states');
+   const imported=own.find(d=>d.state==='imported-inactive'&&d.event.monitorId===incident.event.monitorId);
+   assert.ok(imported);assert.ok(text.includes(heldLabel),'timeline uses the same held state as Settings Alerts');
+   if(output)for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await outcomeRows.filter({hasText:heldLabel}).first().scrollIntoViewIfNeeded();await page.screenshot({path:join(output,`imported-incident-${width}.png`),fullPage:true})}
+   await page.setViewportSize({width:1440,height:1000});
+   await page.getByRole('button',{name:'Close incident notes',exact:true}).click();
+   await page.goto(origin+'/app/settings/alerts');await page.locator('.sent-row').first().waitFor();
+  }
   if(mode==='development'){
    const destination=page.locator(`[data-key="destination-${destinationId}"]`);assert.match(await destination.innerText(),/simulat/i);assert.match(await destination.innerText(),/no email.*sent/i);
   }
@@ -43,6 +62,6 @@ export async function proveAlertPresentation({origin,cookie,notes,mode,destinati
    if(output)for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.screenshot({path:join(output,`development-drill-${width}.png`),fullPage:true})}
   }
   assert.deepEqual(errors,[]);
-  if(output)await writeFile(join(output,`${mode}-alerts.json`),JSON.stringify({journey:'proveAlertPresentation',mode,result:'passed',assertionWidth:1440,proofWidths:[1440,390],deliveries:own.length,overflow:false,axeViolations:0,recipientReceiptSeparate:true},null,2)+'\n');
+  if(output)await writeFile(join(output,`${mode}-alerts.json`),JSON.stringify({journey:'proveAlertPresentation',mode,result:'passed',assertionWidth:1440,proofWidths:[1440,390],deliveries:own.length,overflow:false,axeViolations:0,recipientReceiptSeparate:true,...(mode==='imported'?{readableIncidentTimeline:true}: {})},null,2)+'\n');
  }finally{await context.close();await browser.close()}
 }
