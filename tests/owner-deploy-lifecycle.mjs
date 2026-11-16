@@ -162,12 +162,14 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.ok(omittedWithKey.messages.some(message=>message.includes('Remove it or choose a mail provider')),'the refusal explains the declared mail-off default');
   for(const selector of ['later','']) {
     const invalid=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test',MAIL_PROVIDER:selector}});
-    assert.notEqual(invalid.code,0,'invalid explicit selectors refuse before provider work');
+    assert.notEqual(invalid.code,0,'invalid explicit selectors refuse');
+    assert.equal(offProvider.state.writes.length,0,'invalid explicit selectors never mutate the provider');
   }
+  const callsBeforeDryRun=offProvider.state.calls.length;
   const offPlan=await deploy(offRoot,offProvider,t.signal,['--dry-run'],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
   assert.equal(offPlan.code,0,JSON.stringify(offPlan));
   assert.equal(offPlan.result?.dryRun,true);
-  assert.equal(offProvider.state.calls.length,0,'mail-off dry run never contacts the provider');
+  assert.equal(offProvider.state.calls.length,callsBeforeDryRun,'mail-off dry run never contacts the provider');
   assert.equal(offProvider.state.writes.length,0,'mail-off dry run never mutates the provider');
   const off=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
   assert.equal(off.code,0,JSON.stringify(off));
