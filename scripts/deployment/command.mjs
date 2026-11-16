@@ -17,9 +17,10 @@ function upload(lifecycle) {
  return async context => {
   const { root, options, store, signal, operationToken } = context;
   if (options.remove || options.setSecret || options.unsetSecret) return sharedDeploy(context);
-  const environment = options.environment ?? 'production', processEnv = withProviderKey(process.env);
+  const environment = options.environment ?? 'production';
   // The Worker learns its environment so first-run setup names that environment's settings file.
   const source = JSON.parse(await readFile(join(root, 'deploy.json'), 'utf8'));
+  const processEnv = withProviderKey({ MAIL_PROVIDER: source.vars.MAIL_PROVIDER, ...process.env });
   const declaration = { ...source, vars: { ...source.vars, UPTIME_DEPLOY_ENVIRONMENT: environment } };
   const planningEnvironment = processEnv;
   const selectedDeclaration=selectMailDeclaration(declaration,planningEnvironment);

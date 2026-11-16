@@ -158,7 +158,7 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   // actual rer signin command against that exact recorded account and Worker.
   const offRoot=await checkout(t),offProvider=await providerBridge(t);
   const off=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
-  assert.equal(off.code,0,JSON.stringify({code:off.code,errors:off.errorCodes}));
+  assert.equal(off.code,0,JSON.stringify(off));
   const mailProvider=()=>offProvider.state.secrets.find(s=>s.name==='MAIL_PROVIDER')?.value ?? offProvider.state.settings.bindings.find(s=>s.name==='MAIL_PROVIDER')?.text;
   assert.equal(mailProvider(),'none','an omitted selector without sending inputs uses the declared mail-off default');
   assert.ok(!offProvider.state.secrets.some(s=>s.name==='MAIL_FROM'||s.name.includes('API_KEY')));
