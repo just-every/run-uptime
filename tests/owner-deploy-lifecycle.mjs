@@ -185,6 +185,50 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.notEqual(refused.code,0,'missing deployment receipt cannot sign in');
   assert.equal(offProvider.state.databases[0].db.prepare('SELECT count(*) AS n FROM oa_owner_signins').get().n,1);
   await writeFile(join(offRoot,'.rer/deploy/production.json'),offReceipt,{mode:0o600});
+  // Change the existing Worker through rer's public secret-change door. Sender
+  // and credential travel with the selector as one version, never a replacement
+  // installation or a direct provider mutation.
+  const offOwnership=await state(offRoot), offDatabase=offProvider.state.databases[0];
+  const offMigrations=migrationRows(offProvider);
+  const ownerRows=()=>offDatabase.db.prepare('SELECT * FROM oa_operators ORDER BY id').all();
+  const admittedOwner=ownerRows();
+  const bootstrap=offDatabase.db.prepare('SELECT * FROM oa_bootstrap').all();
+  const authority=offProvider.state.secrets.filter(item=>['SESSION_SECRET','OWNER_EMAIL','UPTIME_RUNNER_KEY'].includes(item.name));
+  const contentUploads=offProvider.uploads.length;
+  const enable=await deploy(offRoot,offProvider,t.signal,[
+    '--set-secret','MAIL_PROVIDER=sendgrid','--set-secret','MAIL_FROM','--set-secret','SENDGRID_API_KEY',
+  ],{inputs:{MAIL_FROM:'sender@synthetic-uptime.dev',SENDGRID_API_KEY:'synthetic-uptime-mail-switch-key'}});
+  assert.equal(enable.code,0,JSON.stringify({code:enable.code,messages:enable.messages}));
+  assert.equal(offProvider.state.secrets.find(item=>item.name==='MAIL_PROVIDER')?.value,'sendgrid');
+  assert.equal(offProvider.state.secrets.find(item=>item.name==='MAIL_FROM')?.value,'sender@synthetic-uptime.dev');
+  assert.ok(offProvider.state.secrets.some(item=>item.name==='SENDGRID_API_KEY'&&item.value==='synthetic-uptime-mail-switch-key'));
+  const enabledVersion=offProvider.state.version.id;
+  assert.notEqual(enabledVersion,offOwnership.receipt.provider.versionId);
+  assert.ok(offProvider.state.calls.some(call=>call.method==='GET'&&call.path.endsWith('/content/v2')),'grouped change reads the current version modules');
+  assert.deepEqual((await state(offRoot)).owned,offOwnership.owned);
+  assert.deepEqual(offProvider.state.secrets.filter(item=>authority.some(key=>key.name===item.name)),authority,'owner and signing authority survive the provider switch');
+  assert.deepEqual(ownerRows(),admittedOwner);
+  assert.deepEqual(offDatabase.db.prepare('SELECT * FROM oa_bootstrap').all(),bootstrap);
+  // Remove the enabled provider's sender and credential in the same version as
+  // the selector: none deliberately refuses leftover sending credentials.
+  const disable=await deploy(offRoot,offProvider,t.signal,[
+    '--unset-secret','MAIL_PROVIDER','--unset-secret','MAIL_FROM','--unset-secret','SENDGRID_API_KEY',
+  ],{inputs:false});
+  assert.equal(disable.code,0,JSON.stringify({code:disable.code,messages:disable.messages}));
+  assert.notEqual(offProvider.state.version.id,enabledVersion);
+  assert.equal(offProvider.state.settings.bindings.find(item=>item.name==='MAIL_PROVIDER')?.text,'none','removing the override restores the declared public default');
+  assert.ok(!offProvider.state.secrets.some(item=>['MAIL_PROVIDER','MAIL_FROM','SENDGRID_API_KEY'].includes(item.name)));
+  assert.equal(offProvider.state.databases.length,1);
+  assert.equal(offProvider.state.databases[0],offDatabase,'switches keep the same D1');
+  assert.deepEqual(migrationRows(offProvider),offMigrations);
+  assert.equal(offProvider.uploads.length,contentUploads,'switches never rerun a full Worker upload');
+  assert.deepEqual((await state(offRoot)).owned,offOwnership.owned);
+  assert.deepEqual(ownerRows(),admittedOwner);
+  assert.deepEqual(offDatabase.db.prepare('SELECT * FROM oa_bootstrap').all(),bootstrap);
+  assert.deepEqual(offProvider.state.secrets.filter(item=>authority.some(key=>key.name===item.name)),authority);
+  const signedAgain=await deploy(offRoot,offProvider,t.signal,[],{inputs:false,verb:'signin'});
+  assert.equal(signedAgain.code,0,'guarded sign-in still works after switching back to none');
+  if(process.env.UPTIME_OWNER_MAIL_SWITCH_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_SWITCH_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',noneToSendgrid:true,sendgridToNone:true,groupedVersionChanges:true,publicDefaultRestored:true,sendingInputsRemoved:true,sameWorker:true,sameDatabase:true,sameAdmittedOwner:true,sameSigningAuthority:true,migrationsUnchanged:true,guardedSigninAfterSwitch:true},null,2)+'\n');
   if(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',provider:'none',freshDeployment:true,ownerAdmittedByNativeBootstrap:true,runtimeBindingOff:true,sendingInputsAbsent:true,guardedRerSignin:true,onlyGrantHashStored:true,confirmationRequired:true,replayRefused:true,missingCredentialsRefused:true,wrongEnvironmentRefused:true,missingReceiptRefused:true},null,2)+'\n');
 
 });
