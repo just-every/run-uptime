@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "date": "2026-11-16T15:58:23.370307+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-15",
+  "head": "40a6a6d8104a7e4bc15ea89e47406f455a734fe9",
+  "base": "0cbeb3153edd8b4a067117ba572e32002b20713a",
+  "previousReleaseTag": "v0.5.13",
+  "previousReleaseCommit": "c1e8376c7dfd6ed601b6fe993567237449fc7143",
+  "selection": {
+    "tag": "v0.5.15",
+    "tagAbsent": true,
+    "releaseAbsent": true,
+    "existingRetiredTag": "v0.5.14",
+    "existingRetiredTagObject": "81e7cd205c798981f542988ecc9f747a4cae3ba0",
+    "latestPublishedRelease": "v0.5.13",
+    "latestPublishedAt": "2026-11-15T21:06:58Z",
+    "releaseApiCall": 1
+  },
+  "productPush": {
+    "success": true,
+    "attempts": 1,
+    "receipt": "product-push-receipt.txt"
+  },
+  "localChecks": {
+    "frozenInstall": "pass",
+    "typecheck": "pass",
+    "sourceLockCheck": "pass",
+    "contractDocsCheck": "pass",
+    "metadataConsistency": "pass",
+    "diffWhitespace": "pass",
+    "candidateIdentityAndTrailers": "pass"
+  },
+  "publicationScan": "Deferred to fleet Mac under cloud adaptation; not run in cloud",
+  "uiProof": "Not applicable: no UI changes",
+  "fullLocalSuite": "Not run: metadata-only touched-check scope",
+  "tagCreated": false,
+  "releaseCreated": false,
+  "pullRequestCreated": false,
+  "contractClaims": [],
+  "ci": {
+    "runId": 43902164171,
+    "status": "completed",
+    "conclusion": "failure",
+    "headSha": "40a6a6d8104a7e4bc15ea89e47406f455a734fe9",
+    "url": "https://github.com/just-every/run-uptime/actions/runs/43902164171",
+    "observedAt": "2026-11-16T16:13:36.745364+00:00",
+    "failedShardJob": 133421899452,
+    "failedAggregateJob": 133431249064,
+    "apiCallsUsed": 8,
+    "failedAssertion": "/api/archive returned 403 fresh_second_factor_required in tests/pagespeed-support.mjs:470 via tests/flow-journey.mjs:107",
+    "contractGeneratorFailure": false
+  },
+  "terminalProductCustody": "BLOCKED",
+  "blocker": "Successful exact-SHA Verify. Unchanged flow journey reaches archive export after its second-factor freshness window expires. Test or application repairs are outside the metadata-only lease; no assertion or guard was weakened, and no workflow rerun was requested.",
+  "evidencePublication": {
+    "ref": "refs/heads/evidence/sd-uptime-release-0-5-15",
+    "filesExplicitlySelected": true,
+    "productReadinessIndependent": true
+  }
+}

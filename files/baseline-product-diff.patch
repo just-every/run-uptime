@@ -1,0 +1,633 @@
+diff --git a/OPERATIONS.json b/OPERATIONS.json
+index 814bd51..419cfe8 100644
+--- a/OPERATIONS.json
++++ b/OPERATIONS.json
+@@ -17,8 +17,6 @@
+     "CLOUDFLARE_ACCOUNT_ID",
+     "CLOUDFLARE_API_TOKEN",
+     "OWNER_EMAIL",
+-    "MAIL_FROM",
+-    "SENDGRID_API_KEY",
+     "SESSION_SECRET",
+     "SETUP_TOKEN",
+     "UPTIME_RUNNER_KEY",
+@@ -51,7 +49,11 @@
+     "RER_DEPLOY_RUN_ATTEMPT": "Build workflow numeric attempt number. Read OPERATIONS.md",
+     "RER_DEPLOY_RECEIPT": "Private receipt location held by the deployment operator. Read OPERATIONS.md",
+     "UPTIME_WORKER_NAME": "Cloudflare Worker name selected in the deployment plan. Read OPERATIONS.md",
+-    "UPTIME_ORIGIN": "Exact public HTTPS origin selected in the deployment plan. Read OPERATIONS.md"
++    "UPTIME_ORIGIN": "Exact public HTTPS origin selected in the deployment plan. Read OPERATIONS.md",
++    "MAIL_PROVIDER": "Explicit mail provider selection in the owner deployment settings; none turns outbound email off. Read OPERATIONS.md",
++    "MAIL_PROVIDER_API_KEY": "Selected mail provider settings in the owner deployment environment. Read OPERATIONS.md",
++    "CLOUDFLARE_MAIL_API_KEY": "Selected mail provider settings in the owner deployment environment. Read OPERATIONS.md",
++    "MAIL_ACCOUNT_ID": "Selected mail provider settings in the owner deployment environment. Read OPERATIONS.md"
+   },
+   "commands": {
+     "setup": {
+@@ -108,8 +110,6 @@
+         "CLOUDFLARE_ACCOUNT_ID",
+         "CLOUDFLARE_API_TOKEN",
+         "OWNER_EMAIL",
+-        "MAIL_FROM",
+-        "SENDGRID_API_KEY",
+         "SESSION_SECRET",
+         "SETUP_TOKEN",
+         "UPTIME_RUNNER_KEY"
+@@ -242,11 +242,21 @@
+             "SESSION_SECRET",
+             "SETUP_TOKEN",
+             "OWNER_EMAIL",
+-            "MAIL_FROM",
+-            "SENDGRID_API_KEY",
+             "UPTIME_RUNNER_KEY"
+           ],
+           "when": "Required for a fresh deployment or when the corresponding named secret is absent at the provider. Existing opaque secrets are preserved; identical-artifact receipt readback needs no secret values."
++        },
++        {
++          "names": [
++            "MAIL_FROM",
++            "SENDGRID_API_KEY",
++            "MAIL_PROVIDER_API_KEY",
++            "CLOUDFLARE_MAIL_API_KEY",
++            "MAIL_ACCOUNT_ID",
++            "MAIL_API_KEY",
++            "MAIL_RELAY_URL"
++          ],
++          "when": "Only the selected enabled mail provider requires its sender and credential inputs. Explicit MAIL_PROVIDER none requires no sending inputs and refuses sending credentials."
+         }
+       ],
+       "forbiddenEnvironment": [
+@@ -406,20 +416,56 @@
+     {
+       "id": "operator-sign-in-mail",
+       "type": "mail",
+-      "required": true,
++      "required": false,
+       "enabled": true,
+-      "provider": "sendgrid"
++      "binding": {
++        "providerEnvironment": "MAIL_PROVIDER",
++        "providers": {
++          "none": {
++            "requiredEnvironment": []
++          },
++          "sendgrid": {
++            "apiKeyEnvironment": "SENDGRID_API_KEY",
++            "requiredEnvironment": [
++              "MAIL_FROM"
++            ]
++          },
++          "resend": {
++            "apiKeyEnvironment": "MAIL_PROVIDER_API_KEY",
++            "requiredEnvironment": [
++              "MAIL_FROM"
++            ]
++          },
++          "cloudflare": {
++            "apiKeyEnvironment": "CLOUDFLARE_MAIL_API_KEY",
++            "accountIdEnvironment": "MAIL_ACCOUNT_ID",
++            "requiredEnvironment": [
++              "MAIL_FROM"
++            ]
++          }
++        },
++        "whenUnset": {
++          "provider": "sendgrid",
++          "apiKeyEnvironment": "SENDGRID_API_KEY",
++          "requiredEnvironment": [
++            "MAIL_FROM"
++          ]
++        }
++      }
+     }
+   ],
+-  "authentication": "Base operator-auth magic-link owner sessions and one-time setup. Local sign-in links use the development outbox.",
++  "authentication": "Base operator-auth magic-link owner sessions and one-time setup. Local sign-in links use the development outbox. Hosted installations may deliberately select MAIL_PROVIDER=none and use rer signin with the deploying credentials and recorded ownership receipt. Email links, invitations and email alerts remain unavailable.",
+   "health": {
+     "path": "/health",
+     "meaning": "D1 readiness and deployment identity, not target health, runner operation, mail delivery, notification delivery or recipient acceptance."
+   },
+-  "environmentInspection": "The local check inspects aggregate declared names, source guidance and the enabled hosted sign-in mail loop. It performs no provider request, does not read private saved settings, does not select a command, and does not validate command-specific runtime behavior. An empty environment lists every declared source; dummy values only check descriptor completeness.",
++  "environmentInspection": "The local check inspects aggregate declared deployment names and the hosted sign-in mail loop, using the runtime default SendGrid provider when MAIL_PROVIDER is unset. The configuration guard also validates saved local development settings when present. It performs no provider request and does not select or run an operational command.",
+   "seedContract": {
+     "version": 1,
+     "profile": "first-party",
+     "adapter": "scripts/installer/local.mjs"
++  },
++  "configuration": {
++    "module": "scripts/deployment/ops-config.mjs"
+   }
+ }
+diff --git a/package.json b/package.json
+index dee937f..e74b6b4 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@uptime/uptime-console",
+-  "version": "0.5.13",
++  "version": "0.5.14",
+   "private": true,
+   "type": "module",
+   "engines": {
+@@ -55,14 +55,14 @@
+     "jsonpathly": "3.0.1",
+     "pdf-lib": "1.17.1",
+     "qrcode": "1.5.4",
+-    "re2js": "2.8.6",
++    "re2js": "2.8.7",
+     "react": "19.2.8",
+     "react-dom": "19.2.8"
+   },
+   "devDependencies": {
+     "@cloudflare/vite-plugin": "1.62.2",
+     "@cloudflare/workers-types": "5.20261006.1",
+-    "@runeditrun/rer": "0.2.113",
++    "@runeditrun/rer": "0.2.119",
+     "@types/node": "26.6.4",
+     "@types/qrcode": "1.5.6",
+     "@types/react": "19.2.18",
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 890f6b5..0e26c12 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -37,8 +37,8 @@ importers:
+         specifier: 1.5.4
+         version: 1.5.4
+       re2js:
+-        specifier: 2.8.6
+-        version: 2.8.6
++        specifier: 2.8.7
++        version: 2.8.7
+       react:
+         specifier: 19.2.8
+         version: 19.2.8
+@@ -53,8 +53,8 @@ importers:
+         specifier: 5.20261006.1
+         version: 5.20261006.1
+       '@runeditrun/rer':
+-        specifier: 0.2.113
+-        version: 0.2.113
++        specifier: 0.2.119
++        version: 0.2.119
+       '@types/node':
+         specifier: 26.6.4
+         version: 26.6.4
+@@ -899,8 +899,8 @@ packages:
+   '@rolldown/pluginutils@1.0.1':
+     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+ 
+-  '@runeditrun/rer@0.2.113':
+-    resolution: {integrity: sha512-f4xK3+cPFW2ahC11FyFPs6SBl0TFmoDhsjjBAeh+jOiHWwV4B58Ss5bO7C+uLCtvvpYY3FoNnX2ygNeqMlfOYw==}
++  '@runeditrun/rer@0.2.119':
++    resolution: {integrity: sha512-0MQX8vo9lvvakYfL5jzaAsVPNn4Xq2isvlpiwYVOnoTNMC34/Ax+iVq/xbEbtW04qWnMeh8q6C124Z9SfwF7/A==}
+     engines: {node: '>=22'}
+     hasBin: true
+ 
+@@ -1455,9 +1455,9 @@ packages:
+     engines: {node: '>=10.13.0'}
+     hasBin: true
+ 
+-  re2js@2.8.6:
+-    resolution: {integrity: sha512-xLgQil4kIUCrAzVk9fRSkxkFNwmygLFjVxXrLc65aE1F0+Zsb8rxumFBy4XKyvgMCTL6kilDq3EZ0piE2dP/Dg==}
+-    engines: {node: '>=18.0.0'}
++  re2js@2.8.7:
++    resolution: {integrity: sha512-bRSL/vn3KAmlGfGNoVpcsBXLaVvl6AbuvMMWbz0m3vBj60nj+p2/biozfBUOSBP+5XTduF6mr6IO/ZVjmqqkVQ==}
++    engines: {node: '>=20.0.0'}
+ 
+   react-dom@19.2.8:
+     resolution: {integrity: sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==}
+@@ -1508,8 +1508,8 @@ packages:
+     peerDependencies:
+       seroval: ^1.0
+ 
+-  seroval@1.6.7:
+-    resolution: {integrity: sha512-AeDcLh0yO2SFm9W71essgnSzLV9DI8ZH0x0knXn2DMnUZj728mpLbxjlbB6IqKCmqh8JA3cEqRyGoNkt584JcQ==}
++  seroval@1.6.11:
++    resolution: {integrity: sha512-hpb6XnMCGN/A+79Uf8V7/iTGkyyyazNn5X0CoCAp7Uy9vT3RT8jZ9GLcnxGoVjg3P8AArbe4ZVHq6C8oT2a0kA==}
+     engines: {node: '>=10'}
+ 
+   set-blocking@2.0.0:
+@@ -2386,7 +2386,7 @@ snapshots:
+ 
+   '@rolldown/pluginutils@1.0.1': {}
+ 
+-  '@runeditrun/rer@0.2.113': {}
++  '@runeditrun/rer@0.2.119': {}
+ 
+   '@simplewebauthn/server@14.0.3':
+     dependencies:
+@@ -2500,8 +2500,8 @@ snapshots:
+     dependencies:
+       '@tanstack/history': 1.162.4
+       cookie-es: 3.1.1
+-      seroval: 1.6.7
+-      seroval-plugins: 1.6.7(seroval@1.6.7)
++      seroval: 1.6.11
++      seroval-plugins: 1.6.7(seroval@1.6.11)
+ 
+   '@tanstack/router-generator@1.167.40':
+     dependencies:
+@@ -2558,7 +2558,7 @@ snapshots:
+       '@tanstack/router-core': 1.171.34
+       '@tanstack/start-fn-stubs': 1.162.0
+       '@tanstack/start-storage-context': 1.167.36
+-      seroval: 1.6.7
++      seroval: 1.6.11
+ 
+   '@tanstack/start-fn-stubs@1.162.0': {}
+ 
+@@ -2577,7 +2577,7 @@ snapshots:
+       lightningcss: 1.33.0
+       pathe: 2.0.3
+       picomatch: 4.0.7
+-      seroval: 1.6.7
++      seroval: 1.6.11
+       source-map: 0.7.6
+       srvx: 0.11.22
+       tinyglobby: 0.2.17
+@@ -2609,7 +2609,7 @@ snapshots:
+       '@tanstack/start-storage-context': 1.167.36
+       fetchdts: 0.1.7
+       h3-v2: h3@2.0.1-rc.20
+-      seroval: 1.6.7
++      seroval: 1.6.11
+     transitivePeerDependencies:
+       - crossws
+ 
+@@ -2976,7 +2976,7 @@ snapshots:
+       pngjs: 5.0.0
+       yargs: 15.4.1
+ 
+-  re2js@2.8.6: {}
++  re2js@2.8.7: {}
+ 
+   react-dom@19.2.8(react@19.2.8):
+     dependencies:
+@@ -3022,11 +3022,11 @@ snapshots:
+ 
+   semver@7.8.5: {}
+ 
+-  seroval-plugins@1.6.7(seroval@1.6.7):
++  seroval-plugins@1.6.7(seroval@1.6.11):
+     dependencies:
+-      seroval: 1.6.7
++      seroval: 1.6.11
+ 
+-  seroval@1.6.7: {}
++  seroval@1.6.11: {}
+ 
+   set-blocking@2.0.0: {}
+ 
+diff --git a/public/alert-clauses.js b/public/alert-clauses.js
+index 4943de7..f14d87c 100644
+--- a/public/alert-clauses.js
++++ b/public/alert-clauses.js
+@@ -10,7 +10,8 @@ export function clausesMarkup(notes,readUnavailable){
+  const blocked=cannotSend(notes),email=blocked.filter(b=>b.reason==='email').map(b=>escape(b.destination.name)),lines=[];
+  if(notes.mailSuppressed)lines.push(clause('simulated-email','','Development email is simulated. No email leaves this machine, including test messages and incident alerts.'));
+  if(notes.demo)lines.push(clause('simulated-messages','','Demo messages are simulated. No email or other notification leaves this machine.'));
+- if(email.length)lines.push(clause('email','warning',`Email is not set up, so ${list(email)} cannot send.`,setupEmail));
++ if(notes.mailOff)lines.push(clause('email','warning',`Email is off for this installation.${email.length?` ${list(email)} cannot send.`:''}`));
++ else if(email.length)lines.push(clause('email','warning',`Email is not set up, so ${list(email)} cannot send.`,setupEmail));
+  else if(!notes.mailConfigured&&!notes.demo&&!notes.mailSuppressed)lines.push(clause('email','warning','Email is not set up.',setupEmail));
+  // With destinations but none enabled the count shows 1; with none at all the empty Destinations card says so instead.
+  if(notes.destinations.length&&!notes.destinations.some(d=>d.enabled))lines.push(clause('none-enabled','warning','No destination is enabled, so nobody is told about an incident. Enable one in its Edit dialog.'));
+diff --git a/public/app.js b/public/app.js
+index b531ded..584481c 100644
+--- a/public/app.js
++++ b/public/app.js
+@@ -155,7 +155,7 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
+  const screen=view==='settings'?'settings/'+settingsArea:view;
+  if(screen!==shown){area.replaceChildren();right.replaceChildren();shown=screen}right.hidden=sideHidden();
+  markCurrent();showAlertCount();let drawn;
+- if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable});
++ if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable,lockControls});
+  else{const buttons=view==='monitors'&&data.access?.monitoringOnly?'':viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons;summary.hidden=view!=='monitors';
+   setHeading();
+   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');
+diff --git a/public/assets/access-member-controls.js b/public/assets/access-member-controls.js
+index 044a58f..81d745f 100644
+--- a/public/assets/access-member-controls.js
++++ b/public/assets/access-member-controls.js
+@@ -51,6 +51,8 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
+   try{
+    const self=await securityRequest('/api/access/self');
+    if(!['owner','admin'].includes(self.role)){invite.hidden=true;list.replaceChildren();say('An owner or administrator manages members.',list);return}
++   invite.hidden=!!self.mailOff;
++   if(self.mailOff)say('Email is off for this installation. Invitations need email.',list);
+    const members=await securityRequest('/api/access/members');if(!accounts.isConnected)return;
+    const owners=members.filter(person=>person.role==='owner'&&person.status==='active').length;
+    // Only the owner invites an administrator.
+diff --git a/public/assets/security-controls.js b/public/assets/security-controls.js
+index f5052af..24d626f 100644
+--- a/public/assets/security-controls.js
++++ b/public/assets/security-controls.js
+@@ -25,6 +25,7 @@ const reasons={
+  not_found:'This item is no longer available.'
+ };
+ const keyReasons={
++ mail_unavailable:'Email is off for this installation. Invitations need email.',
+  'Another administrator must change your product assignment':'Another administrator must change your product assignment',
+  'Choose a product role':'Choose a role for this member.',
+  invitation_conflict:'This email already has an account or an invitation.',
+diff --git a/public/incident-work-markup.js b/public/incident-work-markup.js
+index 43d89ad..b9d0624 100644
+--- a/public/incident-work-markup.js
++++ b/public/incident-work-markup.js
+@@ -1,3 +1,4 @@
++import {deliveryLabel,simulatedDelivery} from './delivery-chain.js';
+ import {escape} from './console-format.js';
+ import {dependencySections} from './incident-dependencies.js';
+ const at=value=>value===null?'—':new Date(value).toLocaleString();
+@@ -14,7 +15,7 @@ function activity(entry){
+  if(['maintenance_applied','pause_applied'].includes(entry.kind))return 'Revision '+d.revision+' · '+d.outcome;
+  if(entry.kind==='notification_queued'||entry.kind==='escalation_queued')return (d.channel??'')+' · '+(d.destinationName??'');
+  if(entry.kind==='notification_attempt'||entry.kind==='escalation_attempt')return 'Delivery attempt '+d.number;
+- if(entry.kind==='notification_outcome'||entry.kind==='escalation_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome;return typeof outcome==='string'?outcome:outcome?.code??outcome?.status??outcome?.kind??'Outcome recorded'}
++ if(entry.kind==='notification_outcome'||entry.kind==='escalation_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome,state=typeof outcome==='string'?outcome:outcome?.kind,code=typeof outcome==='string'?d.code:outcome?.code;return simulatedDelivery({state,code})?'Simulated · no email sent':deliveryLabel(state)}
+  return d.channel?'Recorded through '+d.channel:'';
+ }
+ function comment(c){
+diff --git a/public/monitor-page.js b/public/monitor-page.js
+index 390934d..26fe015 100644
+--- a/public/monitor-page.js
++++ b/public/monitor-page.js
+@@ -52,10 +52,13 @@ function titleBlock(m,readUnavailable){
+  const d=m.definition,state=shownState(m,readUnavailable);
+  const where=d.type==='heartbeat'?`<p class="subtitle monitor-target">Scheduled job · ${escape(d.name)}</p>`:`<p class="subtitle monitor-target ui-url">${breakableUrl(d.url)}</p>`;
+  const chips=(d.network==='private'?'<a class="header-chip" href="#details">Private network</a>':'')+(d.tlsTrust?'<a class="header-chip" href="#details">Certificate exception</a>':'');
+- return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(d.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}${m.preparedBy?`<p class="subtitle">Prepared by ${escape(m.preparedBy.label)}. Scheduled observations remain independent.</p>`:''}<p class="monitor-kind"><span class="keep-line">${escape(kinds[d.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(d.intervalMs))}${chips?` <span class="header-chips">${chips}</span>`:''}</p>`;
++ return `${backLink}<div class="monitor-title"><h1 id="monitor-detail-heading">${escape(d.name)}</h1><span class="ui-pill badge ${escape(state.toLowerCase())}" id="monitor-state">${escape(state)}</span></div>${where}${jobSettingsOnly(d)?`<p>${d.heartbeat?.cron?'This job uses a cron schedule':'This job uses a period shorter than the monitor editor supports'}; edit it in Job schedule and runs.</p>`:''}${m.preparedBy?`<p class="subtitle">Prepared by ${escape(m.preparedBy.label)}. Scheduled observations remain independent.</p>`:''}<p class="monitor-kind"><span class="keep-line">${escape(kinds[d.type??'http']??'Check')} ·</span> every ${escape(spokenInterval(d.intervalMs))}${chips?` <span class="header-chips">${chips}</span>`:''}</p>`;
+ }
++// The simple editor handles expected-period jobs. Cron and legacy short
++// periods keep their full schedule in the dedicated job settings panel.
++const jobSettingsOnly=d=>d.type==='heartbeat'&&(d.heartbeat?.cron||d.heartbeat?.maxAgeMs<30000);
+ function actionButtons(m){
+- const d=m.definition,edit=isFlow(d)||d.type==='heartbeat'?`<a class="ui-button" id="edit" href="/docs/definitions">${icon('pencil')}Edit in a file</a>`:`<button id="edit">${icon('pencil')}Edit</button>`;
++ const d=m.definition,edit=jobSettingsOnly(d)?`<a class="ui-button" id="edit" href="#heartbeat">${icon('pencil')}Edit job schedule</a>`:isFlow(d)?`<a class="ui-button" id="edit" href="/docs/definitions">${icon('pencil')}Edit in a file</a>`:`<button id="edit">${icon('pencil')}Edit</button>`;
+  return `<button id="run-monitor" class="primary" ${d.enabled?'':'disabled'}>${icon('play')}Run now</button>${edit}<button id="pause"${d.enabled?'':' class="resume"'}>${icon(d.enabled?'pause':'play')}${d.enabled?'Pause':'Resume'}</button>`;
+ }
+ // The table shows a check of the monitor's current revision only: after a save, until the next history read brings one,
+@@ -89,7 +92,7 @@ function draw(page){
+  const flowHistory=area.querySelector('#flow-revisions');if(flowHistory&&seen.revisions)patch(flowHistory,flowRevisions(seen.revisions));
+  syncPicker(root);
+  // A read that lands while an action runs keeps the console's controls and links locked (public/app.js lockControls).
+- if(area.getAttribute('aria-busy')==='true'){for(const control of area.querySelectorAll('button,input,select,textarea'))control.disabled=true;for(const link of area.querySelectorAll('a[href]'))link.setAttribute('aria-disabled','true')}
++ if(area.getAttribute('aria-busy')==='true')page.lockControls(true);
+  refit(page);
+  followLink(page);
+ }
+@@ -129,7 +132,7 @@ function renderMissing({header,actions,area,id}){
+ }
+ // header: the page header's title block (.top > div); actions: .actions; area: #content-area. While it shows a monitor the
+ // console's header carries the page's header root, .monitor-page-header (public/monitor-page.css).
+-export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable}){
++export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable,lockControls}){
+  header.parentElement.classList.add('monitor-page-header');
+  const m=data.monitors.find(m=>m.id===id);
+  if(!m){renderMissing({header,actions,area,id});return}
+@@ -138,7 +141,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
+  }
+  const page=pageOf(m.id);
+  if(!page.ui||area.querySelector('#monitor-page')?.dataset.monitor!==m.id)page.ui=freshUi();
+- Object.assign(page,{m,data,readUnavailable,api,action,area,name:locationNamer(m.definition,data.runner.runners??[]),draw:()=>draw(page),refit:()=>refit(page),openFold:id=>openFold(page,id),deps:()=>deps(page)});
++ Object.assign(page,{m,data,readUnavailable,api,action,lockControls,area,name:locationNamer(m.definition,data.runner.runners??[]),draw:()=>draw(page),refit:()=>refit(page),openFold:id=>openFold(page,id),deps:()=>deps(page)});
+  document.title=`${m.definition.name} · Uptime`;
+  patch(header,titleBlock(m,readUnavailable));
+  header.monitorPage=page;
+@@ -150,6 +153,6 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
+  if(data.access?.monitoringOnly)return;
+  const d=m.definition,where=joinNames([...new Set((d.probes??[]).map(page.name))])||'your locations';
+  actions.querySelector('#run-monitor').onclick=()=>action(async()=>{const queued=await api(`/api/monitors/${m.id}/run`,'POST',{});return await waitForCheck({api,id:m.id,slotId:queued.slotId,name:page.name})},{pending:`Checking from ${where}…`,success:outcome=>outcome??'Check queued. Its result will appear in Recent checks.'});
+- if(!isFlow(d)&&d.type!=='heartbeat')actions.querySelector('#edit').onclick=()=>{location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit'};
++ if(!isFlow(d)&&!jobSettingsOnly(d))actions.querySelector('#edit').onclick=()=>{location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit'};
+  actions.querySelector('#pause').onclick=()=>{if(!d.enabled&&Object.values(d.assignments??{}).some(a=>!(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&!r.revokedAt))){location.href='/app/monitors/'+encodeURIComponent(m.id)+'/edit';return}return action(()=>api(`/api/monitors/${m.id}`,'PATCH',{...d,enabled:!d.enabled}),{pending:d.enabled?'Pausing monitor…':'Authorizing and resuming…',success:d.enabled?'Monitor paused. Historical observations remain available.':'Monitor authorized and resumed. New scheduled results are required.'})};
+ }
+diff --git a/public/notifications.js b/public/notifications.js
+index 668ccd5..52f9530 100644
+--- a/public/notifications.js
++++ b/public/notifications.js
+@@ -33,7 +33,7 @@ export function destinationDialog(destination,{notes,api,action}){
+   try{Object.assign(values,webhook.read())}catch(error){dialog.querySelector('form > .form-error').textContent=error.message;return}
+   values.name=values.name.trim()||(kind==='email'?`Email ${values.address}`:kind==='slack'?'Slack':values.webhookTemplate?.mode==='oncall'?'Oncall':'Webhook').slice(0,100);
+   let result,failure;
+-  const response=await action(async()=>{try{result=await api(destination?path(destination.id):'/api/notifications/destinations',destination?'PATCH':'POST',values)}catch(error){failure=error.message;throw error}close()},{pending:'Saving destination…',success:kind==='email'&&!notes.mailConfigured?'Destination saved. Email is not set up, so it cannot send yet: Set up email is above Destinations.':'Destination saved.'});
++  const response=await action(async()=>{try{result=await api(destination?path(destination.id):'/api/notifications/destinations',destination?'PATCH':'POST',values)}catch(error){failure=error.message;throw error}close()},{pending:'Saving destination…',success:kind==='email'&&notes.mailOff?'Destination saved. Email is off for this installation, so it cannot send.':kind==='email'&&!notes.mailConfigured?'Destination saved. Email is not set up, so it cannot send yet: Set up email is above Destinations.':'Destination saved.'});
+   if(response.ok)returnFocus();
+   if(response.ok&&result.signingSecret)showSecret(result.signingSecret,values.name);
+   else if(!response.ok&&dialog.isConnected)dialog.querySelector('form > .form-error').textContent=failure||'Destination could not be saved. Check the entered details.';
+diff --git a/scripts/deployment/ops-config.mjs b/scripts/deployment/ops-config.mjs
+new file mode 100644
+index 0000000..c9f89ca
+--- /dev/null
++++ b/scripts/deployment/ops-config.mjs
+@@ -0,0 +1,10 @@
++import {lstat} from 'node:fs/promises';
++import {validateConfiguration as validateNative} from '../../src/domain/startup-config.mjs';
++import {defaultSettingsPath,readLocalSettings} from '../local-settings.mjs';
++// The operations inspector checks deployment inputs from the shell. Local
++// development uses its saved settings, with the same guards as setup and dev.
++export async function validateConfiguration(env) {
++ validateNative(env,{scope:'deploy',suppliedOnly:true});
++ const saved=await lstat(defaultSettingsPath).catch(error=>{if(error.code!=='ENOENT')throw error});
++ if(saved)await readLocalSettings();
++}
+diff --git a/src/domain/access-members.server.ts b/src/domain/access-members.server.ts
+index 49df5f7..63ae983 100644
+--- a/src/domain/access-members.server.ts
++++ b/src/domain/access-members.server.ts
+@@ -31,7 +31,7 @@ export function assignments(env:AuthBindings,where:string,params:any[],value:Ass
+ export async function accessMembers(env:AuthBindings,request:Request,input?:any){
+  const actor=await permission(env,request,input),url=new URL(request.url),path=url.pathname
+  const headers={'cache-control':'no-store, private'}
+- if(path==='/api/access/self')return Response.json({id:actor.session.operator.id,role:actor.role,scopes:actor.scopes,revision:actor.revision},{headers})
++ if(path==='/api/access/self')return Response.json({id:actor.session.operator.id,role:actor.role,scopes:actor.scopes,revision:actor.revision,...(env.MAIL_PROVIDER==='none'?{mailOff:true}:{})},{headers})
+  if(path==='/api/access/members'&&request.method==='GET'){
+   // Base performs its independent account policy check; only safe identity and
+   // permission metadata are returned. Session IDs and credentials are absent.
+@@ -41,6 +41,8 @@ export async function accessMembers(env:AuthBindings,request:Request,input?:any)
+  }
+  if(path==='/api/access/invitations'&&request.method==='POST'){
+   const value=assignment(input);mayAssign(actor,value)
++  // Refuse before Base can create an operator, invite token or assignment.
++  if(env.MAIL_PROVIDER==='none')return Response.json({error:'mail_unavailable'},{status:503,headers})
+   if(typeof input.email!=='string'||typeof input.displayName!=='string')throw Object.assign(Error('Email and display name required'),{status:400})
+   const email=input.email.trim().toLowerCase()
+   const db=authorizedDatabase(env,actor,statements=>{const token=statements.find(s=>s.sql.includes('INSERT INTO oa_tokens')&&s.sql.includes("'invite'"));return token?assignments(env,"email=? AND status='invited' AND EXISTS(SELECT 1 FROM oa_tokens t WHERE t.id=? AND t.operator_id=oa_operators.id AND t.consumed_at IS NULL AND t.revoked_at IS NULL)",[email,token.values[0]],value):[]})
+diff --git a/src/domain/archive-transfer-policy.ts b/src/domain/archive-transfer-policy.ts
+index 533e50a..eefa360 100644
+--- a/src/domain/archive-transfer-policy.ts
++++ b/src/domain/archive-transfer-policy.ts
+@@ -10,7 +10,7 @@ export function archiveTransferPolicy(env:Bindings,importJob:()=>string|undefine
+  return {
+   product:'just-every/uptime-monitor',partBytes:16*1024*1024,
+   excludeTables:[...TABLES,...Object.keys(installationLocalTables)],
+-  requiredConfiguration:['OWNER_EMAIL','SESSION_SECRET','SETUP_TOKEN','UPTIME_RUNNER_KEY','MAIL_FROM','MAIL_PROVIDER'],
++  requiredConfiguration:['OWNER_EMAIL','SESSION_SECRET','SETUP_TOKEN','UPTIME_RUNNER_KEY','MAIL_PROVIDER',...(env.MAIL_PROVIDER==='none'?[]:['MAIL_FROM'])],
+   extraPayloads:{uptime:{
+    async produce(){await authorize();return chunkedArchive(await archive(env,selection(),{transfer:true}))},
+    async consume(stream:ReadableStream<Uint8Array>,descriptor:{size:number;sha256:string}){
+diff --git a/src/domain/auth-document.server.ts b/src/domain/auth-document.server.ts
+index 685d66d..4a1a39b 100644
+--- a/src/domain/auth-document.server.ts
++++ b/src/domain/auth-document.server.ts
+@@ -16,7 +16,8 @@ code{color:var(--ink);font:500 .9em/1 ui-monospace,SFMono-Regular,Menlo,Consolas
+ // A hosted Worker names its deploy environment (UPTIME_DEPLOY_ENVIRONMENT, validated at startup); each named environment keeps its own settings file.
+ const hostedSettings=(environment?:string)=>`.rer/deploy/${environment??'production'}.secrets.env`;
+ 
+-export function authDocument(setup=false,sent=false,localReview=false,invalidSetupToken=false,environment?:string,claimOpen=true,mailUnavailable=false,loginHint=''){
++export function authDocument(setup=false,sent=false,localReview=false,invalidSetupToken=false,environment?:string,claimOpen=true,mailUnavailable=false,loginHint='',mailOff=false){
++ if(mailOff&&!setup)return new Response(shellDocument({title:`Sign in to ${productName}`,style:formStyle,card:`<h1>Sign in to ${productName}</h1><p>Email is off for this installation. Email links and invitations are unavailable.</p><p>On the computer and checkout used to deploy this app, run <code>rer signin${environment&&environment!=='production'?` --environment ${escapeHtml(environment)}`:''}</code> with the deploying account’s Cloudflare credentials and saved deployment receipt.</p><p>Ask the person who runs this app for access.</p>`}),{headers:documentHeaders});
+  const hosted=hostedSettings(environment);
+  let email='';
+  if(!setup&&loginHint){try{email=normalizeEmail(loginHint)}catch{/* Invalid hints leave the editable field empty. */}}
+diff --git a/src/domain/health.server.ts b/src/domain/health.server.ts
+index 94a958c..f6cefdf 100644
+--- a/src/domain/health.server.ts
++++ b/src/domain/health.server.ts
+@@ -1,6 +1,7 @@
+ import {notificationReadiness,ensureNotificationCustody} from './notification-credentials.server.ts'
+ import {deploymentHealth} from '../base/deployment-health.ts'
+ import type {Bindings} from './control.server.ts'
++import {version as buildVersion} from '../../package.json' with {type:'json'}
+ 
+ const unavailable=()=>Response.json({error:'Health dependencies unavailable'},{status:503,headers:{'cache-control':'no-store'}})
+ 
+@@ -29,7 +30,7 @@ export async function health(env:Bindings){
+  // Preserve the first-health upgrade seal. Individual unavailable credentials
+  // stay isolated; a storage failure must not be reported as healthy.
+  await ensureNotificationCustody(env,{validate:false})
+- return Response.json({status:'ok',...deploymentHealth(env)},{headers:{'cache-control':'no-store'}})
++ return Response.json({status:'ok',buildVersion,...deploymentHealth(env)},{headers:{'cache-control':'no-store'}})
+  }catch{return unavailable()}
+ }
+ 
+diff --git a/src/domain/mail.server.ts b/src/domain/mail.server.ts
+index 96fab87..985190b 100644
+--- a/src/domain/mail.server.ts
++++ b/src/domain/mail.server.ts
+@@ -4,6 +4,7 @@ import {relayMailSender} from './relay-mail.server.ts'
+ import type {AuthBindings} from './operator-auth.server.ts'
+ export function mailSender(env:AuthBindings,dependencies:any={}){
+  const provider=env.MAIL_PROVIDER??'sendgrid';
++ if(provider==='none')return null;
+  if(!env.MAIL_FROM)return null;
+  if(provider==='development'){
+   let url;try{url=new URL(env.UPTIME_ORIGIN!)}catch{return null}
+diff --git a/src/domain/notification-mail.server.ts b/src/domain/notification-mail.server.ts
+index c4d0200..8eca221 100644
+--- a/src/domain/notification-mail.server.ts
++++ b/src/domain/notification-mail.server.ts
+@@ -46,7 +46,7 @@ export async function dispatchNotificationMail(env:Bindings,budget?:SubrequestBu
+   const changes=await op('notifications.mail.claim',()=>env.DB.batch([env.DB.prepare(`UPDATE notification_jobs SET state='sending',code='mail_claimed',attempts=attempts+1,claim=?,claim_until=? WHERE id=? AND state='queued' AND ${recoveryAccepted('notification_jobs')} AND ${contactReady('notification_jobs')} AND (claim_until IS NULL OR claim_until<=?) AND EXISTS(SELECT 1 FROM notification_destinations d WHERE d.id=notification_jobs.destination_id AND d.credential_id=notification_jobs.credential_id AND d.deleted_at IS NULL AND (d.enabled=1 OR json_extract(notification_jobs.event,'$.kind')='test'))`).bind(claim,Date.now()+60000,row.id,Date.now()),auditStatement(env,automated,'notification_send','notification',crypto.randomUUID(),'changes()=1 AND ?=1',[Number(mailConfigured(env))])]));
+   // Another dispatcher (the cron or a second poll) claimed this job first: nothing for this one to do.
+   if(!changes[0].meta.changes)continue;
+-  let retryAt:number|undefined,state='rejected',code='mail_not_configured',sender:ReturnType<typeof mailSender>|null=null,content:any;
++  let retryAt:number|undefined,state='rejected',code=env.MAIL_PROVIDER==='none'?'mail_unavailable':'mail_not_configured',sender:ReturnType<typeof mailSender>|null=null,content:any;
+   if(env.MAIL_FROM){
+    try{
+     sender=mailSender(env);
+diff --git a/src/domain/notifications.server.ts b/src/domain/notifications.server.ts
+index 0703bc2..a1acaf8 100644
+--- a/src/domain/notifications.server.ts
++++ b/src/domain/notifications.server.ts
+@@ -44,5 +44,5 @@ export async function notificationOverview(env:Bindings){
+  const attempts=new Map<string,any[]>();for(const a of history)attempts.set(a.delivery_id,[...(attempts.get(a.delivery_id)??[]),a]);
+  const handoffs=await handoffFacts(env,rows.results.map(r=>r.id));
+  const drills=await drillOverview(env),chain=await fallbackOverview(env,rows.results);
+- return {ownerEmail:env.OWNER_EMAIL,mailSuppressed:env.MAIL_PROVIDER==='development',preferences:await notificationPreferences(env),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,...(handoffs.has(r.id)?{handoff:handoffs.get(r.id)}:{}),eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.state==='queued'&&r.code==='waiting_for_contact_quiet'?r.code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,...(r.quiet_until!==null&&r.state==='queued'?{quietUntil:r.quiet_until}:{}),attempts:r.attempts,attemptHistory:attempts.get(r.id)??[],...((view=>view?{chain:view}:{})(chain(r))),...(r.outcome&&JSON.parse(r.outcome).status!=null?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!=null?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
++ return {ownerEmail:env.OWNER_EMAIL,mailSuppressed:env.MAIL_PROVIDER==='development',...(env.MAIL_PROVIDER==='none'?{mailOff:true}:{}),preferences:await notificationPreferences(env),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,...(handoffs.has(r.id)?{handoff:handoffs.get(r.id)}:{}),eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.state==='queued'&&r.code==='waiting_for_contact_quiet'?r.code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,...(r.quiet_until!==null&&r.state==='queued'?{quietUntil:r.quiet_until}:{}),attempts:r.attempts,attemptHistory:attempts.get(r.id)??[],...((view=>view?{chain:view}:{})(chain(r))),...(r.outcome&&JSON.parse(r.outcome).status!=null?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!=null?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
+ }
+diff --git a/src/domain/operator-auth.server.ts b/src/domain/operator-auth.server.ts
+index 75f3dfc..3999746 100644
+--- a/src/domain/operator-auth.server.ts
++++ b/src/domain/operator-auth.server.ts
+@@ -5,10 +5,11 @@ import {permission,accessResponse} from './access.server.ts'
+ import {authorizedDatabase} from './access-database.server.ts'
+ // Edition wiring only. Credential, session and operator authority belongs to Base.
+ import {mailSender} from './mail.server.ts'
++import {authDocument} from './auth-document.server.ts'
+ import branding from '../branding.json' with {type:'json'}
+ import {createOperatorAuth,createAuthHandler,createSignInHandler,AuthError,isLoopbackHost} from '../base/modules/operator-auth/index.mjs'
+ import {operatorMailSender} from './operator-mail.server.ts'
+-export interface AuthBindings {RER_BUSINESS_TRUST?:string;RER_DEMO?:string;RER_DEMO_EXPIRES?:string;DB:D1Database;UPTIME_ORIGIN?:string;UPTIME_LOCAL_REVIEW?:string;OWNER_EMAIL?:string;SESSION_SECRET?:string;SETUP_TOKEN?:string;MAIL_FROM?:string;SENDGRID_API_KEY?:string;MAIL_PROVIDER?:string;MAIL_API_KEY?:string;MAIL_RELAY_URL?:string;MAIL_PROVIDER_API_KEY?:string;MAIL_ACCOUNT_ID?:string;CLOUDFLARE_MAIL_API_KEY?:string;RER_OWNER_CLAIM_ISSUER?:string;RER_OWNER_CLAIM_INSTALLATION_ID?:string;RER_OWNER_CLAIM_APP_ORIGIN?:string;RER_OWNER_CLAIM_PUBLIC_KEYS?:string;RER_IMPORT_DOOR?:string;RER_MANAGEMENT_ORIGIN?:string;RER_INSTALLATION_ID?:string;RER_DEV_KEY?:string;RER_DEV_IDENTITY?:string}
++export interface AuthBindings {UPTIME_DEPLOY_ENVIRONMENT?:string;RER_BUSINESS_TRUST?:string;RER_DEMO?:string;RER_DEMO_EXPIRES?:string;DB:D1Database;UPTIME_ORIGIN?:string;UPTIME_LOCAL_REVIEW?:string;OWNER_EMAIL?:string;SESSION_SECRET?:string;SETUP_TOKEN?:string;MAIL_FROM?:string;SENDGRID_API_KEY?:string;MAIL_PROVIDER?:string;MAIL_API_KEY?:string;MAIL_RELAY_URL?:string;MAIL_PROVIDER_API_KEY?:string;MAIL_ACCOUNT_ID?:string;CLOUDFLARE_MAIL_API_KEY?:string;RER_OWNER_CLAIM_ISSUER?:string;RER_OWNER_CLAIM_INSTALLATION_ID?:string;RER_OWNER_CLAIM_APP_ORIGIN?:string;RER_OWNER_CLAIM_PUBLIC_KEYS?:string;RER_IMPORT_DOOR?:string;RER_MANAGEMENT_ORIGIN?:string;RER_INSTALLATION_ID?:string;RER_DEV_KEY?:string;RER_DEV_IDENTITY?:string}
+ export function developmentMail(env:AuthBindings){
+  if(env.RER_DEMO==='1'&&env.MAIL_PROVIDER==='development')return true;
+  try{const url=new URL(env.UPTIME_ORIGIN!);return env.UPTIME_LOCAL_REVIEW==='true'&&env.MAIL_PROVIDER==='development'&&url.origin===env.UPTIME_ORIGIN&&isLoopbackHost(url.hostname)&&['http:','https:'].includes(url.protocol)}catch{return false}
+@@ -51,6 +52,12 @@ export async function authRoute(env:AuthBindings,request:Request){try{
+   }
+   if(!own){try{const actor=await permission(env,request,undefined,{action:'members',workspace:true});configured={...env,DB:authorizedDatabase(env,actor)}}catch(error){if(accessResponse(error))return Response.json({error:'forbidden'},{status:principal?403:401});throw error}}
+  }
++ // Mail-off invitations perform no lookup or write, after the ordinary owner
++ // authorization above. Known and unknown addresses share the same refusal.
++ if(path==='/auth/invite'&&request.method==='POST'&&env.MAIL_PROVIDER==='none'){
++  if(request.headers.get('origin')!==env.UPTIME_ORIGIN||request.headers.get('sec-fetch-site')==='cross-site')return Response.json({error:'invalid_origin'},{status:403,headers:{'cache-control':'no-store'}});
++  return Response.json({error:'mail_unavailable'},{status:503,headers:{'cache-control':'no-store'}});
++ }
+  const response=await createAuthHandler(operatorAuth(configured))(request)
+  if(path==='/auth/invite'&&request.method==='POST'&&response?.status===202&&developmentMail(env)){
+   return Response.json(invitationResult(env,await response.json() as {status:'accepted'}),{status:202,headers:response.headers})
+@@ -78,9 +85,14 @@ export async function signedInOwnerRedirect(env:AuthBindings,request:Request){
+ }
+ 
+ // Keep /signin as a browser alias; /login is the declared sign-in and native return path.
+-// Render the alias through Base so validation, escaping and login_hint stay shared.
++// Enabled email renders the alias through Base so validation, escaping and login_hint stay shared.
+ export async function signInDocument(env:AuthBindings,request:Request){
+  const forward=await signedInOwnerRedirect(env,request);if(forward)return forward;
++ if(env.MAIL_PROVIDER==='none'){
++  if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405,headers:{allow:'GET, HEAD'}});
++  const response=authDocument(false,false,false,false,env.UPTIME_DEPLOY_ENVIRONMENT,false,false,'',true);
++  return request.method==='HEAD'?new Response(null,response):response;
++ }
+  const url=new URL(request.url);url.pathname='/login';
+  if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405,headers:{allow:'GET, HEAD'}});
+  return (await createSignInHandler(operatorAuth(env),{defaultReturnTo:'/setup'})(new Request(url,request)))!;
+diff --git a/src/domain/startup-config.mjs b/src/domain/startup-config.mjs
+index 3b2588c..a214f9a 100644
+--- a/src/domain/startup-config.mjs
++++ b/src/domain/startup-config.mjs
+@@ -30,7 +30,7 @@ export const configurationTable = Object.freeze([
+  { name: 'SESSION_SECRET', scopes: app, required: 'always', valid: secret(32) },
+  { name: 'SETUP_TOKEN', scopes: app, required: 'always', valid: secret(32) },
+  { name: 'UPTIME_RUNNER_KEY', scopes: [...app, 'runner'], required: 'always', valid: secret(24) },
+- { name: 'MAIL_FROM', scopes: app, required: 'always', valid: sender },
++ { name: 'MAIL_FROM', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER !== 'none', valid: (value, env) => env.MAIL_PROVIDER === 'none' && value === '' || sender(value) },
+  { name: 'MAIL_API_KEY', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER === 'rer', valid: value => text(value) && !/\s/.test(value) },
+  { name: 'MAIL_RELAY_URL', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER === 'rer', valid: (value, env) => {if(env.MAIL_PROVIDER!=='rer'&&value==='')return true;try{const url=new URL(value);return text(value)&&url.protocol==='https:'&&!url.username&&!url.password&&!value.includes('?')&&!value.includes('#')&&url.href===value}catch{return false}} },
+  { name: 'SENDGRID_API_KEY', scopes: app, required: 'conditional', when: env => !local(env) && (env.MAIL_PROVIDER ?? 'sendgrid') === 'sendgrid', valid: value => text(value) && !/\s/.test(value) },
+@@ -44,7 +44,7 @@ export const configurationTable = Object.freeze([
+  ...['UPTIME_WATCH_WEBHOOK_URL','UPTIME_WATCH_SLACK_URL'].map(name=>({name,scopes:['runner'],required:'optional',valid:value=>{try{return publicTarget(value).protocol==='https:'}catch{return false}}})),
+  {name:'UPTIME_RUNNER_ID',scopes:['runner'],required:'optional',valid:text},
+  {name:'UPTIME_NETWORK_LABEL',scopes:['runner'],required:'optional',valid:value=>text(value)&&value.length<=80},
+- { name: 'MAIL_PROVIDER', scopes: app, required: 'local', valid: (value, env) => ['sendgrid','resend','cloudflare','rer'].includes(value) || ((local(env) || env.RER_DEMO==='1') && value === 'development') },
++ { name: 'MAIL_PROVIDER', scopes: app, required: 'local', valid: (value, env) => ['none','sendgrid','resend','cloudflare','rer'].includes(value) || ((local(env) || env.RER_DEMO==='1') && value === 'development') },
+  { name: 'UPTIME_LOCAL_REVIEW', scopes: [...app, 'runner'], required: 'optional', valid: value => ['true', 'false'].includes(value) },
+  { name: 'AUTH_ORIGIN', scopes: ['settings'], required: 'optional', valid: origin },
+  { name: 'UPTIME_LOCAL_ORIGIN', scopes: ['local-worker'], required: 'always', valid: value => origin(value, { UPTIME_LOCAL_REVIEW: 'true' }) },
+@@ -79,6 +79,10 @@ export function validateConfiguration(env, options = {}) {
+  validate(env, options);
+ }
+ function validate(env, { scope = 'worker', suppliedOnly = false } = {}, retiredSetupToken = false) {
++ if (env.MAIL_PROVIDER === 'none') {
++  const conflicts = ['MAIL_API_KEY','SENDGRID_API_KEY','RESEND_API_KEY','MAIL_PROVIDER_API_KEY','CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID','MAIL_RELAY_URL','MAIL_DKIM_PRIVATE_KEY'].filter(name => env[name] !== undefined && env[name] !== '');
++  if (conflicts.length) throw new Error(`Invalid configuration: MAIL_PROVIDER=none conflicts with ${conflicts.join(', ')}`);
++ }
+  const required = new Set(requiredConfiguration(env, scope).map(rule => rule.name));
+  for (const rule of configurationTable) {
+   if (!rule.scopes.includes(scope)) continue;
+diff --git a/src/editor/monitor/fields.mjs b/src/editor/monitor/fields.mjs
+index ee09d04..53268b7 100644
+--- a/src/editor/monitor/fields.mjs
++++ b/src/editor/monitor/fields.mjs
+@@ -29,7 +29,7 @@ export function readFields(root,definition){
+  const type=control(root,'checkType')?.value??'http';
+  // Settings of other types never travel with the one selected.
+  const {url,method,network:oldNetwork,privateGrantRef:oldGrant,api,mail,tcp,udp,ping,dns,tls,domain,heartbeat,tlsTrust,request,...rest}=definition;
+- if(type==='heartbeat')return {...rest,...(definition.type==='heartbeat'?{}:{assignments:undefined,probes:['local-a']}),name:value('name'),type,network:'public',heartbeat:{maxAgeMs:secondsToMilliseconds(value('heartbeatPeriod')),graceMs:secondsToMilliseconds(value('heartbeatGrace'))},assertions:{},intervalMs:60000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:180000};
++ if(type==='heartbeat')return {...rest,...(definition.type==='heartbeat'?{}:{assignments:undefined,probes:['local-a']}),name:value('name'),type,network:'public',heartbeat:{...(definition.type==='heartbeat'?heartbeat:{}),maxAgeMs:secondsToMilliseconds(value('heartbeatPeriod')),graceMs:secondsToMilliseconds(value('heartbeatGrace'))},assertions:{},intervalMs:60000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:180000};
+  const privateScope=control(root,'networkScope')?.value==='private'&&['http','tcp'].includes(type);
+  const timing={...(privateScope?{network:'private',privateGrantRef:control(root,'privateGrantRef').value.trim()}:{}),...readMetadata(root,definition),name:value('name'),intervalMs:minutesToMilliseconds(value('intervalMinutes')),timeoutMs:secondsToMilliseconds(value('timeoutSeconds')),freshnessMs:minutesToMilliseconds(value('freshnessMinutes'))};
+  for(const name of ['retries','confirmSlots','recoverSlots'])timing[name]=Number(value(name));

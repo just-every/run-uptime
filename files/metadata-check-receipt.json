@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "date": "2026-11-16T15:57:21.756Z",
+  "result": "pass",
+  "versionBefore": "0.5.14",
+  "versionAfter": "0.5.15",
+  "previousRelease": "0.5.13",
+  "rerPackage": "0.2.119",
+  "rerLockSpecifier": "0.2.119",
+  "rerLockVersion": "0.2.119",
+  "migrationChanges": [],
+  "files": [
+    "CHANGELOG.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "sourceLockChangedEntries": [
+    "CHANGELOG.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json"
+  ],
+  "olderChangelogUnchanged": true,
+  "contractClausesBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contractClausesAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clauseStatusChanges": [],
+  "testRegistrationsAdded": 0,
+  "testRegistrationsRemoved": 0
+}

@@ -1,0 +1,178 @@
+{
+  "files": [
+    {
+      "blob": "e6eb40ee4415ddf8a3588084684f7ead284552fe",
+      "bytes": 1373,
+      "path": "PLAN.md",
+      "sha256": "6359a15154bec5b0f97e89c8873f67b7c80e07ae0d453e152cbb4bc8079d812d"
+    },
+    {
+      "blob": "bf00fea91c76d938acddc742448bfe2b7558f929",
+      "bytes": 10134,
+      "path": "REPORT.md",
+      "sha256": "e4bba105c49de7845d780de63b4c5e8f8c7e811355d2cda3371db917c225c89a"
+    },
+    {
+      "blob": "1ad1fc1a27000bbd5f94217c6ee967fdbdf34202",
+      "bytes": 4122,
+      "path": "baseline-diff.txt",
+      "sha256": "14ac29604baba8a491cfd1d74704f2cc3fb16a55313bd2bfc59617cf069d2999"
+    },
+    {
+      "blob": "3d9f1fb0ee18ef24919365ac257b6b2cc87b8d98",
+      "bytes": 46326,
+      "path": "baseline-product-diff.patch",
+      "sha256": "997097d51eba746239a46b3ff38507a2debd0cf02b70d8697ee454b296a525f7"
+    },
+    {
+      "blob": "bb792d994cc80be2340d406e2a58821119d70f73",
+      "bytes": 12240,
+      "path": "candidate-diff.patch",
+      "sha256": "7d7b8fa4659ac180d758302bd4d653adca9ee7b31e6f69a9ae17ed2a24bf59ad"
+    },
+    {
+      "blob": "8a057123c8e82295f64b1f0b82164203d008bda5",
+      "bytes": 240,
+      "path": "candidate-stat.txt",
+      "sha256": "266fe4accbae2d29f9c11a999a67fadc983d7d22d3ecc21904407b6cbbc9af27"
+    },
+    {
+      "blob": "84d357d1c02d87961f5ca2c964dcbc02e66afe04",
+      "bytes": 638,
+      "path": "ci-discovery.json",
+      "sha256": "d197428c59d519407be74b3ccb5c34341796749e1b82adb1e228cda80fa0ad4f"
+    },
+    {
+      "blob": "389b0b11f55cbce16e6cc38c8845440ef2b87e56",
+      "bytes": 342,
+      "path": "ci-failed-log-receipt.json",
+      "sha256": "9aa1e9a7aaf82a00a8f9a538a5609d52c61a9497c5625c5a3fb6f5c7655cb94d"
+    },
+    {
+      "blob": "9100befdd42ce8b3370019e89108190a4685a21c",
+      "bytes": 3931,
+      "path": "ci-failed-push-2.log",
+      "sha256": "ef425781560d3c343fe9ed9bb36bcfbd71935fc26fb30fad0ba0989fa1bb0b47"
+    },
+    {
+      "blob": "b5290f0cbe0e131976a44b4dba8363727d08dd6f",
+      "bytes": 342,
+      "path": "ci-failed-verify-receipt.json",
+      "sha256": "0a9f44b0f8bfda0b125f382cdd32e6108d3ae953de43d0da6242a39f7b531080"
+    },
+    {
+      "blob": "72a5910d56d8c30ebcfc1c477226cd8f943210a2",
+      "bytes": 2801,
+      "path": "ci-failed-verify.log",
+      "sha256": "758becbb3bd7d3895913a7febda5b180515e409ab1f6e0eadbc2dcadfe28329b"
+    },
+    {
+      "blob": "c81cc2070ae92ee92f361727a7fc7cac5154ef0e",
+      "bytes": 65356,
+      "path": "ci-jobs.json",
+      "sha256": "20c4c7284e7969ae27ce87415745b2e46e56195b02b394684859b256abe9ad70"
+    },
+    {
+      "blob": "7179b9cdd6792e222c848bfd837d7fc382505128",
+      "bytes": 419,
+      "path": "ci-poll-3.json",
+      "sha256": "3490c723ec333d751cbf0286d533922d51333caacf7d8ee5c56cdbd62fdfd17d"
+    },
+    {
+      "blob": "948734387d4cb0344755a25e5807ffa7addf8320",
+      "bytes": 419,
+      "path": "ci-poll-4.json",
+      "sha256": "dc5226adea7350d35bd825db4e85f8722ad5c6fdc558c43f8c19b9154268551a"
+    },
+    {
+      "blob": "27b28c90958a7623314a745e820f67cc1aded486",
+      "bytes": 422,
+      "path": "ci-poll-5.json",
+      "sha256": "b91cd95ea4d5fcb90012243e0bdaa2b4c73c577616e91a8a3372a3b4f0a7285e"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "contract-docs-check.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "18cba546cf97e9bb68cc32658027bc982c5852dc",
+      "bytes": 2189,
+      "path": "install.log",
+      "sha256": "c5f8184dda4934d9aca8156046480ad9928d98dd6e24afa5c8f7f4db1aede277"
+    },
+    {
+      "blob": "a7fd2eb9c0db8491552fa1b03141e41396287266",
+      "bytes": 886,
+      "path": "metadata-check-receipt.json",
+      "sha256": "f35117652574f506de43c1f71397890028dd3efd5e5568aedecd486471d906d0"
+    },
+    {
+      "blob": "5c6abcbded32274efca78fa1b6abe049a412f3f2",
+      "bytes": 51,
+      "path": "migration-inventory.txt",
+      "sha256": "5eca2203d251c3196e241e08fe8555de21600757251073e7ea251d92bf25e7b7"
+    },
+    {
+      "blob": "07ba5cddce6fc8f0c7a336515c66214e79feda75",
+      "bytes": 286,
+      "path": "outgoing-commits.txt",
+      "sha256": "343bceeba59ce93eb00efc2099e57bbd8a5b7945ad4c9f5cf48dc92e6a253817"
+    },
+    {
+      "blob": "55bfeff023c4ae17dc59e12f86f446b1960e6b53",
+      "bytes": 85,
+      "path": "outgoing-identities.txt",
+      "sha256": "148bad84b5b174568017df50d58e073566703d43c6c9fe7fa6f1af04420adf55"
+    },
+    {
+      "blob": "271adc66473ed3d345ca42c63dfebc31c72b8468",
+      "bytes": 270,
+      "path": "prepush-check.txt",
+      "sha256": "bd982662b718a22f1ae92854fa51d667964b10c688b8bef67db11fba338e1ae8"
+    },
+    {
+      "blob": "47abfdad950644ff04d4c4027c8414c9879cd486",
+      "bytes": 938,
+      "path": "product-push-receipt.txt",
+      "sha256": "4c02859cb5dbd1c246b28b7085d624ba1dd330007f3ddf8cf8fbb497f5c92732"
+    },
+    {
+      "blob": "04457a77ec65aa8b9f405803c7917e51f52adaee",
+      "bytes": 2406,
+      "path": "release-metadata-receipt.json",
+      "sha256": "1eb01ca990b6adda0d98628731a02a02c1b54f011b186f09a7f4cb2bc7c9c97e"
+    },
+    {
+      "blob": "a245ff06dce65ddf74d7c02cb05b0f3f4cc01bfd",
+      "bytes": 201,
+      "path": "remote-ref-readback.txt",
+      "sha256": "5485e061eb728bcd88ab4015a26e50c96f6045ed9e3d5c6d8091bdb65e9513ab"
+    },
+    {
+      "blob": "32c425487cff2145ca7ed146739522a28835500a",
+      "bytes": 423124,
+      "path": "source-lock-check.json",
+      "sha256": "7a224367057424fe93e65930b44d6b0b59222e48ba46516dda4712b452bb5141"
+    },
+    {
+      "blob": "78469dfdf43685c95b57c645ac0a5c99ce1da0c2",
+      "bytes": 423110,
+      "path": "source-lock-write.json",
+      "sha256": "25d2c289623b7a934a8eac7306106222467311bb91795b94db7f2d279b51d424"
+    },
+    {
+      "blob": "2976605b8017a5131cc381b1ffa4d22711c2287e",
+      "bytes": 293,
+      "path": "typecheck.log",
+      "sha256": "3d77309e58fec93eb0549d2fa96ace0374d54c756cd94f010002f4ba559f9d00"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-release-0-5-15",
+  "product_head": "40a6a6d8104a7e4bc15ea89e47406f455a734fe9",
+  "ref": "refs/heads/evidence/sd-uptime-release-0-5-15",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-release-0-5-15"
+}

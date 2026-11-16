@@ -1,0 +1,8 @@
+{
+  "date": "2026-11-16T16:14:39.555408+00:00",
+  "call": 8,
+  "command": "gh run view 43902164171 --repo just-every/run-uptime --job 133431249064 --log-failed",
+  "exit": 0,
+  "file": "ci-failed-verify.log",
+  "sanitization": "Injected secret values and URL query strings masked; workflow environment blocks omitted from public evidence."
+}

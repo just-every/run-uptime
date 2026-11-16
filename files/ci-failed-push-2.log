@@ -1,0 +1,30 @@
+shards (push-2)	Run this shard	﻿2026-11-16T16:04:41.4593040Z ##[group]Run node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-2)	Run this shard	2026-11-16T16:04:41.4594757Z [36;1mnode .github/scripts/verify-ci.mjs "$SHARD"[0m
+shards (push-2)	Run this shard	2026-11-16T16:04:41.4697487Z shell: /usr/bin/bash -e {0}
+[Workflow environment status block omitted from public evidence.]
+shards (push-2)	Run this shard	2026-11-16T16:04:41.4712645Z ##[endgroup]
+shards (push-2)	Run this shard	2026-11-16T16:04:41.9874867Z > node tests/flow-journey.mjs
+shards (push-2)	Run this shard	2026-11-16T16:07:11.6133166Z FLOW-002 translated login/signup/checkout through CLI, preview and ordinary deploy alongside an API check; scheduled isolated runs passed; unsupported source refused at suite.spec.ts:1; immutable source/fixture/lock digests and definition export retained.
+shards (push-2)	Run this shard	2026-11-16T16:09:54.9796016Z FLOW-002 broken fixture, assertion and metadata network call retained three distinct outcomes through the existing runner request policy; selected secrets stayed out of revision and result evidence.
+shards (push-2)	Run this shard	2026-11-16T16:11:48.3494833Z PERF-001 RUM report assertions passed: measured browser errors and LCP/CLS/INP percentiles, weighted ranks across hours, missing metrics, bot exclusion and edge US subdivisions.
+shards (push-2)	Run this shard	2026-11-16T16:11:49.8941927Z PERF-001 owner erasure passed: registration and all aggregate tables removed atomically, erased-origin collection refused, independent site retained.
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4953790Z node:internal/modules/run_main:123
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4955490Z     triggerUncaughtException(
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4957940Z     ^
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4958408Z 
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4968457Z AssertionError [ERR_ASSERTION]: /api/archive: 403 {"error":"Verify a second factor within the last five minutes","code":"fresh_second_factor_required","stepUp":{"message":"Verify a second factor to finish this action. Use a code from your authenticator, a recovery code or your passkey. Verification lasts five minutes.","enrollmentUrl":"/app/settings/people?enroll=authenticator","hasFactors":true}}
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4981102Z     at ok (file:///home/runner/work/run-uptime/run-uptime/tests/flow-journey.mjs:42:135)
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4984412Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4987317Z     at async provePopulatedRumRestore (file:///home/runner/work/run-uptime/run-uptime/tests/pagespeed-support.mjs:470:19)
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4991162Z     at async provePageSpeed (file:///home/runner/work/run-uptime/run-uptime/tests/pagespeed-support.mjs:422:3)
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4993833Z     at async file:///home/runner/work/run-uptime/run-uptime/tests/flow-journey.mjs:107:3 {
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4995522Z   generatedMessage: false,
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4996519Z   code: 'ERR_ASSERTION',
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4997462Z   actual: false,
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4998291Z   expected: true,
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4999104Z   operator: '==',
+shards (push-2)	Run this shard	2026-11-16T16:11:50.4999913Z   diff: 'simple'
+shards (push-2)	Run this shard	2026-11-16T16:11:50.5001610Z }
+shards (push-2)	Run this shard	2026-11-16T16:11:50.5002114Z 
+shards (push-2)	Run this shard	2026-11-16T16:11:50.5002479Z Node.js v22.20.0
+shards (push-2)	Run this shard	2026-11-16T16:11:50.6996964Z ##[error]Process completed with exit code 1.

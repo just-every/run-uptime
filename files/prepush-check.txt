@@ -1,0 +1,1 @@
+PASS: all 1 candidate commits, including side parents, have fleet author and committer; no trailers. Product diff inspected: six allowed files, no credentials. git diff --check passed. Base publication scan deferred to the fleet Mac as required by the cloud adaptation.

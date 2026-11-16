@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-16T16:08:21.725299+00:00",
+  "call": 4,
+  "run_id": 43902164171,
+  "command": "gh api repos/just-every/run-uptime/actions/runs/43902164171 --jq {status,conclusion,head_sha,html_url}",
+  "run": {
+    "conclusion": null,
+    "head_sha": "40a6a6d8104a7e4bc15ea89e47406f455a734fe9",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43902164171",
+    "status": "in_progress"
+  }
+}
