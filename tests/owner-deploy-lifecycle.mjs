@@ -160,6 +160,10 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   const omittedWithKey=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test',SENDGRID_API_KEY:'synthetic-uptime-omitted-key'}});
   assert.notEqual(omittedWithKey.code,0,'a sending key without a selector cannot enable mail');
   assert.ok(omittedWithKey.messages.some(message=>message.includes('Remove it or choose a mail provider')),'the refusal explains the declared mail-off default');
+  for(const selector of ['later','']) {
+    const invalid=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test',MAIL_PROVIDER:selector}});
+    assert.notEqual(invalid.code,0,'invalid explicit selectors refuse before provider work');
+  }
   const offPlan=await deploy(offRoot,offProvider,t.signal,['--dry-run'],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
   assert.equal(offPlan.code,0,JSON.stringify(offPlan));
   assert.equal(offPlan.result?.dryRun,true);

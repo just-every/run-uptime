@@ -18,7 +18,7 @@ export async function validateConfiguration(env) {
 // this deployment entry point always resolves the public selector first.
 export async function inspectDeployment(root=process.cwd(),env=process.env) {
  const declaration=JSON.parse(await readFile(resolve(root,'deploy.json'),'utf8'));
- return inspectOperations(root,{MAIL_PROVIDER:declaration.vars.MAIL_PROVIDER,...env});
+ return inspectOperations(root,{...env,MAIL_PROVIDER:env.MAIL_PROVIDER ?? declaration.vars.MAIL_PROVIDER});
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {
  inspectDeployment().then(result=>{

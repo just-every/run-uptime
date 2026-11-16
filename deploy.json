@@ -26,12 +26,14 @@
     {
       "binding": "MAIL_PROVIDER",
       "environment": "MAIL_PROVIDER",
-      "optional": true
+      "optional": true,
+      "verifyStandIn": "sendgrid"
     },
     {
       "binding": "MAIL_FROM",
       "environment": "MAIL_FROM",
-      "optional": true
+      "optional": true,
+      "verifyStandIn": "synthetic-uptime-628@example.test"
     },
     {
       "binding": "SENDGRID_API_KEY",

@@ -6,6 +6,7 @@ import {chromium} from 'playwright';
 import {createInstallerModel} from '@runeditrun/rer/internal/onboarding/setup-manifest.mjs';
 import {requireProductionAuth} from '@runeditrun/rer/internal/cli/production-auth.mjs';
 import {inspectOperations} from '@runeditrun/rer/internal/operations/operations.mjs';
+import {inspectDeployment} from '../scripts/deployment/ops-config.mjs';
 import {validateConfiguration} from '../src/domain/startup-config.mjs';
 import {selectMailDeclaration} from '../scripts/deployment/mail-config.mjs';
 import {deploymentPlan} from '../scripts/deployment/plan.mjs';
@@ -28,16 +29,15 @@ export async function proveMailOff() {
  validateConfiguration(env,{scope:'deploy'});
  const operationsProviders={};
  // Public provider selection uses deploy secret transport; each selected provider
- // and the legacy omitted-provider case must still pass the ordinary doors.
+ // must pass the ordinary doors; an omitted selector now uses declared none.
  for(const [provider,credentials] of [
-  [undefined,{SENDGRID_API_KEY:'synthetic-uptime-621'}],
   ['sendgrid',{SENDGRID_API_KEY:'synthetic-uptime-622'}],
   ['resend',{MAIL_PROVIDER_API_KEY:'synthetic-uptime-623'}],
   ['cloudflare',{CLOUDFLARE_MAIL_API_KEY:'synthetic-uptime-624',MAIL_ACCOUNT_ID:'c'.repeat(32)}],
   ['rer',{MAIL_API_KEY:'synthetic-uptime-626',MAIL_RELAY_URL:'https://synthetic-uptime-627.example.test/'}],
  ]) {
   const enabled={...env,MAIL_FROM:'sender@synthetic-uptime.dev',...credentials};
-  if(provider===undefined)delete enabled.MAIL_PROVIDER;else enabled.MAIL_PROVIDER=provider;
+  enabled.MAIL_PROVIDER=provider;
   validateConfiguration(enabled,{scope:'deploy'});
   const declarationForProvider=selectMailDeclaration(declaration,enabled);
   const planForProvider=deploymentPlan({migrations:[]},enabled);
@@ -47,7 +47,7 @@ export async function proveMailOff() {
   }
   // Base preflight takes the shared key input for Cloudflare; the native
   // deployment binds that input under CLOUDFLARE_MAIL_API_KEY.
-  const inspected=await inspectOperations(process.cwd(),{...Object.fromEntries(JSON.parse(await readFile('OPERATIONS.json','utf8')).requiredEnvironment.map(n=>[n,'synthetic-uptime-613'])),...enabled});
+  const inspected=await inspectDeployment(process.cwd(),{...Object.fromEntries(JSON.parse(await readFile('OPERATIONS.json','utf8')).requiredEnvironment.map(n=>[n,'synthetic-uptime-613'])),...enabled});
   if(provider!=='rer'){assert.equal(inspected.ok,true,`operations accepts ${provider??'default SendGrid'}`);operationsProviders[provider??'default SendGrid']=inspected.loops.find(loop=>loop.id==='operator-sign-in-mail').status;}
   const preflight=provider==='cloudflare'?{...enabled,MAIL_API_KEY:credentials.CLOUDFLARE_MAIL_API_KEY}:enabled;
   await requireProductionAuth({root:process.cwd(),declaration:declarationForProvider,env:preflight,setupManifest:manifest,adapter:commandAdapter,options:{dryRun:false}});
@@ -76,7 +76,18 @@ export async function proveMailOff() {
   assert.throws(()=>validateConfiguration({...env,MAIL_PROVIDER:provider},{scope:'deploy'}));
   await assert.rejects(requireProductionAuth({root:process.cwd(),declaration,env:{...env,MAIL_PROVIDER:provider},setupManifest:manifest,adapter:commandAdapter,options:{dryRun:false}}));
  }
- for(const provider of [undefined,'later',''])await assert.rejects(requireProductionAuth({root:process.cwd(),declaration,env:{...env,MAIL_PROVIDER:provider},setupManifest:manifest,adapter:commandAdapter,options:{dryRun:false}}));
+ // The public declaration, rather than a legacy native-key inference, sets
+ // the omitted selector's default. Invalid explicit selectors still refuse.
+ const unset={...env};delete unset.MAIL_PROVIDER;
+ const unsetAuth=await requireProductionAuth({root:process.cwd(),declaration,env:unset,setupManifest:manifest,adapter:commandAdapter,options:{dryRun:false}});
+ assert.ok(unsetAuth.mailOff?.signIn,'omitted selector uses the declared mail-off default');
+ const unsetInspection=await inspectDeployment(process.cwd(),{...opsEnv,...unset,MAIL_PROVIDER:undefined});
+ assert.equal(unsetInspection.ok,true,'unset selector is ready with optional mail off');
+ operationsProviders.unset=unsetInspection.loops.find(loop=>loop.id==='operator-sign-in-mail').status;
+ for(const provider of ['later','']) {
+  assert.throws(()=>validateConfiguration({...env,MAIL_PROVIDER:provider},{scope:'deploy'}));
+  assert.throws(()=>selectMailDeclaration(declaration,{...env,MAIL_PROVIDER:provider}));
+ }
  console.log('MAIL-OFF configuration checks passed');
  const directory=await mkdtemp(join(tmpdir(),'uptime-mail-off-'));let runtime,browser;let fail=true,mailRequests=0;
  try {
