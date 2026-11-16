@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "54a5d0ceadd99319bdec0384cf8e894accdbbadbe95075235d19da283a17f962",
+      "sha256": "14a0dd0a071a3f13f880ee4ccd611e24851264d000878ae60858df2fb1ea869c",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2564,7 +2564,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "cda6c82f5a1cbe9335e5f7e4df3ab956b2e83bc250037a42946a56de7c3f3ec1",
+      "sha256": "c800348aebf12d3a4d39303a8497ef99bd97004b4d69bb0b5e6acdfa8ea6842d",
       "executable": false
     },
     "package.json": {
@@ -9576,7 +9576,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "a4e2be2aef0d7dbada97ca913e88df9a57cc84774a6221301cc5bf42a428a07a",
+      "sha256": "aad6cd00ee2df5db6518bccbf17f1323f376c7fade473c555d588b7c634a1bed",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/auth.mjs": {
