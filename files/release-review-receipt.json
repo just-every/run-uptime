@@ -1,0 +1,107 @@
+{
+  "author": "Run Edit Run fleet",
+  "observed_at_utc": "2026-11-16T04:39:09Z",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-14",
+  "base_head": "91bdcfbac8b53121ccb1864873f19241c533bc4f",
+  "previous_tag": "v0.5.13",
+  "previous_tag_commit": "c1e8376c7dfd6ed601b6fe993567237449fc7143",
+  "main_commits_since_previous_tag": "7",
+  "main_change_log": [
+    "91bdcfbac8b53121ccb1864873f19241c533bc4f Regenerate contract views from CONTRACT.md",
+    "732ba43d9eade6d00bbec6180b2dc42c83edbcd4 Retain shared mail input isolation on resumed deployment",
+    "8c7317dc3799002fc52cf55d6d39ea37e505ab04 Preserve managed mail default without a duplicate secret",
+    "584da6da0e4235088f267d8644071e678ad8dbfe Keep hosted mail provider in deploy secrets",
+    "b2bcd69d856aae1fda1ae1890319062ce42535ef Support deliberate hosted mail-off installs on rer 0.2.118",
+    "433f7138430fa08d14570a58eb46bc5a14d7fadc Name the running package version in public health",
+    "72bb4356a4734ba4d49037be7cfa57c77f1a5eb7 Batch mail-startup snapshots through one D1 transaction"
+  ],
+  "target_tag_absent": true,
+  "release_probe": {
+    "github_api_call": 1,
+    "endpoint": "repos/just-every/run-uptime/releases?per_page=100",
+    "result": "No v0.5.14 release, including drafts, among all 17 returned releases; latest v0.5.13 published 2026-11-15T21:06:58Z",
+    "latest_url": "https://github.com/just-every/run-uptime/releases/tag/v0.5.13"
+  },
+  "before_versions": {
+    "package.json": "0.5.13",
+    "seed.json": "0.5.13",
+    "RELEASE.json": "0.5.13"
+  },
+  "after_versions": {
+    "package.json": "0.5.14",
+    "seed.json": "0.5.14",
+    "RELEASE.json": "0.5.14"
+  },
+  "previousVersion": "0.5.13",
+  "rer_pin_before": "0.2.118",
+  "rer_pin_after": "0.2.118",
+  "lock_rer_specifier": "0.2.118",
+  "lock_rer_resolution": "0.2.118",
+  "lock_changed": false,
+  "migrations_added": [],
+  "migrations_changed": [],
+  "product_tests_changed": [],
+  "tests_added": 0,
+  "tests_removed": 0,
+  "clause_status_changes": [],
+  "contract_summary_before_and_after": "## Status\n\nJudged from the code and tests at commit `67280b96d5401299f320c18baa225366d230ea2d` (6 November 2026). MAINT-001: strategy-trial-3-son-gate-1 GATE PASS; all other clause judgments retained. ERASURE-001 public owner erasure, retained stale edit and complete refusal preservation; other clause judgments retained. PRESENCE-001 native contact lifecycle proof replayed at `8862426`; all newer main judgments retained. Carried-done recheck on 2 November 2026 (ct judge ct-judge-uptime-restore-20261102-0845, push Verify 41373254373 at 690ff55a867bcbac403c3f236ade9cac2a2d5c8b): HTTP-001, EVIDENCE-001, AUTHORITY-001, ARCHIVE-001, NOTIFY-001, DELIVERY-001, PUBLIC-001, PUBLIC-002, API-001, PING-001, DNS-001, TLS-001, EVIDENCE-002, FLOW-003, MANAGE-001 and METRICS-001 restored to done; other clause judgments retained. Assertion-round recheck on 2 November 2026 (ct judge ct-judge-uptime-assert-20261102-1320, push Verify 41448682806 at 40f33957850e11c6887789852f2e8bd10e14adf3, landed on main as `cf75611586159d1588151fd403899d8f9a735593`): HEARTBEAT-001 and ROUTING-002 restored to done; other clause judgments retained.\n\n| Clauses | Done | Partial | Missing | Total |\n| --- | ---: | ---: | ---: | ---: |\n| Published | 14 | 7 | 0 | 21 |\n| Target and push further | 23 | 51 | 20 | 94 |\n| All | 37 | 58 | 20 | 115 |",
+  "changed_metadata_files": [
+    "CHANGELOG.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json"
+  ],
+  "local_checks": {
+    "dependency_install": "pass",
+    "typecheck": "pass",
+    "first_party_check": "pass",
+    "contract_docs_check": "pass"
+  },
+  "toolchain": {
+    "node": "v24.19.0",
+    "pnpm": "10.12.4",
+    "note": "Provided toolchain selects the VM Node v24.19.0 because it exceeds the Node 22.20.0 engine pin; pnpm prints an engine warning. Branch CI uses Node 22.20.0."
+  },
+  "publication_scan": "Deferred to Mac fleet by cloud adaptation; not run or claimed in this VM.",
+  "no_tag_or_release_created": true,
+  "contract_counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contract_counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "published_commit": "e52204f8e0627806456b77367205efdf7489fbd2",
+  "source_lock_regenerated_last": true,
+  "source_lock_check": "pass",
+  "whitespace_check": "pass",
+  "product_files_changed": [
+    "CHANGELOG.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "product_diff_stat": "CHANGELOG.md      | 25 +++++++++++++++++++++++++\n RELEASE.json      |  6 +++---\n RELEASE.md        |  4 ++--\n package.json      |  2 +-\n seed.json         |  2 +-\n sources.lock.json | 10 +++++-----\n 6 files changed, 37 insertions(+), 12 deletions(-)",
+  "exact_sha_verify": {
+    "conclusion": "success",
+    "head_sha": "e52204f8e0627806456b77367205efdf7489fbd2",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43805394437",
+    "status": "completed",
+    "run_id": 43805394437,
+    "api_calls_total": 5,
+    "observed_at_epoch": 1794804868.5155895,
+    "observed_at_utc": "2026-11-16T04:54:29Z"
+  },
+  "api_calls_total": 5,
+  "terminal_status": "READY",
+  "blockers": []
+}

@@ -1,0 +1,7 @@
+CHANGELOG.md      | 25 +++++++++++++++++++++++++
+ RELEASE.json      |  6 +++---
+ RELEASE.md        |  4 ++--
+ package.json      |  2 +-
+ seed.json         |  2 +-
+ sources.lock.json | 10 +++++-----
+ 6 files changed, 37 insertions(+), 12 deletions(-)

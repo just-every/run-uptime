@@ -1,0 +1,36 @@
+{
+  "author": "Run Edit Run fleet",
+  "repository": "just-every/run-uptime",
+  "history": [
+    {
+      "conclusion": null,
+      "head_sha": "e52204f8e0627806456b77367205efdf7489fbd2",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43805394437",
+      "status": "in_progress",
+      "run_id": 43805394437,
+      "api_calls_total": 3,
+      "observed_at_epoch": 1794804268.5125134,
+      "observed_at_utc": "2026-11-16T04:44:29Z"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "e52204f8e0627806456b77367205efdf7489fbd2",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43805394437",
+      "status": "in_progress",
+      "run_id": 43805394437,
+      "api_calls_total": 4,
+      "observed_at_epoch": 1794804568.5148728,
+      "observed_at_utc": "2026-11-16T04:49:29Z"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "e52204f8e0627806456b77367205efdf7489fbd2",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43805394437",
+      "status": "completed",
+      "run_id": 43805394437,
+      "api_calls_total": 5,
+      "observed_at_epoch": 1794804868.5155895,
+      "observed_at_utc": "2026-11-16T04:54:29Z"
+    }
+  ]
+}

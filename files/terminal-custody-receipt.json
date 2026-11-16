@@ -1,0 +1,41 @@
+{
+  "author": "Run Edit Run fleet",
+  "date_utc": "2026-11-16T04:55:08Z",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-14",
+  "head": "e52204f8e0627806456b77367205efdf7489fbd2",
+  "product_push": "success",
+  "exact_sha_verify": {
+    "conclusion": "success",
+    "head_sha": "e52204f8e0627806456b77367205efdf7489fbd2",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/43805394437",
+    "status": "completed",
+    "run_id": 43805394437,
+    "api_calls_total": 5,
+    "observed_at_epoch": 1794804868.5155895,
+    "observed_at_utc": "2026-11-16T04:54:29Z"
+  },
+  "terminal_status": "READY",
+  "pr_url": null,
+  "tag_created": false,
+  "release_created": false,
+  "self_submitted": false,
+  "landed": false,
+  "publication_scan": "Mac fleet responsibility under cloud adaptation; not run here",
+  "clause_status_changes": [],
+  "counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "migration_changes": [],
+  "rer_pin": "0.2.118",
+  "blockers": []
+}

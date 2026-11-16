@@ -1,0 +1,99 @@
+{
+  "author": "Run Edit Run fleet",
+  "date_utc": "2026-11-16T04:55:08Z",
+  "result": "pass",
+  "selection": "Explicit regular report/receipt/log files only, outside the product tree",
+  "checks": [
+    "regular files, no symlinks",
+    "reviewed command outputs and report contents",
+    "no credential-shaped GitHub tokens, private keys or embedded GitHub password URLs",
+    "no environment dump or private held-out gate material selected"
+  ],
+  "files_reviewed": [
+    {
+      "path": "REPORT.md",
+      "bytes": 7948,
+      "sha256": "38dbfb377bd696c1184f79c80dc68de8db2759d2bae036c7ce427c527435d461"
+    },
+    {
+      "path": "PLAN.md",
+      "bytes": 2132,
+      "sha256": "ef06b5375dbb82782f22a42370a6bb4fbcec99d099ef383b679dd457c1ad151d"
+    },
+    {
+      "path": "release-review-receipt.json",
+      "bytes": 5321,
+      "sha256": "e4a9be1aa50bbe6567c3641e2eaec0c65e648770a15ec444a4b52a275a64241c"
+    },
+    {
+      "path": "terminal-custody-receipt.json",
+      "bytes": 1145,
+      "sha256": "e26f95e41c983ecf9dcb341f4cf48f6c48befbe8065a569a34fa9ce60db263b0"
+    },
+    {
+      "path": "ci-discovery.json",
+      "bytes": 551,
+      "sha256": "a6e4e56ce4c236272fb77b51e9ce3f6ea6288ee847bc32124cf4c6c6641b3c75"
+    },
+    {
+      "path": "ci-poll-receipt.json",
+      "bytes": 1213,
+      "sha256": "506b0ae5a204e3ca5f72760951b9edf9cbc8200159187605efd72bca04e126bd"
+    },
+    {
+      "path": "commit-identity-audit.txt",
+      "bytes": 85,
+      "sha256": "148bad84b5b174568017df50d58e073566703d43c6c9fe7fa6f1af04420adf55"
+    },
+    {
+      "path": "contract-check.log",
+      "bytes": 70,
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "path": "dependency-install.log",
+      "bytes": 2307,
+      "sha256": "58cb76ac378aa7aca9899b589a2b73a9dd5b478a17ac2cb4361b831b6fbfbcf2"
+    },
+    {
+      "path": "first-party-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "main-diff-stat.txt",
+      "bytes": 2572,
+      "sha256": "627ba7d3465b66b92c39cb204e7b1196d7421851d86fc5e5b8823d59cd81d825"
+    },
+    {
+      "path": "product-diff-stat.txt",
+      "bytes": 250,
+      "sha256": "9d8ec144920d79cadbd56562ce0c586b00f10240bd1f6063d7042ea460d6de7f"
+    },
+    {
+      "path": "product-push.log",
+      "bytes": 946,
+      "sha256": "0ee7874b6ca3c56492a1603c180f9eeeefac1d2d46e28413cde7c7f39e229e58"
+    },
+    {
+      "path": "product-ref-receipt.txt",
+      "bytes": 202,
+      "sha256": "4a2efab018a10d3af7da7590f960bc3eff1c4f5aae3977c255cffccc58c276bc"
+    },
+    {
+      "path": "source-lock-check.json",
+      "bytes": 423124,
+      "sha256": "8594043dbc8dfe71fc3b8fcc6eda2f40f8ce8f7046af314116cda9c473824e87"
+    },
+    {
+      "path": "source-lock-generation.json",
+      "bytes": 423110,
+      "sha256": "1b4e5dfe2166a5cb33a511a54e96c8d6b19e39287a1146583848cdfc729e52fe"
+    },
+    {
+      "path": "typecheck.log",
+      "bytes": 293,
+      "sha256": "396fd81665f983434a269284c22e58008bb3a024184fd648541383602da3b2d3"
+    }
+  ]
+}
