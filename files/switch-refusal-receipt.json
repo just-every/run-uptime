@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-16",
+  "repository": "just-every/run-uptime",
+  "trialHead": "0388aebe1792afee5609eb249a175e5617697061",
+  "journey": "tests/owner-deploy-lifecycle.mjs",
+  "test": "real rer deploy covers fresh custody, automatic legacy upgrade, conflicts, named keys, exact repeat, resume and foreign ownership refusal",
+  "assertionLine": 23,
+  "exitCode": 4,
+  "errorCode": "safety_refusal",
+  "message": "MAIL_PROVIDER=none turns outbound email off, and SENDGRID_API_KEY would bind a way to send. Remove it or choose a mail provider. Nothing was built or uploaded.",
+  "selectorOmitted": true,
+  "existingSendgridInputs": true,
+  "switchProven": false,
+  "decision": "Brief fallback: retain pin adoption and correct docs; withdraw switch integration and preserve the existing journey"
+}

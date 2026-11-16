@@ -1,0 +1,15 @@
+{
+  "journey": "real rer deploy lifecycle",
+  "provider": "none",
+  "freshDeployment": true,
+  "ownerAdmittedByNativeBootstrap": true,
+  "runtimeBindingOff": true,
+  "sendingInputsAbsent": true,
+  "guardedRerSignin": true,
+  "onlyGrantHashStored": true,
+  "confirmationRequired": true,
+  "replayRefused": true,
+  "missingCredentialsRefused": true,
+  "wrongEnvironmentRefused": true,
+  "missingReceiptRefused": true
+}

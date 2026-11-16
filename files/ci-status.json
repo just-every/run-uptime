@@ -1,0 +1,14 @@
+{
+  "repository": "just-every/run-uptime",
+  "runId": 43943587519,
+  "calls": 2,
+  "history": [
+    {
+      "conclusion": null,
+      "head_sha": "f5ae7e2e254bc90c64d2ec617e617a2fe3dd1ed9",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43943587519",
+      "status": "in_progress",
+      "requestedAt": 1794858987.4046009
+    }
+  ]
+}

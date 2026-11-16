@@ -1,0 +1,42 @@
+{
+  "repository": "just-every/run-uptime",
+  "againstMain": "40a6a6d8104a7e4bc15ea89e47406f455a734fe9",
+  "paths": [
+    {
+      "path": "deploy.json",
+      "matchesMain": true
+    },
+    {
+      "path": "wrangler.jsonc",
+      "matchesMain": true
+    },
+    {
+      "path": "scripts/deployment/mail-config.mjs",
+      "matchesMain": true
+    },
+    {
+      "path": "management/integration/deployment-spec.json",
+      "matchesMain": true
+    },
+    {
+      "path": "tests/owner-deploy-lifecycle.mjs",
+      "matchesMain": true
+    },
+    {
+      "path": "tests/owner-deploy-lifecycle/provider-fixture.mjs",
+      "matchesMain": true
+    },
+    {
+      "path": "CONTRACT.md",
+      "matchesMain": true
+    },
+    {
+      "path": "ACCEPTANCE.md",
+      "matchesMain": true
+    },
+    {
+      "path": "docs/CLAIMS.md",
+      "matchesMain": true
+    }
+  ]
+}

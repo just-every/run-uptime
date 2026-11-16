@@ -1,0 +1,77 @@
+{
+  "refreshed": "f2737d02a5f77be042cfdfd237a7dce4689cbe2f",
+  "record": "base-copies.json",
+  "retired": [],
+  "adapted": [
+    {
+      "path": ".github/workflows/verify.yml",
+      "originPath": "export/verify.yml",
+      "revision": "25d370982f5bd8afbe650b82cb58adc2137d10e9",
+      "conflict": false
+    },
+    {
+      "path": "src/base/lobby.ts",
+      "originPath": "foundation/runtime/lobby.ts",
+      "revision": "73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf",
+      "conflict": true,
+      "note": "Upstream changed or removed this seed-owned adaptation; review and reconcile explicitly.",
+      "diffHint": "git -C <base> diff 73923a8d0a5e5a2cd7f0cb204ec97b227d73b4bf f2737d02a5f77be042cfdfd237a7dce4689cbe2f -- \"foundation/runtime/lobby.ts\""
+    },
+    {
+      "path": "src/base/modules/mail/package.json",
+      "originPath": "modules/mail/package.json",
+      "revision": "c2efb501cbc148c2aee4d5e1107ebdba81469006",
+      "conflict": false
+    },
+    {
+      "path": "src/base/modules/mail/pnpm-lock.yaml",
+      "originPath": "modules/mail/pnpm-lock.yaml",
+      "revision": "c2efb501cbc148c2aee4d5e1107ebdba81469006",
+      "conflict": false
+    }
+  ],
+  "relocated": [],
+  "withheld": [],
+  "packageDependencies": [
+    {
+      "package": "react",
+      "version": "19.2.8",
+      "baseVersion": "19.3.1",
+      "conflict": true,
+      "files": [
+        "src/base/hydration/unit.tsx",
+        "src/base/modules/editor/react.tsx"
+      ]
+    },
+    {
+      "package": "miniflare",
+      "version": "5.20260926.1-alpha",
+      "baseVersion": "5.20260907.0-alpha",
+      "conflict": true,
+      "files": [
+        "src/base/modules/agent-door/conformance/network-runtime.mjs"
+      ]
+    },
+    {
+      "package": "wrangler",
+      "version": "4.144.0",
+      "baseVersion": "4.129.1",
+      "conflict": true,
+      "files": [
+        "src/base/modules/agent-door/conformance/network-runtime.mjs"
+      ]
+    }
+  ],
+  "editionMigrations": [],
+  "templateAdoptions": [],
+  "notices": [
+    ".github/workflows/verify.yml: preserved seed-owned workflow. The current template pins Ubuntu 24.04 and moves browser and apt caches to the runner temporary directory. To adopt, merge export/verify.yml from Base f2737d02a5f77be042cfdfd237a7dce4689cbe2f into .github/workflows/verify.yml, then run node node_modules/@runeditrun/rer/edition-authoring/cli.mjs record-base .github/workflows/verify.yml export/verify.yml f2737d02a5f77be042cfdfd237a7dce4689cbe2f --base <base-checkout> and repeat rer refresh-base --ref f2737d02a5f77be042cfdfd237a7dce4689cbe2f --base <base-checkout>."
+  ],
+  "next": "Run verify-base, then the edition tests, and commit the copied files with the record.",
+  "copyEntries": 123,
+  "changedTrackedFiles": [
+    "SEED-COMMAND-CONTRACT.md",
+    "base-copies.json"
+  ],
+  "runtimeCodeChanged": false
+}

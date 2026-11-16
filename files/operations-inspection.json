@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-16T19:35:36.733Z",
+  "scope": "synthetic local inputs only; no provider requests",
+  "cases": [
+    {
+      "selection": "sendgrid",
+      "ok": true,
+      "configuration": "valid",
+      "mailStatus": "ready",
+      "mailOff": false
+    },
+    {
+      "selection": "resend",
+      "ok": true,
+      "configuration": "valid",
+      "mailStatus": "ready",
+      "mailOff": false
+    },
+    {
+      "selection": "cloudflare",
+      "ok": true,
+      "configuration": "valid",
+      "mailStatus": "ready",
+      "mailOff": false
+    },
+    {
+      "selection": "none",
+      "ok": true,
+      "configuration": "valid",
+      "mailStatus": "optional-disabled",
+      "mailOff": true
+    },
+    {
+      "selection": "unset",
+      "ok": true,
+      "configuration": "valid",
+      "mailStatus": "ready",
+      "mailOff": false
+    }
+  ]
+}

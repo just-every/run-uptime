@@ -1,0 +1,32 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-mail-switch-1",
+  "head": "f5ae7e2e254bc90c64d2ec617e617a2fe3dd1ed9",
+  "originMain": "40a6a6d8104a7e4bc15ea89e47406f455a734fe9",
+  "baseRevision": "f2737d02a5f77be042cfdfd237a7dce4689cbe2f",
+  "rerVersion": "0.2.121",
+  "candidateCommits": [
+    "f5ae7e2e254bc90c64d2ec617e617a2fe3dd1ed9",
+    "39e0b107e1d1a901429ad33344083f8788e16f37",
+    "0388aebe1792afee5609eb249a175e5617697061"
+  ],
+  "identityCheck": "all candidate authors/committers fleet; no coauthor trailers",
+  "changesFromMain": [
+    "OPERATIONS.md",
+    "SEED-COMMAND-CONTRACT.md",
+    "base-copies.json",
+    "docs/deploy.md",
+    "package.json",
+    "pnpm-lock.yaml",
+    "sources.lock.json"
+  ],
+  "changesSinceSuccessfulLifecycle": [
+    "SEED-COMMAND-CONTRACT.md",
+    "base-copies.json",
+    "sources.lock.json"
+  ],
+  "worktreeClean": true,
+  "mainRefreshedBeforePush": true,
+  "publishedHistoryRewritten": false,
+  "pr": null
+}
