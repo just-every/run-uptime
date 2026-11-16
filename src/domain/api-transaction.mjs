@@ -55,7 +55,9 @@ function validateSteps(input,variables,{origin,target,loopback=false}) {
       }
     }
     if (step.body !== undefined) {
-      if (['GET','HEAD'].includes(method) || typeof step.body !== 'string' || size(step.body) > API_TRANSACTION_LIMITS.maxBodyBytes) throw Error('Invalid API request body');
+      if (['GET','HEAD'].includes(method)) throw Error(`Step "${step.name}": ${method} requests take no request body (the body field).`);
+      if (typeof step.body !== 'string') throw Error(`Step "${step.name}": the body field must be text. For JSON, write it as a string, such as "{\\"name\\":\\"value\\"}".`);
+      if (size(step.body) > API_TRANSACTION_LIMITS.maxBodyBytes) throw Error(`Step "${step.name}": the body field is over the ${API_TRANSACTION_LIMITS.maxBodyBytes}-byte limit.`);
       // JSON braces are literal. Only double braces name variables.
       for (const match of step.body.matchAll(/\{\{([^{}]*)\}\}/g)) if (!API_VARIABLE.test(match[1]) || !known.has(match[1])) throw Error('API body references an unavailable variable');
       if (/\{\{|\}\}/.test(step.body.replace(/\{\{[A-Za-z][A-Za-z0-9_]{0,39}\}\}/g,''))) throw Error('Invalid API body variable template');

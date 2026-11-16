@@ -66,7 +66,7 @@ export function incidentConsole({evidence=process.env.UPTIME_INCIDENT_EVIDENCE}=
    const dialog=await open(ownerPage,f,monitor,incident);await parity(ownerPage,dialog,await api(f,incident));await dialog.locator('[data-close-incident]').click();
    // Console entry is owner-only (default adopted for FOLLOWUP-001): the responder's own browser sign-in, with its second factor,
    // is refused at the shell without exposing any incident, while the same session takes ownership through the API door.
-   await responderPage.goto(f.origin+'/app');await responderPage.getByText('Only an owner can access the Uptime console and setup.').waitFor();
+   await responderPage.goto(f.origin+'/app');await responderPage.getByText('Your access is limited to particular monitors').waitFor();
    assert.equal(await responderPage.locator(`[data-incident-work]`).count(),0,'the refused shell exposes no incident');
    const read=await fetch(f.origin+'/api/incidents/'+encodeURIComponent(incident),{headers:{cookie:responder.cookie}});assert.equal(read.status,200,'responder reads the in-scope incident through the API door');
    const seen=await read.json();assert.equal(seen.owner.id,responder.id);assert.equal(seen.status,'acknowledged');

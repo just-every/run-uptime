@@ -12,19 +12,23 @@ export function reportScheduleControls(host,{data,api}){
  const clock=(at,report)=>new Date(at).toLocaleString('en-US',{timeZone:report.timeZone})+' '+report.timeZone;
  const cadence=report=>({daily:'Daily',weekly:'Weekly',monthly:'Monthly'}[report.frequency]??'One time')+' '+new Date(report.anchorAt??report.dueAt??report.nextDueAt??report.createdAt).toLocaleTimeString([], {timeZone:report.timeZone,hour:'numeric',minute:'2-digit'})+' '+report.timeZone;
  const outcome=run=>run.state==='accepted'?'Sent '+new Date(run.finishedAt??run.dueAt).toLocaleString():run.state==='queued'?'Waiting to send':run.state==='sending'?'Sending report':run.state==='uncertain'?'Delivery could not be confirmed':run.code==='report_cancelled'?'Not sent: cancelled by owner':run.code==='report_destination_revoked'?'Not sent: destination unavailable':run.code==='report_initiator_revoked'?'Not sent: owner authority changed':'Not sent: delivery could not finish';
+ let loaded=[];
  async function load(){
   try{
-   const monitor=form.elements.monitor.value;if(!monitor)return;
-   const reports=await api(`/api/monitors/${encodeURIComponent(monitor)}/report-schedules`);
-   if(!host.isConnected)return;list.replaceChildren();
-   for(const report of reports){
+   // Every monitor's schedules are listed together, so a saved report shows whichever monitor the form is on.
+   const entries=[],queue=[...data.monitors];
+   await Promise.all([0,1,2].map(async()=>{for(let owner;owner=queue.shift();)for(const report of await api(`/api/monitors/${encodeURIComponent(owner.id)}/report-schedules`))entries.push({owner,report})}));
+   if(!host.isConnected)return;list.replaceChildren();loaded=entries;
+   entries.sort((a,b)=>(b.report.createdAt??0)-(a.report.createdAt??0));
+   if(!entries.length){const empty=document.createElement('p');empty.textContent='No reports are scheduled yet.';list.append(empty)}
+   for(const {owner,report} of entries){const monitor=owner.id;
     const row=document.createElement('div'),label=document.createElement('span');row.dataset.reportId=report.id;
-    if(report.kind==='recurring'){label.textContent=`${cadence(report)} · ${report.service?'Service '+report.service:selectedMonitor()?.definition.name??'Unavailable monitor'} → ${data.notifications.destinations.find(d=>d.id===report.destinationId)?.name??'Unavailable destination'} · ${report.nextDueAt?'Next '+clock(report.nextDueAt,report):stopLabel(report.code)} `;row.append(label);
+    if(report.kind==='recurring'){label.textContent=`${cadence(report)} · ${report.service?'Service '+report.service:owner.definition.name} → ${data.notifications.destinations.find(d=>d.id===report.destinationId)?.name??'Unavailable destination'} · ${report.nextDueAt?'Next '+clock(report.nextDueAt,report):stopLabel(report.code)} `;row.append(label);
      const show=document.createElement('button');show.type='button';show.textContent='Show report runs';const runs=document.createElement('div');show.onclick=async()=>{try{const saved=await api(`/api/monitors/${encodeURIComponent(monitor)}/report-schedules/${encodeURIComponent(report.id)}`);runs.replaceChildren();for(const run of saved.runs){const line=document.createElement('p'),download=document.createElement('button');line.textContent=`${outcome(run)} `;download.type='button';download.textContent='Download report JSON';download.onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(run.report,null,2)+'\n'],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download='uptime-report.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};line.append(download);runs.append(line)}if(!saved.runs.length)runs.textContent='No runs yet.'}catch(error){status.textContent=error.message}};row.append(show,runs);
      if(report.state==='active'){const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel recurring report';cancel.onclick=async()=>{cancel.disabled=true;try{await api(`/api/monitors/${encodeURIComponent(monitor)}/report-schedules/${encodeURIComponent(report.id)}`,'DELETE');await load();status.textContent='Recurring report cancelled.'}catch(error){status.textContent=error.message;cancel.disabled=false}};row.append(cancel)}
      list.append(row);continue;
     }
-    label.textContent=`One time · ${report.service?'Service '+report.service:selectedMonitor()?.definition.name??'Unavailable monitor'} → ${data.notifications.destinations.find(d=>d.id===report.destinationId)?.name??'Unavailable destination'} · ${clock(report.dueAt,report)} · ${report.code==='report_cancelled'?'Cancelled by owner':outcome(report)} `;row.append(label);
+    label.textContent=`One time · ${report.service?'Service '+report.service:owner.definition.name} → ${data.notifications.destinations.find(d=>d.id===report.destinationId)?.name??'Unavailable destination'} · ${clock(report.dueAt,report)} · ${report.code==='report_cancelled'?'Cancelled by owner':outcome(report)} `;row.append(label);
     if(report.state==='queued'){
      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel scheduled report';
      cancel.onclick=async()=>{cancel.disabled=true;try{await api(`/api/monitors/${encodeURIComponent(monitor)}/report-schedules/${encodeURIComponent(report.id)}`,'DELETE');status.textContent='Report cancelled. No delivery will start.';await load()}catch(error){status.textContent=error.message;cancel.disabled=false}};row.append(cancel);
@@ -37,10 +41,14 @@ export function reportScheduleControls(host,{data,api}){
  const clearPreview=()=>{previewVersion++;form.querySelector('[data-report-preview]').textContent='';status.textContent=''};
  for(const name of ['monitor','due','zone','frequency'])for(const event of ['input','change'])form.elements[name].addEventListener(event,clearPreview);
  form.querySelector('[data-preview-report]').onclick=async()=>{const version=previewVersion;try{if(form.elements.frequency.value==='once')throw Error('Choose a recurring frequency to preview dates.');const result=await api(`/api/monitors/${encodeURIComponent(form.elements.monitor.value)}/report-schedules/preview`,'POST',{dueAt:new Date(form.elements.due.value).getTime(),recurrence:{frequency:form.elements.frequency.value,timeZone:form.elements.zone.value}});if(version!==previewVersion)return;status.textContent='';form.querySelector('[data-report-preview]').textContent=result.times.map(at=>new Date(at).toLocaleString('en-US',{timeZone:result.timeZone})).join(' · ')+' · '+result.timeZone}catch(error){if(version===previewVersion)status.textContent=error.message}};
- form.elements.monitor.onchange=()=>{serviceField();void load()};
+ form.elements.monitor.onchange=serviceField;
  form.onsubmit=async event=>{
   event.preventDefault();const button=form.querySelector('button.primary');button.disabled=true;
-  try{await api(`/api/monitors/${encodeURIComponent(form.elements.monitor.value)}/report-schedules`,'POST',{destinationId:form.elements.destination.value,dueAt:new Date(form.elements.due.value).getTime(),period:{period:'24h',timeZone:form.elements.zone.value},...(form.elements.frequency.value!=='once'?{recurrence:{frequency:form.elements.frequency.value,timeZone:form.elements.zone.value}}:{}),...(form.elements.aggregate.checked?{service:data.monitors.find(m=>m.id===form.elements.monitor.value)?.definition.service??''}:{})});clearPreview();status.textContent='Report scheduled.';await load()}catch(error){status.textContent=error.message}finally{button.disabled=false}
+  try{
+   const dueAt=new Date(form.elements.due.value).getTime(),frequency=form.elements.frequency.value;
+   if(loaded.some(({owner,report})=>owner.id===form.elements.monitor.value&&report.destinationId===form.elements.destination.value&&(report.frequency??'once')===frequency&&(report.anchorAt??report.dueAt)===dueAt&&['queued','active'].includes(report.state))){status.textContent='This report is already scheduled. It is in the list below.';return}
+   const name=selectedMonitor()?.definition.name;
+   await api(`/api/monitors/${encodeURIComponent(form.elements.monitor.value)}/report-schedules`,'POST',{destinationId:form.elements.destination.value,dueAt:new Date(form.elements.due.value).getTime(),period:{period:'24h',timeZone:form.elements.zone.value},...(form.elements.frequency.value!=='once'?{recurrence:{frequency:form.elements.frequency.value,timeZone:form.elements.zone.value}}:{}),...(form.elements.aggregate.checked?{service:data.monitors.find(m=>m.id===form.elements.monitor.value)?.definition.service??''}:{})});clearPreview();await load();status.textContent=`Report scheduled for ${name}: ${frequency==='once'?'one time':frequency} from ${new Date(dueAt).toLocaleString()}.`}catch(error){status.textContent=error.message}finally{button.disabled=false}
  };
  serviceField();void load();
 }

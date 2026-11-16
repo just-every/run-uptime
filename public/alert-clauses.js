@@ -18,7 +18,7 @@ export function clausesMarkup(notes,readUnavailable){
  for(const {destination:d,reason,delivery} of blocked){
   const name=escape(d.name),stored=d.kind==='email'?'address':'URL',fix=label=>`<button type="button" class="ui-link" data-edit-destination="${escape(d.id)}">${label}</button>`;
   if(reason==='credentials')lines.push(clause('credentials-'+d.id,'warning',`The stored ${stored} for ${name} can no longer be read, so it cannot send.`,fix(`Re-enter the ${stored}`)));
-  else if(reason==='failed')lines.push(clause('failed-'+d.id,'warning',`${name} cannot send: its last send was refused${delivery.status?` (HTTP ${escape(delivery.status)})`:''}.`,fix('Edit')));
+  else if(reason==='failed')lines.push(clause('failed-'+d.id,'warning',`${name} cannot send: its last send ${delivery.status?`was refused (HTTP ${escape(delivery.status)})`:'got no answer from the destination'}.`,fix('Edit')));
  }
  if(notes.workerSends&&!notes.demo&&!notes.cronStarted)lines.push(clause('starting','','Sending is starting up; this can take up to two hours. Queued alerts wait under Sent alerts until then.'));
  if(!notes.workerSends&&notes.runnerContact?.state!=='Fresh contact')lines.push(clause('server','warning',readUnavailable?'Sending status is unavailable.':'Sending is waiting for your server to connect.'));

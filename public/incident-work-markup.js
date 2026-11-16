@@ -6,6 +6,9 @@ const text=value=>escape(value??'');
 export function linkedText(value){
  return String(value??'').split(/(https?:\/\/[^\s<>]+)/g).map(part=>/^https?:\/\//.test(part)?`<a href="${text(part)}" target="_blank" rel="noopener noreferrer">${text(part)}</a>`:text(part)).join('');
 }
+// What a delivery's stored reason code means to a person; an unknown code says nothing rather than show the code.
+const REASONS={response_unknown:'no clear answer from the destination',slack_webhook_response_unknown:'no clear answer from Slack',slack_bot_response_unknown:'no clear answer from Slack',webhook_response_uncertain:'no clear answer from the webhook',slack_no_team:'Slack did not recognise the workspace',webhook_rejected:'the webhook refused it',webhook_rate_limited:'the webhook asked for fewer messages',slack_rate_limited:'Slack asked for fewer messages',claim_expired:'sending timed out',destination_unavailable:'the destination was unavailable',retry_attempts_exhausted:'every attempt was used',retry_window_exhausted:'the retry window ended',destination_disabled:'the destination was off',destination_deleted:'the destination was deleted',credential_rotated:'its credentials changed',credential_unavailable:'its credentials are unavailable',mail_not_configured:'email is not set up'};
+const deliveryReason=code=>REASONS[code]??'';
 function activity(entry){
  const d=entry.data??{};
  if(entry.kind==='confirmation'||entry.kind==='recovery')return d.cause;
@@ -15,14 +18,14 @@ function activity(entry){
  if(['maintenance_applied','pause_applied'].includes(entry.kind))return 'Revision '+d.revision+' · '+d.outcome;
  if(entry.kind==='notification_queued'||entry.kind==='escalation_queued')return (d.channel??'')+' · '+(d.destinationName??'');
  if(entry.kind==='notification_attempt'||entry.kind==='escalation_attempt')return 'Delivery attempt '+d.number;
- if(entry.kind==='notification_outcome'||entry.kind==='escalation_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome,state=typeof outcome==='string'?outcome:outcome?.kind,code=typeof outcome==='string'?d.code:outcome?.code;return simulatedDelivery({state,code})?'Simulated · no email sent':deliveryLabel(state)}
+ if(entry.kind==='notification_outcome'||entry.kind==='escalation_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome,state=typeof outcome==='string'?outcome:outcome?.kind,code=typeof outcome==='string'?d.code:outcome?.code;const label=simulatedDelivery({state,code})?'Simulated · no email sent':deliveryLabel(state),why=code?deliveryReason(code):'';return [d.destinationName,label+(why&&!simulatedDelivery({state,code})?' ('+why+')':'')].filter(Boolean).join(' · ')}
  return d.channel?'Recorded through '+d.channel:'';
 }
 function comment(c){
  if(c.deletedAt!==null)return `<article class="incident-comment"><p>Comment deleted · ${text(at(c.deletedAt))}</p></article>`;
  return `<article class="incident-comment"><p><strong>${text(c.author.displayName)}</strong> · ${text(at(c.createdAt))}</p><p class="incident-prose">${linkedText(c.text)}</p>
  <details><summary>Edit comment</summary><form data-comment-edit="${text(c.id)}" data-version="${c.version}"><label>Comment text<textarea name="text" maxlength="5000" rows="4" required>${text(c.text)}</textarea></label><button>Save edit</button></form></details>
- ${c.history.length?`<details><summary>Edit history (${c.history.length})</summary>${c.history.map(h=>`<p>Version ${h.version} · ${text(h.editor.displayName)} · ${text(at(h.editedAt))}</p><p class="incident-prose">${linkedText(h.text)}</p>`).join('')}</details>`:''}
+ ${c.history.length?`<details><summary>Edit history (${c.history.length})</summary>${c.history.map(h=>{const made=h.version===1?{who:c.author,when:c.createdAt}:(prior=>({who:prior?.editor,when:prior?.editedAt}))(c.history.find(x=>x.version===h.version-1));return `<p>Version ${h.version} · ${text((made.who??h.editor).displayName)} · ${text(at(made.when??h.editedAt))}</p><p class="incident-prose">${linkedText(h.text)}</p>`}).join('')}</details>`:''}
  <details><summary>Delete comment</summary><p>Remove this comment’s text and edit history. A deletion entry remains in the timeline.</p><button type="button" data-delete-comment="${text(c.id)}" data-version="${c.version}">Delete text and history</button></details></article>`;
 }
 // The incident's own category select lists today's categories (Settings › Alerts manages them); a category removed since
