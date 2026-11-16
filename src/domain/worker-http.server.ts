@@ -70,6 +70,10 @@ export async function workerProbe(def:any,probe:string,context:ProbeContext){
   const response=await publicResponse(def,signal,{...context,capture}),completedAt=Date.now(),missing=!context.statusOnly&&missingDependencyEvidence(def,response);
   if(missing)return evidence({outcome:'runner_error',checks:[missing]},completedAt);
   const checks=httpAssertions(def,response,completedAt-startedAt);
+  // Keep body text in the bounded, encrypted and policy-redacted failure snapshot.
+  // A short numeric error label is safe in history even after snapshot expiry or erasure.
+  const errorCode=/\berror(?:\s+code)?\s*:?\s*(1\d{3})\b/i.exec(('failureSnapshot' in response&&response.failureSnapshot&&'body' in response.failureSnapshot?response.failureSnapshot.body:'').replace(/<[^>]*>/g,' '))?.[1];
+  for(const check of checks)if(check.assertion==='status'&&!check.pass)check.reason=`HTTP ${response.status} is outside the expected status or range${errorCode?`; error code ${errorCode}`:''}`;
   return evidence({...(checks.some((check:any)=>!check.pass)&&'failureSnapshot' in response?{failureSnapshot:response.failureSnapshot&&'unavailable' in response.failureSnapshot?response.failureSnapshot:{...response.failureSnapshot,durationMs:completedAt-startedAt}}:{}),outcome:checks.every((check:any)=>check.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks},completedAt);
  }catch(error){
   const category=error instanceof BudgetExhausted?'budget':signal.aborted||(error as Error)?.name==='TimeoutError'?'timeout':error instanceof ProbeError?error.category:'connection';

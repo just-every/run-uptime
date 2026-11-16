@@ -544,7 +544,7 @@
       "executable": false
     },
     "deploy.json": {
-      "sha256": "2d97e7822cb1c2107319cc74a41b01e98fb64bb4a15a4ba477f0a1ae480d5034",
+      "sha256": "7b51674d2785f722f191b43b7989a04f9f5e8d58a627602ac8f01b9cffa3f57c",
       "executable": false
     },
     "docs/access.md": {
@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "31b49f7004b2d567097e61e00a24e85b86a39c9b2b9e4d949bcfc3cc93cdf70a",
+      "sha256": "7ac44a357c65f622b0d0f3d6bfca2f6970f746eb923d11f73feca3949116258c",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2147,6 +2147,10 @@
       "sha256": "48bf12cd6530a4c1304be5951dfad82ff0b6c5ce2a80b26f0f966f107a52fe17",
       "executable": false
     },
+    "docs/same-account-checks.md": {
+      "sha256": "bedfafe4c56babaf17a47d1d3e180df25b45cb26ea045e224c8b7d9218d4b318",
+      "executable": false
+    },
     "docs/scheduled-reports.md": {
       "sha256": "4840ecb10ee664472c57916e684124d95a9c6fba769d34daecdd1c20c0d466ca",
       "executable": false
@@ -2192,7 +2196,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "681748fad6faceb3131260204a477ba8a4101f8eab30f4c05a2f629d6845a850",
+      "sha256": "8e1d7e8b23f70d4a83c6a0dbf530bc04260531a7abf83fb4feea32221c25016c",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -2564,7 +2568,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "380f5cf7e265219783a376faa9e297fe634368f9ad23ef7586c6ba0109e426e5",
+      "sha256": "4173aa871f8e88d9c28916d94fc3243fd39cc945e6f5c9a143a2991704998940",
       "executable": false
     },
     "package.json": {
@@ -3764,7 +3768,7 @@
       "executable": false
     },
     "scripts/deployment/plan.mjs": {
-      "sha256": "bf7cd6e5ab2abe5958c4dadb07a894a8e64833b84e51db55395b6fc027637958",
+      "sha256": "ddae0c2dab704263c8d6983ba7d4dd5ead0a4cf33260df6e8fdd0908cd355a6a",
       "executable": false
     },
     "scripts/deployment/prepare.mjs": {
@@ -8332,7 +8336,7 @@
       "executable": false
     },
     "src/domain/worker-http.server.ts": {
-      "sha256": "591291a99b1bf091173609a74accbfeb953bef3bb91f9ba4cc905693c8257d11",
+      "sha256": "960a9bc4cf835f19ae988e9100307b50062b176d3c6bd5ed975e24959f182cf2",
       "executable": false
     },
     "src/domain/worker-kick.server.ts": {
@@ -9372,7 +9376,7 @@
       "executable": false
     },
     "tests/hosted-probe-identification-support.mjs": {
-      "sha256": "ed60ec2aad8cabe2fdf6e4d6e69c0a20f80da8fb6c5ebd8554e813c3063c77c7",
+      "sha256": "23ab9fb1963b2f0937a67548aff1e79300424dc79c9aabb94e1a387278077757",
       "executable": false
     },
     "tests/import-paste-browser-support.mjs": {
@@ -10032,7 +10036,7 @@
       "executable": false
     },
     "wrangler.jsonc": {
-      "sha256": "5af20d9a0c17d295ca4b2b74fba5833deb61ad0f8633ad97cca1eb1d0904aa47",
+      "sha256": "79aa9617e2766fe6c5b8dc5f32bf25ecd9291aab7c67dbdc7924c590730811f0",
       "executable": false
     }
   }
