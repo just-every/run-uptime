@@ -113,6 +113,7 @@
   "publicationScan": "Mac lander gate; cloud has no landing authority",
   "finalCandidate": "f5ae7e2e254bc90c64d2ec617e617a2fe3dd1ed9",
   "verifyRunId": 43943587519,
-  "verifyStatus": "in_progress",
-  "verifyCalls": 2
+  "verifyStatus": "completed",
+  "verifyCalls": 4,
+  "verifyConclusion": "success"
 }

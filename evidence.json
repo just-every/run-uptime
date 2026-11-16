@@ -1,16 +1,22 @@
 {
   "files": [
     {
-      "blob": "81606144448f7a3a12ca4f38640e55352310c45b",
-      "bytes": 3435,
+      "blob": "f9125f06120d2f80f39f60c3ee233360f71b2bfa",
+      "bytes": 3466,
       "path": "CHECKS.json",
-      "sha256": "9fbb37634c0d118ab71fc7c85a41e55dc95f45a98fc8cde8f0de391101f84eed"
+      "sha256": "f607f16a1c4396dcead9d4e03876dd94de2c00cd5d796904f4a1c298590d0ab3"
     },
     {
-      "blob": "46a8d3d76f45c23fd9dbe5ecf397156271d92715",
-      "bytes": 5638,
+      "blob": "ade95e88baea816bd5b47aae9c8e7112fbe0ad84",
+      "bytes": 1200,
+      "path": "FINAL-RECEIPT.json",
+      "sha256": "31f880eb3c187a223965084388a0becbe18fd283a7eda473c231cda04f63b56f"
+    },
+    {
+      "blob": "732485526da99373acb901a2039f526c6f6cd8c1",
+      "bytes": 5948,
       "path": "REPORT.md",
-      "sha256": "8b1ec4bd9fd1feb77a7e510f073d79b6c685c33607fec10fabcd9ea3b4a1a290"
+      "sha256": "76b3a4c61949239af694e6f7adaaeffde4868bcd3431c163c96b4441fa7a2fdf"
     },
     {
       "blob": "c55f60c9e4e638e6476e5accd7f72a28a43ac478",
@@ -37,10 +43,10 @@
       "sha256": "c11bca8df806c894b0c23aeae48d673a41d436c118e3a63832052f08667a872f"
     },
     {
-      "blob": "dc40e6802ecc16e21ec06032c5e24a726ff19198",
-      "bytes": 360,
+      "blob": "cc42e8ac9ad3c434504d4974797afebfab4fcfc4",
+      "bytes": 880,
       "path": "ci-status.json",
-      "sha256": "23da6fc979549a5fe9e4f7c5b241d8fb0246297fdf301c58758eb44c676e265b"
+      "sha256": "aa14438ea33fc9ca544f078181f276c92c8a410f1d94185a3288e74e426c2c49"
     },
     {
       "blob": "c41a70e8a622e91afb3993943e255e06525b5220",
@@ -73,10 +79,10 @@
       "sha256": "3be4deaf8c8632249c8456bf76fa0f17ed36ff227f350e0f3e6a64fd994f732c"
     },
     {
-      "blob": "43058089397a23e3edf09e7b85e1681ac412dee3",
-      "bytes": 976,
+      "blob": "9bbbda23fa8591893522131f417d7362170c66d4",
+      "bytes": 1347,
       "path": "product-provenance.json",
-      "sha256": "e45764e93ca2b080f36ce8d13cdc8870582725dca7f1a5ceb31299bbd8d69610"
+      "sha256": "48c8d5c32a66f11f57db09970d078b913cf1aeb09bceb56bc8daefc248fe0297"
     },
     {
       "blob": "889a5bf64199e65b10f7f43d9760833bb4327efe",
