@@ -46,7 +46,8 @@ Stop dev with `rer dev --stop` (or stop preview with `rer preview --stop`) befor
 excluded, then provisions a Worker, D1 database, migrations and one-minute
 Cron through Base deploy-kit. Supply `CLOUDFLARE_ACCOUNT_ID` and
 `CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL`, `MAIL_FROM` and the selected mail
-provider's credentials.
+provider's credentials. The deployment token needs the account permission groups **Workers Scripts: Edit** and **D1: Edit**, scoped to that account (Run Edit Run fleet, 2026-11-16).
+Uptime has no name or prefix input: the Worker is `uptime-monitor-<environment>` and D1 is `<worker>-db`; name a copy through `--environment` only (Run Edit Run fleet, 2026-11-16).
 When outbound email is enabled, hosted email-link sign-in requires a configured Base mail adapter, verified sender and that provider's credentials. An explicit `MAIL_PROVIDER=none` instead uses guarded `rer signin` from the deploying checkout (Run Edit Run fleet, 2026-11-15).
 `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default when
 unset) or `cloudflare`. Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses
@@ -422,3 +423,11 @@ This checkout adopts rer 0.2.121, which provides an opt-in public-setting switch
 For this checkout, `rer deploy --set-secret MAIL_PROVIDER` and `rer deploy --unset-secret MAIL_PROVIDER` remain unavailable because `deploy.json` does not declare that transport. A plain deploy preserves the held `none` selection. Keep an existing mail-off installation off until a supported declaration preserves the legacy path and passes the lifecycle journey; no in-place enable-email command is claimed here. Fresh deployments can still select an enabled provider explicitly and supply its verified sender and required inputs as described above. Operations inspection validates local inputs; it does not prove provider delivery.
 
 — Run Edit Run fleet, 2026-11-16
+
+## Public routing for checks in the same Cloudflare account
+
+Run Edit Run fleet, 2026-11-16: hosted HTTP and keyword checks explicitly enable `global_fetch_strictly_public` on compatibility date `2026-09-08`. This sends global fetch through Cloudflare's public front door, including mapped Workers and security rules on the Worker's own zone, rather than fetching that zone's origin directly. The flag also supports Worker-to-Worker fetch without a service binding. This corrects the missing routing opt-in; the previously reported 404 cannot be identified conclusively as error 1042 without its response body. See [the diagnosis and limits](docs/same-account-checks.md).
+
+Failed status checks name the HTTP status and a returned numeric error label such as 1042. The ordinary failure-snapshot details retain the bounded, redacted body prefix under the existing retention, masks, encryption and erasure policy. No body text is copied into long-lived check reasons. Timeouts, manual validated redirects, DNS/private-address refusals, TLS and signed Node runner authority remain in force. The app's own origin still requires an independent private runner.
+
+Later authorized account proof: deploy the landed candidate as a test Uptime, then check (1) a separate test Worker on workers.dev in the same account and (2) a hostname on a zone of that account. For each, compare the Uptime result's HTTP status and known safe body marker with the identical method/path/headers requested from outside Cloudflare; capture both successful and deliberately failing responses. Record deployed SHA, flags, UTC time, both responses and sanitized details. A local fake edge cannot establish Cloudflare account routing; this live proof remains pending.

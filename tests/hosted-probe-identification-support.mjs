@@ -10,7 +10,7 @@ import {splitSql} from './migration-support.mjs';
 // Owner doors and the emitted scheduled handler; only authorized DNS and HTTP edges are substituted.
 export async function proveHostedProbeIdentification(){
  const directory=await mkdtemp(join(tmpdir(),'uptime-probe-identification-'));
- const origin='https://synthetic-uptime-600.test',target='https://synthetic-uptime-601.test',redirected='https://synthetic-uptime-602.test';
+ const origin='https://synthetic-uptime-600.test',target='https://synthetic-uptime-601.synthetic-uptime-600.workers.dev',redirected='https://synthetic-uptime-602.synthetic-uptime-600.test';
  const names=['synthetic-uptime-603-private-name','synthetic-uptime-604-private-name'];
  const release=JSON.parse(await readFile('seed.json','utf8')).version,epoch=Date.now(),received=[],dnsNames=new Set();
  const bindings={...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-607'};
@@ -20,8 +20,9 @@ export async function proveHostedProbeIdentification(){
   if(url.hostname==='api.sendgrid.com')return new Response(null,{status:202});
   if(url.origin==='https://cloudflare-dns.com'){
    dnsNames.add(url.searchParams.get('name'));
-   assert.ok(['synthetic-uptime-601.test','synthetic-uptime-602.test','example.com'].includes(url.searchParams.get('name')),'only owner-authorized targets, redirects and canary resolve');
+   assert.ok([new URL(target).hostname,new URL(redirected).hostname,'example.com','localhost','synthetic-uptime-612.test'].includes(url.searchParams.get('name')),'only owner-authorized targets, redirects and canary resolve');
    const a=url.searchParams.get('type')==='A';
+   if(['localhost','synthetic-uptime-612.test'].includes(url.searchParams.get('name')))return Response.json({Status:0,Answer:[{type:1,data:'93.184.215.14'},{type:1,data:'127.0.0.1'}]});
    return Response.json({Status:0,Answer:[{type:a?1:28,data:a?'93.184.215.14':'2606:2800:21f:cb07:6820:80da:af6b:8b2c'}]});
   }
   if(url.origin==='https://example.com')return new Response('canary ready');
@@ -31,7 +32,9 @@ export async function proveHostedProbeIdentification(){
    if(!url.pathname.endsWith('/next'))return new Response(null,{status:302,headers:{location:url.pathname+'/next'}});
    return new Response(null,{status:307,headers:{location:redirected+url.pathname.replace('/next','')}});
   }
-  return new Response(phase==='failure'?'not ready':'service ready',{status:phase==='failure'&&url.pathname==='/http'?503:200});
+  if(url.pathname==='/private')return new Response(null,{status:302,headers:{location:'http://127.0.0.1/admin'}});
+  const routingFailure='<!doctype html><h1>Error 1042</h1><p>Cloudflare routing failure</p><p>Authorization: Bearer synthetic-uptime-608</p><p>synthetic-uptime-609 operator@example.test</p>'+'x'.repeat(17000)+'PRIVATE-TAIL';
+  return new Response(phase==='failure'?(url.pathname==='/http'?routingFailure:'not ready'):'service ready',{status:phase==='failure'&&url.pathname==='/http'?404:200});
  };
  const start=async now=>{worker=await hostedRuntime(directory,bindings,outbound,{now})};
  const call=(path,body,session=cookie,method=body===undefined?'GET':'POST')=>worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+path,method,headers:{host:new URL(origin).host,origin,'content-type':'application/json','cf-connecting-ip':'192.0.2.1',...(session?{cookie:session}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})})});
@@ -47,6 +50,7 @@ export async function proveHostedProbeIdentification(){
   await completeSecondFactor(origin,cookie,(url,init)=>call(new URL(url).pathname,init.body===undefined?undefined:JSON.parse(init.body),cookie),epoch);
   const monitors=[];
   for(const [index,type] of ['http','keyword'].entries())monitors.push(await json(await call('/api/monitors',{name:names[index],type,url:target+'/'+type,enabled:false,intervalMs:60000,retries:1,confirmSlots:1,recoverSlots:1,...(type==='keyword'?{assertions:{status:200,bodyIncludes:'service ready'}}:{})})));
+  await json(await call(`/api/monitors/${monitors[0].id}/failure-snapshots`,{version:0,retentionDays:90,masks:['synthetic-uptime-609']},cookie,'PATCH'));
   // Paused creation lets the real console kick settle before explicit Cron execution at this clock.
   for(let attempt=0;attempt<100;attempt++){
    const kick=await db.prepare("SELECT outcome FROM monitoring_watch WHERE id='console-worker-kick'").first();
@@ -62,6 +66,16 @@ export async function proveHostedProbeIdentification(){
    assert.ok(slots[0].observations.some(observation=>observation.attempt===1),'a failing target retries within its immutable slot');
    assert.ok(slots[0].observations.every(observation=>observation.outcome==='target_failure'));
    assert.ok(slots[0].observations.some(observation=>observation.checks.some(check=>!check.pass&&check.assertion===(index===0?'status':'body'))),'HTTP status and keyword failures retain their ordinary assertion evidence');
+  }
+  const httpFailure=failing[0][0].observations[0];
+  assert.equal(httpFailure.status,404);
+  assert.match(httpFailure.checks.find(check=>check.assertion==='status').reason,/HTTP 404.*error code 1042/,'history names the actual response and routing error');
+  const snapshots=await json(await call(`/api/monitors/${monitors[0].id}/failure-snapshots`));
+  assert.ok(snapshots.items.length,'the operator can inspect the response body through the ordinary details API');
+  for(const {snapshot} of snapshots.items){
+   assert.equal(snapshot.status,404);assert.match(snapshot.body,/Error 1042/);assert.match(snapshot.body,/\[redacted\]/);
+   assert.ok(Buffer.byteLength(snapshot.body)<=16384);assert.equal(snapshot.bodyTruncated,true);
+   for(const privateValue of ['synthetic-uptime-608','synthetic-uptime-609','operator@example.test','PRIVATE-TAIL'])assert.ok(!snapshot.body.includes(privateValue),'failure details redact secrets, operator masks and email and bound the prefix');
   }
   const references=new Map();
   for(const record of received){
@@ -103,6 +117,26 @@ export async function proveHostedProbeIdentification(){
   for(const secret of [...names,'synthetic-uptime-605-private-owner','synthetic-uptime-606-renamed',cookie,bindings.OWNER_EMAIL,bindings.SENDGRID_API_KEY,bindings.SESSION_SECRET,bindings.UPTIME_RUNNER_KEY,bindings.SETUP_TOKEN,...monitors.map(monitor=>monitor.id)])assert.ok(!wire.includes(secret),'identification excludes private names and installation authority');
   for(const record of received){assert.equal(record.headers.cookie,undefined);assert.equal(record.headers.authorization,undefined)}
   assert.ok(dnsNames.has(new URL(target).hostname)&&dnsNames.has(new URL(redirected).hostname),'both redirect origins pass the actual hosted DNS boundary');
+  // The routing compatibility flag grants no private-target permission.
+  const beforeRefusal=received.length;
+  for(const url of ['http://127.0.0.1/admin','http://169.254.169.254/latest/meta-data/'])assert.equal((await call('/api/monitors',{name:'synthetic-uptime-610',url})).status,400);
+  assert.equal(received.length,beforeRefusal);
+  const redirectedPrivate=await json(await call('/api/monitors',{name:'synthetic-uptime-611',url:redirected+'/private',enabled:false,intervalMs:60000,retries:0}));
+  await json(await call(`/api/monitors/${redirectedPrivate.id}`,{...redirectedPrivate.definition,enabled:true},cookie,'PATCH'));
+  await scheduled();
+  const refused=await history(redirectedPrivate.id);
+  assert.equal(refused[0].observations[0].outcome,'runner_error');assert.equal(refused[0].observations[0].checks[0].assertion,'network');
+  assert.ok(received.slice(beforeRefusal).every(record=>[target,redirected].includes(new URL(record.url).origin)),'a private redirect never reaches the network edge');
+  for(const url of ['http://localhost/admin','https://synthetic-uptime-612.test/admin']){
+   const beforeDNSRefusal=received.length;
+   const monitor=await json(await call('/api/monitors',{name:'synthetic-uptime-613',url,enabled:false,retries:0}));
+   await json(await call(`/api/monitors/${monitor.id}`,{...monitor.definition,enabled:true},cookie,'PATCH'));
+   await scheduled();
+   const slots=await history(monitor.id);
+   assert.equal(slots[0].observations[0].outcome,'runner_error');assert.equal(slots[0].observations[0].checks[0].assertion,'network');
+   assert.equal(received.length,beforeDNSRefusal,'localhost and mixed public/private DNS never send a target request');
+  }
+  console.log('PASS hosted routed-target failure details: HTTP status and error code, bounded redacted body, localhost and metadata refusals, private redirect refusal');
   console.log('PASS hosted HTTP and keyword probe identification: public documentation, distinct stable opaque references, retries, redirects, restart, owner edit, private-data exclusion and retained failure and recovery history');
  }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}
 }

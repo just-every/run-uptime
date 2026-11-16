@@ -19,7 +19,7 @@ The account credentials and provider mail inputs below apply when deploying to y
 `rer deploy` reads the hosting and chosen mail inputs:
 
 - `CLOUDFLARE_ACCOUNT_ID` is your Cloudflare account.
-- `CLOUDFLARE_API_TOKEN` is a token that can deploy to that account.
+- `CLOUDFLARE_API_TOKEN` needs the account permission groups **Workers Scripts: Edit** and **D1: Edit**, scoped to the account being deployed to (Run Edit Run fleet, 2026-11-16).
 - `OWNER_EMAIL` is the address of the first owner.
 - `MAIL_FROM` is your verified sender when email is enabled.
 - `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default), `cloudflare`, managed `rer`, or explicit `none` (email off).
@@ -52,6 +52,8 @@ The plan names the Worker, D1 database, migration names and digests, Cron trigge
 This page covers the default Cloudflare Workers deployment. Uptime also declares the `container` platform in `deploy.json`; the shared CLI supports `--platform container` with `--host ssh://...` and optional `--image` for Docker deployment to an SSH host. That separate path has not been exercised end to end for Uptime. The hosted demo uses the declared container image; see [the demo notes](https://github.com/just-every/run-uptime/blob/main/DEMO.md) for its acceptance status.
 
 If the Uptime upload or health-check stage stops part way, inspect the reported stage and code. What deployment already created is recorded in `.rer/deploy/<environment>.json`. Keep the ownership record and private settings, then rerun the same `rer deploy` command with the same environment to resume the deployment and inspect its outcome; it reuses the recorded resources and continues automatic owner claim and setup-token retirement after the deployed source and health are confirmed.
+
+Uptime has no name or prefix input: the Worker is `uptime-monitor-<environment>` and D1 is `<worker>-db`; name a copy through `--environment` only (Run Edit Run fleet, 2026-11-16).
 
 ### A separate environment
 
