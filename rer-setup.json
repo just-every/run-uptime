@@ -63,7 +63,7 @@
       "label": "Email delivery",
       "kind": "select",
       "required": true,
-      "default": "sendgrid",
+      "default": "none",
       "options": [
         {
           "value": "rer",

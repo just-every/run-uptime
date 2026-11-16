@@ -22,7 +22,7 @@ The account credentials and provider mail inputs below apply when deploying to y
 - `CLOUDFLARE_API_TOKEN` is a token that can deploy to that account.
 - `OWNER_EMAIL` is the address of the first owner.
 - `MAIL_FROM` is your verified sender when email is enabled.
-- `MAIL_PROVIDER` selects `resend`, `sendgrid` (the existing-install default), `cloudflare`, managed `rer`, or explicit `none` (email off).
+- `MAIL_PROVIDER` selects `resend`, `sendgrid`, `cloudflare`, managed `rer`, or `none` (the default when unset; email off).
 - Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses `SENDGRID_API_KEY`; Cloudflare Email Sending uses `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`.
 - rer checks the selected provider's mail configuration before it builds. For enabled email, supply `MAIL_PROVIDER`, `MAIL_FROM` and that provider's key in the environment or an `--env-file`. The shared `MAIL_API_KEY` input can also supply a direct provider's key; Uptime keeps it under the selected provider's name above. Updates may reuse an existing deployment's mail credential.
 - Optional `UPTIME_START_URL` is a public `http` or `https` website for the owner to start with. Uptime asks the owner's runner to look at it when the owner opens first-run setup, and finishing setup opens the console on the monitors it proposes. A hosted address that is not public stops the deployment before anything is created. Set it before the first deploy: like the other saved inputs, it is kept in `.rer/deploy/<environment>.secrets.env` from then on (production: `.rer/deploy/production.secrets.env`). Without it, `/setup` offers the same box.
@@ -134,14 +134,30 @@ On a fresh checkout, unattended deployment with the pinned rer version also need
 
 ## Deliberately run without outbound email
 
-Select `MAIL_PROVIDER=none` in the hosted setup or the deploying checkout's private environment file. Leave `MAIL_FROM`, provider keys, relay URL, account ID and DKIM inputs absent. Missing or deferred provider selection does not mean off; `none` together with sending credentials is refused before upload. The deployment binds `MAIL_PROVIDER=none` to the Worker. Local dev and demo keep their existing development mail behavior.
+Select `MAIL_PROVIDER=none` in the hosted setup or the deploying checkout's private environment file. Leave `MAIL_FROM`, provider keys, relay URL, account ID and DKIM inputs absent. An omitted selector uses the declared default `none`; `none` together with sending credentials is refused before upload. Existing enabled installations must retain or explicitly select their provider. The deployment binds `MAIL_PROVIDER=none` to the Worker. Local dev and demo keep their existing development mail behavior.
 
 With mail off, use `rer signin` (or `rer signin --environment NAME`) from the checkout that deployed this environment, with that deploying account's Cloudflare credentials and its saved deployment record. Base checks the recorded Worker, account, project, environment and ownership receipt before issuing a short-lived owner grant. Keep the terminal link private; it is never an invitation or a hosted local-development entry. Losing the deploying checkout's receipt requires restoring that receipt, not bypassing ownership.
 
 First-run setup, monitor checks, incident recovery and Settings remain available. Email-link and invitation requests return `503 mail_unavailable`, including for unknown addresses. Email alerts remain unavailable and are never recorded as sent; configure another supported destination for delivery. Webhook and Slack delivery keep their existing configuration requirements. Optional operations sign-in mail reports off; required delivery loops cannot claim readiness while off.
 
-This checkout adopts rer 0.2.121, which provides an opt-in public-setting switch. Uptime has not enabled that declaration yet: its existing omitted-selector SendGrid deployment must keep working. The lifecycle trial with public `MAIL_PROVIDER=none` plus optional secret transport refused that existing path before building or uploading: “MAIL_PROVIDER=none turns outbound email off, and SENDGRID_API_KEY would bind a way to send. Remove it or choose a mail provider. Nothing was built or uploaded.”
+### Enable email later or switch back to none
 
-For this checkout, `rer deploy --set-secret MAIL_PROVIDER` and `rer deploy --unset-secret MAIL_PROVIDER` remain unavailable because `deploy.json` does not declare that transport. A plain deploy preserves the held `none` selection. Keep an existing mail-off installation off until a supported declaration preserves the legacy path and passes the lifecycle journey; no in-place enable-email command is claimed here. Fresh deployments can still select an enabled provider explicitly and supply its verified sender and required inputs as described above. Operations inspection validates local inputs; it does not prove provider delivery.
+This checkout declares public `MAIL_PROVIDER` with default `none` and optional secret transport on rer 0.2.121. On the existing deployment checkout, keep the same account credentials, environment, ownership receipt and private settings. Stop dev or preview first. Put the verified sender and SendGrid credential into an owned mode-0600 `deploy.env` file, with `MAIL_FROM` and `SENDGRID_API_KEY` entries. Keep that file out of Git. Enable email on the same Worker with:
+
+```sh
+rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env
+```
+
+Add `--environment NAME` for a named environment. Public selector values may appear inline; credentials come from the environment or the private file. The grouped change copies the existing Worker code into one version and retains the admitted owner, database and installation keys. A plain `rer deploy` preserves the selected provider. For a fresh enabled deployment, select `MAIL_PROVIDER=sendgrid` explicitly with its sender and key; a key without a selector does not select SendGrid.
+
+Switch that SendGrid installation back to the declared mail-off default and remove its sending inputs together:
+
+```sh
+rer deploy --unset-secret MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY
+```
+
+Run the unset command without the enabling `--env-file` and remove sending inputs from your shell. It removes the saved overrides and restores public `MAIL_PROVIDER=none` in the same Worker version; a subsequent plain deploy stays off. Guarded `rer signin` remains available. To turn off another provider, also unset that provider's declared sending inputs; never leave a sending credential with `none`.
+
+Inspect local deployment inputs, with the same default, using `node scripts/deployment/ops-config.mjs`. This calls Base's operations inspector after applying the public default from `deploy.json`; Base's generic descriptor does not accept `none` as a `whenUnset` entry. Explicit SendGrid, Resend and Cloudflare require their declared sender and credential inputs; explicit or default `none` reports optional mail off. Run `rer check --profile first-party` for the structural contract. These checks do not contact a provider or prove delivery. Verify actual email sign-in and recipient delivery separately after an authorized deployment.
 
 — Run Edit Run fleet, 2026-11-16

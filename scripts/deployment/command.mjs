@@ -9,6 +9,7 @@ import { ownerSecrets, ownerEnvironment, validateAccount } from './owner-setting
 import { prepareOwnerBuild, ownerProduct } from './owner-prepare.mjs';
 import { missing, RerError } from '@runeditrun/rer/errors';
 import { ownerDeploy } from '@runeditrun/rer/deploy';
+import { switchableDefaults } from '@runeditrun/rer/internal/cli/deploy-settings.mjs';
 import { deployCommand } from '@runeditrun/rer/internal/cli/deploy-command.mjs';
 import { migrateSecrets, savedInputs } from './secret-custody.mjs';
 function upload(lifecycle) {
@@ -49,7 +50,7 @@ function upload(lifecycle) {
    // Cloudflare assigns the origin during deployment. Validate the remaining
    // plan without inventing an origin, and name its pending variable explicitly.
    const { originVar, ...planningDeclaration } = selectedDeclaration;
-   const validated = ownerPlan({ project: declaration.project, environment, worker }, planningDeclaration, artifact);
+   const validated = ownerPlan({ project: declaration.project, environment, worker }, planningDeclaration, artifact, { publicDefaults: await switchableDefaults(planningDeclaration) });
    const plan = { ...validated, d1: validated.d1.map(database => ({ ...database,
     migrations: database.migrations.map(({ sql, ...migration }) => migration),
    })) };

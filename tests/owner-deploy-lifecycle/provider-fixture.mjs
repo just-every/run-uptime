@@ -19,12 +19,13 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
   function secretVersion() {
     if (!state.version) return;
     state.settings.bindings = [...state.settings.bindings.filter(item => item.type !== 'secret_text'), ...state.secrets.map(({name}) => ({name,type:'secret_text'}))];
-    const id = randomUUID(); state.version = {...structuredClone(state.version),id};
+    const previous = state.version.id, id = randomUUID(); state.version = {...structuredClone(state.version),id};
+    contents.set(id, contents.get(previous)); versionSecrets.set(id, structuredClone(state.secrets));
     state.version.resources.bindings = structuredClone(state.settings.bindings);
     state.versions = [state.version,...(state.versions ?? [])];
     state.deployments = [{id:randomUUID(),versions:[{version_id:id,percentage:100}]},...state.deployments];
   }
-  const imports = new Map(), assets = new Map();
+  const imports = new Map(), assets = new Map(), contents = new Map(), versionSecrets = new Map();
   let delayedListing = false, pendingDatabaseListings = 0, assetManifest = {};
   state.omittedDatabaseListings = 0; state.settledDatabaseListings = 0; state.assetRequests = [];
   const fetch = async (input,init={}) => {
@@ -135,7 +136,43 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     const name = worker[1], suffix = worker[2];
     if (suffix === '/assets-upload-session') {assetManifest=body.manifest;write(method,path,body);return ok({jwt:'fixture-upload-jwt',buckets:[[...new Set(Object.values(body.manifest).map(x => x.hash))]]});}
     if (suffix === '/settings') return state.settings ? ok(state.settings) : missing();
+    if (suffix === '/deployments' && method === 'POST') {
+      const selected = state.versions.find(version => version.id === body.versions[0].version_id);
+      if (!selected) return missing();
+      state.version = selected;
+      state.settings = {...state.settings,bindings:structuredClone(selected.resources.bindings)};
+      state.secrets = structuredClone(versionSecrets.get(selected.id));
+      const deployed = {id:randomUUID(),versions:body.versions};
+      state.deployments = [deployed,...state.deployments]; write(method,path,body); return ok(deployed);
+    }
     if (suffix === '/deployments') return ok({deployments:state.deployments});
+    if (suffix === '/content/v2') {
+      const content = contents.get(url.searchParams.get('version'));
+      if (!content) return missing();
+      const data = new FormData();
+      for (const [name,file] of content.parts) data.set(name,file,name);
+      const response = new Response(data); response.headers.set('cf-entrypoint',content.entry);
+      return response;
+    }
+    if (suffix === '/versions' && method === 'POST') {
+      const meta = JSON.parse(await body.get('metadata').text());
+      for (const binding of meta.bindings.filter(item => item.type === 'inherit')) {
+        if (!state.settings.bindings.some(item => item.name === binding.name)) throw Error('unknown inherited binding');
+      }
+      const bindings = meta.bindings.map(item => item.type === 'inherit'
+        ? structuredClone(state.settings.bindings.find(binding => binding.name === item.name))
+        : item.type === 'secret_text' ? {name:item.name,type:'secret_text'} : item);
+      const secrets = meta.bindings.flatMap(item => item.type === 'secret_text' ? [{name:item.name,value:item.text}]
+        : item.type === 'inherit' ? state.secrets.filter(secret => secret.name === item.name) : []);
+      const parts = [...body].filter(([name]) => name !== 'metadata');
+      const modules = await Promise.all(parts.map(async ([path,file]) => ({path,sha256:hash(Buffer.from(await file.arrayBuffer()))})));
+      const id = randomUUID(), version = {id,annotations:meta.annotations,resources:{bindings,
+        script_runtime:{compatibility_date:meta.compatibility_date,compatibility_flags:meta.compatibility_flags},
+        script:{etag:hash(modules),handlers:structuredClone(state.uploadHandlers)}}};
+      contents.set(id,{entry:meta.main_module,parts}); versionSecrets.set(id,structuredClone(secrets));
+      state.versions = [version,...state.versions]; write(method,path,{bindings:bindings.map(({name,type})=>({name,type}))});
+      return ok({id});
+    }
     if (suffix === '/versions') return ok({items:(state.versions ?? []).map(({id}) => ({id}))});
     if (suffix.startsWith('/versions/')) return ok(state.versions?.find(x => x.id === suffix.slice('/versions/'.length)) ?? state.version);
     if (suffix === '/secrets' && method === 'PUT') { state.secrets = [...state.secrets.filter(x => x.name !== body.name),{name:body.name,value:body.text}]; write(method,path,{name:body.name}); secretVersion(); return ok({name:body.name,type:'secret_text'}); }
@@ -150,12 +187,15 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     }
     if (suffix === '' && method === 'PUT') {
       const meta = JSON.parse(await body.get('metadata').text());
-      for (const item of meta.bindings.filter(x => x.type === 'secret_text')) state.secrets.push({name:item.name,value:item.text});
+      state.secrets = meta.bindings.flatMap(item => item.type === 'secret_text' ? [{name:item.name,value:item.text}]
+        : item.type === 'inherit' ? state.secrets.filter(secret => secret.name === item.name) : []);
       const bindings = meta.bindings.map(x => x.type === 'inherit' || x.type === 'secret_text' ? {name:x.name,type:'secret_text'} : x);
       state.settings = {...meta,bindings,migration_tag:meta.migrations?.new_tag ?? state.settings?.migration_tag};
       for (const klass of meta.migrations?.new_sqlite_classes ?? []) state.namespaces.push({id:randomUUID().replaceAll('-',''),class:klass,script:name,use_sqlite:true});
       const modules = await Promise.all([...body].filter(([path]) => path !== 'metadata').map(async ([path,file]) => ({path,sha256:hash(Buffer.from(await file.arrayBuffer()))})));
-      const id = randomUUID();state.version={id,...(meta.annotations ? {annotations:meta.annotations} : {}),resources:{bindings,script:{etag:hash(modules),handlers:structuredClone(state.uploadHandlers)}}};state.versions=[state.version,...(state.versions ?? [])];state.deployments=[{id:randomUUID(),versions:[{version_id:id,percentage:100}]},...state.deployments];
+      const id = randomUUID();state.version={id,...(meta.annotations ? {annotations:meta.annotations} : {}),resources:{bindings,script_runtime:{compatibility_date:meta.compatibility_date,compatibility_flags:meta.compatibility_flags ?? []},script:{etag:hash(modules),handlers:structuredClone(state.uploadHandlers)}}};state.versions=[state.version,...(state.versions ?? [])];state.deployments=[{id:randomUUID(),versions:[{version_id:id,percentage:100}]},...state.deployments];
+      contents.set(id,{entry:meta.main_module,parts:[...body].filter(([name])=>name!=='metadata')});
+      versionSecrets.set(id,structuredClone(state.secrets));
       write(method,path,{bindings:bindings.map(x => ({name:x.name,type:x.type}))});return ok({id:name,deployment_id:id});
     }
     throw Error(`unexpected fixture ${method} ${path}`);

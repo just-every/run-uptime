@@ -15,10 +15,9 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.equal(provider.state.databases.length, 0);
   assert.equal(provider.uploads.length, 0);
   provider.delayCreatedDatabaseListing();
-  // Older installations have no provider selection; their native SendGrid
-  // credential must still pass preflight and reach the deployed Worker.
+  // An enabled provider is selected explicitly; an omitted selector now means none.
   const first = await deploy(root, provider, t.signal, [], {inputs: {
-    OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@synthetic-uptime.dev', SENDGRID_API_KEY: 'test-only-sendgrid-key',
+    OWNER_EMAIL: 'owner@example.test', MAIL_PROVIDER: 'sendgrid', MAIL_FROM: 'sender@synthetic-uptime.dev', SENDGRID_API_KEY: 'test-only-sendgrid-key',
   }});
   assert.equal(first.code, 0, JSON.stringify(first));
   assert.equal(first.result?.ok, true);
@@ -39,9 +38,9 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.ok(provider.state.assetRequests.length > 0, 'the package verifies an uploaded static asset');
   assert.ok(provider.state.schedules.some(schedule=>schedule.cron),'deployed monitoring has a scheduled trigger');
   const uploaded = provider.state.secrets.find(item => item.name === 'SENDGRID_API_KEY');
-  assert.equal(uploaded?.value, 'test-only-sendgrid-key', 'an existing SendGrid credential reaches the Worker without a provider selection');
+  assert.equal(uploaded?.value, 'test-only-sendgrid-key', 'an explicit SendGrid credential reaches the Worker');
   assert.ok(!provider.state.secrets.some(item => item.name === 'MAIL_API_KEY'), 'the shared name is a deploy input, not a second Worker secret');
-  assert.ok(!provider.state.secrets.some(item => item.name === 'MAIL_PROVIDER'), 'an omitted provider keeps the native SendGrid fallback');
+  assert.equal(provider.state.secrets.find(item => item.name === 'MAIL_PROVIDER')?.value, 'sendgrid');
   const migrations = migrationRows(provider);
   assert.ok(migrations.length > 0, 'the real controller records applied migrations');
   assert.ok(migrations.every(row => row.state === 'applied'));
@@ -158,10 +157,54 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   // A fresh mail-off deployment uses its ordinary owner bootstrap, then the
   // actual rer signin command against that exact recorded account and Worker.
   const offRoot=await checkout(t),offProvider=await providerBridge(t);
-  const off=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test',MAIL_PROVIDER:'none'}});
+  const off=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
   assert.equal(off.code,0,JSON.stringify({code:off.code,errors:off.errorCodes}));
-  assert.equal(offProvider.state.secrets.find(s=>s.name==='MAIL_PROVIDER')?.value,'none');
+  const mailProvider=()=>offProvider.state.secrets.find(s=>s.name==='MAIL_PROVIDER')?.value ?? offProvider.state.settings.bindings.find(s=>s.name==='MAIL_PROVIDER')?.text;
+  assert.equal(mailProvider(),'none','an omitted selector without sending inputs uses the declared mail-off default');
   assert.ok(!offProvider.state.secrets.some(s=>s.name==='MAIL_FROM'||s.name.includes('API_KEY')));
+  // Change the existing installation through the public CLI. Grouped changes
+  // copy the active Worker and deploy one version, preserving owner/data/keys.
+  const offIdentity=await state(offRoot), offDatabase=offProvider.state.databases[0];
+  const ownerRows=()=>offDatabase.db.prepare('SELECT * FROM oa_bootstrap').all();
+  const ownerBefore=ownerRows(), offMigrations=migrationRows(offProvider);
+  const keysBefore=offProvider.state.secrets.filter(s=>['SESSION_SECRET','UPTIME_RUNNER_KEY'].includes(s.name));
+  const scriptBefore=offProvider.state.version.resources.script.etag;
+  const versionBefore=offProvider.state.version.id, uploadsBefore=offProvider.uploads.length;
+  const enabled=await deploy(offRoot,offProvider,t.signal,[
+    '--set-secret','MAIL_PROVIDER=sendgrid','--set-secret','MAIL_FROM','--set-secret','SENDGRID_API_KEY',
+  ],{inputs:{MAIL_FROM:'sender@synthetic-uptime.dev',SENDGRID_API_KEY:'synthetic-uptime-mail-switch-key'}});
+  assert.equal(enabled.code,0,JSON.stringify(enabled));
+  assert.equal(mailProvider(),'sendgrid');
+  assert.equal(offProvider.state.secrets.find(s=>s.name==='SENDGRID_API_KEY')?.value,'synthetic-uptime-mail-switch-key');
+  assert.equal(offProvider.state.secrets.find(s=>s.name==='MAIL_FROM')?.value,'sender@synthetic-uptime.dev');
+  assert.notEqual(offProvider.state.version.id,versionBefore,'enable changes the active version');
+  const enabledVersion=offProvider.state.version.id;
+  const enabledSecrets=await readDeployEnvFile(offRoot,'.rer/deploy/production.secrets.env');
+  assert.equal(enabledSecrets.MAIL_PROVIDER,'sendgrid');
+  const held=await deploy(offRoot,offProvider,t.signal,[],{inputs:false});
+  assert.equal(held.code,0,JSON.stringify(held));
+  assert.equal(mailProvider(),'sendgrid','a plain deploy retains the selected provider');
+  const disabled=await deploy(offRoot,offProvider,t.signal,[
+    '--unset-secret','MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY',
+  ],{inputs:false});
+  assert.equal(disabled.code,0,JSON.stringify(disabled));
+  assert.equal(mailProvider(),'none','unsetting the selector restores its public default');
+  assert.equal(offProvider.state.settings.bindings.find(s=>s.name==='MAIL_PROVIDER')?.type,'plain_text');
+  assert.ok(!offProvider.state.secrets.some(s=>['MAIL_PROVIDER','MAIL_FROM','SENDGRID_API_KEY','MAIL_API_KEY'].includes(s.name)),'sending overrides are removed together');
+  assert.notEqual(offProvider.state.version.id,enabledVersion,'disable changes the active version');
+  const disabledSecrets=await readDeployEnvFile(offRoot,'.rer/deploy/production.secrets.env');
+  for(const name of ['MAIL_PROVIDER','MAIL_FROM','SENDGRID_API_KEY'])assert.equal(disabledSecrets[name],undefined,'unsetting removes saved overrides too');
+  const stillOff=await deploy(offRoot,offProvider,t.signal,[],{inputs:false});
+  assert.equal(stillOff.code,0,JSON.stringify(stillOff));
+  assert.equal(mailProvider(),'none','a plain deploy after unset remains off');
+  assert.deepEqual((await state(offRoot)).owned,offIdentity.owned,'switches retain resource custody');
+  assert.equal(offProvider.state.databases[0],offDatabase,'switches keep the same database');
+  assert.deepEqual(ownerRows(),ownerBefore,'switches preserve the admitted owner');
+  assert.deepEqual(migrationRows(offProvider),offMigrations,'switches preserve migration history');
+  assert.deepEqual(offProvider.state.secrets.filter(s=>['SESSION_SECRET','UPTIME_RUNNER_KEY'].includes(s.name)),keysBefore,'switches preserve installation authority');
+  assert.equal(offProvider.state.version.resources.script.etag,scriptBefore,'switches copy the same Worker code');
+  assert.equal(offProvider.uploads.length,uploadsBefore,'switches and repeats never replace the Worker upload');
+  assert.equal(offProvider.state.calls.filter(call=>call.path.endsWith('/content/v2')).length,2,'each grouped switch reads the active code');
   const signed=await deploy(offRoot,offProvider,t.signal,[],{inputs:false,verb:'signin'});
   assert.equal(signed.code,0);
   assert.ok(signed.result?.link,'guarded command returns its one-time link only to its caller');
@@ -185,6 +228,7 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.notEqual(refused.code,0,'missing deployment receipt cannot sign in');
   assert.equal(offProvider.state.databases[0].db.prepare('SELECT count(*) AS n FROM oa_owner_signins').get().n,1);
   await writeFile(join(offRoot,'.rer/deploy/production.json'),offReceipt,{mode:0o600});
+  if(process.env.UPTIME_OWNER_MAIL_SWITCH_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_SWITCH_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',omittedSelectorDefaultsToNone:true,explicitSendgridDeployment:true,noneToSendgrid:true,sendgridToUnsetDefaultNone:true,plainDeployPreservesSelection:true,sendingOverridesRemoved:true,workerAndDatabaseCustodyPreserved:true,admittedOwnerPreserved:true,installationKeysPreserved:true,workerCodePreserved:true,providerEdge:'fake Cloudflare; no real mail provider'},null,2)+'\n');
   if(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',provider:'none',freshDeployment:true,ownerAdmittedByNativeBootstrap:true,runtimeBindingOff:true,sendingInputsAbsent:true,guardedRerSignin:true,onlyGrantHashStored:true,confirmationRequired:true,replayRefused:true,missingCredentialsRefused:true,wrongEnvironmentRefused:true,missingReceiptRefused:true},null,2)+'\n');
 
 });

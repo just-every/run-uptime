@@ -443,13 +443,6 @@
               "MAIL_FROM"
             ]
           }
-        },
-        "whenUnset": {
-          "provider": "sendgrid",
-          "apiKeyEnvironment": "SENDGRID_API_KEY",
-          "requiredEnvironment": [
-            "MAIL_FROM"
-          ]
         }
       }
     }
@@ -459,7 +452,7 @@
     "path": "/health",
     "meaning": "D1 readiness and deployment identity, not target health, runner operation, mail delivery, notification delivery or recipient acceptance."
   },
-  "environmentInspection": "The local check inspects aggregate declared deployment names and the hosted sign-in mail loop, using the runtime default SendGrid provider when MAIL_PROVIDER is unset. The configuration guard also validates saved local development settings when present. It performs no provider request and does not select or run an operational command.",
+  "environmentInspection": "Run node scripts/deployment/ops-config.mjs to inspect declared local deployment inputs and the hosted sign-in mail loop using deploy.json's public default when MAIL_PROVIDER is unset. The configuration guard also validates saved local development settings when present. It performs no provider request and does not select or run an operational command.",
   "seedContract": {
     "version": 1,
     "profile": "first-party",

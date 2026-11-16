@@ -1,7 +1,7 @@
 import {join} from 'node:path';
 import {privateDirectory,writePrivateFile} from '@runeditrun/rer/private-files';
 export function mailBindings(env){
- const provider=env.MAIL_PROVIDER??'sendgrid';
+ const provider=env.MAIL_PROVIDER??'none';
  if(provider==='none'){
   const conflicts=['MAIL_API_KEY','SENDGRID_API_KEY','RESEND_API_KEY','MAIL_PROVIDER_API_KEY','CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID','MAIL_RELAY_URL','MAIL_DKIM_PRIVATE_KEY'].filter(name=>env[name]!==undefined&&env[name]!=='');
   if(conflicts.length)throw Error('mail-off-conflicting-credentials: '+conflicts.join(', '));
@@ -18,7 +18,7 @@ export function withProviderKey(env){
  return env[key]===undefined?{...env,[key]:env.MAIL_API_KEY}:env;
 }
 export function selectMailDeclaration(declaration,env){
- return {...declaration,secrets:[...declaration.secrets.filter(s=>!['MAIL_FROM','SENDGRID_API_KEY','MAIL_PROVIDER','MAIL_API_KEY','MAIL_PROVIDER_API_KEY','CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID','MAIL_RELAY_URL','UPTIME_HEARTBEAT_URL','UPTIME_START_URL'].includes(s.binding)),...mailBindings(env).map(binding=>({binding,environment:binding})),...(env.UPTIME_HEARTBEAT_URL?[{binding:'UPTIME_HEARTBEAT_URL',environment:'UPTIME_HEARTBEAT_URL'}]:[]),...(env.UPTIME_START_URL?[{binding:'UPTIME_START_URL',environment:'UPTIME_START_URL'}]:[])]}
+ return {...declaration,secrets:[...declaration.secrets.filter(s=>!['MAIL_FROM','SENDGRID_API_KEY','MAIL_PROVIDER','MAIL_API_KEY','MAIL_PROVIDER_API_KEY','CLOUDFLARE_MAIL_API_KEY','MAIL_ACCOUNT_ID','MAIL_RELAY_URL','UPTIME_HEARTBEAT_URL','UPTIME_START_URL'].includes(s.binding)),...mailBindings(env).map(binding=>declaration.secrets.find(item=>item.binding===binding)??{binding,environment:binding}),...(env.UPTIME_HEARTBEAT_URL?[{binding:'UPTIME_HEARTBEAT_URL',environment:'UPTIME_HEARTBEAT_URL'}]:[]),...(env.UPTIME_START_URL?[{binding:'UPTIME_START_URL',environment:'UPTIME_START_URL'}]:[])]}
 }
 export async function saveOwnerDeclaration(root,declaration,env){
  const directory=await privateDirectory(root,['.rer','deploy']),path=join(directory,'declaration.json');
