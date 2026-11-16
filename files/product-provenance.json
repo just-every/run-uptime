@@ -58,5 +58,16 @@
       "after": 1
     },
     "added": 0
+  },
+  "terminal": {
+    "status": "BLOCKED",
+    "reason": "Exact-SHA Verify failure",
+    "verifyRunId": 43957153637,
+    "head": "359d6ef4f233d67b590941009e1ca1f4f4f9742f",
+    "apiCalls": 10,
+    "failedJobsOfFinalRunInspected": false,
+    "productPushed": true,
+    "readyClaimed": false,
+    "timestamp": "2026-11-16T21:28:32.004673+00:00"
   }
 }
