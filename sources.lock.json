@@ -512,7 +512,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "fa670b834e81dd535c149e3617a74ed5bce533646d14b3a3359523bbea894f41",
+      "sha256": "6789fcb667a548b98f6fff42abdd87f6a5a8ca6f2a2b2271a2fbc8d0816aadb4",
       "executable": false
     },
     "BASELINE.md": {
@@ -4532,7 +4532,7 @@
       "executable": false
     },
     "SEED-COMMAND-CONTRACT.md": {
-      "sha256": "d284d8d6cb9b90c1b4a29bc562adacedcb49f8c28e799ac8cb692fb731bd85a9",
+      "sha256": "c7d1a12ade0863894e3e006ef9f8b332a0824a7d0d975b266a9e8708f295fc53",
       "executable": false
     },
     "seed.json": {
