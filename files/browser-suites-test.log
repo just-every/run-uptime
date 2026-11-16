@@ -1,0 +1,6 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+Running tests/operator-browser.mjs
+Running tests/recovery-browser.mjs
+Browser integration passed; owned runtime groups stopped and temporary grant/state removed. Private evidence: /workspace/run-uptime/data/browser-suites-evidence-o9QsZh

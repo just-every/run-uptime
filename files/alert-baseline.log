@@ -1,0 +1,56 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+(node:2055) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TRIP 5 BASELINE confirmation · Scheduler · 11/16/2026, 8:23:20 AM
+
+Harbor Ridge: HTTP 503; HTTP status is outside the expected status or range. 1/1 selected probes failed; 0 unknown; coverage complete. 1 independent failing vantages; passing external check present; scheduled-slot confirmation 1/1; recovery 0/1.
+
+notification queued · Router · 11/16/2026, 8:23:20 AM
+
+webhook · Drill webhook
+
+notification queued · Router · 11/16/2026, 8:23:20 AM
+
+email · Drill inbox
+
+notification outcome · Router · 11/16/2026, 8:23:20 AM
+
+imported-inactive
+
+notification attempt · Router · 11/16/2026, 8:23:20 AM
+
+Delivery attempt 1
+
+notification outcome · Router · 11/16/2026, 8:23:20 AM
+
+webhook_accepted
+
+recovery · Scheduler · 11/16/2026, 8:23:25 AM
+
+0/1 selected probes failed; 0 unknown; coverage complete. 0 independent failing vantages; passing external check present; scheduled-slot confirmation 0/1; recovery 1/1.
+
+notification queued · Router · 11/16/2026, 8:23:25 AM
+
+webhook · Drill webhook
+
+notification queued · Router · 11/16/2026, 8:23:25 AM
+
+email · Drill inbox
+
+notification outcome · Router · 11/16/2026, 8:23:25 AM
+
+imported-inactive
+
+notification attempt · Router · 11/16/2026, 8:23:25 AM
+
+Delivery attempt 1
+
+notification outcome · Router · 11/16/2026, 8:23:25 AM
+
+webhook_accepted
+Alert drill passed: real Worker/D1, production runner, SendGrid, signed webhook and Slack receivers.
+PROBE AGENT-004 1: company consent API, signed MCP schedule, real Cron and Settings -> one accepted drill without recipient confirmation, expired destination unsent, due internal owner reminder and route plus Oncall proposals
+PROBE AGENT-004 2: Settings decline and repeated Cron -> declined proposal, no new recipient jobs, no credential rotation, no phone charge or outbound phone path
+PASS AGENT-004 scheduledDrills: consent, bounded current-policy execution, expiry, provider and recipient separation, internal owner chase, decline, revocation, erasure, inactive archive and Settings at 1440 and 390

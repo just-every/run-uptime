@@ -1,0 +1,44 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-16",
+  "main": "91bdcfbac8b53121ccb1864873f19241c533bc4f",
+  "observations": {
+    "trip1": {
+      "door": "version-8 native definition import, undo, retained heartbeat, Resume",
+      "disabledAfterIdle": [
+        "create check-in URL",
+        "save job settings",
+        "load run history"
+      ],
+      "reproduced": true
+    },
+    "trip2": {
+      "door": "imported heartbeat detail",
+      "editText": "Edit in a file",
+      "editHref": "/docs/definitions",
+      "reproduced": true
+    },
+    "trip3": {
+      "door": "normal setup, pinned-runtime rer doctor",
+      "exitCode": 3,
+      "mailLoop": "invalid-mail-provider; missing MAIL_PROVIDER",
+      "savedDevelopmentMailPresent": true,
+      "reproduced": true
+    },
+    "trip4": {
+      "door": "documented browser prerequisite and doctor",
+      "shellBuild": 1248,
+      "shellLaunch": "passed",
+      "doctorWithoutVmGlobalNodePath": "Playwright browsers not downloaded yet: chromium; rer verify downloads them the first time it runs.",
+      "pinnedRunScriptFlag": "unsupported by pinned rer 0.2.118",
+      "reproduced": true
+    },
+    "trip5": {
+      "door": "actual practice-target failure/recovery, separate inactive restore, monitor incident notes",
+      "outcomeText": "imported-inactive",
+      "alsoObserved": "webhook_accepted",
+      "reproduced": true
+    }
+  },
+  "baselineHarnessNote": "Temporary observation statements were removed. An extra resumed heartbeat initially consumed the next scheduled runner claim; the finished journey pauses it before the unrelated original lifecycle, and all existing assertions are retained."
+}

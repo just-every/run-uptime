@@ -1,0 +1,13 @@
+{
+  "journey": "signed-runner heartbeat failure output",
+  "result": "passed",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "providerKeys": 15,
+  "storedMasked": true,
+  "consoleMatchesStorage": true,
+  "ordinaryValuesPreserved": 6
+}

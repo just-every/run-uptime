@@ -1,0 +1,112 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-16",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/main-uptime-stranger35-trips-1",
+  "base": "91bdcfbac8b53121ccb1864873f19241c533bc4f",
+  "productHead": "00346284b54b14eb6b76e1f493f71e930641f3b5",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exitCode": 0
+    },
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/signed-runner.mjs",
+      "exitCode": 0,
+      "assertionWidth": 1440,
+      "proofWidths": [
+        1440,
+        390
+      ]
+    },
+    {
+      "command": "node tests/alert-drill.mjs",
+      "exitCode": 0,
+      "assertionWidth": 1440,
+      "proofWidths": [
+        1440,
+        390
+      ]
+    },
+    {
+      "command": "node tests/browser-suites.mjs",
+      "exitCode": 0,
+      "suites": [
+        "operator-browser",
+        "recovery-browser"
+      ]
+    },
+    {
+      "command": "node tests/command-journey.mjs",
+      "exitCode": 0,
+      "retryPassed": true,
+      "initialFailure": "existing invited-account handoff MFA status 401, passed clean retry; no assertions weakened"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm spec:generate",
+      "exitCode": 0,
+      "generatedChanges": false
+    },
+    {
+      "command": "pnpm spec:check",
+      "exitCode": 0
+    },
+    {
+      "command": "rer check --profile first-party",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exitCode": 0
+    }
+  ],
+  "fullLocalVerifyRun": false,
+  "newTestRegistrations": 0,
+  "configuredPushJourneyCommands": {
+    "before": 47,
+    "after": 47
+  },
+  "contractCounts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20
+    }
+  },
+  "tripCounts": {
+    "before": {
+      "reproduced": 5
+    },
+    "after": {
+      "fixed": 4,
+      "upstreamGap": 1
+    }
+  },
+  "contractStatusChanges": [],
+  "proof": "existing real owner doors, independent inactive restore and production signed runner; fakes only at external network/provider edges",
+  "browserExecutable": "/usr/bin/chromium",
+  "browserArgs": [
+    "--no-sandbox"
+  ],
+  "limitations": [
+    "Base browser advice remains unchanged per brief",
+    "No hosted deployment, provider-account acceptance, scale claim or whole-clause promotion"
+  ]
+}

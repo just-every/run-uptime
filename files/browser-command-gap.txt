@@ -1,0 +1,2 @@
+Unsupported flag --script for run. Did you mean --help? Run rer run --help.
+run: failed (exit 2)

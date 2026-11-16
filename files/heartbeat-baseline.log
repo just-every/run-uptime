@@ -1,0 +1,29 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+{"event":"storage_error","method":"GET","route":"/api/overview","operation":null,"class":"schema","status":503,"cause":"D1_ERROR: no such table: runner_contact: SQLITE_ERROR"}
+PRESENCE-001 runner contact: idle and signed-result server receipts, 120-second boundary, refusal and read invariance, persistent restart, unavailable read, independent failing or Unknown targets and inactive restore passed
+TRIP 2 BASELINE Edit in a file /docs/definitions
+TRIP 1 BASELINE true true true
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'Unknown'
+- 'Healthy'
+
+    at proveHeartbeatConsole (file:///workspace/run-uptime/tests/heartbeat-console-support.mjs:90:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///workspace/run-uptime/tests/signed-runner.mjs:236:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'Unknown',
+  expected: 'Healthy',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

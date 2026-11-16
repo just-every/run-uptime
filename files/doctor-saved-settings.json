@@ -1,0 +1,19 @@
+{
+  "command": "rer doctor --json (pinned runtime)",
+  "ordinarySetup": {
+    "exitCode": 0,
+    "ok": true,
+    "configuration": "valid"
+  },
+  "invalidSavedProvider": {
+    "exitCode": 3,
+    "ok": false,
+    "configuration": "invalid"
+  },
+  "exactSavedBytesRestored": true,
+  "afterRestore": {
+    "exitCode": 0,
+    "ok": true,
+    "configuration": "valid"
+  }
+}

@@ -1,0 +1,9 @@
+Checking pinned pnpm
+10.12.4
+Local checks passed.
+Node: 22.20.0 (expected 22.20.0).
+pnpm: 10.12.4 (expected 10.12.4).
+Playwright browsers not downloaded yet: chromium, chromium-headless-shell; rer verify downloads them the first time it runs.
+Optional for local use; needed to deploy: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, UPTIME_WORKER_NAME, SENDGRID_API_KEY, MAIL_FROM.
+Remote deployment, provider credentials and permissions, and deployed health were not checked.
+doctor: complete (exit 0)
