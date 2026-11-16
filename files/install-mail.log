@@ -1,0 +1,19 @@
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +26
+++++++++++++++++++++++++++
+Progress: resolved 26, reused 23, downloaded 2, added 25
+Progress: resolved 26, reused 23, downloaded 3, added 26, done
+
+devDependencies:
++ miniflare 5.20260907.0-alpha
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: workerd.                                            │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 2s using pnpm v10.12.4

@@ -1,0 +1,118 @@
+{
+  "files": [
+    {
+      "blob": "29e932e2cf79889f76dcfa07c66503b0b4d4341a",
+      "bytes": 7705,
+      "path": "REPORT.md",
+      "sha256": "6fcc3c7b8c30686d0e46702157c740f1302e43e8a04c29c5664d941760a8efa5"
+    },
+    {
+      "blob": "2b5e770ddaf1ee37d37ff7c89cf4e71abb704a2f",
+      "bytes": 10156,
+      "path": "build.log",
+      "sha256": "a9ea1c1d596ad8f7475a5594d2563fa92005687cd96a140612e3a622436c727f"
+    },
+    {
+      "blob": "0d6beb0c2d73de816a1af93f8805bc3d4b12b8ee",
+      "bytes": 1629,
+      "path": "ci-receipt.json",
+      "sha256": "c70994a103030d340ee84ac0e322a1660a67ecfd7014756bcdfb9d3d8101dcde"
+    },
+    {
+      "blob": "e725af7dedacc78971d1ec5954692c62155ba77f",
+      "bytes": 2601,
+      "path": "dependency-proof-date-attempt.log",
+      "sha256": "7ff4204a8456e280e73512695c88e69d0130c7453f755732738ae717c016a1f1"
+    },
+    {
+      "blob": "e3177b9c92d7015f2b09a144076550d866d21008",
+      "bytes": 1068,
+      "path": "dependency-proof-initial.log",
+      "sha256": "5658135e804b6e2f03d155dd64a3c3dd6fcaf85a6bc30e0ff56fbe96f2dac67c"
+    },
+    {
+      "blob": "63c4fcda6abf5fa2957a8070e1c88b22f6d9d872",
+      "bytes": 921,
+      "path": "dependency-proof.json",
+      "sha256": "cacc52b3e30a3b254c7f27ae2ad12ac1e90ca87a2d141bd2ecb26025e1cbb909"
+    },
+    {
+      "blob": "63c4fcda6abf5fa2957a8070e1c88b22f6d9d872",
+      "bytes": 921,
+      "path": "dependency-proof.log",
+      "sha256": "cacc52b3e30a3b254c7f27ae2ad12ac1e90ca87a2d141bd2ecb26025e1cbb909"
+    },
+    {
+      "blob": "5b6255eca9984200f3ff34e98fcbee2e78ec502f",
+      "bytes": 3339,
+      "path": "dependency-proof.mjs",
+      "sha256": "c995ed0d2079ad7c9e4c21f3b595aeb352c4f7eb83ba81237d43b3fa9afe4dde"
+    },
+    {
+      "blob": "9dac1ef98419098dd01c0d185121f0278fed4489",
+      "bytes": 40,
+      "path": "evidence-publication-filter-attempt.log",
+      "sha256": "fb458237615a93dbe6173f82f8f6a8f906792618db3b9b05243ed3d75d06d0fc"
+    },
+    {
+      "blob": "dae43ab42d7c23afcb2832ab93fc4608f99b5e10",
+      "bytes": 42,
+      "path": "evidence-publication-initial.log",
+      "sha256": "c8fef469efa8673f80598697866057bd110d7d0c33b88c74bbf1182cecd9b42e"
+    },
+    {
+      "blob": "9d3451f906a76ae88cce1ee2cffb622971b9f372",
+      "bytes": 1237,
+      "path": "install-mail.log",
+      "sha256": "3e8880ca8d0ea206f102c8a13ef4953e46d5454c8d2176310bbcd8a4f6c6c5fa"
+    },
+    {
+      "blob": "8a2e36b0e530ce780989f241bbd8b8a81bb70b8c",
+      "bytes": 104,
+      "path": "install-root.log",
+      "sha256": "bf88bdfc17fc04d82ef2868e7f18d69af5516df359e7622324c34a12d17d0d4b"
+    },
+    {
+      "blob": "a3ddf729b50af5b4926ecf40dce0e08e750b6be7",
+      "bytes": 618,
+      "path": "result.json",
+      "sha256": "a4a0df675559ea0146f7a1cb36c468242faffc6998eaf1b331f8e2dfdefcf0da"
+    },
+    {
+      "blob": "d202f46965c1eb7ae54417ee38f123ca4a9caa2a",
+      "bytes": 2978,
+      "path": "tls-auth.log",
+      "sha256": "c374d7608c3120f1d3d076e70ea754323506b9059d4e18d0816b80686a98e47e"
+    },
+    {
+      "blob": "2cd52abf469a07b57e9184e2fac45b70eb676292",
+      "bytes": 181,
+      "path": "typecheck.log",
+      "sha256": "9b6e326e2a5116e3531cf71697c14f6c1ec3d03d6d6c3c10274c7a6b0c86f855"
+    },
+    {
+      "blob": "b3e333932f3b42cbec7d5fbc8b34cf802ba106c3",
+      "bytes": 3412,
+      "path": "validation-receipt.json",
+      "sha256": "954b62403577d5e03c7fc884445c2fa6e72dd718e930e8dace0bc6ca556a623d"
+    },
+    {
+      "blob": "62fb5ac052b5f759cac7a9aed06edcd1e51ac1bd",
+      "bytes": 246,
+      "path": "why-mail.log",
+      "sha256": "c22aac3a7c6a84c6f855f6d6a798128bd1a53d1660a36e16fa88c249721a066d"
+    },
+    {
+      "blob": "92c7a7d90ecbd9ad2c92d44b86f1261a1f30616d",
+      "bytes": 513,
+      "path": "why-root.log",
+      "sha256": "afbf6073a5af3c8db2e4fe8fcfe36368b8ae0facc5ef6df08cb03d9ff70dc573"
+    }
+  ],
+  "product_branch": "cloud/gr-mt-uptime-dep-8",
+  "product_head": "980b3ef806a6b72d4a83b55b32294cd509d6f03b",
+  "ref": "refs/heads/evidence/gr-mt-uptime-dep-8",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "gr-mt-uptime-dep-8"
+}

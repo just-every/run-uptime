@@ -1,0 +1,16 @@
+Legend: production dependency, optional only, dev only
+
+@uptime/uptime-console@0.5.13 /home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo (PRIVATE)
+
+devDependencies:
+@cloudflare/vite-plugin 1.62.2
+├─┬ miniflare 5.20260926.1-alpha
+│ └── undici 7.30.1
+└─┬ wrangler 4.144.0 peer
+  └─┬ miniflare 5.20260926.1-alpha
+    └── undici 7.30.1
+miniflare 5.20260926.1-alpha
+└── undici 7.30.1
+wrangler 4.144.0
+└─┬ miniflare 5.20260926.1-alpha
+  └── undici 7.30.1

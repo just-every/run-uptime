@@ -1,0 +1,7 @@
+Legend: production dependency, optional only, dev only
+
+@runeditrun/base-mail /home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail (PRIVATE)
+
+devDependencies:
+miniflare 5.20260907.0-alpha
+└── undici 7.30.1

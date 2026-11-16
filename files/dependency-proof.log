@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-16",
+  "repository": "just-every/run-uptime",
+  "node": "v22.20.0",
+  "head": "980b3ef806a6b72d4a83b55b32294cd509d6f03b",
+  "fixedBy": "8529deda750510402236ece09a9ab91f934a3231",
+  "trees": [
+    {
+      "path": ".",
+      "lockfile": "pnpm-lock.yaml",
+      "override": "7.30.1",
+      "versions": [
+        "7.30.1"
+      ],
+      "installed": "7.30.1",
+      "vulnerableResolutions": 0,
+      "packageEntries": 1,
+      "snapshotEntries": 1,
+      "miniflareRequestBodyRoundtrip": "pass"
+    },
+    {
+      "path": "src/base/modules/mail",
+      "lockfile": "src/base/modules/mail/pnpm-lock.yaml",
+      "override": "7.30.1",
+      "versions": [
+        "7.30.1"
+      ],
+      "installed": "7.30.1",
+      "vulnerableResolutions": 0,
+      "packageEntries": 1,
+      "snapshotEntries": 1,
+      "miniflareRequestBodyRoundtrip": "pass"
+    }
+  ]
+}

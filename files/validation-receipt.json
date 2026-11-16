@@ -1,0 +1,120 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-16",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-dep-8",
+  "head": "980b3ef806a6b72d4a83b55b32294cd509d6f03b",
+  "status": "no-change",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "commands": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit_code": 0,
+      "artifact": "install-root.log"
+    },
+    {
+      "command": "pnpm --dir src/base/modules/mail install --frozen-lockfile",
+      "exit_code": 0,
+      "artifact": "install-mail.log"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit_code": 0,
+      "artifact": "typecheck.log"
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit_code": 0,
+      "artifact": "build.log"
+    },
+    {
+      "command": "cloud_run node tests/tls-auth.mjs",
+      "exit_code": 0,
+      "artifact": "tls-auth.log"
+    },
+    {
+      "command": "pnpm why undici",
+      "exit_code": 0,
+      "artifact": "why-root.log"
+    },
+    {
+      "command": "pnpm --dir src/base/modules/mail why undici",
+      "exit_code": 0,
+      "artifact": "why-mail.log"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0,
+      "artifact": null
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit_code": 0,
+      "artifact": null
+    },
+    {
+      "command": "cloud_run node <packet>/dependency-proof.mjs <repo> (final)",
+      "exit_code": 0,
+      "artifact": "dependency-proof.log"
+    },
+    {
+      "command": "git merge-base --is-ancestor 8529deda750510402236ece09a9ab91f934a3231 origin/main",
+      "exit_code": 0,
+      "artifact": null
+    },
+    {
+      "command": "git diff --exit-code",
+      "exit_code": 0,
+      "artifact": null
+    },
+    {
+      "command": "git status --porcelain=v1",
+      "exit_code": 0,
+      "artifact": null
+    },
+    {
+      "command": "git ls-remote --heads origin main",
+      "exit_code": 0,
+      "artifact": null
+    },
+    {
+      "command": "dependency-proof.mjs initial ad hoc probe (obsolete Miniflare options)",
+      "exit_code": 1,
+      "artifact": "dependency-proof-initial.log"
+    },
+    {
+      "command": "dependency-proof.mjs second ad hoc probe (date unsupported by older mail runtime)",
+      "exit_code": 1,
+      "artifact": "dependency-proof-date-attempt.log"
+    }
+  ],
+  "source_lock_check": {
+    "ok": true
+  },
+  "contract_docs_check": {
+    "errors": 0,
+    "warnings": 0,
+    "current": true
+  },
+  "counts": {
+    "before": {
+      "vulnerable_undici_resolutions": 0,
+      "patched_lockfile_graphs": 2
+    },
+    "after": {
+      "vulnerable_undici_resolutions": 0,
+      "patched_lockfile_graphs": 2
+    },
+    "files_changed": 0,
+    "product_commits_created": 0
+  },
+  "clause_status_changes": [],
+  "product_push": "not needed: verified no-change on current main",
+  "pr": null,
+  "limits": [
+    "No upstream advisory exploit PoCs were rerun; absence is established by lockfile and installed-package resolution at the supplied patched threshold.",
+    "Standalone copied mail module tests are not shipped in this edition; both Miniflare runtimes were exercised directly and existing product TLS/network journeys passed.",
+    "Ad hoc smoke harness was corrected for Miniflare v5 conversion and a compatibility date supported by both pinned runtimes. Product files were never changed."
+  ]
+}

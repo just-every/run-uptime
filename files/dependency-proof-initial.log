@@ -1,0 +1,16 @@
+/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:122740
+      const error101 = new MiniflareCoreError(
+                       ^
+
+MiniflareCoreError [ERR_VALIDATION]: Unexpected options passed to `new Miniflare()` constructor:
+✖ Unrecognized keys: "modules", "compatibilityDate", "script"
+✖ Invalid input: expected array, received undefined
+  → at workers
+    at validateOptions (/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:122740:24)
+    at new _Miniflare (/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:123131:38)
+    at file:///home/agent/rer-consolidation/work/gr-mt-uptime-dep-8/packet/dependency-proof.mjs:35:18 {
+  code: 'ERR_VALIDATION',
+  cause: [Getter]
+}
+
+Node.js v22.20.0

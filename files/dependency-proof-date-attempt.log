@@ -1,0 +1,22 @@
+service core:user:: This Worker requires compatibility date "2026-10-01", but the newest date supported by this server binary is "2026-09-14".
+/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare/dist/src/index.js:65104
+      throw new MiniflareCoreError(
+            ^
+
+MiniflareCoreError [ERR_RUNTIME_FAILURE]: The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
+Runtime stderr:
+{"timestamp":"1794821644222","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:: This Worker requires compatibility date \"2026-10-01\", but the newest date supported by this server binary is \"2026-09-14\".","context_depth":0}
+    at StartupLogBuffer.handleStartupFailure (/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare/dist/src/index.js:65104:13)
+    at Runtime.updateConfig (/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare/dist/src/index.js:65184:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async #assembleAndUpdateConfig (/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare/dist/src/index.js:82869:30)
+    at async /home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare/dist/src/index.js:81664:7
+    at async Mutex.runWith (/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare/dist/src/index.js:54769:16)
+    at async #waitForReady (/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare/dist/src/index.js:82994:5)
+    at async _Miniflare.dispatchFetch (/home/agent/rer-consolidation/work/maint/gr-mt-uptime-dep-8/repo/src/base/modules/mail/node_modules/.pnpm/miniflare@5.20260907.0-alpha/node_modules/miniflare/dist/src/index.js:83160:5)
+    at async file:///home/agent/rer-consolidation/work/gr-mt-uptime-dep-8/packet/dependency-proof.mjs:38:22 {
+  code: 'ERR_RUNTIME_FAILURE',
+  cause: undefined
+}
+
+Node.js v22.20.0
