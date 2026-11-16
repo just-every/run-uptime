@@ -7,6 +7,9 @@ function cell(value: unknown): string {
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
 }
 
+// Spreadsheet-readable times: ISO 8601 in UTC; the report's own time zone stays in the time_zone column.
+const stamp = (value: unknown): unknown => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 8.64e15 ? new Date(value).toISOString() : value
+
 export function reportJson(report: MonitorReport): string { return `${JSON.stringify(report, null, 2)}\n` }
 
 /** Every value comes from the same report object returned by the read API. */
@@ -15,8 +18,8 @@ export function reportCsv(report: MonitorReport): string {
     'location', 'at', 'ended_at', 'incident_key']
   const rows: unknown[][] = [headers]
   const add = (section: string, metric: string, value: unknown, unit = '', location = '', at: unknown = '', end: unknown = '', key: unknown = '') =>
-    rows.push([section, report.monitor.id, report.monitor.name, report.period.from, report.period.to, report.period.timeZone,
-      metric, value, unit, location, at, end, key])
+    rows.push([section, report.monitor.id, report.monitor.name, stamp(report.period.from), stamp(report.period.to), report.period.timeZone,
+      metric, value, unit, location, stamp(at), stamp(end), key])
   if(report.sourceHistory){
     const h=report.sourceHistory
     add('source_policy','cutoverAt',h.cutover.at,'ms');add('source_policy','denominator',h.policy)

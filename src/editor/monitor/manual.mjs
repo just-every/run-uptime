@@ -6,8 +6,20 @@ import {showType,TYPE_TIMING} from './protocol-fields.mjs';
 import {advancedHolds,openAdvanced} from './advanced.mjs';
 // The full monitor form: what a new monitor starts from by hand, and the only way to edit an existing one.
 export const NEW_MONITOR={name:'',url:'',method:'GET',assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,probes:['local-a'],failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:true,maintenanceUntil:0};
+// "Unknown after" is how long a result stays usable. A new monitor's follows its interval (three intervals, at least three
+// minutes, at most a day) until it is set by hand, and the form says so when it is shorter than the interval it must outlast.
+function followInterval(form,isNew){
+ const interval=form.elements.intervalMinutes,fresh=form.elements.freshnessMinutes,note=form.querySelector('[data-freshness-note]');
+ let manual=false;
+ const check=()=>{if(note)note.hidden=!(Number(fresh.value)<Number(interval.value))};
+ fresh.addEventListener('input',()=>{manual=true;check()});
+ interval.addEventListener('input',()=>{const minutes=Number(interval.value);if(isNew&&!manual&&minutes>0)fresh.value=String(Math.min(1440,Math.max(3,3*minutes)));check()});
+ form.elements.checkType.addEventListener('change',()=>setTimeout(check,0));
+ check();
+}
 export function prepareManualForm(form,definition){
  fillFields(form,definition);
+ if(!form.dataset.freshnessBound){form.dataset.freshnessBound='true';followInterval(form,!definition.name)}
  form.elements.url.required=definition.type!=='heartbeat';
  form.querySelectorAll('input,select,textarea').forEach(control=>control.disabled=false);
  showType(form,form.elements.checkType.value);

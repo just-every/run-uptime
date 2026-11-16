@@ -28,7 +28,8 @@ export async function receiveHeartbeat(env:Bindings,id:string,authorization:stri
  if(duration!==null&&duration<0)throw Error('Job completion precedes start');
  const limit=await env.DB.prepare('INSERT INTO heartbeat_limits(monitor_id,window_start,receipts) SELECT ?,?,1 WHERE EXISTS(SELECT 1 FROM monitors WHERE id=?) ON CONFLICT(monitor_id) DO UPDATE SET window_start=CASE WHEN heartbeat_limits.window_start<=? THEN excluded.window_start ELSE heartbeat_limits.window_start END,receipts=CASE WHEN heartbeat_limits.window_start<=? THEN 1 ELSE heartbeat_limits.receipts+1 END WHERE heartbeat_limits.window_start<=? OR heartbeat_limits.receipts<60 RETURNING receipts').bind(id,now,id,now-60000,now-60000,now-60000).first();
  if(!limit)throw Object.assign(Error('Heartbeat rate limit reached'),{status:429});
- const immediate=state==='fail'||state==='success'&&(previous.failure!==null||late);
+ // The first success evaluates at once, so a new job reads Healthy without waiting out its first period; a pass or a miss still comes from the scheduled evaluation.
+ const immediate=state==='fail'||state==='success'&&(previous.failure!==null||late||previous.receivedAt===null);
  const boundary=state==='success'?heartbeatDeadline(monitor.definition,{...previous,receivedAt:now}):Math.max(now,Math.min(heartbeatDeadline(monitor.definition,previous),state==='start'&&monitor.definition.heartbeat.maxRunDurationMs?now+monitor.definition.heartbeat.maxRunDurationMs:Number.MAX_SAFE_INTEGER));
  const results=await env.DB.batch([
   mutationGuard(env,"EXISTS(SELECT 1 FROM heartbeat_authority a JOIN monitors m ON m.id=a.monitor_id WHERE a.monitor_id=? AND a.revision=? AND a.token_hash=? AND a.last_sequence=? AND m.revision=a.revision AND json_extract(m.definition,'$.enabled')=1)",[id,monitor.revision,authority.token_hash,authority.last_sequence]),

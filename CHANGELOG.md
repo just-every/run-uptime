@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Console fixes from the stranger journey
+
+- **Backups restore.** Download backup writes compact JSON and Restore a backup checks the compact size, so a backup the console downloads is accepted (the 2 MiB bound is unchanged).
+- **Passing monitors stay Healthy between checks.** A new monitor's **Unknown after** follows its check interval (three intervals, at least three minutes) until set by hand, the form warns when it is shorter than the interval, and each check type's interval range is shown on the form. A monitor saved through the API without a freshness takes the same default.
+- **A job's first success is evaluated at once**, so a new heartbeat reads Healthy without waiting out its first period, and the Heartbeat panel counts accepted receipts before any scheduled check has read them.
+- **Scheduled reports** list every monitor's schedules, say what was saved and refuse an identical repeat.
+- **Plainer words.** Incident timeline outcomes name their destination and reason; earlier comment versions show their own author and time; local test emails say they cannot be confirmed; report CSV times are ISO 8601; API step body, practice target, domain interval and UptimeRobot PORT messages say what to do; a member limited to particular monitors is told why the console is closed to them.
+- **Docs.** The README links the readable install page and no longer repeats version numbers; the UptimeRobot guide matches the heartbeat grace the importer keeps.
+
 ## 0.5.15 — 2026-11-16
 
 Patch release from `main`; previous version 0.5.13. Hosted installations can deliberately run without outbound email on the exact `@runeditrun/rer` 0.2.119 pin. First-run and sign-in pages explain mail-off operation, and invitations clearly refuse when email is off. Public `/health` names the running package version. Imported heartbeat controls and local diagnostics are corrected, and restored notification outcomes identify simulated email. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are kept on upgrade.

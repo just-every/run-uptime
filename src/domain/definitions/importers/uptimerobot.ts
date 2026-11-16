@@ -41,7 +41,7 @@ function map(entry:SourceEntry):Mapping{
  const m=entry.value,label=entry.label
  if(!m||typeof m!=='object'||Array.isArray(m))return {refused:`${label} is not a monitor object.`}
  const type=String(m.type??'').toUpperCase(),differences:string[]=[]
- if(!['HTTP','KEYWORD','HEARTBEAT'].includes(type))return {unsupported:type==='API'?'API monitors with response assertions are not supported; Uptime runs HTTP(S), keyword and heartbeat checks.':`${type||'Untyped'} monitors are not supported; Uptime runs HTTP(S), keyword and heartbeat checks.`}
+ if(!['HTTP','KEYWORD','HEARTBEAT'].includes(type))return {unsupported:type==='API'?'API monitors with response assertions are not imported; use New monitor › Multi-step API transaction. This importer maps HTTP(S), keyword and heartbeat monitors.':type==='PORT'?'PORT monitors are not imported. Create a TCP port monitor for it in Uptime: New monitor › Fill in the form yourself › What to check › TCP port. This importer maps HTTP(S), keyword and heartbeat monitors.':['PING','DNS','UDP'].includes(type)?`${type} monitors are not imported. Create one in Uptime: New monitor › Fill in the form yourself › What to check. This importer maps HTTP(S), keyword and heartbeat monitors.`:`${type||'Untyped'} monitors are not supported; this importer maps HTTP(S), keyword and heartbeat monitors.`}
  if(typeof m.friendlyName!=='string'||!m.friendlyName.trim())return {refused:`${label} has no friendlyName.`}
  if(typeof m.interval!=='number'||!Number.isFinite(m.interval)||m.interval<=0)return {refused:`${label} has no usable interval.`}
  if(m.interval<MIN_INTERVAL_S)return {unsupported:`Interval ${m.interval} s is below Uptime's ${MIN_INTERVAL_S} s floor.`}
@@ -63,7 +63,7 @@ function map(entry:SourceEntry):Mapping{
   differences.push(`Heartbeat jobs must be repointed: ${typeof m.heartbeatUrl==='string'&&m.heartbeatUrl?m.heartbeatUrl:'the UptimeRobot heartbeat URL'} stops being used. Issue a new Uptime heartbeat token on the monitor page after import; the old URL and token are not imported.`)
   differences.push('Local heartbeat policy: one scheduled missed-deadline result confirms failure and one scheduled success confirms recovery. Source alert delays, repeats and escalation settings are not converted; review them separately before activation.')
   if(!Number.isSafeInteger(graceMs)||graceMs>86400000)return {refused:'Heartbeat grace must be from 0 to 86400 seconds.'}
-  differences.push(`Heartbeat schedule: expected period ${intervalMs/1000} seconds plus ${graceMs/1000} seconds grace. Missing that deadline is a missed run.`)
+  differences.push(`Heartbeat schedule: expected period ${intervalMs/1000} seconds plus ${graceMs/1000} seconds grace (${Number(((intervalMs+graceMs)/3600000).toFixed(2)).toLocaleString('en-US')} hours in all). Missing that deadline is a missed run.`)
   return {definition:{...common,type:'heartbeat',heartbeat:{maxAgeMs:intervalMs,graceMs},confirmSlots:1,recoverSlots:1,assertions:{status:200},probes:['local-a'],failureQuorum:1},differences}
  }
  if(contacts)differences.push(CONTACT_EXPORT_GUIDANCE)

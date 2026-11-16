@@ -8,6 +8,10 @@ export const PROTOCOL_TYPES=['tcp','udp','ping','dns','tls','domain'];
 // A new monitor's timing for each type: TLS and domain expiry checks run hourly (they may run more often, never less).
 export const TYPE_TIMING={heartbeat:{intervalMinutes:1,timeoutSeconds:2,freshnessMinutes:3,retries:0},mail:{intervalMinutes:1,timeoutSeconds:30,freshnessMinutes:3,retries:0},api:{intervalMinutes:1,timeoutSeconds:30,freshnessMinutes:3,retries:0},ping:{intervalMinutes:1,timeoutSeconds:10,freshnessMinutes:3},udp:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},http:{intervalMinutes:1,timeoutSeconds:2,freshnessMinutes:3},tcp:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},dns:{intervalMinutes:1,timeoutSeconds:3,freshnessMinutes:3},
  tls:{intervalMinutes:60,timeoutSeconds:5,freshnessMinutes:120},domain:{intervalMinutes:60,timeoutSeconds:10,freshnessMinutes:120}};
+// The interval each type accepts, in milliseconds, as the server enforces it (src/domain/policy.mjs, protocol/settings.mjs).
+const DAY=86400000,HOUR=3600000;
+export const INTERVAL_RANGE={http:[5000,DAY],mail:[5000,DAY],api:[60000,DAY],ping:[30000,DAY],udp:[30000,DAY],tcp:[5000,DAY],dns:[5000,DAY],tls:[5000,HOUR],domain:[5000,HOUR]};
+const span=ms=>ms<60000?`${ms/1000} seconds`:ms<HOUR?`${ms/60000} minutes`:ms===HOUR?'60 minutes':`${ms/HOUR} hours`;
 const control=(root,name)=>root.querySelector(`[name="${name}"]`);
 const days=list=>list?.join(', ')??'';
 const lines=list=>list?.join('\n')??'';
@@ -25,6 +29,8 @@ export function showType(root,type){
   for(const field of group.querySelectorAll('input,select,textarea'))field.disabled=!shown;
   if(group.matches('label'))group.querySelector('input').disabled=!shown;
  }
+ const range=INTERVAL_RANGE[type],interval=control(root,'intervalMinutes'),hint=root.querySelector('[data-interval-range]');
+ if(range&&interval){interval.min=String(range[0]/60000);interval.max=String(range[1]/60000);if(hint)hint.textContent=`Allowed for this check type: every ${span(range[0])} to ${span(range[1])}.`}
  const apiUrl=control(root,'apiUrl');if(apiUrl)apiUrl.required=type==='api';
  const timeout=control(root,'timeoutSeconds');if(timeout)timeout.max=['http','api','mail'].includes(type)?'60':'10';
  const url=control(root,'url');if(url)url.required=type==='http';

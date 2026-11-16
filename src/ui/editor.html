@@ -45,6 +45,7 @@
         <label>What to check<select disabled name="checkType"><option value="http">Website or API (HTTP)</option><option value="heartbeat">Scheduled job (heartbeat)</option><option value="mail">SMTP or mailbox protocol</option><option value="api">Multi-step API transaction</option><option value="tcp">TCP port</option><option value="udp">UDP request and response</option><option value="ping">ICMP ping</option><option value="dns">DNS record</option><option value="tls">TLS certificate</option><option value="domain">Domain registration expiry</option></select></label>
         <label data-heartbeat-hide>Check every (minutes)<input disabled name="intervalMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required></label>
        </div>
+       <p class="helper ui-helper" data-interval-range data-heartbeat-hide></p>
        <div class="type-fields editor-fields" data-types="heartbeat" hidden>
         <div class="editor-pair"><label>Expected interval (seconds)<input disabled name="heartbeatPeriod" type="number" min="30" max="2678400" step="1" value="86400" required></label><label>Grace period (seconds)<input disabled name="heartbeatGrace" type="number" min="0" max="86400" step="1" value="900" required></label></div>
         <p>Send a check-in after your job succeeds. The next scheduled check marks it up. If no success arrives within the expected interval plus grace, a scheduled check marks it down. Until the first success, it stays Unknown.</p>
@@ -129,6 +130,7 @@
         <label>Wait for a response (seconds)<input disabled name="timeoutSeconds" type="number" step="0.001" min="0.05" max="10" required></label>
         <label>Extra attempts after a failure<input disabled name="retries" type="number" min="0" max="2" required></label>
         <label>Unknown after (minutes)<input disabled name="freshnessMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required></label>
+        <p class="helper ui-helper advanced-wide" data-freshness-note hidden>A passing monitor reads Unknown between checks when this is shorter than the check interval.</p>
         <label data-form-only>External check URL (optional)<input disabled name="externalCheckUrl" id="external-check-own" type="url" autocapitalize="off" spellcheck="false"></label>
         <div class="type-fields advanced-wide" data-types="dns" hidden><label>Approved change: also accept these values (optional)<textarea disabled name="dnsApproved" aria-describedby="dns-approved-help"></textarea></label><p id="dns-approved-help" class="helper ui-helper">For a planned change: only these extra values pass; a missing name or a resolver failure still fails.</p></div>
         <details class="advanced-wide type-fields" data-types="http"><summary>Request credentials and certificate trust</summary>

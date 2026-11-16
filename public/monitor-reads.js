@@ -44,6 +44,8 @@ export function loadPage(page){
    seen.newest=complete.find(s=>s.revision===page.m.revision);seen.earlier=complete[0];
    if(d.type==='heartbeat'){
     seen.receipt=slots.some(s=>s.observations?.some(o=>o.heartbeatReceivedAt));
+    // A receipt is accepted before any scheduled check reads it: the run history is what shows it.
+    if(!seen.receipt)api(`/api/monitors/${key}/heartbeat-runs`).then(({runs})=>{if(runs?.length&&!seen.receipt){seen.receipt=true;page.draw()}},()=>{})
     // The Heartbeat fold opens by itself until the first receipt arrives.
     if(!page.ui.heartbeat){page.ui.heartbeat=true;if(!seen.receipt)queueMicrotask(()=>openFold(page,'heartbeat'))}
    }
