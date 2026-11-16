@@ -38,3 +38,9 @@ Verify run: [43832823607](https://github.com/just-every/run-uptime/actions/runs/
 The complete command journey passed on its clean retry. The initial invited-account/MFA 401 did not recur and no unrelated test or product code was changed to accommodate it. The ordinary setup / invalid saved provider / exact-settings restore doctor probe also passed with exit codes 0 / 3 / 0; doctor-saved-settings.json contains only outcomes.
 
 No product evidence files were committed. Explicit report selections, including the actual receipts and masked screenshots, are listed in SELECTION.json; the report-only transport publishes them separately under refs/heads/evidence/main-uptime-stranger35-trips-1. Product readiness and evidence transport remain independent. The cloned product checkout is removed after successful evidence publication.
+
+## Terminal result
+
+Exact-SHA Verify run 43832823607 completed **success** for `00346284b54b14eb6b76e1f493f71e930641f3b5`, observed 2026-11-16T08:58:13Z. The single watcher used five REST calls, each at least 300 seconds apart. No job rerun or second product push was needed. Required touched local checks passed, including the complete command journey on retry. There are no blocking items. Trip 4 remains the brief's explicitly permitted Base package GAP, relayed to lane gr.
+
+The product candidate is ready for the fleet's independent landing and publication gates. Nothing in this report claims the branch has landed, the product is deployed, a hosted provider accepted it, or a contract judgment changed.

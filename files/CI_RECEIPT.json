@@ -27,10 +27,26 @@
       "id": 43832823607,
       "status": "in_progress",
       "observedAt": "2026-11-16T08:48:12Z"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "00346284b54b14eb6b76e1f493f71e930641f3b5",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43832823607",
+      "id": 43832823607,
+      "status": "in_progress",
+      "observedAt": "2026-11-16T08:53:12Z"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "00346284b54b14eb6b76e1f493f71e930641f3b5",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43832823607",
+      "id": 43832823607,
+      "status": "completed",
+      "observedAt": "2026-11-16T08:58:13Z"
     }
   ],
-  "githubCalls": 3,
-  "status": "in_progress",
+  "githubCalls": 5,
+  "status": "completed",
   "discovery": [
     {
       "conclusion": null,
@@ -42,6 +58,6 @@
     }
   ],
   "runId": 43832823607,
-  "conclusion": null,
+  "conclusion": "success",
   "url": "https://github.com/just-every/run-uptime/actions/runs/43832823607"
 }

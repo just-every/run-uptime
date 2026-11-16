@@ -108,5 +108,14 @@
   "limitations": [
     "Base browser advice remains unchanged per brief",
     "No hosted deployment, provider-account acceptance, scale claim or whole-clause promotion"
-  ]
+  ],
+  "ci": {
+    "head": "00346284b54b14eb6b76e1f493f71e930641f3b5",
+    "runId": 43832823607,
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/just-every/run-uptime/actions/runs/43832823607",
+    "githubCalls": 5
+  },
+  "blockingItems": []
 }

@@ -54,5 +54,6 @@
   "alerts/development-alerts.json",
   "alerts/hosted-alerts.json",
   "SELECTION.json",
-  "PUSH_RECEIPT.json"
+  "PUSH_RECEIPT.json",
+  "EVIDENCE_INITIAL.txt"
 ]
