@@ -33,7 +33,7 @@ export function destinationDialog(destination,{notes,api,action}){
   try{Object.assign(values,webhook.read())}catch(error){dialog.querySelector('form > .form-error').textContent=error.message;return}
   values.name=values.name.trim()||(kind==='email'?`Email ${values.address}`:kind==='slack'?'Slack':values.webhookTemplate?.mode==='oncall'?'Oncall':'Webhook').slice(0,100);
   let result,failure;
-  const response=await action(async()=>{try{result=await api(destination?path(destination.id):'/api/notifications/destinations',destination?'PATCH':'POST',values)}catch(error){failure=error.message;throw error}close()},{pending:'Saving destination…',success:kind==='email'&&!notes.mailConfigured?'Destination saved. Email is not set up, so it cannot send yet: Set up email is above Destinations.':'Destination saved.'});
+  const response=await action(async()=>{try{result=await api(destination?path(destination.id):'/api/notifications/destinations',destination?'PATCH':'POST',values)}catch(error){failure=error.message;throw error}close()},{pending:'Saving destination…',success:kind==='email'&&notes.mailOff?'Destination saved. Email is off for this installation, so it cannot send.':kind==='email'&&!notes.mailConfigured?'Destination saved. Email is not set up, so it cannot send yet: Set up email is above Destinations.':'Destination saved.'});
   if(response.ok)returnFocus();
   if(response.ok&&result.signingSecret)showSecret(result.signingSecret,values.name);
   else if(!response.ok&&dialog.isConnected)dialog.querySelector('form > .form-error').textContent=failure||'Destination could not be saved. Check the entered details.';

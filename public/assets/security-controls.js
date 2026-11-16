@@ -25,6 +25,7 @@ const reasons={
  not_found:'This item is no longer available.'
 };
 const keyReasons={
+ mail_unavailable:'Email is off for this installation. Invitations need email.',
  'Another administrator must change your product assignment':'Another administrator must change your product assignment',
  'Choose a product role':'Choose a role for this member.',
  invitation_conflict:'This email already has an account or an invitation.',

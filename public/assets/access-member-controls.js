@@ -51,6 +51,8 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
   try{
    const self=await securityRequest('/api/access/self');
    if(!['owner','admin'].includes(self.role)){invite.hidden=true;list.replaceChildren();say('An owner or administrator manages members.',list);return}
+   invite.hidden=!!self.mailOff;
+   if(self.mailOff)say('Email is off for this installation. Invitations need email.',list);
    const members=await securityRequest('/api/access/members');if(!accounts.isConnected)return;
    const owners=members.filter(person=>person.role==='owner'&&person.status==='active').length;
    // Only the owner invites an administrator.

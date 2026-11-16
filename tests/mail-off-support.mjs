@@ -26,13 +26,13 @@ export async function proveMailOff() {
  const declaration=JSON.parse(await readFile('deploy.json','utf8'));
  const env={...bindings,CLOUDFLARE_ACCOUNT_ID:'1'.repeat(32),CLOUDFLARE_API_TOKEN:'synthetic-uptime-611',UPTIME_WORKER_NAME:'synthetic-uptime-612',UPTIME_ORIGIN:'https://uptime.example.test'};
  validateConfiguration(env,{scope:'deploy'});
- // A provider declaration belongs to deploy secrets; each selected provider
+ // Public provider selection uses deploy secret transport; each selected provider
  // and the legacy omitted-provider case must still pass the ordinary doors.
  for(const [provider,credentials] of [
   [undefined,{SENDGRID_API_KEY:'synthetic-uptime-621'}],
   ['sendgrid',{SENDGRID_API_KEY:'synthetic-uptime-622'}],
   ['resend',{MAIL_PROVIDER_API_KEY:'synthetic-uptime-623'}],
-  ['cloudflare',{CLOUDFLARE_MAIL_API_KEY:'synthetic-uptime-624',MAIL_ACCOUNT_ID:'synthetic-uptime-625'}],
+  ['cloudflare',{CLOUDFLARE_MAIL_API_KEY:'synthetic-uptime-624',MAIL_ACCOUNT_ID:'c'.repeat(32)}],
   ['rer',{MAIL_API_KEY:'synthetic-uptime-626',MAIL_RELAY_URL:'https://synthetic-uptime-627.example.test/'}],
  ]) {
   const enabled={...env,MAIL_FROM:'sender@synthetic-uptime.dev',...credentials};
@@ -46,6 +46,8 @@ export async function proveMailOff() {
   }
   // Base preflight takes the shared key input for Cloudflare; the native
   // deployment binds that input under CLOUDFLARE_MAIL_API_KEY.
+  const inspected=await inspectOperations(process.cwd(),{...Object.fromEntries(JSON.parse(await readFile('OPERATIONS.json','utf8')).requiredEnvironment.map(n=>[n,'synthetic-uptime-613'])),...enabled});
+  if(provider!=='rer')assert.equal(inspected.ok,true,`operations accepts ${provider??'default SendGrid'}`);
   const preflight=provider==='cloudflare'?{...enabled,MAIL_API_KEY:credentials.CLOUDFLARE_MAIL_API_KEY}:enabled;
   await requireProductionAuth({root:process.cwd(),declaration:declarationForProvider,env:preflight,setupManifest:manifest,adapter:commandAdapter,options:{dryRun:false}});
  }
@@ -100,10 +102,23 @@ export async function proveMailOff() {
   await page.goto(origin+'/setup');await page.getByRole('button',{name:'Continue',exact:true}).click();await page.waitForURL(url=>url.pathname.startsWith('/app'));
   assert.equal((await context.request.get(origin+'/api/overview')).status(),200);
   assert.equal((await post('/api/external-check',{url:'https://synthetic-uptime-615.example.test/'})).status(),200,'Settings saves from native fresh setup');
+  const counts=async()=>({operators:(await db.prepare('SELECT count(*) n FROM oa_operators').first()).n,tokens:(await db.prepare('SELECT count(*) n FROM oa_tokens').first()).n,assignments:(await db.prepare('SELECT count(*) n FROM uptime_member_roles').first()).n});
+  const beforeInvites=await counts();
+  for(const role of ['admin','editor','responder','read-only'])for(const email of [answers.OWNER_EMAIL,'synthetic-uptime-616@example.test']){
+   const invite=await post('/api/access/invitations',{email,displayName:'Synthetic colleague',role});assert.equal(invite.status(),503);assert.equal((await invite.json()).error,'mail_unavailable');
+   assert.deepEqual(await counts(),beforeInvites,'mail-off refusal preserves operators, tokens and assignments');
+  }
   for(const email of [answers.OWNER_EMAIL,'synthetic-uptime-616@example.test']) {
    const invite=await post('/auth/invite',{email,displayName:'Synthetic colleague',role:'member'});assert.equal(invite.status(),503);assert.equal((await invite.json()).error,'mail_unavailable');
   }
   assert.equal((await context.request.post(origin+'/auth/invite',{headers:{origin:'https://foreign.example.test'},data:{email:'synthetic-uptime-619@example.test',displayName:'Foreign'},maxRedirects:0})).status(),403,'mail-off invitations keep their origin guard');
+  assert.deepEqual(await counts(),beforeInvites);
+  await page.goto(origin+'/app/settings/people');
+  const accounts=page.locator('#people-accounts');await accounts.getByText(/Email is off.*Invitations need email/).waitFor();
+  assert.equal(await accounts.getByRole('button',{name:'Send invite',exact:true}).count(),0);
+  assert.equal(await accounts.locator('.operator-row').count(),beforeInvites.operators);
+  const capture=async name=>{if(process.env.UPTIME_AUTH_SHOTS){await mkdir(process.env.UPTIME_AUTH_SHOTS,{recursive:true});for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.screenshot({path:join(process.env.UPTIME_AUTH_SHOTS,`mail-off-${name}-${width}.png`),fullPage:true})}await page.setViewportSize({width:1440,height:1000})}};
+  await capture('people');
   const destination=await post('/api/notifications/destinations',{name:'Mail-off destination',kind:'email',address:answers.OWNER_EMAIL});assert.equal(destination.status(),201);
   const monitor=await post('/api/monitors',{name:'Mail-off monitor',url:'https://synthetic-uptime-617.example.test/',retries:0,confirmSlots:1,recoverSlots:1,intervalMs:60000});assert.equal(monitor.status(),201,await monitor.text());const saved=await monitor.json();
   const scheduled=async()=>{const r=await runtime.worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});assert.equal(r.status,204,await r.text())};
@@ -113,6 +128,11 @@ export async function proveMailOff() {
   assert.ok(incidents.length&&incidents.every(i=>i.endedAt===null),'mail-off monitoring opens an incident');
   const notes=await (await context.request.get(origin+'/api/notifications')).json();assert.equal(notes.mailConfigured,false);
   assert.ok(notes.deliveries.length);assert.ok(notes.deliveries.every(d=>d.state!=='accepted'&&d.code==='mail_unavailable'));
+  assert.equal(notes.mailOff,true);
+  await page.goto(origin+'/app/settings/alerts');await page.locator('.alert-clauses').getByText(/Email is off.*cannot send/).waitFor();
+  assert.equal(await page.getByRole('link',{name:'Set up email',exact:true}).count(),0);
+  assert.match(await page.locator('.sent-row').first().innerText(),/Failed|Not sent/);
+  await capture('alerts');
   fail=false;await new Promise(r=>setTimeout(r,61000));await scheduled();
   for(let n=0;n<100;n++){incidents=await (await context.request.get(origin+`/api/monitors/${saved.id}/incidents`)).json();if(incidents.every(i=>typeof i.endedAt==='number'))break;await new Promise(r=>setTimeout(r,50))}
   assert.ok(incidents.length&&incidents.every(i=>typeof i.endedAt==='number'&&i.recovery?.kind==='recovery'),'mail-off monitoring recovers');
@@ -130,7 +150,7 @@ export async function proveMailOff() {
   // Assertions use 1440 only; the proof captures the changed screen once at each width.
   if(process.env.UPTIME_AUTH_SHOTS){await mkdir(process.env.UPTIME_AUTH_SHOTS,{recursive:true});for(const width of [1440,390]){await page.setViewportSize({width,height:900});await page.screenshot({path:join(process.env.UPTIME_AUTH_SHOTS,`mail-off-login-${width}.png`),fullPage:true})}}
   assert.equal(mailRequests,0);
-  if(process.env.UPTIME_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_MAIL_OFF_RECEIPT,JSON.stringify({journey:'proveMailOff',setup:'native model -> bootstrap -> first-run',provider:answers.MAIL_PROVIDER,mailRequests,settingsSaved:true,incidentOpened:true,incidentRecovered:true,privateDoorsProtected:true,unavailableAuthentication:true,unavailableAlerts:true},null,2)+'\n');
+  if(process.env.UPTIME_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_MAIL_OFF_RECEIPT,JSON.stringify({journey:'proveMailOff',setup:'native model -> bootstrap -> first-run',provider:answers.MAIL_PROVIDER,mailRequests,settingsSaved:true,invitationCounts:{before:beforeInvites,after:await counts()},productRolesRefused:['admin','editor','responder','read-only'],peopleMailOff:true,alertsMailOff:true,assertionWidth:1440,proofWidths:[1440,390],incidentOpened:true,incidentRecovered:true,privateDoorsProtected:true,unavailableAuthentication:true,unavailableAlerts:true},null,2)+'\n');
   console.log('MAIL-OFF passed native setup, operations, deploy validation/preflight, fresh first-run, Settings, monitor failure/recovery, unavailable mail and protected hosted doors');
  } finally {await browser?.close();await runtime?.close();await rm(directory,{recursive:true,force:true})}
 }

@@ -24,6 +24,11 @@
       "environment": "OWNER_EMAIL"
     },
     {
+      "binding": "MAIL_PROVIDER",
+      "environment": "MAIL_PROVIDER",
+      "optional": true
+    },
+    {
       "binding": "MAIL_FROM",
       "environment": "MAIL_FROM",
       "optional": true
@@ -62,5 +67,8 @@
         "scripts/local-ports.mjs"
       ]
     }
-  }
+  },
+  "publicSettings": [
+    "MAIL_PROVIDER"
+  ]
 }

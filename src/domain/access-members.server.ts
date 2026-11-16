@@ -31,7 +31,7 @@ export function assignments(env:AuthBindings,where:string,params:any[],value:Ass
 export async function accessMembers(env:AuthBindings,request:Request,input?:any){
  const actor=await permission(env,request,input),url=new URL(request.url),path=url.pathname
  const headers={'cache-control':'no-store, private'}
- if(path==='/api/access/self')return Response.json({id:actor.session.operator.id,role:actor.role,scopes:actor.scopes,revision:actor.revision},{headers})
+ if(path==='/api/access/self')return Response.json({id:actor.session.operator.id,role:actor.role,scopes:actor.scopes,revision:actor.revision,mailOff:env.MAIL_PROVIDER==='none'},{headers})
  if(path==='/api/access/members'&&request.method==='GET'){
   // Base performs its independent account policy check; only safe identity and
   // permission metadata are returned. Session IDs and credentials are absent.
@@ -41,6 +41,8 @@ export async function accessMembers(env:AuthBindings,request:Request,input?:any)
  }
  if(path==='/api/access/invitations'&&request.method==='POST'){
   const value=assignment(input);mayAssign(actor,value)
+  // Refuse before Base can create an operator, invite token or assignment.
+  if(env.MAIL_PROVIDER==='none')return Response.json({error:'mail_unavailable'},{status:503,headers})
   if(typeof input.email!=='string'||typeof input.displayName!=='string')throw Object.assign(Error('Email and display name required'),{status:400})
   const email=input.email.trim().toLowerCase()
   const db=authorizedDatabase(env,actor,statements=>{const token=statements.find(s=>s.sql.includes('INSERT INTO oa_tokens')&&s.sql.includes("'invite'"));return token?assignments(env,"email=? AND status='invited' AND EXISTS(SELECT 1 FROM oa_tokens t WHERE t.id=? AND t.operator_id=oa_operators.id AND t.consumed_at IS NULL AND t.revoked_at IS NULL)",[email,token.values[0]],value):[]})

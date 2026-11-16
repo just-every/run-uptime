@@ -10,7 +10,8 @@ export function clausesMarkup(notes,readUnavailable){
  const blocked=cannotSend(notes),email=blocked.filter(b=>b.reason==='email').map(b=>escape(b.destination.name)),lines=[];
  if(notes.mailSuppressed)lines.push(clause('simulated-email','','Development email is simulated. No email leaves this machine, including test messages and incident alerts.'));
  if(notes.demo)lines.push(clause('simulated-messages','','Demo messages are simulated. No email or other notification leaves this machine.'));
- if(email.length)lines.push(clause('email','warning',`Email is not set up, so ${list(email)} cannot send.`,setupEmail));
+ if(notes.mailOff)lines.push(clause('email','warning',`Email is off for this installation.${email.length?` ${list(email)} cannot send.`:''}`));
+ else if(email.length)lines.push(clause('email','warning',`Email is not set up, so ${list(email)} cannot send.`,setupEmail));
  else if(!notes.mailConfigured&&!notes.demo&&!notes.mailSuppressed)lines.push(clause('email','warning','Email is not set up.',setupEmail));
  // With destinations but none enabled the count shows 1; with none at all the empty Destinations card says so instead.
  if(notes.destinations.length&&!notes.destinations.some(d=>d.enabled))lines.push(clause('none-enabled','warning','No destination is enabled, so nobody is told about an incident. Enable one in its Edit dialog.'));
