@@ -1,0 +1,22 @@
+{
+  "journey": "real rer deploy lifecycle",
+  "provider": "none",
+  "freshDeployment": true,
+  "ownerAdmittedByNativeBootstrap": true,
+  "runtimeBindingOff": true,
+  "sendingInputsAbsent": true,
+  "guardedRerSignin": true,
+  "onlyGrantHashStored": true,
+  "confirmationRequired": true,
+  "replayRefused": true,
+  "missingCredentialsRefused": true,
+  "wrongEnvironmentRefused": true,
+  "missingReceiptRefused": true,
+  "noneToSendgrid": true,
+  "sendgridToNone": true,
+  "groupedVersionCopy": true,
+  "switchUploads": 0,
+  "scope": "Experimental declaration before structural validation; not final candidate proof",
+  "structuralCheck": "failed: deploy.vars-secrets MAIL_PROVIDER",
+  "removedVarSpecGeneration": "failed: Managed mail requires public MAIL_PROVIDER"
+}

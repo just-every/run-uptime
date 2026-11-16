@@ -1,0 +1,86 @@
+{
+  "author": "Run Edit Run fleet",
+  "time": "2026-11-16T12:55:19.079088+00:00",
+  "repository": "just-every/run-uptime",
+  "productBranch": "cloud/sd-uptime-mail-followups-1",
+  "productHead": "a22d1fac71eb6b0a2f6e7596454393d10361829a",
+  "baseRevision": "bbab5d84b72e333ff1e9a6f234c0512e5721b1d9",
+  "rerVersion": "0.2.119",
+  "checks": [
+    {
+      "command": "pnpm run typecheck",
+      "exitCode": 0,
+      "outputSha256": "edeb290c5f48c92b5793275ed3bd5c6b1d252665924e077dc81eed17333a13b3"
+    },
+    {
+      "command": "pnpm exec rer check --profile first-party",
+      "exitCode": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "pnpm spec:check",
+      "exitCode": 0,
+      "outputSha256": "1353bbbdc307138c34e22eaf930871288fe32749612410c90e2e11ece5c5eaf3"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exitCode": 0,
+      "outputSha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs verify-base --offline",
+      "exitCode": 0,
+      "outputSha256": "3b72e0b70deadec921aa38ece1c777ba96362508d57ad82ca9f46caae287d7aa"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exitCode": 0,
+      "outputSha256": "db74a8279114fe21e4b42ce3437e22a2da5314de1cb279bc152583667f81035b"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exitCode": 0,
+      "outputSha256": "9aa2e8e5e921ff8ea1f192946fddc947ca0cd0e82f9c7da79733c3afbe4ef886"
+    }
+  ],
+  "workingTreeClean": true,
+  "identityCheck": {
+    "candidateCommits": 3,
+    "allFleet": true,
+    "coauthorTrailers": 0
+  },
+  "clauses": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "statusEdits": false
+  },
+  "changedFiles": [
+    "OPERATIONS.md",
+    "SEED-COMMAND-CONTRACT.md",
+    "base-copies.json",
+    "docs/deploy.md",
+    "package.json",
+    "pnpm-lock.yaml",
+    "public/alert-clauses.js",
+    "public/assets/access-member-controls.js",
+    "public/assets/security-controls.js",
+    "public/notifications.js",
+    "scripts/edition-authoring/README.md",
+    "scripts/edition-authoring/lock.mjs",
+    "sources.lock.json",
+    "src/base/modules/agent-door/ADOPTING.md",
+    "src/domain/access-members.server.ts",
+    "src/domain/notifications.server.ts",
+    "tests/mail-off-support.mjs"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "author": "Run Edit Run fleet",
+  "time": "2026-11-16T12:40:42.063553+00:00",
+  "productHead": "ab1b6392aafb4cbbc5c01700c48ee0e5a398340e",
+  "scope": "Executed before immutable Base refresh completion; final branch CI is recorded separately",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "browser": "/usr/bin/chromium",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "exitCode": 0,
+      "outputSha256": "f2921ef614b144e9269fa784593bb14fc6fce522e2a2ab7433f1c8170e1b1812"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exitCode": 0,
+      "outputSha256": "edeb290c5f48c92b5793275ed3bd5c6b1d252665924e077dc81eed17333a13b3"
+    },
+    {
+      "command": "pnpm spec:generate",
+      "exitCode": 0,
+      "outputSha256": "8a22ee56a2120fceed08d9d5284bf898e679b501df20dab005c4f7033f6f7ad2"
+    },
+    {
+      "command": "pnpm exec rer check --profile first-party",
+      "exitCode": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exitCode": 0,
+      "outputSha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "command": "node tests/access-matrix.mjs",
+      "exitCode": 0,
+      "outputSha256": "74e10616511e94617656a822ff436280c73e56fd6184965788e1c066bdf050a0"
+    },
+    {
+      "command": "node tests/owner-deploy-lifecycle.mjs",
+      "exitCode": 0,
+      "outputSha256": "51f8eeea71ee5a1c15f51ea3d666818eeacee266abdf6351abd17f6161adf233"
+    },
+    {
+      "command": "SEED_VERIFY_SHARD=hosted-auth-browser npx -y @runeditrun/rer verify",
+      "exitCode": 0,
+      "outputSha256": "208e2b486d736bc8da8e4decc6d19d028ec713d34634c2d27c64a35b99b82655"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "journey": "proveMailOff",
+  "setup": "native model -> bootstrap -> first-run",
+  "provider": "none",
+  "operationsProviders": {
+    "default SendGrid": "ready",
+    "sendgrid": "ready",
+    "resend": "ready",
+    "cloudflare": "ready",
+    "none": "optional-disabled"
+  },
+  "mailRequests": 0,
+  "settingsSaved": true,
+  "invitationCounts": {
+    "before": {
+      "operators": 1,
+      "tokens": 0,
+      "assignments": 1
+    },
+    "after": {
+      "operators": 1,
+      "tokens": 0,
+      "assignments": 1
+    }
+  },
+  "productRolesRefused": [
+    "admin",
+    "editor",
+    "responder",
+    "read-only"
+  ],
+  "peopleMailOff": true,
+  "alertsMailOff": true,
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "incidentOpened": true,
+  "incidentRecovered": true,
+  "privateDoorsProtected": true,
+  "unavailableAuthentication": true,
+  "unavailableAlerts": true
+}

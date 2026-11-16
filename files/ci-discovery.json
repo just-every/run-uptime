@@ -1,0 +1,15 @@
+{
+  "total_count": 1,
+  "workflow_runs": [
+    {
+      "conclusion": null,
+      "head_sha": "a22d1fac71eb6b0a2f6e7596454393d10361829a",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/43870763957",
+      "id": 43870763957,
+      "name": "Verify",
+      "status": "in_progress"
+    }
+  ],
+  "observedAt": "2026-11-16T12:54:39.229464+00:00",
+  "ciCalls": 1
+}
