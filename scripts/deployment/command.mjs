@@ -11,7 +11,8 @@ import { missing, RerError } from '@runeditrun/rer/errors';
 import { ownerDeploy } from '@runeditrun/rer/deploy';
 import { switchableDefaults } from '@runeditrun/rer/internal/cli/deploy-settings.mjs';
 import { deployCommand } from '@runeditrun/rer/internal/cli/deploy-command.mjs';
-import { migrateSecrets, savedInputs } from './secret-custody.mjs';
+import { deployEnvironment } from '@runeditrun/rer/internal/cli/deploy-inputs.mjs';
+import { migrateSecrets, savedInputs, keepSecrets } from './secret-custody.mjs';
 function upload(lifecycle) {
  const sharedDeploy = ownerDeploy('deploy.json', lifecycle);
  return async context => {
@@ -89,7 +90,23 @@ export function deployment(lifecycle) {
   const previous = { ...process.env };
   try {
    Object.assign(process.env, inputs);
-   return await deployCommand({ ...context, adapter: { ...context.adapter, deploy: hook } });
+   const changes=context.options.setSecret ?? context.options.unsetSecret;
+   const declaration=changes?JSON.parse(await readFile(join(context.root,'deploy.json'),'utf8')):null;
+   const changed=changes?declaration.secrets.filter(item=>changes.split(',').includes(item.binding)):[];
+   // A named change takes its supplied value over old seed custody. The shared
+   // CLI still validates names, inline public assignments and private env files.
+   if(context.options.setSecret)for(const item of changed) {
+    if(previous[item.environment]!==undefined)process.env[item.environment]=previous[item.environment];
+   }
+   const result=await deployCommand({ ...context, adapter: { ...context.adapter, deploy: hook } });
+   // Base records the provider version; Uptime also keeps owner/mail inputs.
+   // Change that private seed custody only after the shared command succeeds.
+   if(changes) {
+    const {env}=context.options.setSecret?await deployEnvironment({root:context.root,options:context.options,declaration}):{env:{}};
+    const values=context.options.setSecret?Object.fromEntries(changed.map(item=>[item.environment,env[item.environment]])):{};
+    await keepSecrets(context.root,context.options.environment ?? 'production',values,context.store,changed.map(item=>item.environment));
+   }
+   return result;
   } finally {
    for (const name of Object.keys(process.env)) if (!Object.hasOwn(previous, name)) delete process.env[name];
    Object.assign(process.env, previous);

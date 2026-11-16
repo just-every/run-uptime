@@ -157,6 +157,11 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   // A fresh mail-off deployment uses its ordinary owner bootstrap, then the
   // actual rer signin command against that exact recorded account and Worker.
   const offRoot=await checkout(t),offProvider=await providerBridge(t);
+  const offPlan=await deploy(offRoot,offProvider,t.signal,['--dry-run'],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
+  assert.equal(offPlan.code,0,JSON.stringify(offPlan));
+  assert.equal(offPlan.result?.dryRun,true);
+  assert.equal(offProvider.state.calls.length,0,'mail-off dry run never contacts the provider');
+  assert.equal(offProvider.state.writes.length,0,'mail-off dry run never mutates the provider');
   const off=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
   assert.equal(off.code,0,JSON.stringify(off));
   const mailProvider=()=>offProvider.state.secrets.find(s=>s.name==='MAIL_PROVIDER')?.value ?? offProvider.state.settings.bindings.find(s=>s.name==='MAIL_PROVIDER')?.text;
@@ -175,6 +180,8 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   ],{inputs:{MAIL_FROM:'sender@synthetic-uptime.dev',SENDGRID_API_KEY:'synthetic-uptime-mail-switch-key'}});
   assert.equal(enabled.code,0,JSON.stringify(enabled));
   assert.equal(mailProvider(),'sendgrid');
+  assert.equal(offProvider.uploads.length,uploadsBefore,'enable copies the existing Worker instead of re-uploading the product');
+  assert.equal(offProvider.state.version.resources.script.etag,scriptBefore,'enable preserves the existing Worker code');
   assert.equal(offProvider.state.secrets.find(s=>s.name==='SENDGRID_API_KEY')?.value,'synthetic-uptime-mail-switch-key');
   assert.equal(offProvider.state.secrets.find(s=>s.name==='MAIL_FROM')?.value,'sender@synthetic-uptime.dev');
   assert.notEqual(offProvider.state.version.id,versionBefore,'enable changes the active version');
@@ -184,11 +191,14 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   const held=await deploy(offRoot,offProvider,t.signal,[],{inputs:false});
   assert.equal(held.code,0,JSON.stringify(held));
   assert.equal(mailProvider(),'sendgrid','a plain deploy retains the selected provider');
+  const uploadsBeforeDisable=offProvider.uploads.length, codeBeforeDisable=offProvider.state.version.resources.script.etag;
   const disabled=await deploy(offRoot,offProvider,t.signal,[
     '--unset-secret','MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY',
   ],{inputs:false});
   assert.equal(disabled.code,0,JSON.stringify(disabled));
   assert.equal(mailProvider(),'none','unsetting the selector restores its public default');
+  assert.equal(offProvider.uploads.length,uploadsBeforeDisable,'disable copies the existing Worker instead of re-uploading the product');
+  assert.equal(offProvider.state.version.resources.script.etag,codeBeforeDisable,'disable preserves the existing Worker code');
   assert.equal(offProvider.state.settings.bindings.find(s=>s.name==='MAIL_PROVIDER')?.type,'plain_text');
   assert.ok(!offProvider.state.secrets.some(s=>['MAIL_PROVIDER','MAIL_FROM','SENDGRID_API_KEY','MAIL_API_KEY'].includes(s.name)),'sending overrides are removed together');
   assert.notEqual(offProvider.state.version.id,enabledVersion,'disable changes the active version');
@@ -202,8 +212,6 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.deepEqual(ownerRows(),ownerBefore,'switches preserve the admitted owner');
   assert.deepEqual(migrationRows(offProvider),offMigrations,'switches preserve migration history');
   assert.deepEqual(offProvider.state.secrets.filter(s=>['SESSION_SECRET','UPTIME_RUNNER_KEY'].includes(s.name)),keysBefore,'switches preserve installation authority');
-  assert.equal(offProvider.state.version.resources.script.etag,scriptBefore,'switches copy the same Worker code');
-  assert.equal(offProvider.uploads.length,uploadsBefore,'switches and repeats never replace the Worker upload');
   assert.equal(offProvider.state.calls.filter(call=>call.path.endsWith('/content/v2')).length,2,'each grouped switch reads the active code');
   const signed=await deploy(offRoot,offProvider,t.signal,[],{inputs:false,verb:'signin'});
   assert.equal(signed.code,0);

@@ -14,6 +14,8 @@ export async function validateConfiguration(env) {
 
 // Base's declarative whenUnset supports hosted providers only. Apply the seed's
 // public source default before asking the unmodified inspector to check inputs.
+// Keep the descriptor's hosted-only fallback for generic rer doctor compatibility;
+// this deployment entry point always resolves the public selector first.
 export async function inspectDeployment(root=process.cwd(),env=process.env) {
  const declaration=JSON.parse(await readFile(resolve(root,'deploy.json'),'utf8'));
  return inspectOperations(root,{MAIL_PROVIDER:declaration.vars.MAIL_PROVIDER,...env});

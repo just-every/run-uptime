@@ -443,6 +443,13 @@
               "MAIL_FROM"
             ]
           }
+        },
+        "whenUnset": {
+          "provider": "sendgrid",
+          "apiKeyEnvironment": "SENDGRID_API_KEY",
+          "requiredEnvironment": [
+            "MAIL_FROM"
+          ]
         }
       }
     }
