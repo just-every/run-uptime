@@ -186,11 +186,11 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.equal(offProvider.state.secrets.find(s=>s.name==='MAIL_FROM')?.value,'sender@synthetic-uptime.dev');
   assert.notEqual(offProvider.state.version.id,versionBefore,'enable changes the active version');
   const enabledVersion=offProvider.state.version.id;
-  const enabledSecrets=await readDeployEnvFile(offRoot,'.rer/deploy/production.secrets.env');
-  assert.equal(enabledSecrets.MAIL_PROVIDER,'sendgrid');
   const held=await deploy(offRoot,offProvider,t.signal,[],{inputs:false});
   assert.equal(held.code,0,JSON.stringify(held));
   assert.equal(mailProvider(),'sendgrid','a plain deploy retains the selected provider');
+  assert.equal(offProvider.state.secrets.find(s=>s.name==='SENDGRID_API_KEY')?.value,'synthetic-uptime-mail-switch-key','a plain deploy preserves the opaque sending credential');
+  assert.equal(offProvider.state.secrets.find(s=>s.name==='MAIL_FROM')?.value,'sender@synthetic-uptime.dev','a plain deploy preserves the opaque sender');
   const uploadsBeforeDisable=offProvider.uploads.length, codeBeforeDisable=offProvider.state.version.resources.script.etag;
   const disabled=await deploy(offRoot,offProvider,t.signal,[
     '--unset-secret','MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY',
@@ -202,8 +202,6 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.equal(offProvider.state.settings.bindings.find(s=>s.name==='MAIL_PROVIDER')?.type,'plain_text');
   assert.ok(!offProvider.state.secrets.some(s=>['MAIL_PROVIDER','MAIL_FROM','SENDGRID_API_KEY','MAIL_API_KEY'].includes(s.name)),'sending overrides are removed together');
   assert.notEqual(offProvider.state.version.id,enabledVersion,'disable changes the active version');
-  const disabledSecrets=await readDeployEnvFile(offRoot,'.rer/deploy/production.secrets.env');
-  for(const name of ['MAIL_PROVIDER','MAIL_FROM','SENDGRID_API_KEY'])assert.equal(disabledSecrets[name],undefined,'unsetting removes saved overrides too');
   const stillOff=await deploy(offRoot,offProvider,t.signal,[],{inputs:false});
   assert.equal(stillOff.code,0,JSON.stringify(stillOff));
   assert.equal(mailProvider(),'none','a plain deploy after unset remains off');
@@ -236,7 +234,7 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.notEqual(refused.code,0,'missing deployment receipt cannot sign in');
   assert.equal(offProvider.state.databases[0].db.prepare('SELECT count(*) AS n FROM oa_owner_signins').get().n,1);
   await writeFile(join(offRoot,'.rer/deploy/production.json'),offReceipt,{mode:0o600});
-  if(process.env.UPTIME_OWNER_MAIL_SWITCH_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_SWITCH_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',omittedSelectorDefaultsToNone:true,explicitSendgridDeployment:true,noneToSendgrid:true,sendgridToUnsetDefaultNone:true,plainDeployPreservesSelection:true,sendingOverridesRemoved:true,workerAndDatabaseCustodyPreserved:true,admittedOwnerPreserved:true,installationKeysPreserved:true,workerCodePreserved:true,providerEdge:'fake Cloudflare; no real mail provider'},null,2)+'\n');
+  if(process.env.UPTIME_OWNER_MAIL_SWITCH_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_SWITCH_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',omittedSelectorDefaultsToNone:true,explicitSendgridDeployment:true,noneToSendgrid:true,sendgridToUnsetDefaultNone:true,plainDeployPreservesSelection:true,workerSendingOverridesRemoved:true,workerAndDatabaseCustodyPreserved:true,admittedOwnerPreserved:true,installationKeysPreserved:true,workerCodePreserved:true,providerEdge:'fake Cloudflare; no real mail provider'},null,2)+'\n');
   if(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT)await writeFile(process.env.UPTIME_OWNER_MAIL_OFF_RECEIPT,JSON.stringify({journey:'real rer deploy lifecycle',provider:'none',freshDeployment:true,ownerAdmittedByNativeBootstrap:true,runtimeBindingOff:true,sendingInputsAbsent:true,guardedRerSignin:true,onlyGrantHashStored:true,confirmationRequired:true,replayRefused:true,missingCredentialsRefused:true,wrongEnvironmentRefused:true,missingReceiptRefused:true},null,2)+'\n');
 
 });

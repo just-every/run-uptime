@@ -187,9 +187,20 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     }
     if (suffix === '' && method === 'PUT') {
       const meta = JSON.parse(await body.get('metadata').text());
-      state.secrets = meta.bindings.flatMap(item => item.type === 'secret_text' ? [{name:item.name,value:item.text}]
-        : item.type === 'inherit' ? state.secrets.filter(secret => secret.name === item.name) : []);
-      const bindings = meta.bindings.map(x => x.type === 'inherit' || x.type === 'secret_text' ? {name:x.name,type:'secret_text'} : x);
+      // Cloudflare preserves unmentioned opaque secrets when keep_bindings asks
+      // for secret_text. A normal product upload must not erase a held sender/key.
+      const oldSecrets = new Map(state.secrets.map(item=>[item.name,item.value]));
+      const values = meta.keep_bindings?.includes('secret_text') ? new Map(oldSecrets) : new Map();
+      for(const item of meta.bindings) {
+        if(item.type==='secret_text')values.set(item.name,item.text);
+        else if(item.type==='inherit' && oldSecrets.has(item.name))values.set(item.name,oldSecrets.get(item.name));
+        else values.delete(item.name);
+      }
+      state.secrets = [...values].map(([name,value])=>({name,value}));
+      const declared = meta.bindings.map(item => item.type === 'inherit'
+        ? structuredClone(state.settings.bindings.find(binding=>binding.name===item.name))
+        : item.type === 'secret_text' ? {name:item.name,type:'secret_text'} : item);
+      const bindings = [...declared,...state.secrets.filter(item=>!declared.some(binding=>binding.name===item.name)).map(({name})=>({name,type:'secret_text'}))];
       state.settings = {...meta,bindings,migration_tag:meta.migrations?.new_tag ?? state.settings?.migration_tag};
       for (const klass of meta.migrations?.new_sqlite_classes ?? []) state.namespaces.push({id:randomUUID().replaceAll('-',''),class:klass,script:name,use_sqlite:true});
       const modules = await Promise.all([...body].filter(([path]) => path !== 'metadata').map(async ([path,file]) => ({path,sha256:hash(Buffer.from(await file.arrayBuffer()))})));

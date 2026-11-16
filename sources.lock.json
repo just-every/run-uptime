@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "abe301725759463a9b8c6f9e7c92e525f944d47ed41e022a6903d7fbaa72a718",
+      "sha256": "54a5d0ceadd99319bdec0384cf8e894accdbbadbe95075235d19da283a17f962",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2564,7 +2564,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "228b74db92ecb3b62b7a51cc650931b3faca8503c25d4f4a316b7498a077e270",
+      "sha256": "cda6c82f5a1cbe9335e5f7e4df3ab956b2e83bc250037a42946a56de7c3f3ec1",
       "executable": false
     },
     "package.json": {
@@ -3732,7 +3732,7 @@
       "executable": false
     },
     "scripts/deployment/command.mjs": {
-      "sha256": "d87fe8fee5dbbdc84a9ec63f51e40da8dfd4712ca79ddab58b4df67702397f62",
+      "sha256": "a242417d6b8347b76358259306c0db2e9364eebd9405c461e01bf3c9f2b7f395",
       "executable": false
     },
     "scripts/deployment/deploy.mjs": {
@@ -9576,7 +9576,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "dc843519f8629d00210eb476ad03d880161cbe212869d2328893eb0bff506f6d",
+      "sha256": "a4e2be2aef0d7dbada97ca913e88df9a57cc84774a6221301cc5bf42a428a07a",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/auth.mjs": {
@@ -9596,7 +9596,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle/provider-fixture.mjs": {
-      "sha256": "ee8a5304e129bc131b2901af150bc7f1ceea5a806deb03d80a64accebf26ac4d",
+      "sha256": "d9c44815495c70024a42133053541a40122db24a777c944a05a2e00a012501ad",
       "executable": false
     },
     "tests/owner-editor-browser.mjs": {
