@@ -1,5 +1,6 @@
 import {securityRequest,passkey} from './security-controls.js';
 import {authenticatorEnrollment} from './authenticator-enrollment.js';
+import {copyButton} from './copy-button.js';
 import {containModalKeyboard} from '../notification-dialogs.js';
 export const needsStepUp=result=>['fresh_second_factor_required','second_factor_required'].includes(result.code);
 // Only a server refusal opens this flow. The caller retains its original request,
@@ -18,7 +19,7 @@ export async function recoverStepUp(refusal){
   const enrolled=result=>{
    controls.replaceChildren();
    if(!result.recoveryCodes){finish();return}
-   const heading=document.createElement('h3'),codes=document.createElement('pre'),saved=document.createElement('button');heading.textContent='Save these ten recovery codes once';codes.textContent=result.recoveryCodes.join('\n');codes.dataset.recoveryCodes='';saved.type='button';saved.textContent='I saved this';saved.onclick=finish;controls.append(heading,codes,saved);saved.focus();
+   const heading=document.createElement('h3'),codes=document.createElement('pre'),saved=document.createElement('button');heading.textContent='Save these ten recovery codes once';codes.textContent=result.recoveryCodes.join('\n');codes.dataset.recoveryCodes='';saved.type='button';saved.textContent='I saved this';saved.onclick=finish;controls.append(heading,codes,copyButton('codes',()=>codes.textContent),saved);saved.focus();
   };
   const enroll=()=>run(async()=>{const pending=await securityRequest('/api/access/mfa/totp/enroll','POST',{}),form=authenticatorEnrollment(controls,pending);form.onsubmit=event=>{event.preventDefault();void run(async()=>enrolled(await securityRequest('/api/access/mfa/totp/confirm','POST',{challengeId:pending.challengeId,code:form.elements.code.value.replace(/\s+/g,'')})))}});
   if(!state.factors.length){

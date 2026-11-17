@@ -75,7 +75,11 @@ export function statusLine(m,{readUnavailable,data,seen={}}){
   case 'Degraded':return 'Some checks failed. Waiting to confirm.';
   case 'Recovering':return `Passing again. Confirming recovery (${Math.min(state.recoveryStreak??0,d.recoverSlots)} of ${d.recoverSlots} checks).`;
   case 'Maintenance':return `In maintenance${m.maintenanceEndsAt>now?` until ${dayClock(m.maintenanceEndsAt,now)}`:''}`;
-  case 'Unknown':return checked?'No recent result. Waiting for the next check.':`Waiting for the first check from ${where}.`;
+  case 'Unknown':{
+   // A scheduled check due later (a daily job's, say) says when, so a waiting monitor is not read as stuck.
+   const due=Number.isSafeInteger(m.nextDue)&&m.nextDue>now?` The next scheduled check is due ${dayClock(m.nextDue,now)}.`:'';
+   return checked?`No recent result. Waiting for the next check.${due}`:`Waiting for the first check from ${where}.${due}`;
+  }
   default:return 'Status unavailable.';
  }
 }

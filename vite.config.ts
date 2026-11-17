@@ -6,6 +6,7 @@ import { defineConfig } from 'vite'
 import { readFileSync, readdirSync } from 'node:fs'
 import { docsSite } from './src/site/docs/build/plugin.ts'
 import { archiveOutputGuard } from '@runeditrun/rer/archive-output'
+import { seedIcons } from '@runeditrun/rer/seed-icons'
 import { developmentImportDiagnostics } from './scripts/dev/import-diagnostics.ts'
 import { runnerScript } from './scripts/build/runner-script.ts'
 
@@ -32,6 +33,8 @@ export default defineConfig(({ command, isPreview }) => ({ define: { __UPTIME_UN
  allow: ['src', 'public', 'node_modules', 'seed.json', 'node_modules/@runeditrun/rer/modules/portability', 'runners/src/discovery', 'runners/src/probe-error.mjs'],
  deny: ['**/.rer/**', '**/.seed/**', '**/exports/**', '**/*.rer'],
 } }, plugins: [
+ // Freezes public/favicon.svg into the Lobby, setup and sign-in heads, so the app origin never asks for /favicon.ico.
+ seedIcons(),
  demoSockets(),
  developmentImportDiagnostics(),
  cloudflare({ inspectorPort: false, viteEnvironment: { name: 'ssr' }, persistState: { path: process.env.RER_STATE_DIR ?? '.wrangler/state' }, config: command === 'serve' && !isPreview ? { main: './src/server.dev.ts', assets: { binding: 'ASSETS', run_worker_first: true }, ...(local ? { vars: { ...local, ...gate('RER_DEV_KEY'), ...gate('RER_DEV_IDENTITY'), ...gate('RER_DEMO'), ...gate('RER_DEMO_EXPIRES') } } : {}) } : local ? { vars: local } : {} }),

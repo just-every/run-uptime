@@ -42,7 +42,7 @@ Production and preview share an allowance of 20 messages per minute, 200 per hou
 
 ## Deploy in your own Cloudflare account
 
-Stop dev with `rer dev --stop` (or stop preview with `rer preview --stop`) before any deployment command, including `--dry-run`. The owner-account path is `rer deploy`. Use `deploy --environment production` to select the environment; `deploy --dry-run` builds and prints the Worker, D1, migrations, Cron and binding plan with zero provider requests. Its hosted origin remains pending until Cloudflare assigns it; it does not establish current provider state. The `--json` result includes `plan` and `pendingVariables`. It builds with provider credentials
+Stop dev with `rer dev --stop` (or stop preview with `rer preview --stop`) before any deployment command, including `--dry-run`. The owner-account path is `rer deploy`. Use `deploy --environment production` to select the environment; `deploy --dry-run` builds and prints a short Worker, D1, Cron and secrets plan with zero provider requests; `--json` carries the full plan with migration digests and bindings. Its hosted origin remains pending until Cloudflare assigns it; it does not establish current provider state. The `--json` result includes `plan` and `pendingVariables`. It builds with provider credentials
 excluded, then provisions a Worker, D1 database, migrations and one-minute
 Cron through Base deploy-kit. Supply `CLOUDFLARE_ACCOUNT_ID` and
 `CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL`, `MAIL_FROM` and the selected mail

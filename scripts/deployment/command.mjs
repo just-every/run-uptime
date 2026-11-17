@@ -12,6 +12,7 @@ import { ownerDeploy } from '@runeditrun/rer/deploy';
 import { switchableDefaults } from '@runeditrun/rer/internal/cli/deploy-settings.mjs';
 import { deployCommand } from '@runeditrun/rer/internal/cli/deploy-command.mjs';
 import { migrateSecrets, savedInputs } from './secret-custody.mjs';
+import { planSummary } from './plan-summary.mjs';
 function upload(lifecycle) {
  const sharedDeploy = ownerDeploy('deploy.json', lifecycle);
  return async context => {
@@ -56,8 +57,7 @@ function upload(lifecycle) {
     migrations: database.migrations.map(({ sql, ...migration }) => migration),
    })) };
    const pendingVariables = originVar ? [originVar] : [];
-   store.report(`deploy: resource plan (provider state not queried):\n${JSON.stringify({ environment, plan, pendingVariables }, null, 2)}`);
-   if (originVar) store.report(`deploy: Cloudflare assigns the hosted origin and ${originVar} during deployment.`);
+   store.report(planSummary({ environment, plan, pendingVariables }));
    store.report('deploy: dry run complete; no deployment occurred and no provider request was made.');
    return { dryRun: true, deployed: false, environment, plan, pendingVariables };
   }
