@@ -196,7 +196,7 @@ api.get('/api/overview',async c=>{
  const actor=c.get('access'),readOnly=!['owner','admin'].includes(actor.role),zone=c.req.header('x-uptime-time-zone')
  if(zone&&!readOnly)await initializeNotificationTimeZone(c.env,zone)
  const monitorId=c.req.query('monitor')
- return c.json({...await overview(c.env,{monitorId,readOnly}),access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}})
+ return c.json({...await overview(c.env,{monitorId,readOnly}),operator:{displayName:actor.session.operator.displayName},access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}})
 })
 for(const [path,preview,apply] of [
  ['/api/catalog/routes',previewCatalogRoutes,applyCatalogRoutes],['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],

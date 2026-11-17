@@ -12,15 +12,21 @@ import {mountAlertTeams} from './assets/alert-teams.js';
 // middle cards fill themselves (data-owned), so a choice not yet applied, a typed name or a pending save survives it.
 const routes=new WeakMap();let current;
 export function renderAlerts({area,data,api,action,readUnavailable}){
+ if(!data.notifications){
+  patch(area,'<div class="settings-area alerts-area"><section class="ui-card set-card" id="alert-teams" data-owned="my-alerts" aria-labelledby="alert-teams-heading"></section></div>');
+  const teams=area.querySelector('#alert-teams');if(firstMount(teams))mountAlertTeams(teams,{api,manage:false});
+  return;
+ }
  const notes=data.notifications;current={notes,api,action};
  patch(area,`<div class="settings-area alerts-area"><div class="alert-clauses">${clausesMarkup(notes,readUnavailable)}</div><section class="ui-card set-card" id="alert-destinations" aria-labelledby="destinations-heading">${destinationsMarkup(notes)}</section><div class="alerts-split"><section class="ui-card set-card" id="default-route" data-owned="default-route" aria-labelledby="default-route-heading"></section><section class="ui-card set-card" id="root-cause-categories" data-owned="root-cause-categories" aria-labelledby="categories-heading"></section></div><section class="ui-card set-card" id="alert-teams" data-owned="alert-teams" aria-labelledby="alert-teams-heading"></section><section class="ui-card set-card" id="sent-alerts" aria-labelledby="sent-alerts-heading">${sentAlertsMarkup(notes)}</section></div>`);
  const page=area.querySelector('.alerts-area'),route=area.querySelector('#default-route'),categories=area.querySelector('#root-cause-categories'),teams=area.querySelector('#alert-teams'),reports=area.querySelector('#report-schedule-controls');
  if(firstMount(page))page.addEventListener('click',openFromPage);
  if(firstMount(route))routes.set(route,mountDefaultRoute(route,{api,notes}));else routes.get(route)?.update(notes);
- if(firstMount(categories))mountCategories(categories,{api});
+ if(firstMount(categories)){if(data.access?.role==='owner')mountCategories(categories,{api});else categories.innerHTML='<h2 id="categories-heading">Root-cause categories</h2><p>The owner manages root-cause categories.</p>'}
  if(firstMount(teams))mountAlertTeams(teams,{api});
  // Scheduled reports fill their own host once (public/assets/report-schedule-controls.js).
- if(!reports.hasChildNodes())void import('./assets/report-schedule-controls.js').then(({reportScheduleControls})=>reportScheduleControls(reports,{data,api}));
+ if(data.access?.role!=='owner')reports.closest('details').hidden=true;
+ else if(!reports.hasChildNodes())void import('./assets/report-schedule-controls.js').then(({reportScheduleControls})=>reportScheduleControls(reports,{data,api}));
  const add=document.getElementById('add-destination');if(add)add.onclick=()=>destinationDialog(null,current);
 }
 // A row's Send test and Edit, and a clause's fix, which opens the destination's Edit dialog.
