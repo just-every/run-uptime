@@ -77,7 +77,7 @@ export async function monitorHydration(ownerPage, origin, root) {
    await page.waitForLoadState('networkidle');
    assert.equal(await page.evaluate(() => window.__rerHydration?.count ?? 0), 0, 'discovery has no recovered hydration mismatch');
    if (evidence) await page.screenshot({ path: join(evidence, `discovery-${width}.png`), fullPage: true });
-   await page.getByRole('button', { name: 'Fill in the form yourself', exact: true }).click();
+   await page.getByRole('group', { name: 'Other ways to add' }).getByRole('button', { name: 'Fill in the form yourself', exact: true }).click();
    await page.getByLabel('Monitor name', { exact: true }).fill(name);
    assert.equal(await page.getByLabel('Target URL', { exact: true }).inputValue(), target, 'discovery address reaches manual form');
    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'manual form fits the viewport');

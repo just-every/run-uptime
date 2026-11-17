@@ -2696,7 +2696,7 @@
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "6aa0f016730e02abaab10ebf9bf29614aa66d75a365986eb00c39b38f883d56a",
+      "sha256": "1c5c71dbd2304fda72afe3f1f609461043bdb59311a22804d8704d7a5cd9c4fc",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -9416,7 +9416,7 @@
       "executable": false
     },
     "tests/installer-support.mjs": {
-      "sha256": "15df3d8ae330fc23c1e58b280b61deb62149471fddeabf3a9d8b1e63fa004270",
+      "sha256": "dd80b6cde133357a2870d1a51837316690d9a34dfe43393b32e7193c01600e54",
       "executable": false
     },
     "tests/keyword-monitor-journey.mjs": {
