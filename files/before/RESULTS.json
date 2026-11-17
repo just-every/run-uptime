@@ -1,0 +1,14 @@
+{
+  "head": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "widths": [
+    1440,
+    390
+  ],
+  "guidance": "Add a second factor before finishing this action. Enroll an authenticator or passkey, then your action will continue without retyping.",
+  "codeCount": 10,
+  "copyAll": false,
+  "download": false,
+  "memberConfirmation": false,
+  "refusal": "This action could not finish. Check the values and try again.",
+  "externalNetwork": false
+}

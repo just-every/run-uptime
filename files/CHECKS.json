@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "author": "Run Edit Run fleet",
+  "observedAt": "2026-11-17T16:24:04.846757+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-design-alerts-1",
+  "head": "a7ff38e487d81aad5182afaa81ee9e2a4aa6b6ce",
+  "tree": "e75ef47cd5590ef502c903d04cbdcae6528cc94d",
+  "checks": [
+    {
+      "name": "typecheck",
+      "command": "pnpm run typecheck",
+      "exitCode": 0,
+      "consoleSha256": "3ad12d6e4ba864db0ceeef85bcf6b441c1f4df26c079e0dadd10e09eb714fa20"
+    },
+    {
+      "name": "build",
+      "command": "npx -y @runeditrun/rer build (through cloud_run)",
+      "exitCode": 0,
+      "consoleSha256": "e1a083159527dbf722c7d11831e0f6091f675d60fed5387f8aebb137e67a0962"
+    },
+    {
+      "name": "operator-security",
+      "command": "node tests/operator-security.mjs",
+      "exitCode": 0,
+      "consoleSha256": "45ef13240d200deecc231c97c4398d0d91d85f81e005166bc67118d2171f046b"
+    },
+    {
+      "name": "focused-final-security",
+      "command": "node security-final.mjs: proveSecurityControls()",
+      "exitCode": 0,
+      "consoleSha256": "65d0e1e3d08f60876dc3e312434eb251b1fe132b593d5a6b41b71ca9aebbeb78"
+    },
+    {
+      "name": "access-matrix",
+      "command": "node tests/access-matrix.mjs",
+      "exitCode": 0,
+      "consoleSha256": "33040eeb34c4038725e5e67f2c2762e7c338fc5650af3bfed72a61c5aa84d802"
+    },
+    {
+      "name": "exact-head-destination",
+      "command": "node destination-final.mjs: proveDestinationStepUp()",
+      "exitCode": 0,
+      "consoleSha256": "ad52934cd2700e36d4d17772891840e6c4914f8bc119db51efc7b702ad74c3b0"
+    },
+    {
+      "name": "lock-write-and-check",
+      "command": "node scripts/edition-authoring/cli.mjs lock; node scripts/edition-authoring/cli.mjs check",
+      "exitCode": 0,
+      "consoleSha256": "152d3ed2ff66327e75f55e74845bb5fe7e0756306fead3ea681e5b838c235b55"
+    },
+    {
+      "name": "final-lock-check",
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exitCode": 0,
+      "consoleSha256": "3b81c56f7f182fc5975f9e7d81c545660bb0b10b9a294d4536168cfc424f1bae"
+    },
+    {
+      "name": "ci-failure-local-replay",
+      "command": "node tests/browser-suites.mjs (through cloud_run)",
+      "exitCode": 0,
+      "consoleSha256": "633f0b6fe0c3f14916cc8e51e81d7d844a2c8cd9435e8dfb953f4d60453f0308"
+    }
+  ],
+  "assertionWidth": 1440,
+  "browserWidths": [
+    1440,
+    390
+  ],
+  "contractBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contractAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "configuredJourneyEntrypointsBefore": 47,
+  "configuredJourneyEntrypointsAfter": 47,
+  "newRegistrations": 0,
+  "clauseChanges": [],
+  "productPush": "succeeded on first guard attempt; independently verified with git ls-remote",
+  "publicationScan": "deferred to fleet Mac as required by the cloud brief",
+  "pr": null,
+  "ci": {
+    "runId": 44120731684,
+    "conclusion": "failure",
+    "head_sha": "a7ff38e487d81aad5182afaa81ee9e2a4aa6b6ce",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/44120731684",
+    "status": "completed",
+    "failedJob": 134171766487,
+    "failedShard": "push-7",
+    "failureLocation": "tests/operator-browser.mjs:282:18 (provePlainMonitorEvidence)",
+    "artifactDownload": "HTTP 403 Forbidden; no retry of blocked blob",
+    "localMonitorReplay": "full browser integration passed, including operator monitor evidence and recovery; owned runtime groups stopped"
+  },
+  "blockers": [
+    "Successful exact-SHA Verify: push-7 failed in the monitor-evidence browser journey."
+  ],
+  "identityCheck": {
+    "candidateCommits": 1,
+    "authors": [
+      "Run Edit Run fleet <fleet@runeditrun.com>"
+    ],
+    "committers": [
+      "Run Edit Run fleet <fleet@runeditrun.com>"
+    ],
+    "trailers": [],
+    "allCandidateParentsInspected": true
+  },
+  "workingTree": "clean after commit and no-op rebase against fresh origin/main",
+  "diffHygiene": "no credential-shaped additions; packet contains regular files only",
+  "productChanges": [
+    "public/app.js",
+    "public/assets/access-member-controls.js",
+    "public/assets/recovery-codes.js",
+    "public/assets/security-controls.js",
+    "public/assets/step-up.js",
+    "docs/mfa.md",
+    "tests/access-member-controls-browser-support.mjs",
+    "tests/destination-stepup-support.mjs",
+    "tests/recovery-save-support.mjs",
+    "tests/security-controls-browser-support.mjs",
+    "sources.lock.json"
+  ],
+  "githubToolInvocations": 8,
+  "githubBudgetNote": "Four run-status/discovery calls, one jobs call, one failed-job archive invocation counted as required, and two artifact-selection/download invocations. No further GitHub requests are planned; gh artifact downloads may issue more than one HTTP request.",
+  "terminalProductStatus": "BLOCKED on Successful exact-SHA Verify; product branch pushed"
+}

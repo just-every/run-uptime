@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "baselineHead": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "candidateHead": "a7ff38e487d81aad5182afaa81ee9e2a4aa6b6ce",
+  "candidateTree": "e75ef47cd5590ef502c903d04cbdcae6528cc94d",
+  "assertionWidth": 1440,
+  "captureWidths": [
+    1440,
+    390
+  ],
+  "externalNetwork": false,
+  "masking": "Authenticator seeds, enrollment QR/link and issued recovery codes are masked. No downloaded code files are included.",
+  "captures": [
+    {
+      "path": "before/destination-second-factor-1440.png",
+      "bytes": 132979,
+      "sha256": "931eab5c51d55e81fe9fb857557629662338c11bd61dba4466c63c6e3ca059e0"
+    },
+    {
+      "path": "before/destination-second-factor-390.png",
+      "bytes": 75251,
+      "sha256": "85ef008360a9593ab2af55fff788b98ccc1f73f364e04b7bf5305dd88d87f07a"
+    },
+    {
+      "path": "before/only-owner-refusal-1440.png",
+      "bytes": 96510,
+      "sha256": "3b26b701e6d8194b6ba14667e0d202cdefe1c2ba6702c248c0e643adbe866e88"
+    },
+    {
+      "path": "before/only-owner-refusal-390.png",
+      "bytes": 39313,
+      "sha256": "0922498f7a6ea2af523753eed78bd25203492986c40a904ff46b697402d86744"
+    },
+    {
+      "path": "before/recovery-codes-1440.png",
+      "bytes": 122230,
+      "sha256": "8c84c2758d7e8ce538e6678edf49b92488189b0c6cbde75a991f0d670e0d803b"
+    },
+    {
+      "path": "before/recovery-codes-390.png",
+      "bytes": 62228,
+      "sha256": "a8093fd2751d7ff093eb84fc0434ba1be80cc97479d4641c23272d01c7696dc6"
+    },
+    {
+      "path": "before/remove-member-1440.png",
+      "bytes": 91285,
+      "sha256": "859b9cb46a7052cac113d2e7052858d8e46af73027cac0de73171380355dcd42"
+    },
+    {
+      "path": "before/remove-member-390.png",
+      "bytes": 62654,
+      "sha256": "01da3d663573e259abfba5df17d43299f59d2c1be8dd90f49c01e95e60e1e82c"
+    },
+    {
+      "path": "after/destination-needs-enrollment-1440.png",
+      "bytes": 136140,
+      "sha256": "b915a1412f89261bfe3830079d799f7ddadf09c0bd3a2316e2622410b6787ad0"
+    },
+    {
+      "path": "after/destination-needs-enrollment-390.png",
+      "bytes": 78136,
+      "sha256": "7987abe26daa33e52e306a14f8db9fec9e9ba0306baa8344659f3d5cb1392c28"
+    },
+    {
+      "path": "after/destination-needs-verification-1440.png",
+      "bytes": 148912,
+      "sha256": "2d355537b7ca32e9fde712e5ef0d9c0dbe85b0c1ab4067b83c5e252848477f90"
+    },
+    {
+      "path": "after/destination-needs-verification-390.png",
+      "bytes": 78236,
+      "sha256": "74b158291954f343f2f2c893d5fab8d9587255bef95fb2ef1f9006d35ad44784"
+    },
+    {
+      "path": "after/destination-recovery-codes-1440.png",
+      "bytes": 141096,
+      "sha256": "fdb7b04a1f6b64456a14eb8049415aaa4a9008781520a78df48d154422a180c7"
+    },
+    {
+      "path": "after/destination-recovery-codes-390.png",
+      "bytes": 58885,
+      "sha256": "1cd4b780155307c47e789ef53dd87beabf7a32ddcf2da8b10b9513cf2ab615f1"
+    },
+    {
+      "path": "after/only-owner-confirmation-1440.png",
+      "bytes": 116872,
+      "sha256": "d87b42f53b5aaa6c406efddea4b7c727bd720ff3295b2e62f8d2c4efe072fe24"
+    },
+    {
+      "path": "after/only-owner-confirmation-390.png",
+      "bytes": 64813,
+      "sha256": "7e1de21a06f04934b71d97ab5eba283ba4609cb22e2263055cf88c6521a55ad4"
+    },
+    {
+      "path": "after/only-owner-refusal-1440.png",
+      "bytes": 103599,
+      "sha256": "66f224abd9a50899a6bfce31c910f71fdc12c234cf0d7b0ff3ecea6dedf30ea4"
+    },
+    {
+      "path": "after/only-owner-refusal-390.png",
+      "bytes": 39500,
+      "sha256": "0a2c5ba6d2d5ae431abe61f0afbd4b06f789f29dae6167fe7817b528a3ec527b"
+    },
+    {
+      "path": "after/removal-complete-1440.png",
+      "bytes": 106918,
+      "sha256": "cb53f8bd9fb7fbe9f1d6d482441ff31bf5fad5bc6c544380f2a8e42c3f499d4e"
+    },
+    {
+      "path": "after/removal-complete-390.png",
+      "bytes": 56611,
+      "sha256": "7b2f7b9b27d9bdbcced5add0c9a514f634195ada2d17e58f7e3a7b8ab5c0a7e3"
+    },
+    {
+      "path": "after/removal-confirmation-1440.png",
+      "bytes": 130196,
+      "sha256": "73e17e04352fef1ba2fbaafaa7ca6d939c113a0719c023a02dd735c4369bc9f3"
+    },
+    {
+      "path": "after/removal-confirmation-390.png",
+      "bytes": 54689,
+      "sha256": "b424090e458d68c7ffb9f3a8989d15192a6e3ec617fafb1a8d083e592448c926"
+    },
+    {
+      "path": "after/removal-verify-1440.png",
+      "bytes": 106675,
+      "sha256": "6d12d2d093b7d37003130ef8cb740428762ebd34d5711c94a0a309eaadd9cb7a"
+    },
+    {
+      "path": "after/removal-verify-390.png",
+      "bytes": 54340,
+      "sha256": "9bb33f873b94a38a0fec304d3a5a34b4702f0ea236c8a56433e43a81d83f2f37"
+    }
+  ]
+}

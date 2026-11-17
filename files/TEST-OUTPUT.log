@@ -1,0 +1,48 @@
+typecheck
+ WARN  Unsupported engine: wanted: {"node":"22.20.0"} (current: {"node":"v24.19.0","pnpm":"10.12.4"})
+
+> @uptime/uptime-console@0.5.16 typecheck <checkout>
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
+
+
+operator-security
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+ACCESS-003 API/CLI TOTP, recovery consumption, enforced private doors/revocation, fresh erasure/rotation/export, member enrollment/reset/erasure, opaque audit/notices and durable limits. Console and provider-MFA assertion remain open.
+ACCESS-003 real Chromium CTAP2 enrollment and email-link second factor; origin, expiry, session binding and replay refusals.
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+ACCESS-003/READAPI-001 Settings 1440 PASS: owner/member TOTP, recovery once, CDP passkey, stale policy/key step-up, hash-only restricted monitoring/CI issuance, usage and immediate revocation, live member refusal, factor removal, axe/reflow. Existing-document member proof; initial narrowed-role shell entry remains held.
+Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, plain counted receipt with unchanged storage and later backup.
+OPERATOR-SECURITY completed one owner-to-runner lifecycle
+
+focused-final-security
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+ACCESS-003/READAPI-001 Settings 1440 PASS: owner/member TOTP, recovery once, CDP passkey, stale policy/key step-up, hash-only restricted monitoring/CI issuance, usage and immediate revocation, live member refusal, factor removal, axe/reflow. Existing-document member proof; initial narrowed-role shell entry remains held.
+
+access-matrix
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+ACCESS-001 read-only actions PASS: list and monitor write controls absent; owner retains all controls; stale-screen 403 names read-only role without queuing a check.
+ACCESS-001 Settings PASS: Base email-link invitations for all four roles, live service/team scope narrowing, no-op save and removal at 1440 with axe/reflow.
+ACCESS-001 member discovery PASS: initiating owner, completed outcome retention, explicit cancellation, revoked live member stops at result boundary without writing a result.
+ACCESS-001 lifecycle/API/CLI: live owner/admin/editor/responder/read-only, invitations, assignment/removal, role actions/refusals, scope boundaries, stale/forged authority and opaque mutation/export audit. Key-management UI, broader refusal coverage, delegated issuance and token-job durable stop presentation remain gaps.
+BASE-ACCESS-002 passed missing, expired, revoked and valid Base sessions on local and emitted hosted Worker documents, reads and every owner mutation; denied operations leave durable data unchanged; seven-day absolute expiry stays below 30 days and never slides on reads. BASE-ACCESS-004 passed: a member is refused every owner route and account change with nothing durable changed, and forged identity claims are neither authority nor stored.
+
+exact-head-destination
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+
+CI failure local replay
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+Running tests/operator-browser.mjs
+Running tests/recovery-browser.mjs
+Browser integration passed; owned runtime groups stopped and temporary grant/state removed. Private evidence: <checkout>/data/browser-suites-evidence-0sOXDH
