@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "author": "Run Edit Run fleet",
+  "timestamp": "2026-11-17T04:47:28.292202+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-16",
+  "head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "main_at_push": "1156542ef11fd14e1fd9cbc23a13e0e9ab8077e0",
+  "previous_tag": "v0.5.15",
+  "previous_tag_commit": "40a6a6d8104a7e4bc15ea89e47406f455a734fe9",
+  "release_version_before": "0.5.15",
+  "release_version_after": "0.5.16",
+  "previousVersion_before": "0.5.13",
+  "previousVersion_after": "0.5.15",
+  "main_commits_since_previous_tag": 11,
+  "rer_package_pin": "0.2.121",
+  "rer_lock_specifier": "0.2.121",
+  "rer_lock_resolution": "0.2.121",
+  "rer_pin_modified": false,
+  "migrations_before": 91,
+  "migrations_after": 91,
+  "migrations_added": [],
+  "migrations_changed": [],
+  "migrations_removed": [],
+  "contract_counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contract_counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clause_status_changes": [],
+  "product_changed_files": [
+    "CHANGELOG.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "source_lock_changed_identities": [
+    "CHANGELOG.md",
+    "package.json",
+    "RELEASE.json",
+    "RELEASE.md",
+    "seed.json"
+  ],
+  "local_checks": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit": 0,
+      "notes": "pnpm 10.12.4; no lockfile diff"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit": 0,
+      "notes": "Both TypeScript projects passed on Node v24.19.0; checkout requests Node 22.20.0; supplied toolchain keeps a newer VM Node"
+    },
+    {
+      "command": "release metadata inspection",
+      "exit": 0,
+      "receipt": "metadata-check.txt"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "receipt": "source-lock-write.json"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "receipt": "source-lock-check.json"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    },
+    {
+      "command": "git rebase origin/main",
+      "exit": 0,
+      "notes": "After fresh fetch, already up to date; performed before first push"
+    },
+    {
+      "command": "all candidate identity/trailer/message audit",
+      "exit": 0,
+      "receipt": "candidate-identity.txt",
+      "notes": "One linear commit; fleet author and committer; no trailers or skip markers"
+    }
+  ],
+  "product_push": {
+    "status": "success",
+    "attempts": 1,
+    "guard": "cloud-push.py",
+    "receipt": "product-push.txt"
+  },
+  "ci": {
+    "id": 44019218313,
+    "name": "Verify",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+    "url": "https://github.com/just-every/run-uptime/actions/runs/44019218313",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/44019218313"
+  },
+  "github_api_calls_so_far": 6,
+  "tag_collision_check": {
+    "method": "git ls-remote origin refs/tags/v0.5.16",
+    "result": "absent"
+  },
+  "release_collision_check": {
+    "method": "gh api repos/just-every/run-uptime/releases?per_page=10",
+    "result": "absent; latest non-draft Release v0.5.15"
+  },
+  "pr_created": false,
+  "tags_created": false,
+  "github_release_created": false,
+  "base_refresh_run": false,
+  "publication_scan": {
+    "status": "not_run_in_cloud",
+    "reason": "Cloud adaptation reserves the publication scan and landing gates for the fleet Mac"
+  },
+  "browser_proof": {
+    "status": "not_applicable",
+    "reason": "Only release metadata changed; no UI/product changes"
+  },
+  "pr_discovery": [],
+  "terminal_timestamp": "2026-11-17T04:59:44.877609+00:00",
+  "terminal_product_status": "READY",
+  "product_checkout_clean": true
+}

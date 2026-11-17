@@ -1,0 +1,106 @@
+{
+  "files": [
+    {
+      "blob": "1b99de5852ef81aaaf4287be717feac338706e2f",
+      "bytes": 1686,
+      "path": "PLAN.md",
+      "sha256": "a3a632d968cd9d60b290da15788031815cc3d3bc7b6ea71a8d64d5e637111e81"
+    },
+    {
+      "blob": "44d235cb3843d09144fa158fe10946406cb98b53",
+      "bytes": 5923,
+      "path": "REPORT.md",
+      "sha256": "84cd642e5552c1d64b06879f867345eb204410d875087fd21571896ac739984e"
+    },
+    {
+      "blob": "c4c2322dabfdef0870cc951ec92b3c86c72dcdac",
+      "bytes": 166,
+      "path": "candidate-identity.txt",
+      "sha256": "cd2611a1f0d617ab97fa631faa39383e8c6cfe35cf6b5502fe1fa6630aabf1b1"
+    },
+    {
+      "blob": "0a365cd9c477b93e3c4c2be596d1be068e5e4cb6",
+      "bytes": 296,
+      "path": "ci-discovery.json",
+      "sha256": "746f1ceec96932eae74ba45701bfd8bc1d6dafac10724cfe036e49985a308714"
+    },
+    {
+      "blob": "757f887c9e559d364cd8ffb7291d9c55428c4389",
+      "bytes": 176,
+      "path": "ci-poll-1.json",
+      "sha256": "99f22f3e5e32eb45db4fc53438564a0736c5b123a495a63b0a658455eeecab77"
+    },
+    {
+      "blob": "757f887c9e559d364cd8ffb7291d9c55428c4389",
+      "bytes": 176,
+      "path": "ci-poll-2.json",
+      "sha256": "99f22f3e5e32eb45db4fc53438564a0736c5b123a495a63b0a658455eeecab77"
+    },
+    {
+      "blob": "9e77c5bb70abc7bdeadc7806c81a0926f4adf2da",
+      "bytes": 179,
+      "path": "ci-poll-3.json",
+      "sha256": "af4b52a9af3a82da51f9a84908df28ac66217d4de1493aad0b3d50d655dee10c"
+    },
+    {
+      "blob": "cdce411f6759d05d721c5cfe8c4f589c59247b10",
+      "bytes": 145,
+      "path": "metadata-check.txt",
+      "sha256": "3a8f6d485248ac04f625998cb0f193fa857d4eec4b0d7815cf65ca0b8c166c43"
+    },
+    {
+      "blob": "fe51488c7066f6687ef680d6bfaa4f7768ef205c",
+      "bytes": 3,
+      "path": "pr-discovery.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "blob": "47efc07f8dc14ce6f0b0a44e8b40c2892eae2e94",
+      "bytes": 14785,
+      "path": "product-diff.patch",
+      "sha256": "adda7ba5afdc45c74153e7d24d80bc9b9f5cdb41a6f43a3ed6083ec5d325e5ea"
+    },
+    {
+      "blob": "12db11836f736034ab5e1c3bfb0b755cafbfaf71",
+      "bytes": 938,
+      "path": "product-push.txt",
+      "sha256": "c654b0068c72be3d36578a521de444056f76aaaa20b701910a625149e5426979"
+    },
+    {
+      "blob": "bc5a87a4ad6be919469a3708f92956c0527cde68",
+      "bytes": 2445,
+      "path": "release-diff-inventory.txt",
+      "sha256": "15852fd3b235d261a3e3aec127a37916a3a1ea848d012c8161958636393ab321"
+    },
+    {
+      "blob": "0d2fcf467d5fbe2f92a076ad348848c79a88e888",
+      "bytes": 3944,
+      "path": "release-receipt.json",
+      "sha256": "88dbd5ba05ffe4a570c55d568f2b6216ad708f071bc64cae54e7a6c684cc5d01"
+    },
+    {
+      "blob": "e5e5a34332373823cb4fa795d808232edc520c0a",
+      "bytes": 423278,
+      "path": "source-lock-check.json",
+      "sha256": "d494f050ac3cdad505df320f68322e92af5eb78c2cf8f215aee8f309ac28c0a9"
+    },
+    {
+      "blob": "deefed16889c85551208c3da4f7ea4454f0a6326",
+      "bytes": 423264,
+      "path": "source-lock-write.json",
+      "sha256": "98089f054da5b8bd66e75f6c7b598bb40ec6803c574b665c8a630d3778df5cda"
+    },
+    {
+      "blob": "a46e27a4854bde1c956a6b3723176ae72c0e7a0c",
+      "bytes": 244,
+      "path": "typecheck.log",
+      "sha256": "0a62a9bcd2d8553efcf07c37e9092b36483fbd5de914f1fc6511e4519660584a"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-release-0-5-16",
+  "product_head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "ref": "refs/heads/evidence/sd-uptime-release-0-5-16",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-release-0-5-16"
+}

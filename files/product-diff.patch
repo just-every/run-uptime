@@ -1,0 +1,142 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 33411e6..f96fbf0 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -2,6 +2,39 @@
+ 
+ ## Unreleased
+ 
++## 0.5.16 — 2026-11-17
++
++Patch release from `main`; previous version 0.5.15. Existing hosted installations can turn outbound email on or off in place. Hosted checks use the public Cloudflare edge, including checks of another Worker in the monitor's own account. Failed HTTP checks give more useful status details. The checkout keeps main's exact `@runeditrun/rer` 0.2.121 pin. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are retained on upgrade.
++
++Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13; this is not a new 0.5.16 capture.
++
++### Mail on an existing installation
++
++- **Turn email on without replacing the installation.** Public `MAIL_PROVIDER` defaults to `none` when omitted. From the existing deployment checkout, keep the account, environment, ownership receipt and private settings. Put `MAIL_FROM` and `SENDGRID_API_KEY` in an owned mode-0600 `deploy.env` file outside Git, then run `rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env`. Add `--environment NAME` for a named environment. The switch retains the Worker, database, owner and installation keys; a plain deploy keeps the selected provider.
++- **Turn SendGrid email off again.** Run `rer deploy --unset-secret MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY` without the enabling `--env-file` or sending inputs in the shell. This restores `MAIL_PROVIDER=none`; a later plain deploy stays off. Remove obsolete selector, sender and key entries from `.rer/deploy/<environment>.secrets.env` when retiring email, preserving owner and installation keys. For another provider, also unset its declared sending inputs. Never leave sending credentials with `none`.
++- **Keep mail-off limits explicit.** Guarded `rer signin` from the deploying checkout remains available. Email-link sign-in, invitations and email alerts are unavailable while mail is off; alerts are never recorded as sent. Local development and demo mail behavior is unchanged. An enabled provider still needs a verified sender and its credentials; verify real sign-in and recipient delivery after deployment.
++- **Use the declared mail default in diagnostics.** Local deployment inspection applies the same public `none` default and validates explicit providers against their required sender and credentials.
++
++### Hosted checks and deployment guidance
++
++- **Check another Worker through its public address.** Hosted HTTP checks now route through the public Cloudflare edge, so a Worker in the monitor's own account is checked through the public response path.
++- **Read the cause of a failed status assertion.** Check details name the returned HTTP status and any numeric Cloudflare `Error 1xxx` label. The existing failure snapshot keeps the first 16 KiB of the response body under its retention and redaction rules; capture can be unavailable. Arbitrary body text is not added to the retained check reason. The existing 64 KiB response-body limit remains.
++- **Prepare the deployment account correctly.** The deployment guide names account-scoped **Workers Scripts: Edit** and **D1: Edit** token permissions. Name a separate installation through `--environment`; there is no separate name or prefix input.
++
++### Upgrading from 0.5.15
++
++Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately; for a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide; without it export is refused and writes nothing. Keep that cookie private.
++
++Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This installs the exact `@runeditrun/rer` 0.2.121 pin already on main, replacing 0.2.119 from 0.5.15. Stop dev or preview before deployment. Owners of mail-off installations can use the switch commands above when ready to enable email. A legacy SendGrid installation with a saved key but no selector must explicitly choose SendGrid: from the retained checkout and its existing private inputs, run `MAIL_PROVIDER=sendgrid rer deploy --environment NAME`. A sending key without a selector is refused under the new `none` default. Keep the deployment receipt and installation keys; do not rotate keys to perform this upgrade.
++
++Database migration inventory since 0.5.15: none (no migration files added, changed or removed; 91 SQL migration files before and after). No new setting is required. Existing monitors, history, incidents, destinations and private settings are retained.
++
++### Known issues
++
++The other known issues and upgrade cautions listed under 0.5.15 and earlier releases remain, including earlier heartbeat output, UptimeRobot monitor CSV import, restoration of the erased-people list, empty company decision feeds, the 64 KiB response-body bound and unestablished large-scale archive operation. The former limitation on switching a mail-off installation back to enabled email is addressed by the commands above.
++
++— Run Edit Run fleet, 2026-11-17
++
+ ## 0.5.15 — 2026-11-16
+ 
+ Patch release from `main`; previous version 0.5.13. Hosted installations can deliberately run without outbound email on the exact `@runeditrun/rer` 0.2.119 pin. First-run and sign-in pages explain mail-off operation, and invitations clearly refuse when email is off. Public `/health` names the running package version. Imported heartbeat controls and local diagnostics are corrected, and restored notification outcomes identify simulated email. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are kept on upgrade.
+diff --git a/RELEASE.json b/RELEASE.json
+index eaa3bd2..cd46565 100644
+--- a/RELEASE.json
++++ b/RELEASE.json
+@@ -1,6 +1,6 @@
+ {
+-  "version": "0.5.15",
+-  "publicReleaseNotes": "Uptime 0.5.15 adds deliberate hosted installs without outbound email on the exact @runeditrun/rer 0.2.119 pin. Select MAIL_PROVIDER=none explicitly and omit sender and sending credentials; missing or deferred mail selection does not mean off. First-run and sign-in pages explain mail-off operation. Sign in with guarded rer signin from the deploying checkout, retaining its deployment receipt and the deploying account's credentials. Email links, invitations and email alerts are unavailable while mail is off; refused invitations explain that email is needed and create no invitation or account, and email alerts are never recorded as sent. Local development and demo mail behavior is unchanged; simulated notification outcomes, including restored history, say that no email was sent. Public /health includes buildVersion from the running package. Operations diagnostics use the default SendGrid provider when MAIL_PROVIDER is unset and validate saved local settings when present. Imported expected-period heartbeat jobs can be edited in the monitor editor without losing their job settings; cron and short-period jobs use Job schedule and runs. Dependencies include re2js 2.8.7. Switching email back on through rer deploy is not established by this release. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are retained on upgrade. Back up first through Settings > Backup and files > Download backup with a second factor verified within five minutes. Keep private settings and .rer/deploy separately, plus a hosted database backup; local CLI export requires the verified UPTIME_ACCESS_COOKIE described in the backup guide. Keep that cookie private. Update with pnpm install --frozen-lockfile, then deploy as usual. Earlier known issues and upgrade cautions remain, including old heartbeat output, UptimeRobot monitor CSV import, erased-people restore, empty company decision feeds, the 64 KiB response-body bound and unestablished large-scale archive operation. The product screenshot was taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13; it is not a new 0.5.15 capture. Product screenshot: .github/assets/release/uptime-0.4.0-monitor-1440.png \u2014 Run Edit Run fleet, 2026-11-16.",
++  "version": "0.5.16",
++  "publicReleaseNotes": "Uptime 0.5.16 lets an existing hosted installation switch outbound email on or off in place. MAIL_PROVIDER is public and defaults to none when omitted. Keep the existing deployment checkout, account, environment, ownership receipt and private settings. Put MAIL_FROM and SENDGRID_API_KEY in an owned mode-0600 deploy.env file outside Git, then enable email with rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env. Add --environment NAME for a named environment. Switch SendGrid off with rer deploy --unset-secret MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY, without the enabling env-file or sending inputs in the shell. Remove obsolete selector, sender and key entries from .rer/deploy/<environment>.secrets.env when retiring email; preserve owner and installation keys. For another provider, also unset its declared sending inputs. Plain deploys preserve the selected provider. Guarded rer signin remains available while email links, invitations and email alerts are unavailable with mail off; local dev and demo mail are unchanged. Verify real sign-in and recipient delivery after enabling mail. Local deployment diagnostics use the declared none default. Hosted checks route through the public Cloudflare edge, including checks of another Worker in the monitor's own account. Failed status assertions name the HTTP status and any numeric Cloudflare Error 1xxx label; existing redacted failure snapshots retain the first 16 KiB of body when available, with the existing 64 KiB response-body limit. The deployment guide names account-scoped Workers Scripts: Edit and D1: Edit token permissions and says to name copies through --environment. Main's exact @runeditrun/rer 0.2.121 pin is retained, replacing 0.2.119 from 0.5.15. No database migration or new required setting is added: 91 SQL migration files before and after, with none added, changed or removed. Monitors, history, incidents, destinations and private settings are retained on upgrade. Back up first through Settings > Backup and files > Download backup with a second factor verified within five minutes. Keep private settings and .rer/deploy separately, plus a hosted database backup. Local CLI export requires the verified UPTIME_ACCESS_COOKIE described in the backup guide; keep it private. Update with pnpm install --frozen-lockfile, stop dev or preview and deploy as usual. A legacy SendGrid installation with a saved key but no selector must explicitly select SendGrid with MAIL_PROVIDER=sendgrid rer deploy --environment NAME from its retained checkout and private inputs. Keep the deployment receipt and keys; do not rotate them for this upgrade. Earlier known issues and upgrade cautions remain, including old heartbeat output, UptimeRobot monitor CSV import, erased-people restore, empty company decision feeds, the 64 KiB response-body bound and unestablished large-scale archive operation. The product screenshot was taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13; it is not a new 0.5.16 capture. Product screenshot: .github/assets/release/uptime-0.4.0-monitor-1440.png \u2014 Run Edit Run fleet, 2026-11-17.",
+   "sourceRepository": "https://github.com/just-every/run-uptime",
+-  "previousVersion": "0.5.13"
++  "previousVersion": "0.5.15"
+ }
+diff --git a/RELEASE.md b/RELEASE.md
+index 349f5e6..60ab071 100644
+--- a/RELEASE.md
++++ b/RELEASE.md
+@@ -1,7 +1,7 @@
+-# Release Uptime 0.5.15
++# Release Uptime 0.5.16
+ 
+ Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
+-0.2.119), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
++0.2.121), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
+ Playwright Chromium browser required by the lockfile.
+ 
+ 1. Review the changes since the previous release independently, including
+diff --git a/package.json b/package.json
+index 03ca8ad..9e2e17b 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@uptime/uptime-console",
+-  "version": "0.5.15",
++  "version": "0.5.16",
+   "private": true,
+   "type": "module",
+   "engines": {
+diff --git a/seed.json b/seed.json
+index 450d58c..38c8516 100644
+--- a/seed.json
++++ b/seed.json
+@@ -1,7 +1,7 @@
+ {
+   "id": "uptime",
+   "name": "Uptime",
+-  "version": "0.5.15",
++  "version": "0.5.16",
+   "maturity": "local-installer-and-owner-deploy-implemented-hosted-unverified",
+   "category": "monitoring",
+   "spine": {
+diff --git a/sources.lock.json b/sources.lock.json
+index b769434..4b787d9 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -520,7 +520,7 @@
+       "executable": false
+     },
+     "CHANGELOG.md": {
+-      "sha256": "0083238943b9fbd6bcd20222cb76604c7c0b96077bfe5bb8199c29d80f9ff0b7",
++      "sha256": "7aa2f80d8ce3d6f069a9952f83cac7b4a25e6c5dc22a0bc523861799df5f1546",
+       "executable": false
+     },
+     "CLAUDE.md": {
+@@ -2572,7 +2572,7 @@
+       "executable": false
+     },
+     "package.json": {
+-      "sha256": "7214055381a1f3cd97c508a5bb2a80db5da132acea698fc6470df8ddae027f03",
++      "sha256": "1d91abdecc6cdf704191627ef581156dbb450c305e2d57e2379ec10d3d69706d",
+       "executable": false
+     },
+     "patches/README.md": {
+@@ -3096,11 +3096,11 @@
+       "executable": false
+     },
+     "RELEASE.json": {
+-      "sha256": "9d526942632a2b99634c31cf3cc8b2fc89c01bf5ccacc7890b743d578137a682",
++      "sha256": "886e6f36bb18803b0bea67b28a55545fbd0258766d1d4d395cd8a9f103e0a2bc",
+       "executable": false
+     },
+     "RELEASE.md": {
+-      "sha256": "f31b76dd4769bdce7e1750a10d57ed2c623182481543635d3116242ef09d07d9",
++      "sha256": "6034cd2c5123f15e0f2900f6100d4a03e088be4dc9ece3828fb84acb6803d3b9",
+       "executable": false
+     },
+     "rer-local-setup.json": {
+@@ -4540,7 +4540,7 @@
+       "executable": false
+     },
+     "seed.json": {
+-      "sha256": "05fda23450ce70f346e43ce54e0b0e253d71cca15b427232754051bc14175417",
++      "sha256": "3ca1f357c5ee2078732dc927f3b880694818b4fbff1f7b317f053a55409a55da",
+       "executable": false
+     },
+     "src/agent-door/authority.server.ts": {

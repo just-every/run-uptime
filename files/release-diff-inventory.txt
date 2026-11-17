@@ -1,0 +1,40 @@
+v0.5.15..main commits:
+1156542 Route hosted uptime checks through the public Cloudflare edge
+359d6ef Keep dry-run isolation proof separate from selector preflight reads
+bd5896f Align hosted verification fixtures with the explicit mail-off default
+e947e28 Complete mail switch journey and document explicit legacy upgrades
+2564bc7 Model preserved opaque Worker secrets and verify runtime switch readback [skip ci]
+1fa5884 Keep seed mail custody synchronized with successful provider switches [skip ci]
+5ddbbfe Apply the declared mail default in the owner deployment adapter [skip ci]
+1b0d82d Enable explicit mail provider switches and exercise grouped Worker versions [skip ci]
+f5ae7e2 Refresh Base provenance for rer 0.2.121 adoption
+39e0b10 Retain pin adoption and report legacy mail preflight refusal [skip ci]
+0388aeb Adopt rer mail selector transport and extend lifecycle proof [skip ci]
+
+Diff summary:
+ OPERATIONS.json                                   |   2 +-
+ OPERATIONS.md                                     |  43 +++-
+ SEED-COMMAND-CONTRACT.md                          |  11 +-
+ base-copies.json                                  | 248 +++++++++++-----------
+ deploy.json                                       |  18 +-
+ docs/deploy.md                                    |  30 ++-
+ docs/same-account-checks.md                       |  33 +++
+ management/integration/deployment-spec.json       |   5 +-
+ package.json                                      |   2 +-
+ pnpm-lock.yaml                                    |  10 +-
+ rer-project.json                                  |   2 +-
+ rer-setup.json                                    |   2 +-
+ scripts/deployment/command.mjs                    |   6 +-
+ scripts/deployment/mail-config.mjs                |   4 +-
+ scripts/deployment/ops-config.mjs                 |  20 +-
+ scripts/deployment/plan.mjs                       |   2 +-
+ sources.lock.json                                 |  46 ++--
+ src/domain/worker-http.server.ts                  |   4 +
+ tests/hosted-probe-identification-support.mjs     |  40 +++-
+ tests/mail-off-support.mjs                        |  21 +-
+ tests/owner-deploy-lifecycle.mjs                  |  77 ++++++-
+ tests/owner-deploy-lifecycle/provider-fixture.mjs |  61 +++++-
+ wrangler.jsonc                                    |   5 +-
+ 23 files changed, 492 insertions(+), 200 deletions(-)
+
+Migrations added/changed/removed: none; SQL migrations: 91 -> 91.
