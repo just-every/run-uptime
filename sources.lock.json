@@ -2732,7 +2732,7 @@
       "executable": false
     },
     "public/catalog-dialogs.js": {
-      "sha256": "08946449afe888e1cd0a2ffa1c8d2d4c9d938759cc8fe686b7eec6e596ae132f",
+      "sha256": "49f44ecf9c6332972ed4ae8e9be64ef42f72d3aebca13062e6170c2e03132d40",
       "executable": false
     },
     "public/catalog.css": {
@@ -2896,7 +2896,7 @@
       "executable": false
     },
     "public/locations.js": {
-      "sha256": "fc230b4f09e966af879ceff8a0c1c1e381702b12c4375aa84284f62584b5eabb",
+      "sha256": "440cc91013608c7ae3c59a1b1d0af592c1bbc345706be6569a573d62fa3173de",
       "executable": false
     },
     "public/mail-panel.js": {
