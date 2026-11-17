@@ -1,3 +1,4 @@
+import {checkerStatus} from './domain/checker-status.ts'
 import {archiveTransfer} from './domain/archive-transfer.server.ts'
 import {scheduledDrills} from './domain/alert-drill-scheduler.server.ts'
 import {drillReminderInbox,saveDrillConsent,revokeDrillConsent,drillScheduleView,declineDrillProposal} from './domain/alert-drill-schedules.server.ts'
@@ -281,7 +282,7 @@ api.get('/api/v1/monitors/:id/response-times',async c=>{
  return result?c.json(result):c.json({error:'Monitor not found'},404)
 })
 
-api.post('/api/monitors/:id/run',async c=>{const m=await get(c.env,c.req.param('id'));if(!m||!m.definition.enabled)return c.json({error:'Monitor unavailable or paused'},409);const id=`${m.id}:${m.revision}:manual:${crypto.randomUUID()}`;const inserted=await c.env.DB.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) SELECT ?,?,?,?,'queued',?,'unclaimed',0,0,1 WHERE EXISTS(SELECT 1 FROM monitors WHERE id=?)").bind(id,m.id,m.revision,Date.now(),JSON.stringify(m.definition),m.id).run();if(!inserted.meta.changes)return c.json({error:'Monitor unavailable or erased'},409);return c.json({queued:true,slotId:id,policyAdvanced:false})})
+api.post('/api/monitors/:id/run',async c=>{const m=await get(c.env,c.req.param('id'));if(!m||!m.definition.enabled)return c.json({error:'Monitor unavailable or paused'},409);if(!checkerStatus(m.definition,await listRunners(c.env),Date.now(),Number(c.env.UPTIME_RUNNER_STALE_MS??120000)).reporting)return c.json({error:'No location is checking this monitor. Open Locations to restart its checker.'},409);const id=`${m.id}:${m.revision}:manual:${crypto.randomUUID()}`;const inserted=await c.env.DB.prepare("INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) SELECT ?,?,?,?,'queued',?,'unclaimed',0,0,1 WHERE EXISTS(SELECT 1 FROM monitors WHERE id=?)").bind(id,m.id,m.revision,Date.now(),JSON.stringify(m.definition),m.id).run();if(!inserted.meta.changes)return c.json({error:'Monitor unavailable or erased'},409);return c.json({queued:true,slotId:id,policyAdvanced:false})})
 api.get('/api/runners',async c=>c.json(await listRunners(c.env)))
 api.post('/api/runners',async c=>c.json(await createRunner(c.env,c.get('input')),201))
 api.patch('/api/runners/:id',async c=>c.json(await renameRunner(c.env,c.req.param('id'),c.get('input'))))
@@ -439,7 +440,7 @@ const handler={async fetch(request,env,execution){
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);await scheduledDrills(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);await scheduledDrills(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')});await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)))}} satisfies ExportedHandler
 export default withDemo({...handler,fetch(request,env,execution){
  return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
 }} satisfies ExportedHandler,{seed:seedDemo})

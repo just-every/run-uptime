@@ -15,7 +15,7 @@ export async function proveStaleRunnerCoverage(){
  const directory=await mkdtemp(join(tmpdir(),'uptime-ops-stale-coverage-'));
  const key='synthetic-uptime-145-runner';
  let worker,db,target,control,child,origin,cookie='',clock=Date.now();
- const traffic=[],results=[];
+ const traffic=[],results=[],notices=[];
  try{
   const tls=await certificate(directory);
   target=https.createServer(tls,(req,res)=>{
@@ -39,12 +39,13 @@ export async function proveStaleRunnerCoverage(){
    }catch{res.writeHead(500);res.end('Stale coverage transport failed')}
   });
   origin=`https://localhost:${await listen(control)}`;
-  const bindings={...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,UPTIME_RUNNER_KEY:key,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-145-mail'};
-  const start=async()=>{worker=await emittedRunnerWorker(directory,bindings);db=await worker.getD1Database('DB')};
-  await start();
+  const bindings={...testAuthBindings,UPTIME_LOCAL_REVIEW:'true',UPTIME_ORIGIN:origin,UPTIME_RUNNER_KEY:key,MAIL_PROVIDER:'sendgrid',SENDGRID_API_KEY:'synthetic-uptime-145-mail'};
+  const start=async()=>{worker=await emittedRunnerWorker(directory,bindings,{outboundService:async request=>{const host=new URL(request.url).hostname;if(host==='cloudflare-dns.com')return Response.json({Status:0,Answer:[{type:1,data:'93.184.215.14'}]});if(host==='api.sendgrid.com'){notices.push({kind:'email',body:await request.json()});return new Response(null,{status:202})}if(['hooks.example.com','hooks.slack.com'].includes(host)){notices.push({kind:'webhook',body:JSON.parse(await request.text())});return new Response('ok',{status:200})}throw Error('Unexpected checker-watch network request')}});db=await worker.getD1Database('DB')};
+  await start();console.log('Checker-loss journey: emitted app ready');
   for(const file of(await readdir('migrations')).filter(name=>name.endsWith('.sql')).sort()){
    for(const sql of splitSql(await readFile(join('migrations',file),'utf8')))await db.prepare(sql).run();
   }
+  console.log('Checker-loss journey: migrations applied');
   const api=(path,body,headers={},method=body===undefined?'GET':'POST')=>request(origin,tls.cert,path,{method,body,headers:{origin,cookie,'cf-connecting-ip':'192.0.2.145',...headers}});
   const owner=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Stale coverage owner'});
   assert.equal(owner.status,303);cookie=owner.headers['set-cookie'][0].split(';')[0];
@@ -99,12 +100,35 @@ export async function proveStaleRunnerCoverage(){
    const rows=await db.batch(tables.map(table=>db.prepare(`SELECT * FROM ${table} ORDER BY rowid`)));
    return {tables:Object.fromEntries(tables.map((table,index)=>[table,rows[index].results])),runners:(await db.prepare('SELECT runner_id,network_label,registered_at,last_contact_at,revoked_at FROM runners ORDER BY runner_id').all()).results};
   };
-  const retained=await stored(),savedTraffic=structuredClone(traffic);
+  let retained=await stored();const savedTraffic=structuredClone(traffic);
   const contactDeadline=contactAt+fresh.runner.contact.freshnessMs;
   const targetDeadline=Math.max(observation.completedAt,observation.canary.completedAt)+original.definition.freshnessMs;
   // No runner invocation, pause, reassignment or target outage: advance beyond
   // both saved freshness bounds and read the same installation's two facts.
+  // The checker is gone while the last target result is still fresh.
+  const enabled=[];
+  for(const definition of [{kind:'email',address:'operator@example.test'},{kind:'webhook',url:'https://hooks.example.com/checker'},{kind:'slack',url:'https://hooks.slack.com/services/T000/B000/XXXX'}]){
+   const response=await api('/api/notifications/destinations',{name:'Example Operations',...definition});assert.equal(response.status,201,JSON.stringify(response.data));enabled.push(response.data.id);
+  }
+  const disabled=await api('/api/notifications/destinations',{name:'Disabled receiver',kind:'email',address:'disabled@example.test',enabled:false});assert.equal(disabled.status,201);
+  clock=contactDeadline+1;
+  const stopped=monitor(await read('/api/overview'));
+  assert.equal(stopped.checking.reporting,0);assert.equal(stopped.checking.missing.length,1);
+  assert.equal(stopped.state.targetState,'Healthy','the old target observation has not expired; checker loss is a separate fact');
+  const runRefused=await api(`/api/monitors/${id}/run`,{});assert.equal(runRefused.status,409);
+  assert.deepEqual(await read(historyPath),history,'refused Run now cannot leave an undeliverable check');
+  const schedule=()=>worker.dispatchFetch('http://localhost/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({scheduled:true,clock})});
+  assert.equal((await schedule()).status,204);assert.equal((await schedule()).status,204);
+  const delivery=(await read('/api/notifications')).deliveries.filter(d=>d.event.kind==='checker_stopped');
+  assert.equal(delivery.length,enabled.length);assert.deepEqual(new Set(delivery.map(d=>d.destinationId)),new Set(enabled));
+  assert.ok(delivery.every(d=>d.state==='accepted'&&d.attempts===1),'the app delivers the warning without the stopped checker');
+  assert.equal(delivery.filter(d=>d.destinationId===disabled.data.id).length,0);
+  assert.equal(notices.filter(n=>n.kind==='webhook').length,2,'webhook and Slack each receive exactly one warning');
+  assert.equal(notices.filter(n=>n.kind==='email'&&n.body.subject===delivery.find(d=>d.kind==='email').event.title).length,1);
+  assert.deepEqual((await read('/api/overview')).alerts,[],'checker loss opens no target incident');
+  const exported=await api('/api/archive');assert.equal(exported.status,200,'checker warnings remain portable history');
   clock=Math.max(contactDeadline,targetDeadline)+1;
+  retained=await stored();
   assert.ok(clock>contactDeadline&&clock>targetDeadline);
   const readStale=async()=>{
    const view=await read('/api/overview'),current=monitor(view);
@@ -152,6 +176,10 @@ export async function proveStaleRunnerCoverage(){
   assert.notEqual(latest.observations[0].id,observation.id);
   assert.equal(current.state.regions[0].observationId,latest.observations[0].id);
   assert.deepEqual(resumed.alerts,[],'coverage restoration is not a target recovery event');
+  const manual=await api(`/api/monitors/${id}/run`,{});assert.equal(manual.status,200,'Run now accepts work after contact returns');
+  clock+=fresh.runner.contact.freshnessMs+1;assert.equal((await scheduleAgain()).status,204);
+  async function scheduleAgain(){return worker.dispatchFetch('http://localhost/',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({scheduled:true,clock})})}
+  const repeated=(await read('/api/notifications')).deliveries.filter(d=>d.event.kind==='checker_stopped');assert.equal(repeated.length,enabled.length*2);
   console.log('PROBE OPS-001 resumed-due-runner: production runner signed due result -> Fresh contact and Healthy Complete coverage, exactly one new check, retained original history, no alert events');
  }finally{await child?.stop();await close(control);await worker?.dispose();await close(target);await rm(directory,{recursive:true,force:true})}
 }

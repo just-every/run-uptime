@@ -1,3 +1,4 @@
+import {queueCheckerStopped} from './checker-alerts.server.ts'
 import {demoEffect} from '@runeditrun/rer/modules/demo'
 import type {Bindings} from './control.server.ts'
 import {claimAuxiliary,submitAuxiliary,finishAuxiliary,reconcileAuxiliary} from './auxiliary-execution.server.ts'
@@ -26,9 +27,10 @@ export async function monitoringWatch(env:Bindings,selfCheck:()=>Promise<Respons
  const staleMs=watchDuration(env.UPTIME_RUNNER_STALE_MS,120000),repeatMs=watchDuration(env.UPTIME_WATCH_REPEAT_MS,3600000),retryMs=10000,warning=await legacyMonitoringWarning(env);
  let runners=await listRunners(env);
  // A hosted install's dormant private-runner credential is optional. Watch the networks actually assigned to enabled checks.
- if(hostedInstallation(env)){const rows=await env.DB.prepare("SELECT definition FROM monitors WHERE json_extract(definition,'$.enabled')=1").all<{definition:string}>();const assigned=new Set(rows.results.flatMap(row=>Object.values(JSON.parse(row.definition).assignments??{}).map((a:any)=>a.runnerId)));runners=runners.filter((runner:any)=>assigned.has(runner.runnerId))}
+ const rows=await env.DB.prepare("SELECT definition FROM monitors WHERE json_extract(definition,'$.enabled')=1").all<{definition:string}>();const assigned=new Set(rows.results.flatMap(row=>Object.values(JSON.parse(row.definition).assignments??{}).map((a:any)=>a.runnerId)));
+ if(hostedInstallation(env))runners=runners.filter((runner:any)=>assigned.has(runner.runnerId));
  for(const row of runners as any[]){if(row.revokedAt!==null)continue;const contact=row.lastContactAt??row.registeredAt;
-  if(contact>now||now-contact>staleMs)await ownerNotice(env,`runner-stale:${row.runnerId}:${Math.floor(now/repeatMs)}`,'Uptime runner contact is stale',`Runner ${row.runnerId} (${row.networkLabel}) has no recent authenticated contact. Missing checks are not evidence of target health. Review the runner on its own host.${warning?`\n\n${warning}`:''}`,now,retryMs)
+  if(contact>now||now-contact>staleMs){if(assigned.has(row.runnerId)&&!row.hosted)await queueCheckerStopped(env,row,staleMs,now);await ownerNotice(env,`runner-stale:${row.runnerId}:${Math.floor(now/repeatMs)}`,'Uptime runner contact is stale',`Runner ${row.runnerId} (${row.networkLabel}) has no recent authenticated contact. Missing checks are not evidence of target health. Review the runner on its own host.${warning?`\n\n${warning}`:''}`,now,retryMs)}
  }
  const response=await selfCheck();if(!response.ok)return;
  const pingMs=watchDuration(env.UPTIME_HEARTBEAT_INTERVAL_MS,300000);

@@ -1,3 +1,4 @@
+import {checkerRestart} from './monitor-status.js';
 import {escape,icon,ago} from './console-format.js';
 import {firstMount} from './dom-patch.js';
 import {confirmDestination,containModalKeyboard,dialogFocusReturn} from './notification-dialogs.js';
@@ -12,8 +13,9 @@ const monitorsUsing=(data,runnerId)=>data.monitors.filter(m=>Object.values(m.def
 export const activeLocations=data=>(data.runner.runners??[]).filter(r=>!r.revokedAt);
 function lastSeen(runner,now){
  if(runner.hosted)return '<span class="ui-pill fresh">Hosted</span>';
- if(runner.lastContactAt===null)return '<span class="ui-pill never">Waiting to join</span>';
- return `<span class="ui-pill ${now-runner.lastContactAt<=FRESH_MS?'fresh':'stale'}">${escape(ago(runner.lastContactAt))}</span>`;
+ if(runner.lastContactAt===null)return runner.builtIn?`<span class="ui-pill never">Not checking</span><p>${escape(checkerRestart([{thisComputer:true}]))}</p>`:'<span class="ui-pill never">Waiting to join</span>';
+ const fresh=Number.isFinite(runner.lastContactAt)&&runner.lastContactAt<=now&&now-runner.lastContactAt<=FRESH_MS;
+ return `<span class="ui-pill ${fresh?'fresh':'stale'}">${fresh?escape(ago(runner.lastContactAt)):'Stopped checking'}</span>${fresh?'':`<p>${escape(checkerRestart([{thisComputer:runner.builtIn}]))} Last seen ${escape(ago(runner.lastContactAt))}.</p>`}`;
 }
 export function locationsMarkup(data){
  const badge=runner=>runner.builtIn&&!data.runner.hosted?'<span class="location-badge">This computer</span>':runner.runnerId===adding?.runnerId&&runner.lastContactAt!==null?'<span class="location-badge new">Just joined</span>':'';
