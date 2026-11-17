@@ -29,3 +29,18 @@ export async function ownerProfileJourney(page,origin){
  const restored=await page.request.post(origin+'/api/profile',{headers:{origin},data:{email:initial.email}});assert.equal(restored.status(),200);
  const restoredName=await page.request.post(origin+'/api/profile',{headers:{origin},data:{displayName:initial.displayName}});assert.equal(restoredName.status(),200);
 }
+
+// A destination saved in the dialog updates the current account's choices on
+// the same screen, while the owner keeps any open team form.
+export async function ownerAlertEmailJourney(page,origin){
+ const {operator}=await (await page.request.get(origin+'/auth/session')).json();
+ await page.goto(origin+'/app/settings/alerts');
+ await page.locator('#alert-self-recipient').waitFor();
+ await page.getByRole('button',{name:'Add destination',exact:true}).click();
+ const dialog=page.getByRole('dialog',{name:'Add destination',exact:true});
+ assert.equal(await dialog.getByLabel('Email address',{exact:true}).inputValue(),operator.email);
+ const name='Synthetic owner email';await dialog.getByLabel('Name (optional)',{exact:true}).fill(name);
+ await dialog.getByRole('button',{name:'Create destination',exact:true}).click();
+ await dialog.waitFor({state:'detached'});
+ await page.locator('#alert-self-recipient').getByRole('checkbox',{name:new RegExp(name)}).waitFor();
+}

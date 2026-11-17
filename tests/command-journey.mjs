@@ -1,4 +1,4 @@
-import {ownerProfileJourney} from './owner-profile-browser-support.mjs';
+import {ownerProfileJourney,ownerAlertEmailJourney} from './owner-profile-browser-support.mjs';
 import {completeSecondFactor,completeBrowserSecondFactor,factorRequest} from './mfa-auth-support.mjs';
 import {emailSignIn} from './auth-test-support.mjs';
 import {proveLocalSignInTruth} from './local-signin-truth-support.mjs';
@@ -189,6 +189,7 @@ try {
  }
  await definitionsJourney(page, origin);
  await completeBrowserSecondFactor(page,origin);
+ await ownerAlertEmailJourney(page,origin);
  await proveLocalSignInTruth({browser,page,origin,key:devKey,runRer:invoke});
  const before = await page.request.get(origin + '/api/archive'); assert.equal(before.status(), 200);
  let expected = await before.json();

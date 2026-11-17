@@ -2660,7 +2660,7 @@
       "executable": false
     },
     "public/assets/alert-teams.js": {
-      "sha256": "26858554d30a5c2f4b73821303e20fd0f8f73d466e1a4f5a43bedaa7e4bc97b1",
+      "sha256": "9f6ec564cb8d4ec70cc58d7bc39b41bac4342130a7f6ae54ab91998669efefa1",
       "executable": false
     },
     "public/assets/authenticator-enrollment.js": {
@@ -3000,7 +3000,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "c8f6162c73a6a78abbe11fc58172703f1726d78d3b0d96af113e5a3d135df99a",
+      "sha256": "750ea551fa071b1bfc303724f3f8d366d8d2ab8db426f8743055ae87c85bc7ed",
       "executable": false
     },
     "public/pagespeed-panel.js": {
@@ -9208,7 +9208,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "e30832c4e7a6fbc915c3ad988e29bc6a90f33255097e81763cff708aaf84132a",
+      "sha256": "6ebda19955d471d7ec5673ca67d96ff94c80b0e2158688b0cb7314bf4ce4e0aa",
       "executable": false
     },
     "tests/connection-diagnostics-protocols.mjs": {
@@ -9636,7 +9636,7 @@
       "executable": false
     },
     "tests/owner-profile-browser-support.mjs": {
-      "sha256": "5303ecb1ab593b74fcac767ce721fbbfc93c45b0bf3f3dbafff8ddc1c913bf05",
+      "sha256": "00a48c8c5fffa6bb1fcc6f028168f235800d7cbaf94c0daae63556c0e1c15fee",
       "executable": false
     },
     "tests/pagespeed-network-fixture.mjs": {
