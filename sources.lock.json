@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "0083238943b9fbd6bcd20222cb76604c7c0b96077bfe5bb8199c29d80f9ff0b7",
+      "sha256": "7aa2f80d8ce3d6f069a9952f83cac7b4a25e6c5dc22a0bc523861799df5f1546",
       "executable": false
     },
     "CLAUDE.md": {
@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "7214055381a1f3cd97c508a5bb2a80db5da132acea698fc6470df8ddae027f03",
+      "sha256": "1d91abdecc6cdf704191627ef581156dbb450c305e2d57e2379ec10d3d69706d",
       "executable": false
     },
     "patches/README.md": {
@@ -3096,11 +3096,11 @@
       "executable": false
     },
     "RELEASE.json": {
-      "sha256": "9d526942632a2b99634c31cf3cc8b2fc89c01bf5ccacc7890b743d578137a682",
+      "sha256": "886e6f36bb18803b0bea67b28a55545fbd0258766d1d4d395cd8a9f103e0a2bc",
       "executable": false
     },
     "RELEASE.md": {
-      "sha256": "f31b76dd4769bdce7e1750a10d57ed2c623182481543635d3116242ef09d07d9",
+      "sha256": "6034cd2c5123f15e0f2900f6100d4a03e088be4dc9ece3828fb84acb6803d3b9",
       "executable": false
     },
     "rer-local-setup.json": {
@@ -4540,7 +4540,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "05fda23450ce70f346e43ce54e0b0e253d71cca15b427232754051bc14175417",
+      "sha256": "3ca1f357c5ee2078732dc927f3b880694818b4fbff1f7b317f053a55409a55da",
       "executable": false
     },
     "src/agent-door/authority.server.ts": {

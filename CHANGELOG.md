@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+## 0.5.16 — 2026-11-17
+
+Patch release from `main`; previous version 0.5.15. Existing hosted installations can turn outbound email on or off in place. Hosted checks use the public Cloudflare edge, including checks of another Worker in the monitor's own account. Failed HTTP checks give more useful status details. The checkout keeps main's exact `@runeditrun/rer` 0.2.121 pin. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are retained on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13; this is not a new 0.5.16 capture.
+
+### Mail on an existing installation
+
+- **Turn email on without replacing the installation.** Public `MAIL_PROVIDER` defaults to `none` when omitted. From the existing deployment checkout, keep the account, environment, ownership receipt and private settings. Put `MAIL_FROM` and `SENDGRID_API_KEY` in an owned mode-0600 `deploy.env` file outside Git, then run `rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env`. Add `--environment NAME` for a named environment. The switch retains the Worker, database, owner and installation keys; a plain deploy keeps the selected provider.
+- **Turn SendGrid email off again.** Run `rer deploy --unset-secret MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY` without the enabling `--env-file` or sending inputs in the shell. This restores `MAIL_PROVIDER=none`; a later plain deploy stays off. Remove obsolete selector, sender and key entries from `.rer/deploy/<environment>.secrets.env` when retiring email, preserving owner and installation keys. For another provider, also unset its declared sending inputs. Never leave sending credentials with `none`.
+- **Keep mail-off limits explicit.** Guarded `rer signin` from the deploying checkout remains available. Email-link sign-in, invitations and email alerts are unavailable while mail is off; alerts are never recorded as sent. Local development and demo mail behavior is unchanged. An enabled provider still needs a verified sender and its credentials; verify real sign-in and recipient delivery after deployment.
+- **Use the declared mail default in diagnostics.** Local deployment inspection applies the same public `none` default and validates explicit providers against their required sender and credentials.
+
+### Hosted checks and deployment guidance
+
+- **Check another Worker through its public address.** Hosted HTTP checks now route through the public Cloudflare edge, so a Worker in the monitor's own account is checked through the public response path.
+- **Read the cause of a failed status assertion.** Check details name the returned HTTP status and any numeric Cloudflare `Error 1xxx` label. The existing failure snapshot keeps the first 16 KiB of the response body under its retention and redaction rules; capture can be unavailable. Arbitrary body text is not added to the retained check reason. The existing 64 KiB response-body limit remains.
+- **Prepare the deployment account correctly.** The deployment guide names account-scoped **Workers Scripts: Edit** and **D1: Edit** token permissions. Name a separate installation through `--environment`; there is no separate name or prefix input.
+
+### Upgrading from 0.5.15
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately; for a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide; without it export is refused and writes nothing. Keep that cookie private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This installs the exact `@runeditrun/rer` 0.2.121 pin already on main, replacing 0.2.119 from 0.5.15. Stop dev or preview before deployment. Owners of mail-off installations can use the switch commands above when ready to enable email. A legacy SendGrid installation with a saved key but no selector must explicitly choose SendGrid: from the retained checkout and its existing private inputs, run `MAIL_PROVIDER=sendgrid rer deploy --environment NAME`. A sending key without a selector is refused under the new `none` default. Keep the deployment receipt and installation keys; do not rotate keys to perform this upgrade.
+
+Database migration inventory since 0.5.15: none (no migration files added, changed or removed; 91 SQL migration files before and after). No new setting is required. Existing monitors, history, incidents, destinations and private settings are retained.
+
+### Known issues
+
+The other known issues and upgrade cautions listed under 0.5.15 and earlier releases remain, including earlier heartbeat output, UptimeRobot monitor CSV import, restoration of the erased-people list, empty company decision feeds, the 64 KiB response-body bound and unestablished large-scale archive operation. The former limitation on switching a mail-off installation back to enabled email is addressed by the commands above.
+
+— Run Edit Run fleet, 2026-11-17
+
 ## 0.5.15 — 2026-11-16
 
 Patch release from `main`; previous version 0.5.13. Hosted installations can deliberately run without outbound email on the exact `@runeditrun/rer` 0.2.119 pin. First-run and sign-in pages explain mail-off operation, and invitations clearly refuse when email is off. Public `/health` names the running package version. Imported heartbeat controls and local diagnostics are corrected, and restored notification outcomes identify simulated email. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are kept on upgrade.
