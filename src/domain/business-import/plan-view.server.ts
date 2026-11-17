@@ -53,7 +53,8 @@ export async function doorPlanView(env:Bindings,planId:string){
  if(!source.importer){const history=historyRecord(lines[0]);return {...history,...plan,digest:row.fingerprint}}
  const items=lines.flatMap((value:any,line:number)=>lineEntries(source,value,line)),state=await planState(env)
  const decided=new Map<string,Decision>(snapshot.plan.entries.map(entry=>[entry.source.sourceId,entry]))
- return {...await definitionView(source.importer,doorEntries(planned(state,source,row.namespace,items),items,decided),state.monitors.length,row.fingerprint),...plan}
+ const warnings=source.importer.warnings?.(lines.map(value=>typeof value==='string'?value:JSON.stringify(value)).join('\n'))??[]
+ return {...await definitionView(source.importer,doorEntries(planned(state,source,row.namespace,items),items,decided),state.monitors.length,row.fingerprint,warnings),...plan}
 }
 /** What the door would keep unchanged in a catch-up of `namespace`: each record its last import holds with the same
  * source content under the same mapping. Read-only. */
@@ -79,5 +80,5 @@ export async function previewDefinitions(env:Bindings,file:string,requested='aut
  const namespace=recognised==='uptime.monitors'?`uptime.monitors:${randomUUID()}`:recognised,source=sourceOf(namespace)!
  const items=lineEntries(source,text,0),state=await planState(env)
  const decided=await unchangedSinceImport(env,namespace,source.mapping,items)
- return definitionView(source.importer!,doorEntries(planned(state,source,namespace,items,state.runners.length>0),items,decided),state.monitors.length)
+ return definitionView(source.importer!,doorEntries(planned(state,source,namespace,items,state.runners.length>0),items,decided),state.monitors.length,undefined,source.importer!.warnings?.(text)??[])
 }

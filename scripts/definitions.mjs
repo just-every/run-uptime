@@ -112,6 +112,7 @@ function printPreview(result) {
  const c = result.counts;
  console.log(`${result.sourceLabel}: ${c.create} create, ${c.unchanged} unchanged, ${c.change} change, ${c.refused} refused, ${c.unsupported} unsupported.`);
  console.log(`Source entries: ${result.outcomes.importable} importable, ${result.outcomes.withDifferences} importable with listed differences, ${result.outcomes.unsupported} unsupported, ${result.outcomes.refused} refused.`);
+ for (const warning of result.warnings ?? []) console.log(`Warning: ${warning}`);
  for (const e of result.entries) {
   console.log(`- ${e.action.padEnd(11)} ${e.reason ?? (e.name ? `“${e.name}”` : e.label)}`);
   for (const change of e.changes ?? []) console.log(`    ${change.field}: ${JSON.stringify(change.from)} -> ${JSON.stringify(change.to)}`);

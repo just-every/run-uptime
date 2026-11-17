@@ -35,8 +35,8 @@ const outcomeCounts=(entries:{action:string;differences:string[]}[])=>({
  refused:entries.filter(e=>e.action==='refused').length,
 })
 /** The preview the move-in screen and the local command show: counts, then each entry. */
-export async function definitionView(importer:Importer,entries:PlanEntry[],monitorCount:number,digest?:string){
- return {kind:'definitions' as const,source:importer.source,sourceLabel:importer.label,digest:digest??await planDigest(importer.source,monitorCount,entries),
+export async function definitionView(importer:Importer,entries:PlanEntry[],monitorCount:number,digest?:string,warnings:string[]=[]){
+ return {kind:'definitions' as const,source:importer.source,sourceLabel:importer.label,warnings,digest:digest??await planDigest(importer.source,monitorCount,entries),
   reviewDigest:await planDigest(importer.source,monitorCount,entries),counts:planCounts(entries),outcomes:outcomeCounts(entries),
   entries:await Promise.all(entries.map(async({definition,expectedRevision,...entry})=>({...entry,...(definition?{target:{type:definition.type,network:definition.network,privateGrantRef:definition.privateGrantRef??null,assertions:definition.assertions,url:definition.url||null,service:definition.service??null,intervalMs:definition.intervalMs,probes:definition.probes,credentialRef:definition.request?.credentialRef??null,tlsTrust:definition.tlsTrust??null,...(definition.heartbeat?{heartbeat:definition.heartbeat}:{}),...(definition.flow?{flow:{digest:await flowDigest(definition.flow),intent:definition.flow.intent,browser:definition.flow.browser,device:definition.flow.device,steps:definition.flow.steps.length,outcomes:definition.flow.outcomes.length}}:{})}}:{})})))}
 }

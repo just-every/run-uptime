@@ -57,7 +57,8 @@ function countsMarkup(preview){
  if(preview.kind==='history')return `<p class="ui-callout">${escape(preview.note)}</p>`;
  const c=preview.counts;
  return `<dl class="definition-counts" aria-label="Preview counts">${Object.entries(ACTIONS).map(([key,[label]])=>`<div><dt>${label}</dt><dd>${c[key]}</dd></div>`).join('')}</dl>
- <p class="definition-source">${escape(preview.sourceLabel)}: ${c.create} to create, ${c.unchanged} unchanged, ${c.change} to change, ${c.refused} refused, ${c.unsupported} unsupported. New monitors arrive paused.</p>`;
+ <p class="definition-source">${escape(preview.sourceLabel)}: ${c.create} to create, ${c.unchanged} unchanged, ${c.change} to change, ${c.refused} refused, ${c.unsupported} unsupported. New monitors arrive paused.</p>
+ ${(preview.warnings??[]).map(warning=>`<p class="ui-callout" role="status">${escape(warning)}</p>`).join('')}`;
 }
 function criteriaMarkup(definition){
  if(definition?.type==='flow')return `<p><strong>Reviewed browser journey</strong></p><ul><li>Browser: ${escape(definition.flow.browser)}</li><li>Device: ${escape(definition.flow.device)}</li><li>Intent: ${escape(definition.flow.intent)}</li><li>${definition.flow.steps} steps; ${definition.flow.outcomes} required outcomes. Each browser/device combination is a separate monitor.</li></ul>`;

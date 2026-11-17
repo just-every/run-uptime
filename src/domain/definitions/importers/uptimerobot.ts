@@ -13,7 +13,7 @@ const isPage=(value:any)=>Boolean(value)&&typeof value==='object'&&!Array.isArra
 function pages(text:string){
  const values=jsonValues(text,'UptimeRobot file'),flat=values.length===1&&Array.isArray(values[0])?values[0] as unknown[]:values
  if(!flat.length||!flat.every(isPage))throw new DefinitionFileError('This is not an UptimeRobot v3 monitor list: expected one or more saved GET /monitors pages, each {"data": [...], "nextLink": ...}.')
- return flat as {data:unknown[]}[]
+ return flat as {data:unknown[];nextLink:unknown}[]
 }
 const seconds=(ms:number)=>`${(ms/1000).toLocaleString('en-US')} s`
 const list=(values:string[])=>values.join(', ')
@@ -106,6 +106,7 @@ function map(entry:SourceEntry):Mapping{
 export const uptimeRobotImporter:Importer={
  source:'uptimerobot',label:'UptimeRobot v3 monitor list',
  detect(text){try{pages(text);return true}catch{return false}},
+ warnings(text){return pages(text).at(-1)!.nextLink!==null?['Incomplete UptimeRobot export: the last supplied page lists another page. Save every nextLink page and preview the combined file to include the remaining monitors.']:[]},
  entries(text){
   const monitors=pages(text).flatMap(page=>page.data)
   if(monitors.length>DEFINITION_MONITORS)boundEntries(monitors)

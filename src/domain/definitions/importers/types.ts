@@ -17,5 +17,7 @@ export interface Importer{
  label:string
  detect(text:string):boolean
  entries(text:string):SourceEntry[]
+ /** File-level guidance, separate from monitor mappings and plan identity. */
+ warnings?(text:string):string[]
  map(entry:SourceEntry):Mapping
 }

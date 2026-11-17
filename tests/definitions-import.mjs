@@ -18,6 +18,7 @@ import {populateArchiveFixture} from './archive-fixture.mjs';
 import {typeScriptDefinitionsProof} from './definitions-typescript-support.mjs';
 import {proveDefinitionCI} from './definitions-ci-support.mjs';
 import {heartbeatImports,importedHeartbeatSettings} from './heartbeat-import-fixture.mjs';
+import {provePaginationPreview} from './definitions-pagination-support.mjs';
 
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
 const savedRobot=await readFile('tests/fixtures/uptimerobot-v3-monitors.synthetic.json');
@@ -78,6 +79,7 @@ try{
  }
  const noSecrets=async(label,secrets)=>{const text=await storedText();for(const secret of secrets)assert.ok(!text.includes(secret),`${label}: “${secret}” is in no table`)};
  const imports=definitionDoor({origin,cookie}),preview=(text,source)=>imports.preview(text,source),apply=(view,fingerprint)=>imports.apply(view,fingerprint),undo=batch=>imports.undo(batch);
+ await unchanged('pagination previews',()=>provePaginationPreview({imports,env:{...testAuthBindings,UPTIME_ORIGIN:origin,DB},origin,cookie,directory}));
 
  // Refusals at the door.
  const valid=file([{name:'Door check',url:'https://door.example.test/'}]);
