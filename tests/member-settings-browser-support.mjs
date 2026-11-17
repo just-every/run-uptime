@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {chromium} from 'playwright';
 import {inviteDoorMember} from './access-door-support.mjs';
@@ -33,7 +33,11 @@ export async function proveMemberSettings(f,ok,output){
     const forbidden=await context.request.post(f.origin+'/api/routing/recipient',{headers:{origin:f.origin},data:{destinationId:other.id,enabled:true}});assert.equal(forbidden.status(),403,'one person cannot consent to another email');
     await screen('/app/settings/integrations');assert.equal(await page.locator('#metrics-key-open,#business-import-enabled').count(),0);
     await screen('/app/settings/backup');
-    if(role==='admin'){await page.locator('#export').waitFor();assert.equal(await page.locator('#monitor-files input,#monitor-files button').count(),0,'administrator keeps backup access without owner-only monitor imports')}
+    if(role==='admin'){
+     await page.locator('#export').waitFor();assert.equal(await page.locator('#monitor-files input').count(),0,'administrator sees no owner-only monitor import');
+     const downloading=page.waitForEvent('download');await page.locator('#definition-export').click();const download=await downloading;
+     const exported=JSON.parse(await readFile(await download.path(),'utf8'));assert.ok(exported.monitors.some(m=>m.name==='synthetic-uptime-member-settings'),'administrator can still export saved monitors');
+    }
     else assert.equal(await page.locator('#export,#restore,#monitor-files input,#monitor-files button').count(),0,'members see no backup or import controls');
     if(role!=='admin')for(const area of ['general','people']){await screen('/app/settings/'+area);assert.equal(await page.locator('#content-area input,#content-area select,#content-area button').count(),0)}
     await screen('/app/monitors');
@@ -41,12 +45,12 @@ export async function proveMemberSettings(f,ok,output){
     receipts.push({role,nameShown:true,roleShown:true,ownConsentPersists:true,foreignConsentRefused:true,pageErrors:errors,automaticForbiddenRequests:denials});
     // Assertions run once at 1440; optional evidence captures the changed screens
     // once at each width, including the Responder's complete Settings menu.
-    if(output&&role==='responder')for(const width of [1440,390]){
+    if(output&&['responder','admin'].includes(role))for(const width of [1440,390]){
      await page.setViewportSize({width,height:1000});
-     for(const area of ['monitors','alerts','general','people','integrations','backup']){
+     for(const area of role==='admin'?['alerts','integrations','backup']:['monitors','alerts','general','people','integrations','backup']){
       await page.goto(f.origin+(area==='monitors'?'/app/monitors':'/app/settings/'+area));await page.locator('html.signed-in').waitFor();
       if(area==='alerts')await page.locator('[data-consent]').waitFor();
-      await mkdir(output,{recursive:true});await page.screenshot({path:join(output,`after-${area}-${width}.png`),fullPage:true});
+      await mkdir(output,{recursive:true});await page.screenshot({path:join(output,`after-${role==='admin'?'admin-':''}${area}-${width}.png`),fullPage:true});
      }
     }
    }finally{await context.close()}
