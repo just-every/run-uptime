@@ -33,7 +33,7 @@
 
 ## Run it on your computer
 
-Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.5.11. This release record is v0.5.12. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
+Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The current version is in [`package.json`](package.json), with its changes in [the changelog](CHANGELOG.md); [the release procedure](RELEASE.md) produces the annotated tag and bundle.
 
 ```sh
 curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
@@ -46,7 +46,7 @@ Already have Node 22 or later? This alternative does the same:
 ```sh
 npx -y @runeditrun/rer dev just-every/run-uptime
 ```
-To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, install `rer` with `curl -fsSL https://runeditrun.com/install.sh | sh`, then run `rer install just-every/run-uptime`, then these from the checkout instead:
+To start it again later, run `cd run-uptime && rer dev`. A new terminal finds `rer` only after the installer's PATH step: run `rer cli path` (or `$HOME/.local/bin/rer cli path`) and it prints the one line to paste; until then use `$HOME/.local/bin/rer` in place of `rer`. To choose the owner yourself, install `rer` with `curl -fsSL https://runeditrun.com/install.sh | sh`, then run `rer install just-every/run-uptime`, then these from the checkout instead:
 
 ```sh
 rer setup
@@ -88,7 +88,7 @@ The standalone native product has no operational marketplace or author dependenc
 
 ## Try the bundled local monitor
 
-Keep `rer dev` running. From the repository root in a second terminal, read the practice target's address and print its health URL:
+Keep `rer dev` running. From the repository root in a second terminal (with `rer` on its PATH, as above), read the practice target's address and print its health URL:
 
 ```sh
 target_url="$(rer run practice-target)"

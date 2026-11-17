@@ -5,12 +5,14 @@ import {heartbeatJobSnapshot,failureOutput} from './heartbeat-jobs.server.ts'
 import {heartbeatDeadline} from './heartbeat-job.mjs'
 import {mutationGuard,auditStatement,automated,type AuditActor} from './audit.server.ts'
 import {get,save,sha,same,type Bindings} from './control.server.ts'
+// One token of 256 random bits (64 hex digits), so a key reads and copies as a single value.
+const capability=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('')
 export async function issueHeartbeatKey(env:Bindings,id:string,actor:AuditActor=automated){
  let monitor=await get(env,id);
  if(!monitor||monitor.definition.type!=='heartbeat')throw Error('Heartbeat monitor required');
  monitor=await save(env,monitor.definition,id,actor); // Rotation starts a new immutable revision without inherited receipts.
  if(!monitor)throw Error('Heartbeat monitor unavailable');
- const token=crypto.randomUUID()+crypto.randomUUID(),urlToken=crypto.randomUUID()+crypto.randomUUID();
+ const token=capability(),urlToken=capability();
  await env.DB.batch([mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?)',[id,monitor.revision]),env.DB.prepare('INSERT INTO heartbeat_authority(monitor_id,revision,token_hash,url_token_hash,last_sequence,received_at) VALUES(?,?,?,?,0,NULL) ON CONFLICT(monitor_id) DO UPDATE SET revision=excluded.revision,token_hash=excluded.token_hash,url_token_hash=excluded.url_token_hash,last_sequence=0,received_at=NULL,last_completed_id=NULL,started_at=NULL').bind(id,monitor.revision,await sha(token),await sha(urlToken)),auditStatement(env,actor,'credential_rotate','credential')]);
  return {token,urlToken,capabilityPath:`/api/heartbeats/${id}/url/${urlToken}`,replayProtected:false,snippets:heartbeatSnippets({baseUrl:`${env.UPTIME_ORIGIN}/api/heartbeats/${id}/url/${urlToken}`,cron:monitor.definition.heartbeat.cron,timeZone:monitor.definition.heartbeat.timeZone}),revision:monitor.revision,receiptPath:`/api/heartbeats/${id}`,sequenceStartsAt:1};
 }

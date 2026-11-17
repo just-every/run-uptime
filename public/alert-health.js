@@ -25,3 +25,11 @@ export function alertCount(notes){
  if(!notes)return 0;
  return notes.destinations.some(d=>d.enabled)?cannotSend(notes).length:1;
 }
+// What the count asks of the owner, in a few words for the badge's tooltip and the menu item's name.
+export function alertReason(notes){
+ if(!notes)return '';
+ if(!notes.destinations.length)return 'Add an alert destination';
+ if(!notes.destinations.some(d=>d.enabled))return 'Enable an alert destination';
+ const n=cannotSend(notes).length;
+ return n===1?'1 destination cannot send':`${n} destinations cannot send`;
+}

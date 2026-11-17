@@ -25,7 +25,8 @@ export async function requireFreshSecondFactor(env:AuthBindings,request:Request)
 export function requestNeedsStepUp(request:Request,input?:any){
  const path=new URL(request.url).pathname,write=!['GET','HEAD'].includes(request.method)
  if(path==='/api/archive'||path==='/api/restore')return true
- if(path.startsWith('/api/operator/import/')&&write)return true
+ // A preview (upload and plan) writes no monitor; applying, undoing and reconciling an import do.
+ if(path.startsWith('/api/operator/import/')&&write&&!/\/(?:uploads|plan)$/.test(path))return true
  if(!write)return false
  if(path==='/api/routing/named-routes'||path.startsWith('/api/catalog/routes/'))return true
  if(request.method==='DELETE'&&/^\/api\/notifications\/destinations\/[^/]+$/.test(path))return true

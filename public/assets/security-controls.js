@@ -1,5 +1,6 @@
 import {keyUsage} from './key-usage.js';
 import {authenticatorEnrollment} from './authenticator-enrollment.js';
+import {recoverStepUp} from './step-up.js';
 const reasons={
  invalid_factor_response:"That code didn't match. Use the newest code from your app.",
  fresh_second_factor_required:'Verify a second factor within the last five minutes',
@@ -140,5 +141,7 @@ export function securityControls(host,transport){
  }
  const initialized=(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()})().catch(error);
  void initialized.then(()=>{if(new URLSearchParams(location.search).get('enroll')==='authenticator'){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.click()}});
- return {request:async(path,method,body)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;return new Promise((resolve,reject)=>{void fresh(async()=>{try{resolve(await api(path,method,body))}catch(error){reject(error)}}).catch(reject)})}}};
+ // A write another card starts (People's invite and rows) asks for the factor in the same dialog as every other console
+ // action, with the retained request retried once after real verification; the card's own factor line then refreshes.
+ return {request:async(path,method,body)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;await recoverStepUp({stepUp:problem.stepUp});await factorState();return api(path,method,body)}}};
 }
