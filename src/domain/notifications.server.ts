@@ -1,3 +1,4 @@
+import {ownerAccount} from './owner-account.server.ts'
 import {handoffFacts} from './incident-work/handoff.server.ts'
 import {contactReady,contactQuietReady,refreshContactQuiet} from './contact-scheduler.server.ts'
 import {notificationPreferences} from './notification-preferences.server.ts'
@@ -44,6 +45,6 @@ export async function notificationOverview(env:Bindings){
  const attempts=new Map<string,any[]>();for(const a of history)attempts.set(a.delivery_id,[...(attempts.get(a.delivery_id)??[]),a]);
  const handoffs=await handoffFacts(env,rows.results.map(r=>r.id));
  const drills=await drillOverview(env),chain=await fallbackOverview(env,rows.results);
- const owner=await env.DB.prepare("SELECT o.email FROM oa_operators o LEFT JOIN oa_bootstrap b ON b.claim_id=o.id WHERE o.role='owner' AND o.status='active' ORDER BY b.claim_id IS NULL,o.created_at,o.id LIMIT 1").first<{email:string}>();
+ const owner=await ownerAccount(env);
  return {ownerEmail:owner?.email,mailSuppressed:env.MAIL_PROVIDER==='development',...(env.MAIL_PROVIDER==='none'?{mailOff:true}:{}),preferences:await notificationPreferences(env),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,...(handoffs.has(r.id)?{handoff:handoffs.get(r.id)}:{}),eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.state==='queued'&&r.code==='waiting_for_contact_quiet'?r.code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,...(r.quiet_until!==null&&r.state==='queued'?{quietUntil:r.quiet_until}:{}),attempts:r.attempts,attemptHistory:attempts.get(r.id)??[],...((view=>view?{chain:view}:{})(chain(r))),...(r.outcome&&JSON.parse(r.outcome).status!=null?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!=null?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
 }

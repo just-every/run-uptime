@@ -7208,7 +7208,7 @@
       "executable": false
     },
     "src/domain/business-import/context.server.ts": {
-      "sha256": "8a07948079e5de176e082e7d5b3065b4f84a9c15708cb3f23df6ac8fec835dc2",
+      "sha256": "52072c54a863f011edca1fc373e04a0ecf05d04a0275fd506c0589e8b372b42f",
       "executable": false
     },
     "src/domain/business-import/credential-shapes.ts": {
@@ -7828,7 +7828,7 @@
       "executable": false
     },
     "src/domain/monitoring-watch.server.ts": {
-      "sha256": "9737eb2bbd477cb52de306193156bf0f9b0cf478175f5c1bcd38ff1c93fbaa8c",
+      "sha256": "513b5cf2c254aee47a59c02525a9c1daf566f0e135c6abc57967bd8164929e26",
       "executable": false
     },
     "src/domain/network-diagnostic-peers.server.ts": {
@@ -7908,7 +7908,7 @@
       "executable": false
     },
     "src/domain/notifications.server.ts": {
-      "sha256": "9c460ef07439b497bc3cde7177ba7bc7eda4bdb76798d7d03c15288d4f10bc00",
+      "sha256": "c183b987c0bd686ac405a7470b9b6e668050982e203d9c1510478f18915c2f03",
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
@@ -7921,6 +7921,10 @@
     },
     "src/domain/operator-mail.server.ts": {
       "sha256": "3d81f851494f4ef00acd5cf8ba48f92b5c0f5c902c5751690d951594565d0d1f",
+      "executable": false
+    },
+    "src/domain/owner-account.server.ts": {
+      "sha256": "7780e25de58de33aca3169f6f4647dbf18604797287e8081fdcf6837656b2903",
       "executable": false
     },
     "src/domain/owner-claim.server.ts": {
