@@ -1,0 +1,17 @@
+{
+  "before_evidence": {
+    "head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+    "branch": "main",
+    "status": "",
+    "index_sha256": "9a349b53d75d9dc0caf576642d4be2b5c5df0d42218d249d88bd547287de6ab1",
+    "candidate_log": ""
+  },
+  "after_verified_initial_evidence": {
+    "head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+    "branch": "main",
+    "status": "",
+    "index_sha256": "9a349b53d75d9dc0caf576642d4be2b5c5df0d42218d249d88bd547287de6ab1",
+    "candidate_log": ""
+  },
+  "unchanged": true
+}
