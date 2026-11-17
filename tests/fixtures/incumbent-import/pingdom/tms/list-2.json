@@ -1,0 +1,40 @@
+{
+  "checks": [
+    {
+      "active": true,
+      "created_at": 1785715200,
+      "id": 83003,
+      "interval": 20,
+      "last_downtime_end": 1793487600,
+      "last_downtime_start": 1793487500,
+      "modified_at": 1793404800,
+      "name": "Synthetic sandbox checkout",
+      "region": "eu",
+      "status": "unknown",
+      "tags": [
+        "synthetic",
+        "transaction"
+      ],
+      "type": "recording"
+    },
+    {
+      "active": false,
+      "created_at": 1785715200,
+      "id": 83004,
+      "interval": 60,
+      "last_downtime_end": 1793487600,
+      "last_downtime_start": 1793487500,
+      "modified_at": 1793404800,
+      "name": "Synthetic unsupported command",
+      "region": "au",
+      "status": "unknown",
+      "tags": [
+        "synthetic",
+        "transaction"
+      ],
+      "type": "recording"
+    }
+  ],
+  "limit": 2,
+  "offset": 2
+}

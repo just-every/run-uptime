@@ -13,6 +13,7 @@ import {credentialQueryKey,decodedCredentialText} from '../../base/modules/impor
 import type {ImportMapping,Json,MappingResult,ParsedRecord} from '../../base/modules/import-kit/src/types.ts'
 import type {ImportDoorSource} from '../../base/modules/import-kit/src/door/types.ts'
 import {DOOR_KEY} from './context.server.ts'
+import {captureOf,DefinitionFileError,jsonValues,SCHEMA_NOTES,canonical} from '../definitions/format.ts'
 import {withholdValue} from '../definitions/withhold.ts'
 import {credential,credentialNamed,withheldCredentials} from './credential-shapes.ts'
 
@@ -22,7 +23,10 @@ import {credential,credentialNamed,withheldCredentials} from './credential-shape
  * since a definition file is this installation's own source, not an account whose
  * lineage a catch-up follows). Each reuses Uptime's own reader for that source. */
 type Source={importer:Importer|null;mapping:string;prefix:string}
+const unsupportedCapture=(source:string,label:string):Importer=>({source,label,detect:()=>false,entries:()=>[],map:()=>({unsupported:'Conversion is not implemented; no provider access, source code execution or outbound action occurs.'})})
 const VENDORS:Record<string,Source>={
+ 'aws-synthetics':{importer:unsupportedCapture('aws-synthetics','AWS Synthetics synthetic capture'),mapping:'uptime-aws-capture-report-v1',prefix:'aws-synthetics'},
+ 'pingdom-pagespeed-transcription':{importer:unsupportedCapture('pingdom-pagespeed-transcription','Pingdom Page Speed operator proposal'),mapping:'uptime-pagespeed-proposal-v1',prefix:'pingdom-pagespeed'},
  uptimerobot:{importer:uptimeRobotImporter,mapping:'uptime-uptimerobot-definitions-v2',prefix:'uptimerobot'},
  pingdom:{importer:pingdomImporter,mapping:'uptime-pingdom-definitions-v1',prefix:'pingdom'},
  'betterstack-monitors':{importer:betterStackMonitorImporter,mapping:'uptime-betterstack-monitors-v1',prefix:'betterstack-monitors'},
@@ -48,8 +52,57 @@ function sourceId(value:any,line:number,index:number,native:boolean){
 }
 /** Each entry of one bundle line, as the planner and the kit both see it. */
 export function lineEntries(source:Source,value:Json,line:number):(PlanItem&{sourceId:string})[]{
- const importer=source.importer!
- return importer.entries(lineText(value)).map(entry=>({...entry,mapping:importer.map(entry),sourceId:sourceId(entry.value,line,entry.index,importer===nativeImporter)}))
+ const importer=source.importer!,text=lineText(value),capture=captureOf(text,importer.source)
+ if(capture){
+  const seen=new Map<string,string>(),grouped=new Set<string>(),scope=sha256(JSON.stringify(canonical(capture.scope))).slice(0,24),items:(PlanItem&{sourceId:string})[]=[]
+  for(const original of capture.rows){
+   let row=original
+   if(original.kind==='results'){
+    const parent=original.path.slice(0,original.path.indexOf('/response')+9)
+    if(grouped.has(parent))continue
+    grouped.add(parent)
+    const ordinal=Number(parent.split('/')[2]);row={...original,path:parent,value:capture.document.records[ordinal].response}
+   }
+   const single=['tms-detail','canary-code-input','canary-run-config-input','page-speed-transcription','summary-average','summary-performance','results'].includes(row.kind)
+   const id=single?sha256(JSON.stringify(canonical(row.request))):row.value.id??row.value.Id??row.value.AlarmArn??row.value.Name??row.value.time??row.value.timefrom??row.value.starttime??row.value.from??sha256(JSON.stringify(canonical(row.value)))
+   const sourceId=[scope,row.kind,row.sourceId,id].join(':')
+   const content=JSON.stringify(canonical(row.value))
+   if(seen.has(sourceId)){if(seen.get(sourceId)!==content)throw new DefinitionFileError('Capture has conflicting content for one source identity.');continue}
+   seen.set(sourceId,content)
+   const report={sourceKind:row.kind,sourcePath:row.path,sourceId,...(row.kind==='check-detail'?{sourceProtocol:Object.keys(row.value.type)[0]}:{})}
+   if(row.kind==='check-detail'){
+    const mapped=importer.entries(JSON.stringify({check:row.value}))
+    for(const entry of mapped){
+     const mapping=importer.map(entry),http=row.value.type?.http
+     // A documented positive check cannot request both mutually exclusive keywords.
+     const checked=http?.shouldcontain&&http?.shouldnotcontain?{refused:'Pingdom shouldcontain and shouldnotcontain are mutually exclusive in the documented check shape.'}:mapping
+     items.push({...entry,index:items.length,mapping:checked,sourceId:entry.value.certificateSource?sourceId+':tls':sourceId,
+      report:{...report,sourceId:entry.value.certificateSource?sourceId+':tls':sourceId,...(entry.value.certificateSource?{companionOf:sourceId}:{}),schemaNotes:SCHEMA_NOTES}})
+    }
+   }else{
+    const reason=row.kind==='checks-list'?'Summary only: complete check details are required; no protocol settings or current health are inferred.':row.kind==='tms-detail'?'Pingdom transaction script/recording conversion is unsupported; steps are withheld and never executed.':`${row.kind}: source fields are reported only. Conversion, contact routing, history and provider extraction are not implemented for this resource.`
+    items.push({index:items.length,label:`${row.kind} ${String(row.value.name??row.value.Name??row.sourceId??id).slice(0,100)}`,value:row.value,sourceId,mapping:{unsupported:reason},report})
+   }
+  }
+  if(!items.length)items.push({index:0,label:'Empty capture',sourceId:scope+':empty',value:capture.document,mapping:{unsupported:'Empty source collections: no resource records or monitor effects to import.'},report:{sourceKind:'capture-metadata',sourceId:scope+':empty',sourcePath:'/records'}})
+  return items
+ }
+ const docs=jsonValues(text,'file')
+ const location=(entry:any)=>{
+  const wanted=entry.value.certificateSource?String(entry.value.id).replace(/:tls$/,''):entry.value.id
+  const visit=(value:any,path:string):string|undefined=>{
+   if(value&&typeof value==='object'){
+    if(!Array.isArray(value)&&(wanted!==undefined?String(value.id)===String(wanted):value.name&&value.name===entry.value.name||value.friendlyName&&value.friendlyName===entry.value.friendlyName))return path
+    for(const [key,child] of Object.entries(value)){const found=visit(child,path+'/'+key.replace(/~/g,'~0').replace(/\//g,'~1'));if(found!==undefined)return found}
+   }
+  }
+  for(const [i,doc] of docs.entries()){const found=visit(doc,docs.length===1?'':`/documents/${i}`);if(found!==undefined)return found}
+ }
+ return importer.entries(text).map(entry=>{
+  const missing=importer===pingdomImporter&&entry.value.id===undefined
+  const id=missing?'missing:'+sha256(JSON.stringify(canonical(entry.value))):sourceId(entry.value,line,entry.index,importer===nativeImporter),mapping=missing?{refused:'Pingdom details require a stable source id. For a TMS response without id, use a capture with its request/list sourceId.'}:importer.map(entry)
+  return {...entry,mapping,sourceId:id,report:{sourceKind:'legacy',sourcePath:location(entry),sourceId:id,...(importer===pingdomImporter?{sourceProtocol:typeof entry.value.type==='string'?entry.value.type:Object.keys(entry.value.type??{})[0]}:{}),...(entry.value.certificateSource?{companionOf:id.replace(/:tls$/,'')}:{})}}
+ })
 }
 export function historyRecord(value:Json){
  const history=recogniseHistory(lineText(value))

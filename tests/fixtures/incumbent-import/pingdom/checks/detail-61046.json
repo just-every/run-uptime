@@ -1,0 +1,40 @@
+{
+  "check": {
+    "created": 1785715200,
+    "custom_message": "Synthetic migration check",
+    "hostname": "check-61046.example.test",
+    "id": 61046,
+    "integrationids": [],
+    "ipv6": false,
+    "lastdownend": 1793404861,
+    "lastdownstart": 1793404800,
+    "lasterrortime": 1793404800,
+    "lastresponsetime": 226,
+    "lasttesttime": 1793491140,
+    "name": "Synthetic DNS 47",
+    "notifyagainevery": 0,
+    "notifywhenbackup": true,
+    "probe_filters": [],
+    "resolution": 5,
+    "sendnotificationwhendown": 2,
+    "status": "down",
+    "tags": [
+      {
+        "count": 1,
+        "name": "synthetic",
+        "type": "u"
+      },
+      {
+        "count": 1,
+        "name": "dns",
+        "type": "u"
+      }
+    ],
+    "type": {
+      "dns": {
+        "expectedip": "192.0.2.53",
+        "nameserver": "resolver-46.example.test"
+      }
+    }
+  }
+}

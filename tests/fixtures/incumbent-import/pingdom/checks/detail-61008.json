@@ -1,0 +1,42 @@
+{
+  "check": {
+    "created": 1785715200,
+    "custom_message": "Synthetic migration check",
+    "hostname": "check-61008.example.test",
+    "id": 61008,
+    "integrationids": [],
+    "ipv6": false,
+    "lastdownend": 1793404861,
+    "lastdownstart": 1793404800,
+    "lasterrortime": 1793404800,
+    "lastresponsetime": 188,
+    "lasttesttime": 1793491140,
+    "name": "Synthetic HTTP 09",
+    "notifyagainevery": 0,
+    "notifywhenbackup": true,
+    "probe_filters": [],
+    "resolution": 30,
+    "sendnotificationwhendown": 2,
+    "status": "unknown",
+    "tags": [
+      {
+        "count": 1,
+        "name": "synthetic",
+        "type": "u"
+      },
+      {
+        "count": 1,
+        "name": "http",
+        "type": "u"
+      }
+    ],
+    "type": {
+      "http": {
+        "encryption": true,
+        "port": 443,
+        "url": "/health/9",
+        "verify_certificate": false
+      }
+    }
+  }
+}

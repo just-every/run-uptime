@@ -592,7 +592,7 @@
       "executable": false
     },
     "docs/definitions.md": {
-      "sha256": "7fedc2eadba7f42dc320d9434dd3293bb03b35059c1047e7a10daedab8412ebe",
+      "sha256": "c4a2cb431d1ddbaf03a72ae4e90271fbe9fedbb5b9f8f8c3787c6d901829c4f9",
       "executable": false
     },
     "docs/deploy.md": {
@@ -2096,7 +2096,7 @@
       "executable": false
     },
     "docs/migrating-pingdom.md": {
-      "sha256": "6a35a7106234620363e624d13fe88be714cdc268cd73d8b6fa6a48ac65317129",
+      "sha256": "7fa75ddd16feb71b7ad509018ad55cb6c29be2cba8bed184d349eb1a8e7993a1",
       "executable": false
     },
     "docs/migrating-site24x7.md": {
@@ -2756,7 +2756,7 @@
       "executable": false
     },
     "public/definitions.js": {
-      "sha256": "ca2317439194824e7f06ff82a3efd8ae01d113f9a8dd8b5f22bfeb4199172077",
+      "sha256": "d6d5cdde0471864d419008f909ccfdd17d30aeb4f62b4c97378da7dc5b1b48f9",
       "executable": false
     },
     "public/delivery-chain.js": {
@@ -4385,6 +4385,10 @@
     },
     "scripts/edition-authoring/workflow-scripts.mjs": {
       "sha256": "d2a65622a919fb630c9759eb937edb2e06ab1ad7c18212389f6d509fb06db7f3",
+      "executable": false
+    },
+    "scripts/generate-incumbent-import-fixtures.mjs": {
+      "sha256": "fdc22ff830255ea13999776b1adcd53fc8d78b46f218f57394787c8a050ebbe3",
       "executable": false
     },
     "scripts/heartbeat/output-body.mjs": {
@@ -7232,11 +7236,11 @@
       "executable": false
     },
     "src/domain/business-import/mapping.server.ts": {
-      "sha256": "750ad2655f91bdb6792a482cf69f3b08a4153648bdf477b5fc8f7dd3b242f524",
+      "sha256": "2f00c933627578d4d32c1358b6ea5ff37e8d49b24e1504c7d45c690f0c919703",
       "executable": false
     },
     "src/domain/business-import/plan-view.server.ts": {
-      "sha256": "008a18c9bf49cd81e24de2e7adaad706642794695ba11ea64a0f7f8e86a67f72",
+      "sha256": "872f69af0a352e938cc8683e2bffed5b482db05662e7a99a40a8b243fc9506df",
       "executable": false
     },
     "src/domain/business-import/settings.server.ts": {
@@ -7360,7 +7364,7 @@
       "executable": false
     },
     "src/domain/definitions/format.ts": {
-      "sha256": "1f4997084a630014cf08b167055c610edc8440d8acbeddf723b851432682c923",
+      "sha256": "c8ae33c7234378fa1fae27fe927353ffb71c2edaa75b2948ab67b7ed152cb13d",
       "executable": false
     },
     "src/domain/definitions/history.ts": {
@@ -7412,11 +7416,11 @@
       "executable": false
     },
     "src/domain/definitions/index.server.ts": {
-      "sha256": "932295f3cbc2491d30189fa3f017142b6ea05e5b725e5b9218ca36a3897f5d4b",
+      "sha256": "65cadbe2af8e7b821db9970041b5aaa3b93f64bc3c997406ba1bed139fcbe039",
       "executable": false
     },
     "src/domain/definitions/plan.server.ts": {
-      "sha256": "d8472da5dc0a1df544b6889a2d6ebef0a5b8f3230653cb0ccda86f0827664d2c",
+      "sha256": "85d8be1b689f5defd5e0fd5f8cb67fddbb3186af35e50e415b3aba68f68c2d4e",
       "executable": false
     },
     "src/domain/definitions/types.ts": {
@@ -7424,7 +7428,7 @@
       "executable": false
     },
     "src/domain/definitions/withhold.ts": {
-      "sha256": "84e984b1dcc75ed2d49fe0815a602da5884be1518f4526ac5c70d81d391bb8a3",
+      "sha256": "5ca112e656d466a7a041ac33927299947659d77f6de71a33db19283ff81babd2",
       "executable": false
     },
     "src/domain/demo-history.server.ts": {
@@ -9212,11 +9216,11 @@
       "executable": false
     },
     "tests/definitions-import.mjs": {
-      "sha256": "7c6c1ac0d22d8aa7d3b01a68a60498564e656fd7df9d4417c884e68417308c27",
+      "sha256": "68e87ebfeb073ebfa2139b04ab0e7b298424b55dfd55f81dc998ec8cdc57ff0d",
       "executable": false
     },
     "tests/definitions-journey.mjs": {
-      "sha256": "f3c8dd12875c1aed8bdfcbc54cf38dd2b1c7c37d84958e9644ec9c2d2141356f",
+      "sha256": "5709a345a9d92d3410f9ef04cb37dc70f9c3836740b85d0aecb1df0b2f2b8310",
       "executable": false
     },
     "tests/definitions-typescript-support.mjs": {
@@ -9285,6 +9289,818 @@
     },
     "tests/fixtures/betterstack-monitors.synthetic.json": {
       "sha256": "20ae622738eccc5ba83b6756c39e7cc51d1e311a4fb23f2f41cfad2ec1a68eed",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/alarms/list-0.json": {
+      "sha256": "df1ab15fe0e9a35215b3b84e9f411a73948366081b166184ce422b8610f8bdca",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/alarms/list-1.json": {
+      "sha256": "53634985274eee4be1ad70fc465d23c46ad5f6c95df85c74201b494d61a27477",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/canaries/detail-synthetic-api.json": {
+      "sha256": "0496d7ccac38cd3d0e553c4ee51fd693e0f8ffdac08a513688ec430a89010c71",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/canaries/detail-synthetic-browser.json": {
+      "sha256": "e6054aab7666f4942c9812e896a8912a903de957040b428a646a643ab0aa25f3",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/canaries/list-0.json": {
+      "sha256": "39519d11aeffd4e300a3f7be18e6af8c026da6e8d4f08120cd1976ef33c979ed",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/canaries/list-1.json": {
+      "sha256": "301fa00b278a0a7ec9a52e963ea91acb9716db066ebd3f9122e29f396a448b25",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/canaries/list-terminal.json": {
+      "sha256": "064e1655c4a1a0a009024b62b849bae63e5e7654d3317036e0f7ada04fd9e6b9",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/capture.json": {
+      "sha256": "58a2f5eba053c1fe57a1de18e62c235b6a432414e98dcfe8acfbbf0d147347ad",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/code/synthetic-api-input.json": {
+      "sha256": "b2406fe9e29511237c54adbe4cbea2cee661dbc95b996ba5c0fc8c9a2a173e71",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/code/synthetic-api.zip": {
+      "sha256": "a751f0a90648c383b3076b4c4a1254afcabe297b319c5dac815873046b94fbd0",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/code/synthetic-browser-input.json": {
+      "sha256": "078528de145f4cc32f31b0353a2680c28b0f2ae9db93e2d1f74f210b7f3a2bbd",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/code/synthetic-browser.zip": {
+      "sha256": "da26f4fcb83233814027bd6df37c80d354b9fe9d2df6e165147d6ddd40991ef0",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/manifest.json": {
+      "sha256": "99d52912475b4c6a34c5269a0c370963927cc6b9c506fd9e016beffb981697d5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/alarm-extra-metadata.json": {
+      "sha256": "d2aa90ed734ca1ed5f2d028fa3e4e4afeac95a706b9c988ffeabe8d74c4b65a8",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/code-input-s3-alternative.json": {
+      "sha256": "a70511ba38a65444525d593a81c9c8fd41aba8441062877e7798098001ef55e4",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/cron.json": {
+      "sha256": "7b470ca999d17af824c17055d3aaa15a553e1492b8401d0a67a27e4fb0713356",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/finite-duration.json": {
+      "sha256": "be6d2d55c7cfa2e865d280763a628543db24e155c76dc331b17a84fb38e056e5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/firefox.json": {
+      "sha256": "2ab4a528dd1d4e506c12fb09a1830f33ff4036c0513d4ae90729a20c8c428dae",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/full-metadata.json": {
+      "sha256": "87c96922d00498ba5ff9fe8a2d6f92213bf51a9a447f77417685a944e76b20fe",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/one-minute.json": {
+      "sha256": "e696e8910b9afc5472bbdf089ef4c95144a059cde18306342a7449f54bbb0c02",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/run-config-input-alternative.json": {
+      "sha256": "4cfdba12f8e0fedc1049a1f7551acc2bbe6e77310885a41f2f12b9b8fb0b6a77",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/run-once.json": {
+      "sha256": "9c72c3aea155d1cd9ef6cf69a2e251da42bda34306846e8143e92f2dc0fd7dba",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/unknown-runtime.json": {
+      "sha256": "1a45844f76aebb94dfa7bdc0d26750cbcc8aba6b0ccb43cc047eb0f7ac34496c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/visual-baselines.json": {
+      "sha256": "df4f2b33b78cd02daec3d1d01799e93e73d7167f7348a7df9f214b4285d4ef5b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/aws/proposals/vpc.json": {
+      "sha256": "8fc6cc765fd7d48d45f1a3e968e22119d66620700f4b2672b24d36de9d9bf5f3",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/http-regex-adapter-extension.json": {
+      "sha256": "2948fccaadb50ba10c89fab5ddb1caf55e826a6598f1c09ae200ddfffa5751d7",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/ignored-expiry-source-policy.json": {
+      "sha256": "f839c60f7b357a7dd10addb26f53cf57c6ca52456111706f7815627b80a49b4d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/ping-adapter-convention.json": {
+      "sha256": "3a1291e2c72229a96c110c6367cd7e425dc41ef4bacb14f617361ef26527daad",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/protocol-httpcustom.json": {
+      "sha256": "97d5dab76059bbe2357eacb6a7bb671070d158857ca2d1a4a04bf742da21043c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/protocol-imap.json": {
+      "sha256": "30649001ebd876f511349dfaa1ede7d9fbdf7f5024c227fb43cae9a76c45b225",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/protocol-pop3.json": {
+      "sha256": "eb4bb46136c493e9dbdfedf1796f53f6953f10c098021b89d4f0ffd1f03ed9ba",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/protocol-udp.json": {
+      "sha256": "1bad83d4b4a9f3f99fb205debbd9b2b5d63baa7ef45561c5b421b95ddd67a788",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/tms-interval-1440.json": {
+      "sha256": "f08dea2c7b6b3ed8c1c51b96590911e6bf150d0082335847178027f6ad66b50d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/tms-interval-720.json": {
+      "sha256": "577045845ed5c65da0ab60a86d7153ea4f049b9e2e40a91d27d7d454db486732",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/edge/unknown-fields.json": {
+      "sha256": "3c67a51637641d3e70bb1a5b352cbaa84bb72b6826508eec29910f580ad3f9f5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/empty/aws-capture.json": {
+      "sha256": "d925f94a9e609ddbf40b43f014714d10a7c10b895850dee14b8fd10842443c70",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/empty/no-records.json": {
+      "sha256": "460f4959d0a014e0f89a918c9f02ce4f4ad3075f297356eb17eac29157e6e830",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/empty/pingdom-capture.json": {
+      "sha256": "52ae1a0489df56de94353a33cb90dcee68b523085689dc74ffc689ddf7a14be0",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/expected/documented-field-coverage.json": {
+      "sha256": "386211e9415ea5b632df1f37f1ddc5815df4c430120b658794686ed73f8a7da5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/expected/documented-field-map.csv": {
+      "sha256": "62aadd1e51bc77c235876599ff71f22d721936a63ae7ca130352d7994be0ef0e",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/expected/expectations.json": {
+      "sha256": "2b6bcbf992f36481a5961fab44caa91b743880e114f06e110437d99f205e29b5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/expected/provenance.json": {
+      "sha256": "3c2f651fdc244b325d8c85a719c33ef2ffd4aefdc5be069638548e3e5a3f14e5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/aws.mjs": {
+      "sha256": "2cf234243af01c26d9dd759bcc2e0f25d6c5283f8806c24c1dbfcbb0d18f795b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/coverage.mjs": {
+      "sha256": "29a94b1ff24af72f571a5f8c457f17dc2fc1d9e8c361fffb49c1122a9afb7cea",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/documented-field-map.csv": {
+      "sha256": "62aadd1e51bc77c235876599ff71f22d721936a63ae7ca130352d7994be0ef0e",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/expectations.mjs": {
+      "sha256": "de93f356da010b489379cd4edf7ad85558770b79f6aaacf1fc3a48b04b8976ea",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/pingdom-checks.mjs": {
+      "sha256": "63f47327c8e66ef17b480f87ea19c052a4abe3349074f6a809719aea5fea3436",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/pingdom-history.mjs": {
+      "sha256": "493682f6816f7e4abfd2a632709b44fd18d3363b92c57f40968ef6b151f57557",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/pingdom-resources.mjs": {
+      "sha256": "b6125a9e072bc0fdbe12ecd33f5f39a996bac685fc2e5e75df12baa7ece13a7a",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/pingdom-transactions.mjs": {
+      "sha256": "c3a2269cf00913cd7457e8646fc6a43d73584d18c2ddb37760825cf0ca87b672",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/transport.mjs": {
+      "sha256": "4089b8685d6d4ce7f59f8621a34d452aabaf2f81db2c2f2017bda224884f393d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/generator/variants.mjs": {
+      "sha256": "138de3e3b43047da659c77e37177a31b61b32a8bf419b4600bc5d6daaeb111fe",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/manifest.json": {
+      "sha256": "081f10b7befeb427e0bfbcc95a1feb72c3681a14c664307f11af7fe8b8ea37a9",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/501-monitors.json": {
+      "sha256": "16219e1dcf08eca87e90f4d748f8f057edfe6049a3a0fbdd0fffac3811e852a8",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/credential-url.json": {
+      "sha256": "e7d3aea63349a5236e45b62f304bc5518b027e03e3771e64a685e2a448464464",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/deep-nesting.json": {
+      "sha256": "e87345e633c765f9b19e359fdf38f525bdc59aaa8cdbcff94b09db212a68bbd2",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/duplicate-id-conflict.json": {
+      "sha256": "d9353aa9ebec034647f637ae6c7340de2e4ec51932edf1c1c9b8a0a886057c52",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/exclusive-keywords.json": {
+      "sha256": "13a52ffd53d007a8f71f0de55062c57b811c280f6e926297e95099ae5f62107c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/expanded-companion-bound.json": {
+      "sha256": "6f33dfb96429b19244f58aa9b19b5d262538504d7a94410c7bd70bc96b16cc2a",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/forbidden-ipv6-loopback.json": {
+      "sha256": "5bc86d2a31bd9a7bb9336c203a3b9d5ef458bafc27231f999acef5a0932c4c71",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/forbidden-link-local.json": {
+      "sha256": "c787a67e14c2b1f4af3578755e908119341be987699a007fa46c75ffabe50087",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/forbidden-loopback.json": {
+      "sha256": "803ae6f954bfb748a8ff4b0ecb4f5bf716889d369928c253695279c7651e4198",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/forbidden-metadata-host.json": {
+      "sha256": "cd719e6fdc3c215e240411540d6bfa90ec5e995b8b48b528c7f11f818e07e555",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/forbidden-metadata.json": {
+      "sha256": "cdfcd51e8318d46a51b181e7eaf4d5fe886e4a57d92fd34ca55507f1ee670da1",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/invalid-unicode-tag.json": {
+      "sha256": "faa14396d5646ba663b00a17747a13e6b9b5cf9d683d54256971654baa1ba4b1",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/invalid-utf8.json": {
+      "sha256": "65c22b5a6a7ba99738b501e13f8c7c506502569822151b56c1e2197ac459be44",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/malformed-date.json": {
+      "sha256": "8ddac5b863706609b6487698c19a07b19c16c372e9d1f21500d8896e0e8235ea",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/malformed-number.json": {
+      "sha256": "03750db314912561265c47529e174b3f73ccc1e90a0fda5c81f8d3719cd7cef1",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/missing-detail.json": {
+      "sha256": "a8c96eee46cd8b4a3495d1dcdb02012eaa5d30b3052c2f180dc8e63d061bc314",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/offset-gap.json": {
+      "sha256": "d545b481649f5a961ce95a3ed7817f5d282518cdcd0704ae8213643268dba0bf",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/offset-wrong-number.json": {
+      "sha256": "706341ca1b90446f57010a104cf951f1876ffa7ee89c4a62198b841c7c843338",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/oversized-text.json": {
+      "sha256": "e1a0590cb9d9e377902d1adefaf4478118786f3fee8c687ab944b48f0e14a3be",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/prototype-keys.json": {
+      "sha256": "115121820c294bea157de2c098b3946947a86171e2f7495286672f49a7a02fcc",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/repeated-token.json": {
+      "sha256": "689bea82ad7b9fbf9ea9c6bbbd68b48a5ab819041719bb15624ee59674770b5b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/smtp-source-secrets.json": {
+      "sha256": "821bf781c277bc229dd43fc98cecdc7a327fe181d4135a9c03e96d970d1990df",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/source-secrets.json": {
+      "sha256": "8403a001a12ae667b6a6e86cf282d0352b09ead0c9e49472dc7f92e8531a5584",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/tms-performance-embedded-secrets.json": {
+      "sha256": "5dad2419a26dac57dd5d04759dc72e9d6244d590ac468d01b6b447ea6e9e0e22",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/tms-secrets-and-unsafe-command.json": {
+      "sha256": "629bc0be154eb2bc3e2ed6b8388f7714a28e0877559a8eeb6a9ace41e69cce62",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/truncated.json": {
+      "sha256": "254cdcf424c2ea52ce0f54b762a974d41bb4eb26c1271a91b341d27c6d3abc0f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/unmatched-tms-id.json": {
+      "sha256": "ad365a756e6c3e76886098f20d6c5550afc4314a2d5d2ef2c8b6ccb11de544a4",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/wrong-envelope.json": {
+      "sha256": "f15099650cf3663ca1babe51fd0c879a2e56d670919693eb423fd3eb84658293",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/wrong-type.json": {
+      "sha256": "73a25cce0a481601a1af7f3c19785f5a76c3390044d92ba67df1277aaf8cf343",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/xss.json": {
+      "sha256": "df1be99fa07c73f42ebe5bc1e518cd95dca64bcca3729855c4f8f8691e2927dc",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-absolute-capture.json": {
+      "sha256": "30ff4ea0c20808f0475b1f9108d8f02f661697f5c2167545de6435112ed80d82",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-absolute.zip": {
+      "sha256": "d014d317a5df07c93d06fc6229eed5c2cfc62b629f74af1b8cf3d0c9289b9bf2",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-backslash-traversal-capture.json": {
+      "sha256": "4ffb7d2a81f99b3c015b540577378fa8e7fe00455151a5741f582ebbdcb792cf",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-backslash-traversal.zip": {
+      "sha256": "9e599e1bb25ff245d09799140dd021e82c9e5fc854751bab894d61ef977deeaa",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-bomb-capture.json": {
+      "sha256": "ebb519db952ba74bb008921b11bf7ed7584e017300a17da9d7b222ab7de9c946",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-bomb.zip": {
+      "sha256": "aa8732d6feb70a6f21325e45c1a328c93a01f5f76027fcc0abad6a3e6eae8565",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-duplicates-capture.json": {
+      "sha256": "01e4782d53643d0eb854956474f74de7407f571eae48e080141dd5fd6dfb664b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-duplicates.zip": {
+      "sha256": "985b82183c2a3e962ce88b4dd405b584a82b39a57cd15e2730ab7c5f5a7f3229",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-metadata-fetch-capture.json": {
+      "sha256": "1cf14bd02b0a38d3687ad2c6e7d6e9afa2742b24fa0b93014f5b08dcab326f8f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-metadata-fetch.zip": {
+      "sha256": "505de8ea192a55040b38ea56ca2a575a22bf2c65de5e48f11754c868d98cefb0",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-oversized.zip": {
+      "sha256": "16a429a1e5162fcf59e3079724763e9afafcef1e2c7f862571e9267b3d959113",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-remote-import-capture.json": {
+      "sha256": "4763c4ddc79fbab36748178f02d215c00f81dfe0401c88f38d60734beb8161cb",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-remote-import.zip": {
+      "sha256": "30d42c5b1dd15b37ea66a0f5cad38d981987b6bf699d7a20f77bb9649ea1d03c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-symlink-capture.json": {
+      "sha256": "cc40d404a12c53e692a9a32580af4072699f0f34a5935115767240ae3bde98d2",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-symlink.zip": {
+      "sha256": "d73b6b327e2b050715407c43cae209b7b7e6f548179940abd617c471989fc8ea",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-traversal-capture.json": {
+      "sha256": "c1588c026d843afc38c5ca13e387b6090d7de0b5e74d4f9f4f21e879d6e50ffe",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-traversal.zip": {
+      "sha256": "153b9798bc76811e73856f1078f8864371fb974a5c13b27e8be9e91d020a4cc6",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-truncated-capture.json": {
+      "sha256": "81fd1e1b89c6f88bc0002ec049a4cd950da89174be25f802015c028a45686019",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-truncated.zip": {
+      "sha256": "c11aa9011a5e533570a38bcf8bcf7edbe4a875aea6c4be305d579d07d574c982",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-unsafe-code-capture.json": {
+      "sha256": "e47334fa9610133760fb01b6ff4508ac8b7acb1cccce03ac07906bcfad03df2f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/negative/zip-unsafe-code.zip": {
+      "sha256": "c485c3d0d0d316dcf75dede4dc70c9809dcc56e1282269a7a319cabd9f71ed16",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pagespeed/capture.json": {
+      "sha256": "f0fd4eefd9fcfa8390ec0fe5ae7179e8d111ad0fc5f840f9fa514382a936d844",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pagespeed/manifest.json": {
+      "sha256": "f7586dd50487f8620791022902f4fdd656e5ee1fb24d3c96e185662eae0845a5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pagespeed/synthetic-filmstrip-000.svg": {
+      "sha256": "72bfac478b133a13bb659f96c0e7bb07c1cfc5667fb05bf019ad9435625e8149",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pagespeed/synthetic-filmstrip-500.svg": {
+      "sha256": "5ed8382cc3daa2bdf9695a8a92fc72cd957d7a316979c38f7ea47774b73a458c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pagespeed/transcription.json": {
+      "sha256": "cca1989acec39af278785ece17e9cc32693e1a4c3d0ea8eebf7bfd51fb9750ed",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom-checks.synthetic.json": {
+      "sha256": "92e6d609d1e2bf0a64ca5d6946d3ee6c3f3f2079f91c9fa78ccce215107bc84d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/capture.json": {
+      "sha256": "608c0da6fb8a29fae68a9443b2031495b652b0dde3f6ec6bcd179d11d39d3e7b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61000.json": {
+      "sha256": "1554e262a648c9cbb8c94c780cf08e5090acefe303c46f35b91beee548d2080a",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61001.json": {
+      "sha256": "c7530a04027bcffbeb279181561a849f6bda8779e7c23484f754cfa04ca39a5e",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61002.json": {
+      "sha256": "4a784a03d254eba2c3583b50ef34bdf1a925f8b32286c6b6ab690df846ef3698",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61003.json": {
+      "sha256": "719abe4e368ac8bfcdf14bb505e38a397a850a0721ac28a2e99fe619a32d1fd7",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61004.json": {
+      "sha256": "b20e55017038c40f55107e7ec749f0d4a4214d69c95fad885287017bdca87dee",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61005.json": {
+      "sha256": "32f05315afb1dc2baa8f72c9b6c0db70ec103e916da94ac03b1d6d0c43e9f08e",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61006.json": {
+      "sha256": "76a7d4831bc0136b09999805d650a07834aa2751a774c1913fb7b7039ea40dbf",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61007.json": {
+      "sha256": "1e9c11491e24e35eed903a6fee732af93e380df46fe53cb22fc63a1595a3772b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61008.json": {
+      "sha256": "1d21fae95181e185ecbb69c44f9b65674b4abd3fbbdcd12f82303853323beb1c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61009.json": {
+      "sha256": "25218d4017a8883c8629b60976f79910f7804ca28081d4d46bf83298d58913cf",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61010.json": {
+      "sha256": "10f3dcc73cdf7f75bd5b8cc9a944d668a687a5ba5bb3049e4c96bfc0549a8b17",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61011.json": {
+      "sha256": "d0fe7cf0eb02f29cb3c4841d5b8b4701532319c24c210321be363b7878763a99",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61012.json": {
+      "sha256": "7d28dedea22937f46e7a92cba5b16bb891928c4eb48a057fdbd79dadbadb5fed",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61013.json": {
+      "sha256": "b9f2799c5f5026d08125b416a10f8fcd213ce8fda04d0d82a4fd315487d14b5e",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61014.json": {
+      "sha256": "fa35ad82567cbffe161a1233dd8305e37ddecd68233d5fdc197e18e6805df45f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61015.json": {
+      "sha256": "ea41ab51f203b6093b59b829f00917656e8aa0528c6ec393c9e135fa53af4bc6",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61016.json": {
+      "sha256": "7f20d96a13ffcdbd9859aecc490437543df2b5aa63421569036a4267641a347b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61017.json": {
+      "sha256": "268d1a63089aa26c950686b0da13a98fe65d0369a60a332574bc55d2acd46b3a",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61018.json": {
+      "sha256": "21a76afa83e7a29b558c859cf0f41197463edc3099f589d85bd61e722d00b737",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61019.json": {
+      "sha256": "f22c2811b38a71681f44b9da4e0741cb07b551937057cf422258107c46c2dde6",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61020.json": {
+      "sha256": "b95ec38afdd16e335494c760838408ae8bc9807cecadbaf7210c9548713b1fa7",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61021.json": {
+      "sha256": "6c8644fc8c52258fbc32290e79f7b4ef5a4da2ed23ef7d3450d8d4c387eaef9c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61022.json": {
+      "sha256": "8098cc9a5a0708e4d37dc3fe3689089b8c43864cea0f34f87dfcd2bedc923bd5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61023.json": {
+      "sha256": "38f448ea2aefdddbe56c3c5a1719be15983aaab90553760e59c7ce2f075e1ddc",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61024.json": {
+      "sha256": "e9421af7dc94f414132b5859e5721e78e09895226abb3afb308828c7dcf14cbb",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61025.json": {
+      "sha256": "ca1ffa79c0871aa88ecdf00382b214e51222f7cac56779a389093e4aa3cee53e",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61026.json": {
+      "sha256": "e25f56990b899915682b4fa1fb155852bbe745a27dd053e445f941383117a228",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61027.json": {
+      "sha256": "6a07090340ab2015696842ed9c3287abab512ee2616bfb978dbe91d8306cec2d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61028.json": {
+      "sha256": "d9fb021303f6db640267f236754a2f5ea12c159a42711c4359a0720515d3de0f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61029.json": {
+      "sha256": "bdaf394e935d51f079f2e77caf1d57516ea77567cc8353ff6d0b5b59f952050c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61030.json": {
+      "sha256": "6d3d6ac75039573efe38f05e3ff28cb6bdf03ac643325681241a5e60ba766e79",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61031.json": {
+      "sha256": "703757bd907056c312b4822965baaa48990eaec78c52c6717508e7c13f8e05b4",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61032.json": {
+      "sha256": "36cfc12554c33a442876df16039e0349e94a6b21dbc5e43531f1c2c67e53910e",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61033.json": {
+      "sha256": "3cf14f40a722f48e5de8cc980637febe40c68bc9883f9f90a7fe77d10c541223",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61034.json": {
+      "sha256": "06006cf446cec1b735f85b589b11b95be9af570a24e76c4ab7678ccb6ec51b2e",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61045.json": {
+      "sha256": "3e7585a07a45dab6696f39adc2a92cd383c90b7e87ca12dfd575da578ef8d895",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61046.json": {
+      "sha256": "4dfca0e0ab0067296c561e457f42d2400a5e4cb94aa019c2ae973b98ea654587",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61047.json": {
+      "sha256": "62aa097c4a2c618253bef02469ab904b3fc3e1e58b58c09db57b5af154ce00c2",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61048.json": {
+      "sha256": "c10c72e500b434cb59bca544efde0b385d9fb45b65048f268f0b293d74305735",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61049.json": {
+      "sha256": "f2e1a35e5297a40408d1c580473181d2f04314761df1621c5e89c67198eb8eaf",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61050.json": {
+      "sha256": "d339fb20550e2307e3098b5b167f604edd1e544ed618636b12c4d8ab1cc0cfe8",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61051.json": {
+      "sha256": "521ca30643edbf4836be78c5e5ad39649c68c398294523445e1e09c6d7bd3b91",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61052.json": {
+      "sha256": "cdaa36a33bc9cddefaa58c644d8d7e8666dc62502b83ac57644b3116a5e3ebae",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61053.json": {
+      "sha256": "74824a9fcae5a2c1442a15609e7ab550f15ec5b31b1c8df95975b3e8867be1fd",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61054.json": {
+      "sha256": "5cde01a9f04556ca28de844f7fa028d212145a7ef0f875b87c01a5a00189b571",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61055.json": {
+      "sha256": "9392896b0d2468abe376e99fdfff2db8bcdebd52bad9c372e74534568222244c",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61056.json": {
+      "sha256": "651657131589b6b468acedb6a17d3e99953126d529a8f825b6bf7cdb4f877303",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61057.json": {
+      "sha256": "8cc7c0e892bc4267cd0acbcba596ccae817754f070ce8830f4771c7eaea1b938",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61058.json": {
+      "sha256": "93ea3a51afaa14a0d13b62ac578da845cbad3ee7f5c8d707dea6a5ece1de5629",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61059.json": {
+      "sha256": "1cc0e8db58a76a9ee7d340d5d342f61b7449387c4c9d63085b426c88373f8179",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61060.json": {
+      "sha256": "02f2450e9ae4ed46e6572f7fecd18c06102297e4a950a22ea65cf72d9600a50f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61061.json": {
+      "sha256": "278129e68801e6bbf602812dfb6101e32366239a02e7e4ade3e63f5dfe9aaf5f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61062.json": {
+      "sha256": "360dbfeedf4d9a69d3e4c38db62c21194b12625b294c65e3aa1a3ad399eab7e9",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61063.json": {
+      "sha256": "faee99bde24a57d4c9f2db88a70b0a4e0d570c51c61a26c92f3d0bfdc7510896",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/detail-61064.json": {
+      "sha256": "723824308781e94918aec3438e4ea4a8776ade6c0e33c5e769973af00654287b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/list-000.json": {
+      "sha256": "7c0b5238c7aa308ab67bc730225ea7c287194526b2d6660d994c23065126490b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/list-025.json": {
+      "sha256": "8bb15bf7998b4c7a7563394a54bed37ab6b346642f86d8d87bdfb0a1e03b8ac9",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/checks/list-050.json": {
+      "sha256": "8f97b108d94911d0d85fdb4eb5d8753edc886c826e01589776ce3cdd25bdfa9f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/contacts.json": {
+      "sha256": "b56cd7ea4c396ffea546479837e0ecd293a8a101e6e3b6c9b96a44ba9e9ee9af",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/average-grouped.json": {
+      "sha256": "20eb96ffe3dd1842b54e5ca419c38a675ffadc5e20f92dba49949722d1049c22",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/average.json": {
+      "sha256": "6b2ce1ec42e39d8670b19286feb194c1a8bdadc3f813ca5ad4d3b7e35b6fde70",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/outages.json": {
+      "sha256": "c3e584f3c849bb681cd3f81c842c5ff884d76b9480f04dc1151d7b5bcbe51de1",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/performance-days.json": {
+      "sha256": "def7352a1fb6e179b0b7a6928fe54ae20c33b999809a434b49a4f241d68125d6",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/performance-hours-overlap.json": {
+      "sha256": "fe2fbeb0f17bb82b6145f6fda9140dd84bfbd42791ded34ee283bb058dede92d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/performance-weeks-overlap.json": {
+      "sha256": "62ed7ee1bcab382f0c0f10eaf1b8825a3ca1eb8d0a243c97e9eed64abd41d837",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/results-0000.json": {
+      "sha256": "ed81c4764178158cca28b81d0ce9261584fce113a9e9008c40c730869af68478",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/results-0200.json": {
+      "sha256": "6a666def90a95980e7c210a269ba8a0973d5049baea590839c154f23c16158e5",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/results-0400.json": {
+      "sha256": "0ddb77e208682674bc8e47ba003fcdd0c51720668d4a4417a94b7a96798b830d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/results-0600.json": {
+      "sha256": "1ae454b5b8358f6d27b29e716b301c0004cb6a0462a3c66ac6cb570cf3b7514d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/results-0800.json": {
+      "sha256": "e5739048d278de4f940244245a5291011fdf087c13896d6fcae3d9b10afdb5cf",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/results-1000.json": {
+      "sha256": "a0c043b670a53e38a31ca8d72d98cdbd4f31b9320fc8d2cc828f4382ae7a5d26",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/results-1200.json": {
+      "sha256": "179a25fa42adb75c18b8cc1273379e49902838306e55b30a511fb20fe4acf92f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/history/unmapped-monitor.json": {
+      "sha256": "d392dad0bc18599873888fc99d875a1e0d6fa66a09e3397324b3030d0668962d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/maintenance-occurrences.json": {
+      "sha256": "6bad0d981c789f8d75f52b4e10081b81db06cb263bcf61d5ab4ea6c24bd65c7f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/maintenance.json": {
+      "sha256": "0b26f30d32b33e8218d43ae8c68573f8fd97e75392c543b12da38edd6220a514",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/manifest.json": {
+      "sha256": "a149cdf325f4fdcdadeb034393721cb5f6f7ed8f73a555157702cf40262f8754",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/probes.json": {
+      "sha256": "fc4d37b4163dc77eb5d16f2dc52988451f5c909c3f53308fce23234523b67459",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/teams.json": {
+      "sha256": "2112c8c2edb4626703c9d8ed20d19c4e8a84411c332315e78a6b567d88d7b459",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/tms/detail-83001.json": {
+      "sha256": "06f8ad2cbba1f2d3c9fd3d08c33b460618c08b8329814d4ac71eef7a0820a458",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/tms/detail-83002.json": {
+      "sha256": "4b45da6fe0959d83ca31248eed0d1b58ce3bc2fa9f98e039539d3c5511de4b55",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/tms/detail-83003.json": {
+      "sha256": "61530dfb017d83257544c1cc49224d8ae53c2754aa1b260a3e7214fde330a3cd",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/tms/detail-83004.json": {
+      "sha256": "bb8c50860487cdf35d4e6f8cfe60c3b01ee0cedce08c9d55638acb608471cf43",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/tms/list-0.json": {
+      "sha256": "580c93c0368f3fc96e483e5f1f3227c8dea35153bf60d8dd2f80a60663a219ba",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/tms/list-2.json": {
+      "sha256": "179af6d4a5ab866ca9acfbbffaf0aa9c370f00562471428ba937fe8a9d0a331d",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/tms/performance-report.json": {
+      "sha256": "28edcef7022deaaf7a0e0796b250434f27e92f7ee606ea4c5d9b1801fef30f46",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/tms/status-report.json": {
+      "sha256": "49c06c35c1ca4e94abf56cb1defc1d1dab45803fa9eeeae948b9cd37867a0346",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/pingdom/variants/contacts-schema-array.json": {
+      "sha256": "016835e09648317da275776cb2b134dd42f02f2b99899c26198306a55e725ef8",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/README.md": {
+      "sha256": "24df24de4167e5210b79f8a4858ba3b6e238ffd631c65ccb3ca8b37d4dea61b2",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/reimport/changed-source.json": {
+      "sha256": "a28a239a78c03b6477a1a68615f0ce0fe34229c25d687b5efd7c0917aef2315f",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/reimport/identical.json": {
+      "sha256": "608c0da6fb8a29fae68a9443b2031495b652b0dde3f6ec6bcd179d11d39d3e7b",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/reimport/overlapping-pages.json": {
+      "sha256": "fe1c7e19b744db6187db2115478557dbcb6f7959a91856956e32b12fe37994b0",
+      "executable": false
+    },
+    "tests/fixtures/incumbent-import/reimport/reordered-pages.json": {
+      "sha256": "72f4d8e6423f3bb671241569a4707713c156246ead77012c1b73be91ca7eaec9",
       "executable": false
     },
     "tests/fixtures/pingdom-checks.synthetic.json": {
@@ -9405,6 +10221,10 @@
     },
     "tests/incident-work.mjs": {
       "sha256": "b69f8958edb7a5262d11ff061e7d8bb9d90465d868b9d4b1c679fcf6f616a543",
+      "executable": false
+    },
+    "tests/incumbent-fixtures-support.mjs": {
+      "sha256": "245225297e16823fae8ddcf65a696f2adada28dce84279df197f222a3256af60",
       "executable": false
     },
     "tests/installer-support.mjs": {

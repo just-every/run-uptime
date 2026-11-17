@@ -1,0 +1,103 @@
+{
+  "contacts": [
+    {
+      "id": 71001,
+      "name": "Synthetic Owner",
+      "notification_targets": [
+        {
+          "address": "owner@example.test",
+          "severity": "HIGH"
+        },
+        {
+          "country_code": "1",
+          "number": "2025550101",
+          "provider": "synthetic",
+          "severity": "HIGH"
+        }
+      ],
+      "owner": true,
+      "paused": false,
+      "teams": [
+        {
+          "id": 81001,
+          "name": "Synthetic Platform"
+        }
+      ],
+      "type": "user"
+    },
+    {
+      "id": 71002,
+      "name": "Synthetic Notify",
+      "notification_targets": [
+        {
+          "address": "notify@example.test",
+          "severity": "HIGH"
+        }
+      ],
+      "owner": false,
+      "paused": false,
+      "teams": [
+        {
+          "id": 81001,
+          "name": "Synthetic Platform"
+        }
+      ],
+      "type": "contact"
+    },
+    {
+      "id": 71003,
+      "name": "Synthetic SMS",
+      "notification_targets": [
+        {
+          "country_code": "1",
+          "number": "2025550102",
+          "provider": "synthetic",
+          "severity": "HIGH"
+        }
+      ],
+      "owner": false,
+      "paused": true,
+      "teams": [
+        {
+          "id": 81002,
+          "name": "Synthetic Réponse"
+        }
+      ],
+      "type": "contact"
+    },
+    {
+      "id": 71004,
+      "name": "Synthetic APNS",
+      "notification_targets": [
+        {
+          "apns_device": "SYNTHETIC_APNS_AUTHORITY_DO_NOT_IMPORT",
+          "device_name": "Synthetic iPhone",
+          "severity": "HIGH"
+        }
+      ],
+      "owner": false,
+      "paused": false,
+      "teams": [
+        {
+          "id": 81002,
+          "name": "Synthetic Réponse"
+        }
+      ],
+      "type": "user"
+    },
+    {
+      "id": 71005,
+      "name": "Synthetic AGCM",
+      "notification_targets": [
+        {
+          "agcm_id": "SYNTHETIC_AGCM_AUTHORITY_DO_NOT_IMPORT",
+          "severity": "LOW"
+        }
+      ],
+      "owner": false,
+      "paused": false,
+      "teams": [],
+      "type": "contact"
+    }
+  ]
+}

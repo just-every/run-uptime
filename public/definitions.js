@@ -78,17 +78,28 @@ function rowMarkup(e){
   ...(e.target?.network==='private'?[`<p><strong>Private network</strong> · runner-local grant <code>${escape(e.target.privateGrantRef)}</code>. A new local grant is required before execution.</p>`]:[]),
   criteriaMarkup(e.target),
   ...(e.changes??[]).map(changeMarkup),
-  ...(e.differences.length?[`<ul>${e.differences.map(d=>`<li>${escape(d)}</li>`).join('')}</ul>`]:[]),
+  ...(e.differences.length?[`<ul>${e.differences.filter(d=>!d.startsWith('Field dispositions:')).map(d=>`<li>${escape(d)}</li>`).join('')}</ul>`]:[]),
  ];
- const target=e.target?(e.target.url?`<span class="url">${escape(e.target.url)}</span>`:'<span class="url url-prose">Incoming heartbeat</span>'):'';
+ const target=e.target?(e.target.url?`<span class="url">${escape(e.target.url)}</span>`:`<span class="url url-prose">${e.target.type==='heartbeat'?'Incoming heartbeat':escape(e.target.type)+' check'}</span>`):'';
  return `<tr><td data-label="Action"><span class="ui-pill ${pill}">${label}</span></td><td data-label="Monitor"><span class="monitor-name">${escape(e.name??e.label)}</span>${target}</td><td data-label="Details" class="definition-details">${details.join('')||'<p>No differences.</p>'}</td></tr>`;
+}
+function fieldReportMarkup(report){
+ if(!report?.fields.length)return '';
+ const c=report.counts;
+ return `<details class="definition-field-report"><summary>Field report · ${c.leaves} supplied fields</summary>
+ <p>${c.sourceChecks} unique source checks; ${c.sourceRecords} source resource rows; ${c.nativeEntries} check-detail plan entries, including ${c.tlsCompanions} TLS companions. List summaries and details refer to the same source checks.</p>
+ <p>${Object.entries(report.summary).map(([key,count])=>`${count} ${escape(key)}`).join(' · ')}. Source history, contacts and scripts are never made current evidence or sent.</p>
+ <button type="button" id="definition-report-download">Download field report JSON</button>
+ ${report.schemaNotes.length?`<details><summary>Source schema notes</summary><ul>${report.schemaNotes.map(note=>`<li>${escape(note)}</li>`).join('')}</ul></details>`:''}
+ <p>Every supplied leaf, including unknown keys and empty containers, has a disposition in the download. Showing the first ${Math.min(40,c.leaves)} paths:</p>
+ <ul>${report.fields.slice(0,40).map(field=>`<li><code style="overflow-wrap:anywhere">${escape(field.path)}</code> — ${escape(field.disposition)}. ${escape(field.reason)}</li>`).join('')}</ul></details>`;
 }
 function previewMarkup(preview){
  if(!preview)return '';
  if(preview.kind==='history')return countsMarkup(preview);
- const c=preview.counts,applying=c.create+c.change;
- return `${countsMarkup(preview)}<p><button id="definition-apply" class="primary"${applying?'':' disabled'}>${icon('check')}Apply: create ${c.create}, change ${c.change}</button></p>
- <div class="table-scroll" tabindex="0" role="region" aria-label="Preview entries"><table class="ui-table ui-table--stack-md" aria-label="Preview entries"><thead><tr><th scope="col">Action</th><th scope="col">Monitor</th><th scope="col">Details</th></tr></thead><tbody>${preview.entries.map(rowMarkup).join('')}</tbody></table></div>`;
+ const c=preview.counts,applying=!preview.applied&&(c.create+c.change);
+ return `${countsMarkup(preview)}${fieldReportMarkup(preview.fieldReport)}<p><button id="definition-apply" class="primary"${applying?'':' disabled'}>${icon('check')}${preview.applied?'Applied':'Apply'}: create ${c.create}, change ${c.change}</button></p>
+ <div class="table-scroll" tabindex="0" role="region" aria-label="Preview entries"><table class="ui-table ui-table--stack-md" aria-label="Preview entries"><thead><tr><th scope="col">Action</th><th scope="col">Monitor</th><th scope="col">Details</th></tr></thead><tbody>${(preview.fieldReport?preview.entries.slice(0,100):preview.entries).map(rowMarkup).join('')}</tbody></table></div>${preview.fieldReport&&preview.entries.length>100?`<p>${preview.entries.length-100} additional source rows are accounted for in the field report download.</p>`:''}`;
 }
 // One row per past import: its source, then one quiet line (what it did, when, where it stands), its monitors one click away
 // and Undo. An import just applied or undone opens its monitors, so what happened to each is in view.
@@ -118,14 +129,14 @@ const IMPORT_MARKUP=`<p>Choose saved JSON or an UptimeRobot event-log CSV, up to
  </details>
  <label id="definition-file-field">A file from UptimeRobot, Pingdom, Better Stack, Site24x7 or Uptime<input type="file" id="definition-file" accept=".json,.csv,application/json,text/csv"></label>
  <label id="definition-text-field" hidden>Paste it<textarea id="definition-text" rows="5" spellcheck="false"></textarea></label>
- <details id="definition-choose" hidden><summary>Choose the source</summary><label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime monitor file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom HTTP check details</option><option value="betterstack-monitors">Better Stack monitor pages</option><option value="betterstack-heartbeats">Better Stack heartbeat or status-page resource pages</option><option value="site24x7">Site24x7 monitor list or StatusIQ third-party components</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label></details>
+ <details id="definition-choose" hidden><summary>Choose the source</summary><label>Source<select id="definition-source"><option value="auto">Detect from the file</option><option value="uptime.monitors">Uptime monitor file</option><option value="uptimerobot">UptimeRobot v3 monitor list</option><option value="pingdom">Pingdom saved check details</option><option value="betterstack-monitors">Better Stack monitor pages</option><option value="betterstack-heartbeats">Better Stack heartbeat or status-page resource pages</option><option value="site24x7">Site24x7 monitor list or StatusIQ third-party components</option><option value="uptimerobot-log">UptimeRobot log export (CSV)</option></select></label></details>
  <div class="btn-row"><button type="button" class="ui-link" id="definition-paste" aria-controls="definition-text-field">Paste it instead</button><button type="button" id="definition-preview" class="primary">Preview</button></div>`;
 const PREVIEW_MARKUP=`<section id="definition-preview-area" aria-labelledby="definition-preview-heading" hidden><h3 id="definition-preview-heading">Preview</h3><div id="definition-result"></div></section><p id="definition-applied" role="status"></p>`;
 export function mountImport(host,{action,onApplied,preview:previewHost,applied:appliedHost}){
  host.insertAdjacentHTML('beforeend',IMPORT_MARKUP);
  if(!previewHost)host.insertAdjacentHTML('beforeend',PREVIEW_MARKUP);
  const roots=[host,previewHost,appliedHost].filter(Boolean),$=selector=>{for(const root of roots){const hit=root.matches(selector)?root:root.querySelector(selector);if(hit)return hit}};
- const showPreview=()=>{$('#definition-preview-area').hidden=!state.preview;$('#definition-result').innerHTML=state.preview?previewMarkup(state.preview):'';const apply=$('#definition-apply');if(apply)apply.onclick=applyPreview};
+ const showPreview=()=>{$('#definition-preview-area').hidden=!state.preview;$('#definition-result').innerHTML=state.preview?previewMarkup(state.preview):'';const apply=$('#definition-apply');if(apply)apply.onclick=applyPreview;const report=$('#definition-report-download');if(report)report.onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(state.preview.fieldReport,null,2)+'\n'],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download='uptime-import-field-report.json';link.click();URL.revokeObjectURL(url)}};
  // A file or, in its place, the pasted text: one way at a time.
  const showWay=()=>{$('#definition-file-field').hidden=state.paste;$('#definition-text-field').hidden=!state.paste;$('#definition-paste').textContent=state.paste?'Choose a file instead':'Paste it instead'};
  $('#definition-paste').onclick=()=>{state.paste=!state.paste;showWay();(state.paste?$('#definition-text'):$('#definition-file')).focus()};
@@ -149,7 +160,7 @@ export function mountImport(host,{action,onApplied,preview:previewHost,applied:a
    const report=await door(preview.namespace,'reconcile',{planId:preview.planId});
    if(!report.ok)throw Error('The import finished, but Uptime does not hold what it reviewed. Undo this batch.');
   },{pending:'Applying…',success:`Applied: ${preview.counts.create} created (paused), ${preview.counts.change} changed.`});
-  if(result.ok){if(preview.counts.create){const created=preview.entries.filter(e=>e.action==='create');$('#definition-applied').innerHTML=`${preview.counts.create} created and paused. <a class="ui-link" href="${created.length===1?'/app/monitors/'+encodeURIComponent(created[0].monitorId):'/app/monitors'}">Review and start them →</a>`}state.preview=null;state.payload=null;showPreview();await onApplied?.()}
+  if(result.ok){if(preview.counts.create){const created=preview.entries.filter(e=>e.action==='create');$('#definition-applied').innerHTML=`${preview.counts.create} created and paused. <a class="ui-link" href="${created.length===1?'/app/monitors/'+encodeURIComponent(created[0].monitorId):'/app/monitors'}">Review and start them →</a>`}state.preview={...preview,applied:true};state.payload=null;showPreview();$('#definition-report-download')?.focus();await onApplied?.()}
  }
  $('#definition-preview').onclick=preview;
  showWay();showPreview();

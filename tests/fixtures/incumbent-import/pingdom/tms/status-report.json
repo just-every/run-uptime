@@ -1,0 +1,25 @@
+{
+  "report": {
+    "check_id": 83001,
+    "name": "Synthetic login",
+    "states": [
+      {
+        "from": "2026-10-31T00:00:00.000Z",
+        "status": "up",
+        "to": "2026-10-31T22:58:20.000Z"
+      },
+      {
+        "error_in_step": 3,
+        "from": "2026-10-31T22:58:20.000Z",
+        "message": "Synthetic assertion failed",
+        "status": "down",
+        "to": "2026-10-31T23:00:00.000Z"
+      },
+      {
+        "from": "2026-10-31T23:00:00.000Z",
+        "status": "up",
+        "to": "2026-11-01T00:00:00.000Z"
+      }
+    ]
+  }
+}

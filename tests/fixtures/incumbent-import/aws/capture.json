@@ -1,0 +1,566 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "canaries/list-0",
+      "kind": "canaries-list",
+      "request": {
+        "method": "POST",
+        "path": "/canaries",
+        "query": {
+          "MaxResults": 1
+        }
+      },
+      "response": {
+        "Canaries": [
+          {
+            "ArtifactConfig": {
+              "S3Encryption": {
+                "EncryptionMode": "SSE_S3"
+              }
+            },
+            "ArtifactS3Location": "s3://synthetic-artifacts-example/synthetic-browser/",
+            "BrowserConfigs": [
+              {
+                "BrowserType": "CHROME"
+              }
+            ],
+            "Code": {
+              "BlueprintTypes": [],
+              "Dependencies": [],
+              "Handler": "index.handler",
+              "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-browser-code:1"
+            },
+            "EngineArn": "arn:aws:lambda:us-east-1:000000000000:function:synthetic-browser-engine",
+            "ExecutionRoleArn": "arn:aws:iam::000000000000:role/synthetic-canary-execution",
+            "FailureRetentionPeriodInDays": 31,
+            "Id": "00000000-0000-4000-8000-000000000001",
+            "Name": "synthetic-browser",
+            "ProvisionedResourceCleanup": "OFF",
+            "RunConfig": {
+              "ActiveTracing": false,
+              "EphemeralStorage": 1024,
+              "MemoryInMB": 960,
+              "TimeoutInSeconds": 30
+            },
+            "RuntimeVersion": "syn-nodejs-puppeteer-10.0",
+            "Schedule": {
+              "DurationInSeconds": 0,
+              "Expression": "rate(5 minutes)",
+              "RetryConfig": {
+                "MaxRetries": 0
+              }
+            },
+            "Status": {
+              "State": "RUNNING",
+              "StateReason": "Synthetic source state, not current local health",
+              "StateReasonCode": "UPDATE_COMPLETE"
+            },
+            "SuccessRetentionPeriodInDays": 31,
+            "Tags": {
+              "environment": "synthetic",
+              "service": "browser"
+            },
+            "Timeline": {
+              "Created": 1785715200,
+              "LastModified": 1793404800,
+              "LastStarted": 1793484000,
+              "LastStopped": 1793487600
+            }
+          }
+        ],
+        "NextToken": "synthetic-page-1"
+      }
+    },
+    {
+      "id": "canaries/detail-synthetic-browser",
+      "kind": "canary-detail",
+      "request": {
+        "method": "GET",
+        "path": "/canary/synthetic-browser",
+        "query": {}
+      },
+      "response": {
+        "Canary": {
+          "ArtifactConfig": {
+            "S3Encryption": {
+              "EncryptionMode": "SSE_S3"
+            }
+          },
+          "ArtifactS3Location": "s3://synthetic-artifacts-example/synthetic-browser/",
+          "BrowserConfigs": [
+            {
+              "BrowserType": "CHROME"
+            }
+          ],
+          "Code": {
+            "BlueprintTypes": [],
+            "Dependencies": [],
+            "Handler": "index.handler",
+            "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-browser-code:1"
+          },
+          "EngineArn": "arn:aws:lambda:us-east-1:000000000000:function:synthetic-browser-engine",
+          "ExecutionRoleArn": "arn:aws:iam::000000000000:role/synthetic-canary-execution",
+          "FailureRetentionPeriodInDays": 31,
+          "Id": "00000000-0000-4000-8000-000000000001",
+          "Name": "synthetic-browser",
+          "ProvisionedResourceCleanup": "OFF",
+          "RunConfig": {
+            "ActiveTracing": false,
+            "EphemeralStorage": 1024,
+            "MemoryInMB": 960,
+            "TimeoutInSeconds": 30
+          },
+          "RuntimeVersion": "syn-nodejs-puppeteer-10.0",
+          "Schedule": {
+            "DurationInSeconds": 0,
+            "Expression": "rate(5 minutes)",
+            "RetryConfig": {
+              "MaxRetries": 0
+            }
+          },
+          "Status": {
+            "State": "RUNNING",
+            "StateReason": "Synthetic source state, not current local health",
+            "StateReasonCode": "UPDATE_COMPLETE"
+          },
+          "SuccessRetentionPeriodInDays": 31,
+          "Tags": {
+            "environment": "synthetic",
+            "service": "browser"
+          },
+          "Timeline": {
+            "Created": 1785715200,
+            "LastModified": 1793404800,
+            "LastStarted": 1793484000,
+            "LastStopped": 1793487600
+          }
+        }
+      },
+      "sourceId": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "code/synthetic-browser-input",
+      "kind": "canary-code-input",
+      "request": {
+        "method": "LOCAL",
+        "path": "canary-code-input/synthetic-browser",
+        "query": {}
+      },
+      "response": {
+        "Handler": "index.handler",
+        "ZipFile": "UEsDBBQAAAgAAAAAYV3Qk2ojYAEAAGABAAAcAAAAbm9kZWpzL25vZGVfbW9kdWxlcy9pbmRleC5qc2NvbnN0IHN5bnRoZXRpY3MgPSByZXF1aXJlKCdTeW50aGV0aWNzJyk7CmNvbnN0IGFzc2VydCA9IHJlcXVpcmUoJ25vZGU6YXNzZXJ0L3N0cmljdCcpOwpleHBvcnRzLmhhbmRsZXIgPSBhc3luYyAoKSA9PiB7CiAgY29uc3QgcGFnZSA9IGF3YWl0IHN5bnRoZXRpY3MuZ2V0UGFnZSgpOwogIGF3YWl0IHN5bnRoZXRpY3MuZXhlY3V0ZVN0ZXAoJ3N5bnRoZXRpYy1ob21lJywgYXN5bmMgKCkgPT4gewogICAgYXdhaXQgcGFnZS5nb3RvKCdodHRwczovL2NhbmFyeS1icm93c2VyLmV4YW1wbGUudGVzdC8nKTsKICAgIGFzc2VydC5lcXVhbChhd2FpdCBwYWdlLnRpdGxlKCksICdTeW50aGV0aWMgaG9tZScpOwogIH0pOwp9OwpQSwECFAMUAAAIAAAAAGFd0JNqI2ABAABgAQAAHAAAAAAAAAAAAAAApIEAAAAAbm9kZWpzL25vZGVfbW9kdWxlcy9pbmRleC5qc1BLBQYAAAAAAQABAEoAAACaAQAAAAA="
+      },
+      "sourceId": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "canaries/list-1",
+      "kind": "canaries-list",
+      "request": {
+        "method": "POST",
+        "path": "/canaries",
+        "query": {
+          "MaxResults": 1,
+          "NextToken": "synthetic-page-1"
+        }
+      },
+      "response": {
+        "Canaries": [
+          {
+            "ArtifactConfig": {
+              "S3Encryption": {
+                "EncryptionMode": "SSE_S3"
+              }
+            },
+            "ArtifactS3Location": "s3://synthetic-artifacts-example/synthetic-api/",
+            "Code": {
+              "BlueprintTypes": [],
+              "Dependencies": [],
+              "Handler": "index.handler",
+              "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-api-code:1"
+            },
+            "EngineArn": "arn:aws:lambda:us-east-1:000000000000:function:synthetic-api-engine",
+            "ExecutionRoleArn": "arn:aws:iam::000000000000:role/synthetic-canary-execution",
+            "FailureRetentionPeriodInDays": 31,
+            "Id": "00000000-0000-4000-8000-000000000002",
+            "Name": "synthetic-api",
+            "ProvisionedResourceCleanup": "OFF",
+            "RunConfig": {
+              "ActiveTracing": false,
+              "EphemeralStorage": 1024,
+              "MemoryInMB": 960,
+              "TimeoutInSeconds": 30
+            },
+            "RuntimeVersion": "syn-nodejs-puppeteer-10.0",
+            "Schedule": {
+              "DurationInSeconds": 0,
+              "Expression": "rate(5 minutes)",
+              "RetryConfig": {
+                "MaxRetries": 0
+              }
+            },
+            "Status": {
+              "State": "STOPPED",
+              "StateReason": "Synthetic source state, not current local health",
+              "StateReasonCode": "UPDATE_COMPLETE"
+            },
+            "SuccessRetentionPeriodInDays": 31,
+            "Tags": {
+              "environment": "synthetic",
+              "service": "api"
+            },
+            "Timeline": {
+              "Created": 1785715200,
+              "LastModified": 1793404800,
+              "LastStarted": 1793484000,
+              "LastStopped": 1793487600
+            }
+          }
+        ],
+        "NextToken": "synthetic-page-2"
+      }
+    },
+    {
+      "id": "canaries/detail-synthetic-api",
+      "kind": "canary-detail",
+      "request": {
+        "method": "GET",
+        "path": "/canary/synthetic-api",
+        "query": {}
+      },
+      "response": {
+        "Canary": {
+          "ArtifactConfig": {
+            "S3Encryption": {
+              "EncryptionMode": "SSE_S3"
+            }
+          },
+          "ArtifactS3Location": "s3://synthetic-artifacts-example/synthetic-api/",
+          "Code": {
+            "BlueprintTypes": [],
+            "Dependencies": [],
+            "Handler": "index.handler",
+            "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-api-code:1"
+          },
+          "EngineArn": "arn:aws:lambda:us-east-1:000000000000:function:synthetic-api-engine",
+          "ExecutionRoleArn": "arn:aws:iam::000000000000:role/synthetic-canary-execution",
+          "FailureRetentionPeriodInDays": 31,
+          "Id": "00000000-0000-4000-8000-000000000002",
+          "Name": "synthetic-api",
+          "ProvisionedResourceCleanup": "OFF",
+          "RunConfig": {
+            "ActiveTracing": false,
+            "EphemeralStorage": 1024,
+            "MemoryInMB": 960,
+            "TimeoutInSeconds": 30
+          },
+          "RuntimeVersion": "syn-nodejs-puppeteer-10.0",
+          "Schedule": {
+            "DurationInSeconds": 0,
+            "Expression": "rate(5 minutes)",
+            "RetryConfig": {
+              "MaxRetries": 0
+            }
+          },
+          "Status": {
+            "State": "STOPPED",
+            "StateReason": "Synthetic source state, not current local health",
+            "StateReasonCode": "UPDATE_COMPLETE"
+          },
+          "SuccessRetentionPeriodInDays": 31,
+          "Tags": {
+            "environment": "synthetic",
+            "service": "api"
+          },
+          "Timeline": {
+            "Created": 1785715200,
+            "LastModified": 1793404800,
+            "LastStarted": 1793484000,
+            "LastStopped": 1793487600
+          }
+        }
+      },
+      "sourceId": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "id": "code/synthetic-api-input",
+      "kind": "canary-code-input",
+      "request": {
+        "method": "LOCAL",
+        "path": "canary-code-input/synthetic-api",
+        "query": {}
+      },
+      "response": {
+        "Handler": "index.handler",
+        "ZipFile": "UEsDBBQAAAgAAAAAYV3PGeZBYwEAAGMBAAAcAAAAbm9kZWpzL25vZGVfbW9kdWxlcy9pbmRleC5qc2NvbnN0IHN5bnRoZXRpY3MgPSByZXF1aXJlKCdTeW50aGV0aWNzJyk7CmV4cG9ydHMuaGFuZGxlciA9IGFzeW5jICgpID0+IHsKICBhd2FpdCBzeW50aGV0aWNzLmV4ZWN1dGVIdHRwU3RlcCgnc3ludGhldGljLWFwaScsIHsKICAgIGhvc3RuYW1lOiAnY2FuYXJ5LWFwaS5leGFtcGxlLnRlc3QnLCBwcm90b2NvbDogJ2h0dHBzOicsCiAgICBwYXRoOiAnL2hlYWx0aCcsIHBvcnQ6IDQ0MywgbWV0aG9kOiAnR0VUJwogIH0sIGFzeW5jIChyZXNwb25zZSkgPT4gewogICAgaWYgKHJlc3BvbnNlLnN0YXR1c0NvZGUgIT09IDIwMCkgdGhyb3cgbmV3IEVycm9yKCdTeW50aGV0aWMgc3RhdHVzIGFzc2VydGlvbicpOwogIH0pOwp9OwpQSwECFAMUAAAIAAAAAGFdzxnmQWMBAABjAQAAHAAAAAAAAAAAAAAApIEAAAAAbm9kZWpzL25vZGVfbW9kdWxlcy9pbmRleC5qc1BLBQYAAAAAAQABAEoAAACdAQAAAAA="
+      },
+      "sourceId": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "id": "canaries/list-terminal",
+      "kind": "canaries-list",
+      "request": {
+        "method": "POST",
+        "path": "/canaries",
+        "query": {
+          "MaxResults": 1,
+          "NextToken": "synthetic-page-2"
+        }
+      },
+      "response": {
+        "Canaries": []
+      }
+    },
+    {
+      "id": "alarms/list-0",
+      "kind": "alarms-list",
+      "request": {
+        "method": "POST",
+        "path": "/",
+        "query": {
+          "Action": "DescribeAlarms",
+          "AlarmTypes": [
+            "MetricAlarm",
+            "CompositeAlarm"
+          ],
+          "MaxRecords": 2,
+          "Version": "2010-08-01"
+        }
+      },
+      "response": {
+        "CompositeAlarms": [],
+        "MetricAlarms": [
+          {
+            "ActionsEnabled": true,
+            "AlarmActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+            ],
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-availability",
+            "AlarmConfigurationUpdatedTimestamp": 1793404800,
+            "AlarmDescription": "Synthetic source alarm — review required",
+            "AlarmName": "synthetic-availability",
+            "ComparisonOperator": "LessThanThreshold",
+            "DatapointsToAlarm": 1,
+            "Dimensions": [
+              {
+                "Name": "CanaryName",
+                "Value": "synthetic-browser"
+              }
+            ],
+            "EvaluationPeriods": 1,
+            "InsufficientDataActions": [],
+            "MetricName": "SuccessPercent",
+            "Namespace": "CloudWatchSynthetics",
+            "OKActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+            ],
+            "Period": 300,
+            "StateReason": "Synthetic source state, never local evidence",
+            "StateReasonData": "{\"synthetic\":true}",
+            "StateTransitionedTimestamp": 1793490600,
+            "StateUpdatedTimestamp": 1793490900,
+            "StateValue": "OK",
+            "Statistic": "Average",
+            "Threshold": 100,
+            "TreatMissingData": "missing",
+            "Unit": "Percent"
+          },
+          {
+            "ActionsEnabled": true,
+            "AlarmActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+            ],
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-duration",
+            "AlarmConfigurationUpdatedTimestamp": 1793404800,
+            "AlarmDescription": "Synthetic source alarm — review required",
+            "AlarmName": "synthetic-duration",
+            "ComparisonOperator": "GreaterThanThreshold",
+            "DatapointsToAlarm": 1,
+            "Dimensions": [
+              {
+                "Name": "CanaryName",
+                "Value": "synthetic-api"
+              }
+            ],
+            "EvaluationPeriods": 1,
+            "InsufficientDataActions": [],
+            "MetricName": "Duration",
+            "Namespace": "CloudWatchSynthetics",
+            "OKActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+            ],
+            "Period": 300,
+            "StateReason": "Synthetic source state, never local evidence",
+            "StateReasonData": "{\"synthetic\":true}",
+            "StateTransitionedTimestamp": 1793490600,
+            "StateUpdatedTimestamp": 1793490900,
+            "StateValue": "OK",
+            "Statistic": "Average",
+            "Threshold": 2000,
+            "TreatMissingData": "missing",
+            "Unit": "Milliseconds"
+          }
+        ],
+        "NextToken": "synthetic-alarm-page-1"
+      }
+    },
+    {
+      "id": "alarms/list-1",
+      "kind": "alarms-list",
+      "request": {
+        "method": "POST",
+        "path": "/",
+        "query": {
+          "Action": "DescribeAlarms",
+          "AlarmTypes": [
+            "MetricAlarm",
+            "CompositeAlarm"
+          ],
+          "MaxRecords": 100,
+          "NextToken": "synthetic-alarm-page-1",
+          "Version": "2010-08-01"
+        }
+      },
+      "response": {
+        "CompositeAlarms": [
+          {
+            "ActionsEnabled": false,
+            "ActionsSuppressedBy": "WaitPeriod",
+            "ActionsSuppressedReason": "Synthetic suppression",
+            "ActionsSuppressor": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-maintenance",
+            "ActionsSuppressorExtensionPeriod": 120,
+            "ActionsSuppressorWaitPeriod": 60,
+            "AlarmActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-composite-topic"
+            ],
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-composite",
+            "AlarmConfigurationUpdatedTimestamp": 1793404800,
+            "AlarmDescription": "Synthetic composite expression",
+            "AlarmName": "synthetic-composite",
+            "AlarmRule": "ALARM(\"synthetic-availability\") OR ALARM(\"synthetic-duration\")",
+            "InsufficientDataActions": [],
+            "OKActions": [],
+            "StateReason": "Synthetic imported state",
+            "StateReasonData": "{\"synthetic\":true}",
+            "StateTransitionedTimestamp": 1793490300,
+            "StateUpdatedTimestamp": 1793490600,
+            "StateValue": "INSUFFICIENT_DATA"
+          }
+        ],
+        "MetricAlarms": [
+          {
+            "ActionsEnabled": true,
+            "AlarmActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+            ],
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-n-of-m",
+            "AlarmConfigurationUpdatedTimestamp": 1793404800,
+            "AlarmDescription": "Synthetic source alarm — review required",
+            "AlarmName": "synthetic-n-of-m",
+            "ComparisonOperator": "LessThanThreshold",
+            "DatapointsToAlarm": 3,
+            "Dimensions": [
+              {
+                "Name": "CanaryName",
+                "Value": "synthetic-browser"
+              }
+            ],
+            "EvaluationPeriods": 5,
+            "InsufficientDataActions": [],
+            "MetricName": "SuccessPercent",
+            "Namespace": "CloudWatchSynthetics",
+            "OKActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+            ],
+            "Period": 300,
+            "StateReason": "Synthetic source state, never local evidence",
+            "StateReasonData": "{\"synthetic\":true}",
+            "StateTransitionedTimestamp": 1793490600,
+            "StateUpdatedTimestamp": 1793490900,
+            "StateValue": "OK",
+            "Statistic": "Average",
+            "Threshold": 100,
+            "TreatMissingData": "breaching",
+            "Unit": "Percent"
+          },
+          {
+            "ActionsEnabled": true,
+            "AlarmActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+            ],
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-math",
+            "AlarmConfigurationUpdatedTimestamp": 1793404800,
+            "AlarmDescription": "Synthetic source alarm — review required",
+            "AlarmName": "synthetic-math",
+            "ComparisonOperator": "LessThanThreshold",
+            "DatapointsToAlarm": 2,
+            "EvaluationPeriods": 3,
+            "InsufficientDataActions": [],
+            "Metrics": [
+              {
+                "AccountId": "000000000000",
+                "Id": "m1",
+                "Label": "Synthetic success",
+                "MetricStat": {
+                  "Metric": {
+                    "Dimensions": [
+                      {
+                        "Name": "CanaryName",
+                        "Value": "synthetic-api"
+                      }
+                    ],
+                    "MetricName": "SuccessPercent",
+                    "Namespace": "CloudWatchSynthetics"
+                  },
+                  "Period": 300,
+                  "Stat": "Average",
+                  "Unit": "Percent"
+                },
+                "ReturnData": false
+              },
+              {
+                "Expression": "AVG(m1)",
+                "Id": "e1",
+                "Label": "Synthetic expression",
+                "Period": 300,
+                "ReturnData": true
+              }
+            ],
+            "OKActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+            ],
+            "StateReason": "Synthetic source state, never local evidence",
+            "StateReasonData": "{\"synthetic\":true}",
+            "StateTransitionedTimestamp": 1793490600,
+            "StateUpdatedTimestamp": 1793490900,
+            "StateValue": "OK",
+            "Threshold": 99,
+            "TreatMissingData": "missing"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "request.query contains documented SDK operation parameters, not an assertion about HTTP wire query serialization. DescribeCanaries and DescribeAlarms use POST.",
+      "id": "sdk-operation-parameters"
+    },
+    {
+      "description": "CanaryCodeInput is separately supplied local input, never a field returned inside GetCanary.Code. ZIP packages are deterministic synthetic files. Code references are not fetched.",
+      "id": "code-input-boundary"
+    },
+    {
+      "description": "Dummy account 000000000000 and reserved targets only. IAM/KMS/S3/Lambda/SNS identifiers remain inert source metadata.",
+      "id": "no-aws-authority"
+    }
+  ],
+  "scope": {
+    "accountId": "000000000000",
+    "region": "us-east-1"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "aws-synthetics",
+  "synthetic": true
+}

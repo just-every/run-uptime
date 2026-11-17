@@ -1,3 +1,5 @@
+import {proveIncumbentCaptures} from './incumbent-fixtures-support.mjs';
+import {translateSuite} from '../scripts/playwright-import/parse.mjs';
 import {proveNativeManagement} from './management-support.mjs';
 import {proveSourceHistory,proveHistoryUpgrade} from './source-history-support.mjs';
 // IMPORT-001: definition files and UptimeRobot imports through the owner's import door, the move-in screen's transport.
@@ -78,6 +80,20 @@ try{
  }
  const noSecrets=async(label,secrets)=>{const text=await storedText();for(const secret of secrets)assert.ok(!text.includes(secret),`${label}: “${secret}” is in no table`)};
  const imports=definitionDoor({origin,cookie}),preview=(text,source)=>imports.preview(text,source),apply=(view,fingerprint)=>imports.apply(view,fingerprint),undo=batch=>imports.undo(batch);
+
+ // Native Playwright translations keep their closed steps and immutable source in the same preview door.
+ const suite="import { test, expect } from '@playwright/test';\nimport fixtures from './fixtures.json' with { type: 'json' };\ntest('Native Playwright preview', async ({ page }) => {\n await page.goto('https://native-flow.example.test/');\n await page.getByLabel('Password').fill(process.env.LOGIN_PASSWORD!);\n await expect(page.getByText('Welcome')).toBeVisible();\n});\n";
+ const nativeFlows=translateSuite('native.spec.ts',suite,{credentialRefs:{LOGIN_PASSWORD:'native-login'}});
+ nativeFlows[0].flow.source={files:[{path:'native.spec.ts',kind:'suite',text:suite},{path:'fixtures.json',kind:'fixture',text:'{}'},{path:'package-lock.json',kind:'lock',text:'{"lockfileVersion":3,"packages":{}}'}]};
+ const nativeText=JSON.stringify({format:'uptime.monitors',version:8,monitors:nativeFlows});
+ await unchanged('a native Playwright preview',async()=>{
+  const view=await preview(nativeText);assert.equal(view.status,200,JSON.stringify(view.body));
+  assert.deepEqual(view.body.counts,{create:1,unchanged:0,change:0,refused:0,unsupported:0},JSON.stringify(view.body.entries));
+  assert.equal(view.body.entries[0].target.flow.steps,nativeFlows[0].flow.steps.length,'the preview retains every native step');
+  const recognised=await json(await send('/api/definitions/recognise',nativeText));assert.equal(recognised.status,200);
+  assert.deepEqual(JSON.parse(recognised.body.text).monitors,nativeFlows,'goto, credential references, expectations and original source survive withholding');
+  const cancelled=await json(await send('/api/operator/import/undo',JSON.stringify({planId:view.body.planId}),{headers:{'x-import-source':view.body.namespace}}));assert.equal(cancelled.status,200,'cancel the read-only native preview before later custody assertions');
+ });
 
  // Refusals at the door.
  const valid=file([{name:'Door check',url:'https://door.example.test/'}]);
@@ -373,17 +389,21 @@ try{
  {
   const owner=sessionCookie(await authRequest(origin)('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Synthetic Pingdom owner'}));await finishSetup(origin,owner);
   const get=async path=>{const response=await fetch(origin+path,{headers:{origin,cookie:owner}});assert.equal(response.status,200);return response.json()};await get('/api/overview');
-  const door=definitionDoor({origin,cookie:owner}),saved=await readFile('tests/fixtures/pingdom-checks.synthetic.json'),plan=await door.preview(saved);
+  const door=definitionDoor({origin,cookie:owner}),saved=await readFile('tests/fixtures/incumbent-import/pingdom-checks.synthetic.json'),plan=await door.preview(saved);
   assert.equal(plan.status,200,JSON.stringify(plan.body));assert.equal(plan.body.source,'pingdom');assert.deepEqual(plan.body.counts,{create:2,unchanged:0,change:0,refused:3,unsupported:2});assert.equal(plan.body.entries.length,7);assert.equal((await get('/api/overview')).monitors.length,0);
   for(const filter of ['region: EU','region: NA'])assert.ok(plan.body.entries[1].reason.includes(filter));assert.ok(plan.body.entries[2].reason.includes('region: APAC'));assert.ok(!/[A-Z]{3,10}-\d{3}/.test(plan.body.entries[1].reason)&&plan.body.entries[1].reason.includes('Choose the locations'));
   assert.equal(plan.body.entries[3].action,'create');assert.equal(plan.body.entries[3].target.type,'tcp');
   for(const [index,kind] of [[4,'script'],[5,'recording']]){assert.ok(plan.body.entries[index].reason.includes(kind)&&/browser or multi-step check/.test(plan.body.entries[index].reason));assert.ok(plan.body.entries[index].label.includes(`synthetic-uptime-${index+1}`))}
   const applied=await door.apply(plan.body);assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(applied.body.created.length,2);
-  const definition=(await get('/api/overview')).monitors[0].definition;assert.equal(definition.name,'synthetic-uptime-1');assert.equal(definition.enabled,false);assert.deepEqual(definition.tags,['synthetic-uptime-1','synthetic-uptime-2']);assert.equal(definition.intervalMs,300000);assert.equal(definition.method,'GET');assert.equal(definition.timeoutMs,10000);assert.deepEqual(definition.assertions,{status:['2xx','3xx'],bodyIncludes:'ready',bodyExcludes:'failure'});
+  const definition=(await get('/api/overview')).monitors[0].definition;assert.equal(definition.name,'synthetic-uptime-1');assert.equal(definition.enabled,false);assert.deepEqual(definition.tags,['synthetic-uptime-1','synthetic-uptime-2']);assert.equal(definition.intervalMs,300000);assert.equal(definition.method,'GET');assert.equal(definition.timeoutMs,10000);assert.deepEqual(definition.assertions,{status:['2xx','3xx'],bodyIncludes:'ready'});
   const again=await door.preview(saved);assert.equal(again.status,200);assert.deepEqual(again.body.counts,{create:0,unchanged:2,change:0,refused:3,unsupported:2});assert.equal((await door.apply(plan.body)).status,200);assert.equal((await door.undo(applied.body)).status,200);assert.equal((await get('/api/overview')).monitors.length,2);assert.equal((await get('/api/overview')).monitors[0].definition.enabled,false);
   const transaction=JSON.parse(saved)[4];transaction.steps=[{fn:'go_to',args:{url:'https://synthetic-uptime-97.example/'}}];
   const recognised=await fetch(origin+'/api/definitions/recognise?source=pingdom',{method:'POST',headers:{origin,cookie:owner,'content-type':'application/json'},body:JSON.stringify(transaction)});assert.equal(recognised.status,200);assert.ok(!(await recognised.text()).includes('synthetic-uptime-97'),'unsupported transaction script values are withheld before upload');
   await proveHistoryUpgrade(DB);await proveSourceHistory({origin,cookie:owner,db:DB});
   console.log('MIGRATE-002 saved checks: read 7 = converted 2 + refused 3 + unsupported 2; tags retained, every probe filter named, TMS refused, paused apply and undo.');
  }
+ await worker.dispose();({worker,DB}=await migratedWorker({port,persist:join(directory,'incumbent-captures'),bindings:{UPTIME_ORIGIN:origin}}));
+ const captureOwner=sessionCookie(await authRequest(origin)('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Synthetic capture owner'}));await finishSetup(origin,captureOwner);
+ assert.equal((await fetch(origin+'/api/overview',{headers:{origin,cookie:captureOwner}})).status,200);
+ await proveIncumbentCaptures({origin,cookie:captureOwner,DB,directory});
 }finally{await worker?.dispose();await cleanupDirectory(directory)}

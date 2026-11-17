@@ -1,0 +1,392 @@
+{
+  "checks": [
+    {
+      "created": 1785715200,
+      "hostname": "check-61050.example.test",
+      "id": 61050,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 230,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 51",
+      "resolution": 1,
+      "status": "up",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61051.example.test",
+      "id": 61051,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 231,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 52",
+      "resolution": 5,
+      "status": "down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61052.example.test",
+      "id": 61052,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 232,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 53",
+      "resolution": 15,
+      "status": "unconfirmed_down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61053.example.test",
+      "id": 61053,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 233,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 54",
+      "resolution": 30,
+      "status": "unknown",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61054.example.test",
+      "id": 61054,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 234,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 55",
+      "resolution": 60,
+      "status": "paused",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61055.example.test",
+      "id": 61055,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 235,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 56",
+      "resolution": 1,
+      "status": "up",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "smtp",
+          "type": "u"
+        }
+      ],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61056.example.test",
+      "id": 61056,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 236,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 57",
+      "resolution": 5,
+      "status": "down",
+      "tags": [],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61057.example.test",
+      "id": 61057,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 237,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 58",
+      "resolution": 15,
+      "status": "unconfirmed_down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "smtp",
+          "type": "u"
+        }
+      ],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61058.example.test",
+      "id": 61058,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 238,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 59",
+      "resolution": 30,
+      "status": "unknown",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "smtp",
+          "type": "u"
+        }
+      ],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61059.example.test",
+      "id": 61059,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 239,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 60",
+      "resolution": 60,
+      "status": "paused",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "smtp",
+          "type": "u"
+        }
+      ],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61060.example.test",
+      "id": 61060,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 240,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 61",
+      "resolution": 1,
+      "status": "up",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "smtp",
+          "type": "u"
+        }
+      ],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61061.example.test",
+      "id": 61061,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 241,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 62",
+      "resolution": 5,
+      "status": "down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "smtp",
+          "type": "u"
+        }
+      ],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61062.example.test",
+      "id": 61062,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 242,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 63",
+      "resolution": 15,
+      "status": "unconfirmed_down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "smtp",
+          "type": "u"
+        }
+      ],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61063.example.test",
+      "id": 61063,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 243,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 64",
+      "resolution": 30,
+      "status": "unknown",
+      "tags": [],
+      "type": "smtp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61064.example.test",
+      "id": 61064,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 244,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic SMTP 65",
+      "resolution": 60,
+      "status": "paused",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "smtp",
+          "type": "u"
+        }
+      ],
+      "type": "smtp"
+    }
+  ],
+  "counts": {
+    "filtered": 15,
+    "limited": 65,
+    "total": 65
+  }
+}

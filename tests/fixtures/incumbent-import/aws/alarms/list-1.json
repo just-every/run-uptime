@@ -1,0 +1,118 @@
+{
+  "CompositeAlarms": [
+    {
+      "ActionsEnabled": false,
+      "ActionsSuppressedBy": "WaitPeriod",
+      "ActionsSuppressedReason": "Synthetic suppression",
+      "ActionsSuppressor": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-maintenance",
+      "ActionsSuppressorExtensionPeriod": 120,
+      "ActionsSuppressorWaitPeriod": 60,
+      "AlarmActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-composite-topic"
+      ],
+      "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-composite",
+      "AlarmConfigurationUpdatedTimestamp": 1793404800,
+      "AlarmDescription": "Synthetic composite expression",
+      "AlarmName": "synthetic-composite",
+      "AlarmRule": "ALARM(\"synthetic-availability\") OR ALARM(\"synthetic-duration\")",
+      "InsufficientDataActions": [],
+      "OKActions": [],
+      "StateReason": "Synthetic imported state",
+      "StateReasonData": "{\"synthetic\":true}",
+      "StateTransitionedTimestamp": 1793490300,
+      "StateUpdatedTimestamp": 1793490600,
+      "StateValue": "INSUFFICIENT_DATA"
+    }
+  ],
+  "MetricAlarms": [
+    {
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+      ],
+      "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-n-of-m",
+      "AlarmConfigurationUpdatedTimestamp": 1793404800,
+      "AlarmDescription": "Synthetic source alarm — review required",
+      "AlarmName": "synthetic-n-of-m",
+      "ComparisonOperator": "LessThanThreshold",
+      "DatapointsToAlarm": 3,
+      "Dimensions": [
+        {
+          "Name": "CanaryName",
+          "Value": "synthetic-browser"
+        }
+      ],
+      "EvaluationPeriods": 5,
+      "InsufficientDataActions": [],
+      "MetricName": "SuccessPercent",
+      "Namespace": "CloudWatchSynthetics",
+      "OKActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+      ],
+      "Period": 300,
+      "StateReason": "Synthetic source state, never local evidence",
+      "StateReasonData": "{\"synthetic\":true}",
+      "StateTransitionedTimestamp": 1793490600,
+      "StateUpdatedTimestamp": 1793490900,
+      "StateValue": "OK",
+      "Statistic": "Average",
+      "Threshold": 100,
+      "TreatMissingData": "breaching",
+      "Unit": "Percent"
+    },
+    {
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+      ],
+      "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-math",
+      "AlarmConfigurationUpdatedTimestamp": 1793404800,
+      "AlarmDescription": "Synthetic source alarm — review required",
+      "AlarmName": "synthetic-math",
+      "ComparisonOperator": "LessThanThreshold",
+      "DatapointsToAlarm": 2,
+      "EvaluationPeriods": 3,
+      "InsufficientDataActions": [],
+      "Metrics": [
+        {
+          "AccountId": "000000000000",
+          "Id": "m1",
+          "Label": "Synthetic success",
+          "MetricStat": {
+            "Metric": {
+              "Dimensions": [
+                {
+                  "Name": "CanaryName",
+                  "Value": "synthetic-api"
+                }
+              ],
+              "MetricName": "SuccessPercent",
+              "Namespace": "CloudWatchSynthetics"
+            },
+            "Period": 300,
+            "Stat": "Average",
+            "Unit": "Percent"
+          },
+          "ReturnData": false
+        },
+        {
+          "Expression": "AVG(m1)",
+          "Id": "e1",
+          "Label": "Synthetic expression",
+          "Period": 300,
+          "ReturnData": true
+        }
+      ],
+      "OKActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+      ],
+      "StateReason": "Synthetic source state, never local evidence",
+      "StateReasonData": "{\"synthetic\":true}",
+      "StateTransitionedTimestamp": 1793490600,
+      "StateUpdatedTimestamp": 1793490900,
+      "StateValue": "OK",
+      "Threshold": 99,
+      "TreatMissingData": "missing"
+    }
+  ]
+}

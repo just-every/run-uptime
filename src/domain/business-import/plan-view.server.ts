@@ -4,6 +4,7 @@ import type {Bindings} from '../control.server.ts'
 import {definitionView,recogniseSource} from '../definitions/index.server.ts'
 import {recogniseHistory} from '../definitions/history.ts'
 import {HISTORY_SOURCE} from '../definitions/importers/index.ts'
+import {jsonValues} from '../definitions/format.ts'
 import {withholdText} from '../definitions/withhold.ts'
 import {planState,type PlanEntry,type PlanItem} from '../definitions/plan.server.ts'
 import {canonicalJson,sha256} from '../../base/modules/import-kit/src/provenance/identity.ts'
@@ -18,8 +19,8 @@ type Decision={rejection?:string;effects:unknown[]}
 function doorEntries(entries:PlanEntry[],items:(PlanItem&{sourceId:string})[],decided:Map<string,Decision>){
  return entries.map((entry,i):PlanEntry=>{
   const door=decided.get(items[i].sourceId)
-  if(door?.rejection&&!['refused','unsupported'].includes(entry.action))return {index:entry.index,label:entry.label,name:entry.name,action:'refused',reason:door.rejection,differences:entry.differences}
-  if(door&&!door.rejection&&!door.effects.length&&['create','change'].includes(entry.action))return {index:entry.index,label:entry.label,name:entry.name,action:'unchanged',monitorId:entry.monitorId,revision:entry.revision,differences:entry.differences}
+  if(door?.rejection&&!['refused','unsupported'].includes(entry.action))return {...entry,definition:undefined,action:'refused',reason:door.rejection}
+  if(door&&!door.rejection&&!door.effects.length&&['create','change'].includes(entry.action))return {...entry,definition:undefined,action:'unchanged'}
   return entry
  })
 }
@@ -53,7 +54,7 @@ export async function doorPlanView(env:Bindings,planId:string){
  if(!source.importer){const history=historyRecord(lines[0]);return {...history,...plan,digest:row.fingerprint}}
  const items=lines.flatMap((value:any,line:number)=>lineEntries(source,value,line)),state=await planState(env)
  const decided=new Map<string,Decision>(snapshot.plan.entries.map(entry=>[entry.source.sourceId,entry]))
- return {...await definitionView(source.importer,doorEntries(planned(state,source,row.namespace,items),items,decided),state.monitors.length,row.fingerprint),...plan}
+ return {...await definitionView(source.importer,doorEntries(planned(state,source,row.namespace,items),items,decided),state.monitors.length,row.fingerprint,lines.flatMap(value=>jsonValues(typeof value==='string'?value:JSON.stringify(value),'file'))),...plan}
 }
 /** What the door would keep unchanged in a catch-up of `namespace`: each record its last import holds with the same
  * source content under the same mapping. Read-only. */
@@ -79,5 +80,5 @@ export async function previewDefinitions(env:Bindings,file:string,requested='aut
  const namespace=recognised==='uptime.monitors'?`uptime.monitors:${randomUUID()}`:recognised,source=sourceOf(namespace)!
  const items=lineEntries(source,text,0),state=await planState(env)
  const decided=await unchangedSinceImport(env,namespace,source.mapping,items)
- return definitionView(source.importer!,doorEntries(planned(state,source,namespace,items,state.runners.length>0),items,decided),state.monitors.length)
+ return definitionView(source.importer!,doorEntries(planned(state,source,namespace,items,state.runners.length>0),items,decided),state.monitors.length,undefined,jsonValues(text,'file'))
 }

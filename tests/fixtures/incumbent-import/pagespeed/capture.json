@@ -1,0 +1,66 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "transcription",
+      "kind": "page-speed-transcription",
+      "request": {
+        "method": "LOCAL",
+        "path": "operator-transcription/pagespeed",
+        "query": {}
+      },
+      "response": {
+        "filmstrip": [
+          {
+            "artifact": "synthetic-filmstrip-000.svg",
+            "timeMs": 0
+          },
+          {
+            "artifact": "synthetic-filmstrip-500.svg",
+            "timeMs": 500
+          }
+        ],
+        "historicalReports": [
+          {
+            "from": "2026-10-01T00:00:00Z",
+            "medianLoadTimeMs": 1500,
+            "to": "2026-11-01T00:00:00Z"
+          }
+        ],
+        "intervalMinutes": 30,
+        "medianLoadTimeMs": 1500,
+        "name": "Synthetic page speed — café",
+        "region": "North America",
+        "resources": [
+          {
+            "loadTimeMs": 600,
+            "startTimeMs": 0,
+            "url": "https://page-speed.example.test/"
+          },
+          {
+            "loadTimeMs": 100,
+            "startTimeMs": 600,
+            "url": "https://page-speed.example.test/site.css"
+          }
+        ],
+        "url": "https://page-speed.example.test/",
+        "yslowGrade": "B"
+      },
+      "sourceId": "synthetic-pagespeed-1"
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "These fields are a synthetic operator transcription of documented Page Speed UI. No public native export schema has been established; this is a proposal, not a Pingdom API response.",
+      "id": "not-an-api-export"
+    }
+  ],
+  "scope": {
+    "account": "synthetic-pingdom-account",
+    "origin": "operator-transcription"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "pingdom-pagespeed-transcription",
+  "synthetic": true
+}
