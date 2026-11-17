@@ -1,0 +1,28 @@
+{
+  "repository": "just-every/run-uptime",
+  "main": "9ab0bb5f30aa4a6c2a40cf0fb83d7dda151e09e2",
+  "latestRelease": {
+    "tag": "v0.5.16",
+    "publishedAt": "2026-11-17T06:55:05Z",
+    "url": "https://github.com/just-every/run-uptime/releases/tag/v0.5.16"
+  },
+  "exactMainVerify": [
+    {
+      "id": 44176226191,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 44165327613,
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "mainRunSite": {
+    "id": 44176226072,
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "apiCallsUsed": 2,
+  "setupWordingLanded": false
+}

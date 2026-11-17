@@ -1,0 +1,7 @@
+9ab0bb5f30aa4a6c2a40cf0fb83d7dda151e09e2 2026-11-18T05:53:05+10:00 Preserve native flow imports and isolate Pingdom report journeys
+f08a92a207bb7ee3fdf37d85a476aa160864d0d0 2026-11-18T05:21:13+10:00 Explain alert verification and recovery codes; confirm member removal
+820e6a0da6fc217fdb40d91645f216d350bc0119 2026-11-18T04:57:31+10:00 Preserve administrator monitor exports in role-gated settings
+48bf8b955df22f08bd4eb5494d1950eb39e809aa 2026-11-18T04:57:30+10:00 Fix member alerts and show signed-in console identity
+63b37f4f683f25f440a18fd9100ad1f0be5331b6 2026-11-18T01:00:32+10:00 Preserve the waiting state before a location first joins
+fa0c8414d1b9cc2009dc6d5bade385715b12e9af 2026-11-18T01:00:32+10:00 Report and alert when an assigned checker stops checking
+395b92f1c37ab3ff166a18112643b18a31b5339e 2026-11-17T12:58:06Z Fix practice target monitor setup

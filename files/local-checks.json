@@ -1,0 +1,24 @@
+[
+  {
+    "command": [
+      "pnpm",
+      "typecheck"
+    ],
+    "exit_code": 0,
+    "seconds": 14.32
+  },
+  {
+    "command": [
+      "python3",
+      "/tmp/rer-reap.py",
+      "pnpm",
+      "exec",
+      "rer",
+      "check",
+      "--profile",
+      "first-party"
+    ],
+    "exit_code": 0,
+    "seconds": 1.75
+  }
+]

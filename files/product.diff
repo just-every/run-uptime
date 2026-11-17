@@ -1,0 +1,138 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index f96fbf0..56ad5d8 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -2,6 +2,39 @@
+ 
+ ## Unreleased
+ 
++## 0.5.17 — 2026-11-17
++
++Patch release from `main`; previous version 0.5.16. This release makes stopped checkers visible, restores member alert settings, fixes practice-target setup and explains the second sign-in step for alert destinations. Pingdom import previews include a downloadable field report. The exact `@runeditrun/rer` 0.2.121 pin is unchanged. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are retained on upgrade.
++
++Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.17; this is not a new 0.5.17 capture.
++
++### Monitoring and member settings
++
++- **Save the practice target as a monitor.** The practice-target action opens a working monitor form instead of private-network grants.
++- **Know when a checker stops.** Monitor and Locations views explain when an assigned checker, including this computer, stops reporting and how to restart it. Missing checks show unknown current health; other reporting locations remain distinguished. Enabled alert destinations receive a checker-stopped warning. **Run now** explains when no location is checking instead of queueing a check that cannot run.
++- **Use Alerts as a Responder.** Members with the Responder role can open **Settings › Alerts**. The console names the signed-in person and role, and hides or explains controls their role cannot use. Administrator monitor export remains available.
++- **Understand verification before saving an alert destination.** The save flow explains why a second factor is required and offers enrollment or verification while retaining the entered destination. Issued recovery codes can be copied or downloaded, with guidance to save them before closing.
++- **Confirm member removal.** The confirmation names the person being removed; attempting to remove the last owner explains why it is refused.
++
++### Reviewing imports
++
++- **Inspect every supplied Pingdom field.** The preview's **Field report** and **Download field report JSON** identify mapped, withheld, unsupported, lossy and refused fields. Source-check counts distinguish resource rows and generated TLS companions. [Moving from Pingdom](docs/migrating-pingdom.md) explains saved responses, synthetic capture packages, protocol differences and remaining limits. Synthetic captures establish saved-file behavior; they do not establish live account extraction or cutover. TMS scripts/recordings, Page Speed, relationships and history remain unconverted; accepted monitor definitions stay paused and credentials require local re-entry.
++- **Review native Playwright steps in the preview.** Native Uptime monitor definitions retain their Playwright steps through the import preview instead of masking them as incumbent source credentials.
++
++### Upgrading from 0.5.16
++
++Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately; for a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide; without it export is refused and writes nothing. Keep that cookie private.
++
++Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. The exact `@runeditrun/rer` 0.2.121 pin is unchanged from 0.5.16. Stop dev or preview before deployment. Keep the deployment receipt and installation keys; do not rotate keys to perform this upgrade. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 remain applicable.
++
++Database migration inventory since 0.5.16: none (no migration files added, changed or removed; 91 SQL migration files before and after). No new setting is required. Existing monitors, history, incidents, destinations and private settings are retained.
++
++### Known issues
++
++Earlier known issues and upgrade cautions remain, including earlier heartbeat output, UptimeRobot monitor CSV import, restoration of the erased-people list, empty company decision feeds, the 64 KiB response-body bound and unestablished large-scale archive operation. Pingdom field reporting does not complete transaction/Page Speed conversion, relationship/history conversion, managed geographic equivalence or live account cutover. Keep earlier release cautions when upgrading from an older version.
++
++— Run Edit Run fleet, 2026-11-17
++
+ ## 0.5.16 — 2026-11-17
+ 
+ Patch release from `main`; previous version 0.5.15. Existing hosted installations can turn outbound email on or off in place. Hosted checks use the public Cloudflare edge, including checks of another Worker in the monitor's own account. Failed HTTP checks give more useful status details. The checkout keeps main's exact `@runeditrun/rer` 0.2.121 pin. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are retained on upgrade.
+diff --git a/RELEASE.json b/RELEASE.json
+index cd46565..dece013 100644
+--- a/RELEASE.json
++++ b/RELEASE.json
+@@ -1,6 +1,6 @@
+ {
+-  "version": "0.5.16",
+-  "publicReleaseNotes": "Uptime 0.5.16 lets an existing hosted installation switch outbound email on or off in place. MAIL_PROVIDER is public and defaults to none when omitted. Keep the existing deployment checkout, account, environment, ownership receipt and private settings. Put MAIL_FROM and SENDGRID_API_KEY in an owned mode-0600 deploy.env file outside Git, then enable email with rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env. Add --environment NAME for a named environment. Switch SendGrid off with rer deploy --unset-secret MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY, without the enabling env-file or sending inputs in the shell. Remove obsolete selector, sender and key entries from .rer/deploy/<environment>.secrets.env when retiring email; preserve owner and installation keys. For another provider, also unset its declared sending inputs. Plain deploys preserve the selected provider. Guarded rer signin remains available while email links, invitations and email alerts are unavailable with mail off; local dev and demo mail are unchanged. Verify real sign-in and recipient delivery after enabling mail. Local deployment diagnostics use the declared none default. Hosted checks route through the public Cloudflare edge, including checks of another Worker in the monitor's own account. Failed status assertions name the HTTP status and any numeric Cloudflare Error 1xxx label; existing redacted failure snapshots retain the first 16 KiB of body when available, with the existing 64 KiB response-body limit. The deployment guide names account-scoped Workers Scripts: Edit and D1: Edit token permissions and says to name copies through --environment. Main's exact @runeditrun/rer 0.2.121 pin is retained, replacing 0.2.119 from 0.5.15. No database migration or new required setting is added: 91 SQL migration files before and after, with none added, changed or removed. Monitors, history, incidents, destinations and private settings are retained on upgrade. Back up first through Settings > Backup and files > Download backup with a second factor verified within five minutes. Keep private settings and .rer/deploy separately, plus a hosted database backup. Local CLI export requires the verified UPTIME_ACCESS_COOKIE described in the backup guide; keep it private. Update with pnpm install --frozen-lockfile, stop dev or preview and deploy as usual. A legacy SendGrid installation with a saved key but no selector must explicitly select SendGrid with MAIL_PROVIDER=sendgrid rer deploy --environment NAME from its retained checkout and private inputs. Keep the deployment receipt and keys; do not rotate them for this upgrade. Earlier known issues and upgrade cautions remain, including old heartbeat output, UptimeRobot monitor CSV import, erased-people restore, empty company decision feeds, the 64 KiB response-body bound and unestablished large-scale archive operation. The product screenshot was taken on 0.4.0, before the console changes of 0.5.0 through 0.5.13; it is not a new 0.5.16 capture. Product screenshot: .github/assets/release/uptime-0.4.0-monitor-1440.png \u2014 Run Edit Run fleet, 2026-11-17.",
++  "version": "0.5.17",
++  "publicReleaseNotes": "Uptime 0.5.17 fixes the practice-target action so it opens a monitor form that saves. Monitor and Locations views explain when an assigned checker, including this computer, stops reporting and how to restart it; enabled alert destinations receive a checker-stopped warning. Run now explains when no location is checking. Responder members have a working Settings > Alerts page; the console names the signed-in person and role, with unavailable controls hidden or explained. Saving an alert destination explains the second sign-in step before enrollment or verification, retains the entered destination, and offers copy/download for issued recovery codes. Member removal names the person in a confirmation and explains why the last owner cannot be removed. Pingdom import previews provide a downloadable field report for every supplied field, distinguish source checks from resource rows and TLS companions, and document saved-response and synthetic-capture limits in docs/migrating-pingdom.md. Synthetic captures prove saved-file behavior, not live extraction or cutover. TMS scripts/recordings, Page Speed, relationships and history remain unconverted; imported definitions stay paused and credentials require local re-entry. Native Uptime Playwright steps remain visible in import previews. The exact @runeditrun/rer 0.2.121 pin is unchanged from 0.5.16. No database migration or new required setting is added: 91 SQL migration files before and after, none added, changed or removed. Monitors, history, incidents, destinations and private settings are retained on upgrade. Back up first through Settings > Backup and files > Download backup with a second factor verified within five minutes. Keep private settings and .rer/deploy separately, plus a hosted database backup. Local CLI export requires the verified UPTIME_ACCESS_COOKIE described in the backup guide; keep it private. Update with pnpm install --frozen-lockfile, stop dev or preview and deploy as usual. Keep the deployment receipt and installation keys; do not rotate keys for this upgrade. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 remain applicable. Earlier known issues and upgrade cautions remain, including old heartbeat output, UptimeRobot monitor CSV import, erased-people restore, empty company decision feeds, the 64 KiB response-body bound and unestablished large-scale archive operation. The product screenshot was taken on 0.4.0, before the console changes of 0.5.0 through 0.5.17; it is not a new 0.5.17 capture. Product screenshot: .github/assets/release/uptime-0.4.0-monitor-1440.png \u2014 Run Edit Run fleet, 2026-11-17.",
+   "sourceRepository": "https://github.com/just-every/run-uptime",
+-  "previousVersion": "0.5.15"
++  "previousVersion": "0.5.16"
+ }
+diff --git a/RELEASE.md b/RELEASE.md
+index 60ab071..fd1c6f9 100644
+--- a/RELEASE.md
++++ b/RELEASE.md
+@@ -1,4 +1,4 @@
+-# Release Uptime 0.5.16
++# Release Uptime 0.5.17
+ 
+ Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
+ 0.2.121), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
+diff --git a/package.json b/package.json
+index 9e2e17b..3d2041e 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@uptime/uptime-console",
+-  "version": "0.5.16",
++  "version": "0.5.17",
+   "private": true,
+   "type": "module",
+   "engines": {
+diff --git a/seed.json b/seed.json
+index 38c8516..24b3872 100644
+--- a/seed.json
++++ b/seed.json
+@@ -1,7 +1,7 @@
+ {
+   "id": "uptime",
+   "name": "Uptime",
+-  "version": "0.5.16",
++  "version": "0.5.17",
+   "maturity": "local-installer-and-owner-deploy-implemented-hosted-unverified",
+   "category": "monitoring",
+   "spine": {
+diff --git a/sources.lock.json b/sources.lock.json
+index 44f1bbe..c45d46e 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -520,7 +520,7 @@
+       "executable": false
+     },
+     "CHANGELOG.md": {
+-      "sha256": "7aa2f80d8ce3d6f069a9952f83cac7b4a25e6c5dc22a0bc523861799df5f1546",
++      "sha256": "a26d0e34fe4915377b12ed0d931151402d7b2d6c2ea04550625f3df3dd3f3bde",
+       "executable": false
+     },
+     "CLAUDE.md": {
+@@ -2572,7 +2572,7 @@
+       "executable": false
+     },
+     "package.json": {
+-      "sha256": "1d91abdecc6cdf704191627ef581156dbb450c305e2d57e2379ec10d3d69706d",
++      "sha256": "f1ec6a7c98aa18db782ca636a2cf531d923ae98d13859a6ad3c2c3276d47765e",
+       "executable": false
+     },
+     "patches/README.md": {
+@@ -3100,11 +3100,11 @@
+       "executable": false
+     },
+     "RELEASE.json": {
+-      "sha256": "886e6f36bb18803b0bea67b28a55545fbd0258766d1d4d395cd8a9f103e0a2bc",
++      "sha256": "f88b3555954781ac5900c4178f77253ad00c9cf248d08bdcf357732335e3471b",
+       "executable": false
+     },
+     "RELEASE.md": {
+-      "sha256": "6034cd2c5123f15e0f2900f6100d4a03e088be4dc9ece3828fb84acb6803d3b9",
++      "sha256": "db0c6f0a3ba3c29eb8d1652574cda927eab540b012e1a2e364932263902393c1",
+       "executable": false
+     },
+     "rer-local-setup.json": {
+@@ -4548,7 +4548,7 @@
+       "executable": false
+     },
+     "seed.json": {
+-      "sha256": "3ca1f357c5ee2078732dc927f3b880694818b4fbff1f7b317f053a55409a55da",
++      "sha256": "97d6a9d3659eb36df27998d1c95dcaec4f544e95396bc92a25558255493964c0",
+       "executable": false
+     },
+     "src/agent-door/authority.server.ts": {

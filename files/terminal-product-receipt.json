@@ -1,0 +1,25 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-17",
+  "head": "2b23821dcb7627dec4df3f6409985ed0898c9377",
+  "productRemoteConfirmed": true,
+  "worktreeClean": true,
+  "verify": {
+    "conclusion": "success",
+    "head_sha": "2b23821dcb7627dec4df3f6409985ed0898c9377",
+    "html_url": "https://github.com/just-every/run-uptime/actions/runs/44178521324",
+    "status": "completed",
+    "id": 44178521324,
+    "observedAt": "2026-11-17T21:34:39.941575+00:00",
+    "apiCall": 6
+  },
+  "gitHubApiCalls": 6,
+  "pullRequest": null,
+  "clauseStatusChanges": [],
+  "ready": true,
+  "publicationScan": "Mac lander pending",
+  "mainPushed": false,
+  "tagCreated": false,
+  "releasePublished": false,
+  "recordedAt": "2026-11-17T21:35:09.251376+00:00"
+}

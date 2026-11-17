@@ -1,0 +1,29 @@
+{
+  "command": "node scripts/edition-authoring/cli.mjs check",
+  "exit_code": 0,
+  "ok": true,
+  "head": "2b23821dcb7627dec4df3f6409985ed0898c9377",
+  "lockSha256": "153eb4d0056bfc708edd809f6d85579de362cd1b772c7c29f771cff70d59014c",
+  "regeneratedLast": true,
+  "changedFiles": [
+    "CHANGELOG.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "clauseCountsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clauseCountsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clauseStatusChanges": []
+}

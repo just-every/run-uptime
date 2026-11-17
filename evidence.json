@@ -1,0 +1,124 @@
+{
+  "files": [
+    {
+      "blob": "17931b614526ce0f1a4a9e8b24a418940613fb89",
+      "bytes": 1495,
+      "path": "PLAN.md",
+      "sha256": "1e8b16fa938bf73064533ce89fc4075ab14d9f3c91d417845533a3e33bf1a71a"
+    },
+    {
+      "blob": "eff4f01d39158c840db50ae4b47261166c7d55af",
+      "bytes": 5688,
+      "path": "REPORT.md",
+      "sha256": "ffb3363cc640fdf5771846d824ec0f5617339ac961c3c0eb8d1da46190b541f9"
+    },
+    {
+      "blob": "19ac94176d315e7de090bff24927d01fb78fbc15",
+      "bytes": 84,
+      "path": "candidate-messages.log",
+      "sha256": "e830b260f404969665a013aa09295995beb186caabfbdb950382bb240d2eecd3"
+    },
+    {
+      "blob": "5b844bbf9e4341368ed613a41423dd2e7ea88d10",
+      "bytes": 363,
+      "path": "ci-discovery.json",
+      "sha256": "5b63bbd44b9a704529f51dbab7a9cbfaf4a5904afcc575c8afefab9893e33353"
+    },
+    {
+      "blob": "1dfb696383eab7a884f3fe5d7b841cc07cbcc0bb",
+      "bytes": 285,
+      "path": "ci-final.json",
+      "sha256": "fee1bdc52550c23142e5c6f3add767a7006ee9e4987d358556813785872dfd81"
+    },
+    {
+      "blob": "afcffa581b6ba97cd616d5f122f322acd8049ca1",
+      "bytes": 282,
+      "path": "ci-poll-1.json",
+      "sha256": "3bf3d37108dcd7b5225080d3a5c0d821c63526e4dc726bf2698fd1ca8ebd6d84"
+    },
+    {
+      "blob": "7effc9947fc9d4f22bc5aaf2307e731aaa27d371",
+      "bytes": 282,
+      "path": "ci-poll-2.json",
+      "sha256": "3a51cbc55ddb30cf4a7d91d2a0d1f227f87285bd5231933ad6413d7e95b12cc3"
+    },
+    {
+      "blob": "844df8e7a860b3455f5da5586c09604e426945ca",
+      "bytes": 1664,
+      "path": "diff-review.md",
+      "sha256": "cff4fc2ff9fc9715287802d77aaee8e267ea15f72ce8737758f5591437f04c7b"
+    },
+    {
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "path": "first-party.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "blob": "55bfeff023c4ae17dc59e12f86f446b1960e6b53",
+      "bytes": 85,
+      "path": "identity-audit.log",
+      "sha256": "148bad84b5b174568017df50d58e073566703d43c6c9fe7fa6f1af04420adf55"
+    },
+    {
+      "blob": "a25965c99c6a690c5d2ca94587c97eb975255a5c",
+      "bytes": 320,
+      "path": "local-checks.json",
+      "sha256": "f9da271943ef6710392beafdf9798dc808d4305508455e38a7f270d18075f750"
+    },
+    {
+      "blob": "9d1e497eefcd6a98ea80638a6c2cf95c7e979412",
+      "bytes": 938,
+      "path": "product-push.log",
+      "sha256": "b2ec6045780199bdc42b48c079bf0a5fda350d037b54f22cc43a94b17b7726b7"
+    },
+    {
+      "blob": "854b55a3bf0e5c64d585f80858e6dcfbd77ed2c1",
+      "bytes": 14092,
+      "path": "product.diff",
+      "sha256": "160b89f61604f762fadf28abd06a2b090a89fa3845cb698fa8fbe7eed0b8d3b4"
+    },
+    {
+      "blob": "4d6b4393d1e0314c460b088d53e2e65b82cc7c86",
+      "bytes": 9290,
+      "path": "release-validation.json",
+      "sha256": "98bc37f7a0c3fbf0e3f44e371d2ec677bcde244058b821b8aafb6d9316e80b39"
+    },
+    {
+      "blob": "54e874d7ecda764d04b17b2231459cbce82e6ff9",
+      "bytes": 637,
+      "path": "source-integrity.json",
+      "sha256": "828fd591ba4663d15e96d77d54808c752d704e303bf3ce3961d4fc289737604f"
+    },
+    {
+      "blob": "4cc881e6541741f38bf7fd3e43f40d7dacc3d4af",
+      "bytes": 779,
+      "path": "terminal-product-receipt.json",
+      "sha256": "ad7cda0746720e48aaba34c3f44ad2fa0ea0a8775d2a4e82bfd82dd4c4ae93c3"
+    },
+    {
+      "blob": "115b19b8358171f8f13027d126c49796a1f7cb28",
+      "bytes": 233,
+      "path": "typecheck.log",
+      "sha256": "c4148ba75b0aafb3498806e1ae823b65f51fd465835528f4c68c0f7ef52297a4"
+    },
+    {
+      "blob": "73bf56c5c3c3a8f3fcaf8ed37dd36fd58d2e2bd4",
+      "bytes": 863,
+      "path": "upstream-commits.log",
+      "sha256": "71188f784895bdd32cb8d024db0c13714c3a90cbeedab8e5805a0e6a3fe16012"
+    },
+    {
+      "blob": "68ac34c661186e1d7559d91c67b241e36076232e",
+      "bytes": 639,
+      "path": "upstream-receipt.json",
+      "sha256": "7a91a89ecd0c7190da3704116bc501559b18f647d54fe137f117bea327f876b2"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-release-0-5-17",
+  "product_head": "2b23821dcb7627dec4df3f6409985ed0898c9377",
+  "ref": "refs/heads/evidence/sd-uptime-release-0-5-17",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-release-0-5-17"
+}
