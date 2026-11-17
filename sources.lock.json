@@ -9444,7 +9444,7 @@
       "executable": false
     },
     "tests/local-signin-truth-support.mjs": {
-      "sha256": "5e3e5af3dd3cda7dc87affdc03e2de83321fe220a3189d2df322210c3fa25441",
+      "sha256": "70cb7c115adf966c1aa13505c93dc4eca9aa99d8dc8152ae5f1f3b28d21554a3",
       "executable": false
     },
     "tests/location-enrollment-support.mjs": {

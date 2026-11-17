@@ -17,7 +17,7 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
   assert.doesNotMatch(lobby,/persona|choose (?:a |an |your )?(?:local )?account/i,'fresh Lobby does not promise an unavailable account picker');
   await visitor.getByRole('link',{name:'Sign in',exact:true}).click();
   // Follow the gate's displayed CLI guidance instead of pinning its wording.
-  const command=(await visitor.locator('code').allTextContents()).map(text=>text.trim().split(/\s+/)).filter(([program,verb])=>(program==='rer'||program.endsWith('/rer'))&&verb==='dev').at(-1);
+  const command=(await visitor.locator('code').allTextContents()).map(text=>text.trim().split(/\s+/)).filter(([program,verb,...args])=>(program==='rer'||program.endsWith('/rer'))&&verb==='dev'&&(!args.includes('--as')||args.indexOf('--as')+1<args.length)).at(-1);
   assert.ok(command,'the sign-in gate supplies an executable local launch command');
   assert.equal(await visitor.locator('input[type=email]').count(),0,'the gated page does not promise an email form');
   assert.equal((await unsigned.request.get(origin+'/api/overview')).status(),401);
