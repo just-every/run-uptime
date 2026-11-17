@@ -80,7 +80,7 @@ function map(entry:SourceEntry):Mapping{
  if(type==='KEYWORD'){
   // ALERT_NOT_EXISTS requires the keyword; ALERT_EXISTS requires its absence.
   const keywordType=String(m.keywordType??'').toUpperCase()
-  if(!['ALERT_NOT_EXISTS','ALERT_EXISTS'].includes(keywordType))return {refused:`${label} has no recognised keywordType.`}
+  if(!['ALERT_NOT_EXISTS','ALERT_EXISTS'].includes(keywordType))return {refused:`${label} has no recognised keywordType. UptimeRobot's export uses ALERT_NOT_EXISTS (the page must contain the keyword) or ALERT_EXISTS (the page must not contain it).`}
   if(typeof m.keywordValue!=='string'||!m.keywordValue)return {refused:`${label} has no keyword.`}
   assertions[keywordType==='ALERT_EXISTS'?'bodyExcludes':'bodyIncludes']=m.keywordValue
   const keywordCase=String(m.keywordCaseType??'').toLowerCase()

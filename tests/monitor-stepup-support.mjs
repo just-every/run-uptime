@@ -28,16 +28,13 @@ export async function proveImportEraseStepUp({page,origin,call,cookie,DB,recover
  const before=(await(await call('/api/overview',undefined,{cookie})).json()).monitors.map(m=>m.id).sort();
  const file={name:'synthetic-uptime-stepup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({format:'uptime.monitors',version:1,monitors:[{name:'synthetic-uptime-preview-stepup',url:'https://example.org/',enabled:false}]}))};
  await expire();await page.goto(origin+'/app/settings/backup');await page.locator('#definition-file').setInputFiles(file);
- const previewRefusal=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/operator/import/uploads'&&r.status()===403);
- await page.getByRole('button',{name:'Preview',exact:true}).click();const refusedPreview=await previewRefusal;assert.equal((await refusedPreview.json()).code,'fresh_second_factor_required');await prompt.waitFor();
- assert.equal(await page.locator('#definition-file').evaluate(el=>el.files[0].name),file.name);await shot('import-preview-verification');
- // Cancelling keeps the public file input and permits another attempt.
- await prompt.getByRole('button',{name:'Cancel',exact:true}).click();await prompt.waitFor({state:'detached'});await page.getByRole('button',{name:'Preview',exact:true}).waitFor({state:'visible'});
- assert.equal(await page.locator('#definition-file').evaluate(el=>el.files[0].name),file.name);
- const recognised=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/definitions/recognise'&&r.status()===200),uploaded=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/operator/import/uploads'&&r.status()===200);
- await page.getByRole('button',{name:'Preview',exact:true}).click();await prompt.waitFor();await verify();
- const resumed=await recognised;assert.deepEqual(resumed.request().postDataBuffer(),file.buffer,'the chosen file survives cancellation');assert.deepEqual((await uploaded).request().postDataJSON(),refusedPreview.request().postDataJSON(),'verification retries the unchanged upload');
+ // A preview writes no monitor, so an expired proof does not stop it; applying the file is the write that asks.
+ const uploaded=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/operator/import/uploads'&&r.status()===200);
+ await page.getByRole('button',{name:'Preview',exact:true}).click();await uploaded;assert.equal(await prompt.count(),0,'a preview asks for no second factor');
  await page.locator('#definition-preview-area:not([hidden])').waitFor();assert.ok((await page.locator('#definition-result').innerText()).includes('synthetic-uptime-preview-stepup'));await shot('import-preview-ready');
+ const applyRefusal=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/operator/import/apply'&&r.status()===403);
+ await page.locator('#definition-apply').click();assert.equal((await(await applyRefusal).json()).code,'fresh_second_factor_required');await prompt.waitFor();await shot('import-apply-verification');
+ await prompt.getByRole('button',{name:'Cancel',exact:true}).click();await prompt.waitFor({state:'detached'});
  assert.deepEqual((await(await call('/api/overview',undefined,{cookie})).json()).monitors.map(m=>m.id).sort(),before,'preview never applies the file');
  await expire();await page.goto(origin+'/app/monitors/'+monitor.id);await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('#erase-monitor').click();
  const confirmation=page.getByRole('dialog');await confirmation.getByRole('textbox').fill(monitor.definition.name);
@@ -55,7 +52,7 @@ export async function proveImportEraseStepUp({page,origin,call,cookie,DB,recover
  if(process.env.UPTIME_SCREENSHOTS)await writeFile(join(process.env.UPTIME_SCREENSHOTS,'monitor-erasure-receipt.json'),JSON.stringify({receipt,stored,displayed,archiveReceipt:exported.payload.productTables.uptime_erasure_receipts.find(row=>row.id===receipt.id)},null,2)+'\n');
  await view.getByText('Receipt details',{exact:true}).click();await shot('monitor-erasure-receipt');
  await view.getByRole('button',{name:'Close receipt',exact:true}).click();await page.waitForURL(origin+'/app/monitors');assert.equal(await page.locator('.erasure-receipt').count(),0);
- console.log('Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, plain counted receipt with unchanged storage and later backup.');
+ console.log('Import/erase step-up PASS: preview without a factor, apply refused until verified, retained typed erasure, plain counted receipt with unchanged storage and later backup.');
 }
 
 // A fresh installation keeps this navigation-heavy proof from consuming the

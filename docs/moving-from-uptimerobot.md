@@ -25,7 +25,7 @@ Open **New monitor › Import a file** (also available under **Settings › Back
 - **Intervals** move unchanged from seconds to milliseconds. An interval under 5 seconds or over one day is shown with its number and not imported. If an interval ever had to change, the preview would state it as a cadence change.
 - **Heartbeat monitors** become Uptime heartbeats that expect a call within the interval plus UptimeRobot's grace period, up to one day in all. When the interval plus grace is longer than one day, such as a daily heartbeat with a grace period, Uptime keeps the interval and shortens the grace so the total is one day; the preview names the original and the shortened numbers. Their old heartbeat URL stops working for Uptime: issue a new token on the monitor's page and repoint your jobs to it. The preview lists the old URL so you know which jobs to change.
 
-Every imported monitor checks from probe `local-a` on your own runner, and its evidence counts as fresh for at least three intervals. Uptime needs two independent vantages before it calls a target down. With one runner network, enabling a monitor takes the installation's External check URL (change it in Settings), or add a second location or give that monitor its own external check URL in its settings.
+Every imported monitor checks from your first location (named under **Locations**) on your own runner, and its evidence counts as fresh for at least three intervals. Uptime needs two independent vantages before it calls a target down. With one runner network, enabling a monitor takes the installation's External check URL (change it in Settings), or add a second location or give that monitor its own external check URL in its settings.
 
 ## What does not move
 

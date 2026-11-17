@@ -7,7 +7,7 @@ import {monitorIdFromPath,renderMonitorPage} from './monitor-page.js';
 import {locationsMarkup,addPanelMarkup,addingLocation,startAdding,bindLocations} from './locations.js';
 import {AREAS,renderSettings} from './settings-view.js';
 import {savesSettled,savePending,holdRefused,refusalPending} from './settings-save.js';
-import {alertCount} from './alert-health.js';
+import {alertCount,alertReason} from './alert-health.js';
 import {rememberZone} from './installation-zone.js';
 import {patch} from './dom-patch.js';
 // Each console screen has a stable path: a section (/app/monitors, /app/locations) or a Settings area (/app/settings/<area>;
@@ -141,9 +141,19 @@ const signedIn=()=>{if(!closed)document.documentElement.classList.add('signed-in
 feedback=createActionFeedback({load:()=>api(view==='monitor'?`/api/overview?monitor=${encodeURIComponent(pageId)}`:'/api/overview'),lock:lockControls,publish:state=>{if(closed)return;for(const [name,channel]of Object.entries({action:state.action,read:state.read,background:state.background})){const host=$('#'+name+'-notice'),lead=channel.state==='unavailable'?channel.message.indexOf(': ')+1:0;if(lead>0){const body=document.createElement('span');body.append(Object.assign(document.createElement('strong'),{textContent:channel.message.slice(0,lead)}),channel.message.slice(lead));host.replaceChildren(body)}else host.textContent=channel.message;host.hidden=!channel.message;if(channel.state)host.dataset.state=channel.state}n.hidden=![state.action.message,state.read.message,state.background.message].some(Boolean)},render:(next,state)=>{if(closed)return;if(state.error?.status===401){navigateToLogin();return}if(!next){if(state.readUnavailable)firstReadFailed();return}data=next;rememberZone(next);readUnavailable=state.readUnavailable;const drawn=render();if(!state.error&&!state.readUnavailable){if(drawn)void drawn.then(signedIn);else signedIn()}}});
 
 // The amber count on Settings and Alerts while a destination cannot send or none is enabled (public/alert-health.js), also
-// in the item's accessible name ("Settings, 1 to fix"). Only its text and two attributes change, so the menu never remounts;
+// in the item's accessible name ("Settings, 1 to fix") and the badge's tooltip saying what to fix. Only its text and two attributes change, so the menu never remounts;
 // a monitor's page reads no notifications block and shows none.
-function showAlertCount(){const count=alertCount(data.notifications);for(const badge of sidebar.querySelectorAll('[data-alert-count]')){const link=badge.closest('a'),name=count?`${[...link.childNodes].filter(node=>node.nodeType===3).map(node=>node.nodeValue).join('').trim()}, ${count} to fix`:null;badge.hidden=!count;if(badge.firstChild.nodeValue!==String(count))badge.firstChild.nodeValue=String(count);if(link.getAttribute('aria-label')!==name){if(name)link.setAttribute('aria-label',name);else link.removeAttribute('aria-label')}}}
+function showAlertCount(){
+ const count=alertCount(data.notifications),reason=count?alertReason(data.notifications):'';
+ for(const badge of sidebar.querySelectorAll('[data-alert-count]')){
+  const link=badge.closest('a'),label=[...link.childNodes].filter(node=>node.nodeType===3).map(node=>node.nodeValue).join('').trim(),name=count?`${label}, ${count} to fix`:null;
+  badge.hidden=!count;if(badge.firstChild.nodeValue!==String(count))badge.firstChild.nodeValue=String(count);
+  // The badge is its own tooltip target, so hovering the number says what needs attention.
+  if(reason){if(badge.getAttribute('aria-label')!==reason)badge.setAttribute('aria-label',reason);badge.setAttribute('data-tooltip','');badge.setAttribute('data-tooltip-placement','right')}
+  else{badge.removeAttribute('aria-label');badge.removeAttribute('data-tooltip');badge.removeAttribute('data-tooltip-placement')}
+  if(link.getAttribute('aria-label')!==name){if(name)link.setAttribute('aria-label',name);else link.removeAttribute('aria-label')}
+ }
+}
 function renderMonitors(){patch(summary,listSummary(data,readUnavailable));catalog.render({area,data,readUnavailable})}
 function renderLocations(){patch(area,locationsMarkup(data));patch(right,addPanelMarkup(data));bindLocations({area,right,data:()=>data,api,action,refresh,render})}
 // Each view patches its markup into the page (public/dom-patch.js), so a refresh changes only what changed: open

@@ -80,8 +80,8 @@ function rowMarkup(e){
   ...(e.changes??[]).map(changeMarkup),
   ...(e.differences.length?[`<ul>${e.differences.map(d=>`<li>${escape(d)}</li>`).join('')}</ul>`]:[]),
  ];
- const target=e.target?(e.target.url?`<span class="url">${escape(e.target.url)}</span>`:'<span class="url url-prose">Incoming heartbeat</span>'):'';
- return `<tr><td data-label="Action"><span class="ui-pill ${pill}">${label}</span></td><td data-label="Monitor"><span class="monitor-name">${escape(e.name??e.label)}</span>${target}</td><td data-label="Details" class="definition-details">${details.join('')||'<p>No differences.</p>'}</td></tr>`;
+ const target=e.target?(e.target.url?`<div class="url">${escape(e.target.url)}</div>`:'<div class="url url-prose">Incoming heartbeat</div>'):'';
+ return `<tr><td data-label="Action"><span class="ui-pill ${pill}">${label}</span></td><td data-label="Monitor"><div class="monitor-name">${escape(e.name??e.label)}</div>${target}</td><td data-label="Details" class="definition-details">${details.join('')||'<p>No differences.</p>'}</td></tr>`;
 }
 function previewMarkup(preview){
  if(!preview)return '';
