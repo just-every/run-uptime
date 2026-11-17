@@ -10,7 +10,7 @@ export async function ownerProfileJourney(page,origin){
  await row.locator('summary').first().click();await row.locator('.member-profile summary').click();
  await row.getByLabel('Your name',{exact:true}).fill(profile.name);await row.getByLabel('Your name',{exact:true}).press('Tab');
  await page.waitForFunction(async name=>(await (await fetch('/auth/session')).json()).operator.displayName===name,profile.name);
- await page.goto(origin+'/app/settings/people');row=page.locator(`[data-member-id="${initial.id}"]`);await row.locator('summary').first().click();await row.locator('.member-profile summary').click();
+ assert.ok(await row.getByLabel('Your email',{exact:true}).evaluate(input=>input===document.activeElement),'saving your name keeps keyboard focus on the next field');
  await row.getByLabel('Your email',{exact:true}).fill(profile.email);await row.getByLabel('Your email',{exact:true}).press('Tab');
  await page.waitForFunction(async email=>(await (await fetch('/auth/session')).json()).operator.email===email,profile.email);
  await page.goto(origin+'/app/settings/general');

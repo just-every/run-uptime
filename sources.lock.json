@@ -2624,7 +2624,7 @@
       "executable": false
     },
     "public/assets/access-member-controls.js": {
-      "sha256": "99fc66638dda1fdc143795fc4d8fbfb4a3f92577b646876ac7902d9e830f948c",
+      "sha256": "b278b38fd33f65e07afd066290f141306aad4af87e4b539993d58d7e59ee695a",
       "executable": false
     },
     "public/assets/alert-route-check.js": {
@@ -2684,7 +2684,7 @@
       "executable": false
     },
     "public/assets/person-profile.js": {
-      "sha256": "fa63e11b468184c290ef6ce942a6a97db3bb9b3be979601863a00073000cc9a9",
+      "sha256": "d7bf98bec32a204a3745713e32f82060140ae09ac74bce45b8fa1ecfb3a2ede6",
       "executable": false
     },
     "public/assets/report-schedule-controls.js": {
@@ -9636,7 +9636,7 @@
       "executable": false
     },
     "tests/owner-profile-browser-support.mjs": {
-      "sha256": "00a48c8c5fffa6bb1fcc6f028168f235800d7cbaf94c0daae63556c0e1c15fee",
+      "sha256": "7251ddcda3b0c02f82c943cd9208e7ec92a54cb219933b9d7a925139b6772406",
       "executable": false
     },
     "tests/pagespeed-network-fixture.mjs": {
