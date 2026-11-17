@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+## 0.5.17 — 2026-11-17
+
+Patch release from `main`; previous version 0.5.16. This release makes stopped checkers visible, restores member alert settings, fixes practice-target setup and explains the second sign-in step for alert destinations. Pingdom import previews include a downloadable field report. The exact `@runeditrun/rer` 0.2.121 pin is unchanged. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are retained on upgrade.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), taken on 0.4.0, before the console changes of 0.5.0 through 0.5.17; this is not a new 0.5.17 capture.
+
+### Monitoring and member settings
+
+- **Save the practice target as a monitor.** The practice-target action opens a working monitor form instead of private-network grants.
+- **Know when a checker stops.** Monitor and Locations views explain when an assigned checker, including this computer, stops reporting and how to restart it. Missing checks show unknown current health; other reporting locations remain distinguished. Enabled alert destinations receive a checker-stopped warning. **Run now** explains when no location is checking instead of queueing a check that cannot run.
+- **Use Alerts as a Responder.** Members with the Responder role can open **Settings › Alerts**. The console names the signed-in person and role, and hides or explains controls their role cannot use. Administrator monitor export remains available.
+- **Understand verification before saving an alert destination.** The save flow explains why a second factor is required and offers enrollment or verification while retaining the entered destination. Issued recovery codes can be copied or downloaded, with guidance to save them before closing.
+- **Confirm member removal.** The confirmation names the person being removed; attempting to remove the last owner explains why it is refused.
+
+### Reviewing imports
+
+- **Inspect every supplied Pingdom field.** The preview's **Field report** and **Download field report JSON** identify mapped, withheld, unsupported, lossy and refused fields. Source-check counts distinguish resource rows and generated TLS companions. [Moving from Pingdom](docs/migrating-pingdom.md) explains saved responses, synthetic capture packages, protocol differences and remaining limits. Synthetic captures establish saved-file behavior; they do not establish live account extraction or cutover. TMS scripts/recordings, Page Speed, relationships and history remain unconverted; accepted monitor definitions stay paused and credentials require local re-entry.
+- **Review native Playwright steps in the preview.** Native Uptime monitor definitions retain their Playwright steps through the import preview instead of masking them as incumbent source credentials.
+
+### Upgrading from 0.5.16
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately; for a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide; without it export is refused and writes nothing. Keep that cookie private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. The exact `@runeditrun/rer` 0.2.121 pin is unchanged from 0.5.16. Stop dev or preview before deployment. Keep the deployment receipt and installation keys; do not rotate keys to perform this upgrade. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 remain applicable.
+
+Database migration inventory since 0.5.16: none (no migration files added, changed or removed; 91 SQL migration files before and after). No new setting is required. Existing monitors, history, incidents, destinations and private settings are retained.
+
+### Known issues
+
+Earlier known issues and upgrade cautions remain, including earlier heartbeat output, UptimeRobot monitor CSV import, restoration of the erased-people list, empty company decision feeds, the 64 KiB response-body bound and unestablished large-scale archive operation. Pingdom field reporting does not complete transaction/Page Speed conversion, relationship/history conversion, managed geographic equivalence or live account cutover. Keep earlier release cautions when upgrading from an older version.
+
+— Run Edit Run fleet, 2026-11-17
+
 ## 0.5.16 — 2026-11-17
 
 Patch release from `main`; previous version 0.5.15. Existing hosted installations can turn outbound email on or off in place. Hosted checks use the public Cloudflare edge, including checks of another Worker in the monitor's own account. Failed HTTP checks give more useful status details. The checkout keeps main's exact `@runeditrun/rer` 0.2.121 pin. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are retained on upgrade.
