@@ -30,9 +30,46 @@
         "html_url": "https://github.com/just-every/run-uptime/actions/runs/44143553234",
         "status": "in_progress"
       }
+    },
+    {
+      "number": 3,
+      "at": "2026-11-17T18:13:00.304534+00:00",
+      "endpoint": "repos/just-every/run-uptime/actions/runs/44143553234",
+      "exit": 0,
+      "result": {
+        "conclusion": null,
+        "head_sha": "b41d62102f8f12cfc9724305267b67a080cccae7",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/44143553234",
+        "status": "in_progress"
+      }
+    },
+    {
+      "number": 4,
+      "at": "2026-11-17T18:18:00.846369+00:00",
+      "endpoint": "repos/just-every/run-uptime/actions/runs/44143553234",
+      "exit": 0,
+      "result": {
+        "conclusion": null,
+        "head_sha": "b41d62102f8f12cfc9724305267b67a080cccae7",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/44143553234",
+        "status": "in_progress"
+      }
+    },
+    {
+      "number": 5,
+      "at": "2026-11-17T18:23:01.289227+00:00",
+      "endpoint": "repos/just-every/run-uptime/actions/runs/44143553234",
+      "exit": 0,
+      "result": {
+        "conclusion": "success",
+        "head_sha": "b41d62102f8f12cfc9724305267b67a080cccae7",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/44143553234",
+        "status": "completed"
+      }
     }
   ],
-  "status": "watching",
+  "status": "completed",
   "runId": 44143553234,
-  "url": "https://github.com/just-every/run-uptime/actions/runs/44143553234"
+  "url": "https://github.com/just-every/run-uptime/actions/runs/44143553234",
+  "conclusion": "success"
 }

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-17T18:00:40.912191+00:00",
+  "updatedAt": "2026-11-17T18:23:32.683957+00:00",
   "checks": [
     {
       "name": "fleet-install",
@@ -126,6 +126,14 @@
       "command": "pinned rer inspectSource/releaseMessage/catalogue exports (read-only)",
       "status": "PASS",
       "log": "logs/uptime-release-metadata-check.log"
+    },
+    {
+      "name": "exact-SHA Verify",
+      "command": "budgeted gh api actions/runs REST discovery and polling",
+      "status": "PASS",
+      "runId": 44143553234,
+      "head": "b41d62102f8f12cfc9724305267b67a080cccae7",
+      "receipt": "ci-receipt.json"
     }
   ],
   "earlierAttempts": [
@@ -149,107 +157,133 @@
   "proofFiles": [
     {
       "path": "browser/RESULTS.json",
-      "bytes": 222
+      "bytes": 222,
+      "sha256": "44ae660c34b55b4683d4d21e9a2f24b65511bbf16b52f0a1f4ea76cd70a0a00e"
     },
     {
       "path": "browser/after-lobby-1440.png",
-      "bytes": 161608
+      "bytes": 161608,
+      "sha256": "40509e08a981afde65f228455167449210c06135fe626c5ac36ca33fcbc4be72"
     },
     {
       "path": "browser/after-lobby-390.png",
-      "bytes": 64634
+      "bytes": 64634,
+      "sha256": "b43cda10761892d21e42b8232a98d5a674096cf959390d7cac290a10b5669ce5"
     },
     {
       "path": "browser/after-login-1440.png",
-      "bytes": 44133
+      "bytes": 44133,
+      "sha256": "a805ab424e82131e801003b87fd551c13745d034f05dfa492c8f53f355dc0ad8"
     },
     {
       "path": "browser/after-login-390.png",
-      "bytes": 39907
+      "bytes": 39907,
+      "sha256": "dbc9d44418b50b744f149bb4144a2a9a6816f0696455111e90b5c31c7862e4fd"
     },
     {
       "path": "browser/after-people-1440.png",
-      "bytes": 58509
+      "bytes": 58509,
+      "sha256": "a51eb03b991a47f5a305eb3acc53645e2c7cb23691fc1be0b42ca45b69246813"
     },
     {
       "path": "browser/after-people-390.png",
-      "bytes": 59862
+      "bytes": 59862,
+      "sha256": "f01c1811855d8552aad3f6f3897023c8f23372bf9a7c55a2aecdaf2c66c76b3f"
     },
     {
       "path": "browser/after-readonly-checks-1440.png",
-      "bytes": 256078
+      "bytes": 256078,
+      "sha256": "38a27c71b00f9c852adda40be91f23b9d5bc7a8b2f393c93a4f925c5c07b26fb"
     },
     {
       "path": "browser/after-readonly-checks-390.png",
-      "bytes": 233549
+      "bytes": 233549,
+      "sha256": "401ff51a186aaca3bf52b4d9603e5c52177669fc2c64d6022430c2fa99aa0e9f"
     },
     {
       "path": "browser/after-readonly-list-1440.png",
-      "bytes": 124972
+      "bytes": 124972,
+      "sha256": "d6370f27984d57a33eaf44a034229bc59e629066d6d5f1015725ab43acde7611"
     },
     {
       "path": "browser/after-readonly-list-390.png",
-      "bytes": 114812
+      "bytes": 114812,
+      "sha256": "39913f2919e6c3c22207fa0b58353ea154aadb00d37491778d5a5ff4eb7643ed"
     },
     {
       "path": "browser/after-readonly-report-1440.png",
-      "bytes": 254109
+      "bytes": 254109,
+      "sha256": "c8f5151455ccdede06dc637bcdad554e3e5f47e6947ed2ff224e63f4d0d4d543"
     },
     {
       "path": "browser/after-readonly-report-390.png",
-      "bytes": 265083
+      "bytes": 265083,
+      "sha256": "fd3fcd566c4dfb177950fcdd38296182e92e2cdc8929fa338c0d745edb07522b"
     },
     {
       "path": "browser/browser-receipt.json",
-      "bytes": 1778
+      "bytes": 1778,
+      "sha256": "6472653ec81bcf486ad9ce3dca5a30683baff263eeef5cdf92dd11ad33d28bc9"
     },
     {
       "path": "browser/front-page-1440.png",
-      "bytes": 1852769
+      "bytes": 1852769,
+      "sha256": "45602b12b7570238c0bb93d3c06a549b53fcd95eb6d19d7c2ff4bca1feba06de"
     },
     {
       "path": "browser/front-page-390.png",
-      "bytes": 806476
+      "bytes": 806476,
+      "sha256": "e24048d6973fca0185f67559c72dff929f7d9249cc3af487c6853be730d8ff57"
     },
     {
       "path": "browser/installation-name-1440.png",
-      "bytes": 64959
+      "bytes": 64959,
+      "sha256": "1bad6b7c5078b0dbeefc661720185fcc72ff8502e180d321fabfe1ccb98092f5"
     },
     {
       "path": "browser/installation-name-390.png",
-      "bytes": 72821
+      "bytes": 72821,
+      "sha256": "db527d8a3b45b7204630144cc2ed14a840157353925b305032cf5f4415a22eef"
     },
     {
       "path": "browser/owner-profile-1440.png",
-      "bytes": 115280
+      "bytes": 115280,
+      "sha256": "d40c4f9383a37c96b02a79e2dde33c83f22bed221feb2adcca7a50a344bd3e9a"
     },
     {
       "path": "browser/owner-profile-390.png",
-      "bytes": 126540
+      "bytes": 126540,
+      "sha256": "8f42046d27c509c9bae04bd4b2a741f57ee65f6171fe8772dac70deca4cbaf79"
     },
     {
       "path": "browser/readonly-console-receipt.json",
-      "bytes": 355
+      "bytes": 355,
+      "sha256": "87c18adc9a8b2e3b46e7af3a83e7a2a7b53dda02a1a5f8b9f3edb7cbf8bc98ed"
     },
     {
       "path": "browser/setup-1440.png",
-      "bytes": 121656
+      "bytes": 121656,
+      "sha256": "37aff4c7c7d31d2cbcbe40f3941852f85c698b800eea7a31d84f734252677811"
     },
     {
       "path": "browser/setup-390.png",
-      "bytes": 56229
+      "bytes": 56229,
+      "sha256": "11d8f093f663ae4d7b01c3326099eb90146ed687d9370e758d2c1f95ca4f92cc"
     },
     {
       "path": "browser/site-proof.json",
-      "bytes": 196
+      "bytes": 196,
+      "sha256": "a6840032a282203f90594d099b96389a98a5678b58e2b782f3930c2c8391f731"
     },
     {
       "path": "browser/test-signins-1440.png",
-      "bytes": 26756
+      "bytes": 26756,
+      "sha256": "18dde86ec326d5108a5565b393e69eb12092eb9908f895809a5859eeaa7ccf0a"
     },
     {
       "path": "browser/test-signins-390.png",
-      "bytes": 21108
+      "bytes": 21108,
+      "sha256": "f0e76b5a88a6c11b558e26e7fb855f5ed551aa12ee06c6fb4b42a29e0b4dfc39"
     }
   ],
   "head": "b41d62102f8f12cfc9724305267b67a080cccae7",
@@ -257,5 +291,6 @@
     "Legacy validate:release script absent from current main; actual result retained. Pinned rer release metadata/source/catalogue validation passes; full fleet publication scan remains the lander gate.",
     "Evidence is local/synthetic runtime proof, not hosted operation or human recipient acceptance.",
     "D5 partial: describe lists commands, practice-target helper prints its URL. Optional Lamp link omitted."
-  ]
+  ],
+  "cloudResume": "Connection interrupted the CI watcher after three calls; product and report files persisted. Watcher resumed the saved budget and 300-second interval."
 }

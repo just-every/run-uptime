@@ -45,5 +45,16 @@
     "sha256": "2bff553d254a0a8968a3d4b6914474487cb25e0e5f5db247c4e80cb4bfea07d6",
     "verified": true,
     "requires": "395b92f1c37ab3ff166a18112643b18a31b5339e"
-  }
+  },
+  "ci": {
+    "runId": 44143553234,
+    "head": "b41d62102f8f12cfc9724305267b67a080cccae7",
+    "status": "completed",
+    "conclusion": "success",
+    "observedAt": "2026-11-17T18:23:01.289227+00:00",
+    "url": "https://github.com/just-every/run-uptime/actions/runs/44143553234",
+    "callsUsed": 5
+  },
+  "custody": "READY",
+  "readyAt": "2026-11-17T18:23:32.683235+00:00"
 }
