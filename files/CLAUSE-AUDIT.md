@@ -1,0 +1,1828 @@
+# Actual open-clause audit
+
+Public main: 6fd9399cf9ce9acf4e009999581cc20f32c9e129
+
+Verbatim public contract text follows. Declared judgments are unchanged. Static inspection does not mean a fresh test passed. The REPORT inventory gives the narrowed remaining points and reservations.
+
+## STATE-001 — Fixed coverage and incident hysteresis
+
+Declared: partial; planner: CHEAP. CONTRACT.md Status line 1526.
+
+#### STATE-001 — Fixed coverage and incident hysteresis
+
+**Requirement.** Missing or expired passing coverage is Unknown, partial failure stays visible, independent-vantage agreement and scheduled confirmation determine Failing, and complete fresh scheduled passing evidence plus recovery threshold is required for recovery; manual checks and maintenance never rewrite observations or scheduled policy. See [Evidence and state](docs/contract/safety-rules.md#evidence-and-state).
+
+**Acceptance.**
+1. Run two assigned network vantages through partial, missing, stale, failing and recovering slots; inspect Unknown/Degraded/Failing and thresholds.
+2. A manual pass, absent probe or maintenance expiry cannot fabricate recovery.
+
+**Declared Evidence (verbatim).** `src/domain/policy.mjs`; `tests/control-runtime.mjs`; `tests/control-runtime.mjs`; `docs/evidence/contracts/release-0.4.0/`; `tests/control-state-support.mjs`: proveStateHysteresis, two signed assigned runners show mixed-vantage Degraded, first complete scheduled Recovering, manual-pass isolation and absent-probe Unknown without recovery, then one recovery after the second complete scheduled pass, retaining the fixed denominator, original observations and incident identity; `tests/control-cadence-support.mjs`: proveCadenceRevision, incomplete selected coverage and missing-region Unknown; `tests/maintenance-windows.mjs`: MAINT-001 expiry and ordinary scheduled reevaluation without orphan recovery. Qualification pending; current main judgment and gap retained.
+
+**Declared Gap (verbatim).** Two configured runner networks still prove confirmed Failing and the scheduled confirmation/recovery thresholds. Gap: exactly one failing vantage reading Degraded; Unknown for partial, missing and stale evidence; the intermediate Recovering state; and no fabricated recovery from a manual pass during an outage, an absent selected probe or maintenance expiry lack assertions in the cited files. Maintenance expiry is asserted only in tests/maintenance-windows.mjs, which this clause does not cite.
+
+**Planner disposition.** A1 stale/missing coverage and A2 maintenance/manual/absent-probe qualification; substantial assertions already built. Reserved f42/f43/f132/f159/f162; no new builder.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/policy.mjs`, `tests/control-cadence-support.mjs`, `tests/control-runtime.mjs`, `tests/control-state-support.mjs`, `tests/maintenance-windows.mjs`
+
+## NETWORK-001 — Pinned bounded destination execution
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1528.
+
+#### NETWORK-001 — Pinned bounded destination execution
+
+**Requirement.** Every public DNS answer and redirect hop is validated fail closed; private-runner numeric sockets preserve Host and TLS identity, hosted checks use Cloudflare’s public Internet fetch transport, unsafe/mixed addresses and HTTPS downgrade are rejected, cross-origin redirects strip request authority, and synthetic grants and protected origin-bound local credential files retain their separate custody limits. The PROBE-002 identification header follows these credential rules and is stripped on cross-origin redirects. See [Network and credentials](docs/contract/safety-rules.md#network-and-credentials).
+
+**Acceptance.**
+1. Exercise real controlled HTTP/TLS endpoints with mixed DNS, rebinding, hostname mismatch, redirects, downgrade, forbidden addresses, credentials and execution bounds; inspect requests and prove rejected destinations receive no connection or authority.
+
+**Bounded qualification.** `tests/tls-auth.mjs` mounts `tests/network-rebinding-support.mjs` proveNetworkRebinding once, with `tests/network-rebinding-routing.mjs` controlling only the authorized DNS and socket edge: an owner-created public HTTPS monitor and the production signed runner retain scheduled history through pre-connection A-to-B rebinding, next-due forbidden-B refusal and restored-A execution across a persistent Worker restart. Independent destination listeners and an ordered edge journal check numeric A, original Host and SNI, verified TLS, zero forbidden-B connections and requests, a passing canary, and Unknown with Incomplete fixed coverage and no fabricated incident or recovery on refusal. This qualifies only that rebinding cell; broader redirect re-resolution, address families, credential combinations, execution bounds, hosted transport and managed locations remain unproved, and the clause remains partial.
+
+**Declared Evidence (verbatim).** `runners/src/public-http.mjs`; `src/domain/worker-http.server.ts`; `tests/tls-auth.mjs`; `tests/api-auth-journey.mjs`; `tests/probe-native-evidence.mjs` — existing mixed-answer runner refusal and Unknown assertions; `tests/network-mixed-dns.mjs` — mixed DNS connection refusal journey: owner-created monitor, actual signed runners and retained scheduled evidence; an allowed public answer qualifies target socket and request counters, then both public-first and private-first mixed answers cause zero target connections and requests, retained network runner_error, Unknown with the fixed coverage denominator and no fabricated trigger or recovery. Qualification pending; current main judgment and gap retained.
+
+**Declared Gap (verbatim).** Cross-origin authentication, client-certificate and body stripping are asserted. Gap: mixed DNS answers, rebinding before connection, TLS hostname mismatch, re-resolution of every redirect, HTTPS downgrade and forbidden redirect refusal, exact-origin credential binding, timeout/body/encoding bounds and zero connections to rejected destinations lack assertions in the cited files. tests/tls-auth.mjs calls assertions in helper files this clause does not cite.
+
+**Planner disposition.** A1 remaining per-hop re-resolution, downgrade/forbidden redirects, exact-origin credentials, TLS and timeout/body/encoding boundary matrix with zero rejected-destination connections. Several cells already built; reserved f137/f143/f150/f153/f157/f160/f164.
+
+**Referenced tracked implementation/tests opened by the source audit:** `runners/src/public-http.mjs`, `src/domain/worker-http.server.ts`, `tests/api-auth-journey.mjs`, `tests/network-mixed-dns.mjs`, `tests/probe-native-evidence.mjs`, `tests/tls-auth.mjs`
+
+## IMPORT-001 — Reviewed definition files and inactive imports
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1531.
+
+#### IMPORT-001 — Reviewed definition files and inactive imports
+
+**Requirement.** A versioned definition file (2 MiB, 500 monitors, UTF-8 JSON, editor fields only, no request secrets or installation authority) or saved UptimeRobot v3 monitor pages are previewed without writes as create, unchanged, change, refused or unsupported per entry with a plan digest, validated by the editor's own validation; apply refuses a digest that no longer matches and otherwise resumes the reviewed plan in bounded transactional batches as new paused monitors or new revisions that keep enabled, maintenance and runner assignments; nothing in a file enables a monitor, issues a heartbeat token, schedules a notification or touches a destination. Undo pauses what it created and restores what it changed while their revisions are unchanged, reports the rest and never removes history. Legacy definition batches travel in archives as restored history without authority; import-door custody stays installation-local. Through this definition-file door a log export is recognized and counted only. Storing it as labeled source history for reports is HISTORY-001's migration import, and no imported history ever becomes evidence. See [Definition files and imports](docs/contract/safety-rules.md#definition-files-and-imports).
+
+**Acceptance.**
+1. Preview, apply, export and undo definition JSON and saved UptimeRobot pages through the owner routes and CLI.
+2. Malformed/hostile/secret-bearing inputs and stale digests write nothing; creations stay paused, changes keep operational state, unsupported fields are named and history is never made current evidence.
+
+**Declared Evidence (verbatim).** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/business-import/mapping.server.ts`; `tests/definitions-import.mjs`: existing owner-route import and refusal assertions, reviewed paused UptimeRobot apply, export and preserving undo; calls `tests/definitions-ci-support.mjs` proveDefinitionCI: a reviewed 21-record plan commits 20 records in its first batch, revoked authority refuses the next batch without changing durable product, job or authority rows, and owner CLI reads retain the stopped job and 20 authorized operations after Worker restart. Existing synthetic assertions inspected; no new runtime pass claimed.
+
+**Declared Gap (verbatim).** Synthetic saved-page/JSON tests only; real export and hosted import remain unmeasured. Apply resumes in atomic batches, not one whole-plan transaction; the intended whole-plan atomicity guarantee remains unresolved.
+
+**Planner disposition.** A1–2 authentic export/hosted proof and intended whole-plan atomic apply versus resumable 20-record authorized batches; revocation must preserve prior authorized results. Transaction/authority design crosses import engine and D1; f130/f135 cover reconciliation only.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/business-import/mapping.server.ts`, `src/domain/definitions/importers/uptimerobot.ts`, `tests/definitions-ci-support.mjs`, `tests/definitions-import.mjs`
+
+## INTERFACE-001 — Honest durable operator feedback
+
+Declared: partial; planner: CHEAP. CONTRACT.md Status line 1536.
+
+#### INTERFACE-001 — Honest durable operator feedback
+
+**Requirement.** Textual state/freshness/reasons, immutable history, labels, keyboard controls and responsive layout expose persisted evidence; failed reads show Unknown, action errors survive polling, busy reconciliation excludes controls and editing rejects assertion overrides. Accessibility is Base's one bar (BASE-ACCESSIBILITY-001); the human screen-reader pass and the VPAT are register rows. See [Contact, interface and delivery](docs/contract/safety-rules.md#contact-interface-and-delivery).
+
+**Acceptance.**
+1. Use the real owner console at 1440 and 390 with healthy, stale, failing and unavailable monitors; edit assertions, force read/action errors and polling, navigate by keyboard and inspect focus, text state, overflow, accessibility tree and axe results.
+
+**Declared Evidence (verbatim).** `src/routes/_console.tsx`; `public/monitor-page.js`; `public/dom-patch.js`; `tests/operator-browser.mjs`; `tests/operator-browser.mjs`; `tests/recovery-browser.mjs`; `tests/notify-delivery.mjs`; `docs/evidence/contracts/release-0.4.0/`  `tests/hosted-auth-browser.mjs` (native complete-owner sign-in forwarding, MFA-owed refusal and typed setup name in setup, Settings and member/incident-assignment data at 1440/390);
+
+**Declared Gap (verbatim).** The cited console journeys assert textual health/freshness/reasons, assertion editing and refusal, read/action errors, polling, keyboard focus, overflow, accessibility-tree semantics and axe at 1440. Gap: those same journeys at the required 390 width are unasserted after removal of their 390 runs.
+
+**Planner disposition.** A1 full console journeys at 390: textual health/freshness/reasons, edit/refusal, read/action errors, polling, keyboard focus, semantics, axe/reflow. Existing uip/main console rounds reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/dom-patch.js`, `public/monitor-page.js`, `src/routes/_console.tsx`, `tests/hosted-auth-browser.mjs`, `tests/notify-delivery.mjs`, `tests/operator-browser.mjs`, `tests/recovery-browser.mjs`
+
+## BOUNDARY-001 — Monitoring ownership and honest delivery claims
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1540.
+
+#### BOUNDARY-001 — Monitoring ownership and honest delivery claims
+
+**Requirement.** Uptime owns checks, evidence, routing, repeat reminders and monitoring reports. It feeds full paging and responder coordination to [Oncall](https://github.com/just-every/run-oncall), PagerDuty or Splunk On-Call, and public incidents, branded pages and subscriber updates to [Lamp](https://github.com/just-every/run-lamp) or Atlassian Statuspage. Teams, Discord, Telegram, SMS, voice and push are supported target channels under the clauses below. One network label is one vantage; provider acknowledgment never proves human receipt or response. Geographic placement, browser execution and accessibility require their own measured evidence.
+
+**Acceptance.**
+1. Configure an alert and a sibling handoff, inspect acknowledged/received/responded as separate facts and simulate lost probes/providers; no duplicate network labels, acknowledgment or missing evidence becomes a delivery or availability guarantee.
+
+**Declared Evidence (verbatim).** `tests/notify-delivery.mjs`, existing DELIVERY-002 deduplicated retry journey extended by `tests/notify-oncall-fixture.mjs` (proveOncallHandoff: configured native handoff; distinct facts and one acknowledgment; lost provider and bounded retry; lost probes without recovery; distinct network labels); `docs/oncall-handoff.md`
+
+**Declared Gap (verbatim).** Native Oncall handoff ships through signed-webhook configuration and private delivery and incident reads. Received remains unknown: Oncall exposes no scoped native alert receipt read door. Responded remains unknown: no scoped native door attributes human response to the source, key and generation. Handoff-specific console rendering remains with uip; other named connectors remain under their own clauses.
+
+**Planner disposition.** A1 distinguish native handoff acceptance, actual receipt and human response. Need Oncall's scoped source/key/generation receipt-and-response read contract; current webhook acknowledgment cannot supply it.
+
+**Referenced tracked implementation/tests opened by the source audit:** `tests/notify-delivery.mjs`, `tests/notify-oncall-fixture.mjs`
+
+## STARTUP-001 — Required configuration diagnostics
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1542.
+
+#### STARTUP-001 — Required configuration diagnostics
+
+**Requirement.** A shared configuration table validates required and conditional bindings for the Worker, scheduled entry point, local app, preview, setup, deployment and private runner before each begins work. Missing or malformed required values stop the entry point and name the variable without printing its value; a Worker configuration failure returns 503, including at `/health`. Hosted mode requires the selected Base mail provider and its sender configuration when outbound mail is enabled. An explicit `MAIL_PROVIDER=none` permits hosted operation without a sender or sending credentials, with owner sign-in through the deploying checkout’s guarded `rer signin`; email links, invitations and email alerts remain unavailable. With `MAIL_PROVIDER` set to `rer`, a missing `MAIL_API_KEY` or a value containing whitespace refuses health and native runner claims before admission or durable work; a valid replacement and restart restore health and authenticated idle claims against the same persistence without mail or target work. Supersedes `BASE-OPS-001`'s one-second health budget with the owner-approved three-second readiness response budget of 16 October 2026 (RL-2). See [Configuration diagnostics](docs/contract/safety-rules.md#configuration-diagnostics).
+
+**Acceptance.**
+1. Start each runtime entry point with required and conditional bindings missing/malformed; diagnostics name bindings without values and health returns 503.
+2. Restore settings and recover; exercise D1/ASSETS faults inside the owner-approved three-second readiness response budget.
+
+**Bounded evidence (qualification pending).** `tests/public-paths.mjs` invokes `tests/startup-rer-relay-url-support.mjs` proveRerRelayUrlStartup once against the actual emitted Worker and independently migrated persistent D1. With MAIL_PROVIDER set to rer and a valid synthetic MAIL_API_KEY, independently missing and malformed non-HTTPS MAIL_RELAY_URL settings refuse health and an otherwise-valid native runner claim with 503 naming only the binding. The request origin is independent of the relay setting; captured diagnostics and responses withhold planted values, the observed outbound edge receives no requests, and every durable table remains exact, including populated owner admission, public counters and retained claim custody. A corrected synthetic HTTPS relay and restart on the same persistence restore health 200 and an authenticated idle claim without mail or target work. This qualifies only those two conditional-binding refusals and their correction; the current partial judgment, other configuration, readiness faults and timing, console, hosted and provider qualification remain unchanged.
+
+**Bounded sender evidence (qualification pending).** `tests/public-paths.mjs` invokes `tests/startup-mail-sender-support.mjs` proveMailSenderStartup once against the emitted Worker and independently migrated persistent D1. With MAIL_PROVIDER set to rer, valid synthetic relay authority and unrelated settings valid, missing and malformed mandatory MAIL_FROM settings each refuse health and an otherwise-valid scoped runner claim with 503 naming MAIL_FROM. Native owner admission, signed runner enrollment and inert retained custody precede refusal. Independently constructed request authority, captured value-free diagnostics, a zero-request outbound observer and complete readable durable snapshots, including SQLite sequences, demonstrate refusal without work. Correcting the sender and restarting the same persistence restores health 200 and authenticated idle claim 200; a wrong runner key still returns 401. Recovery permits only the named request-admission counts and runner-contact fields, preserving authority, custody and every other durable row without mail or target work. This qualifies only these sender cases and their correction; STARTUP-001 remains partial with all other binding, readiness, timing, console, hosted and provider obligations unchanged.
+
+**Declared Evidence (verbatim).** `src/domain/startup-config.mjs`; `tests/public-paths.mjs` — missing SESSION_SECRET gives Worker health 503 with a named, value-free diagnostic; restored settings recover to 200. `tests/resilience/watches.mjs` — Recover monitoring across runner and Worker crashes without replaying uncertain sends, invoking `tests/startup-runner-config-support.mjs` proveRunnerStartupConfiguration once: the actual private-runner command independently refuses missing and malformed UPTIME_CONTROL_ORIGIN and UPTIME_RUNNER_KEY with nonzero exits and binding names, withholding raw and encoded planted values; independently observed control and target edges receive no requests, every durable table is unchanged and disposable child directories retain no execution custody. Correcting each environment and restarting the same command in the same directory against a real migrated emitted Worker gives signed authenticated enrollment, an idle claim, durable contact and clean termination without target work.
+
+**Declared Gap (verbatim).** Missing SESSION_SECRET returns Worker health 503 with a named, value-free diagnostic, and restored configuration returns 200. Gap: other missing/malformed and conditional bindings, scheduled/local-app/preview/setup/deployment/private-runner entry points, missing ASSETS, a D1 readiness fault and the three-second fault-response budget lack assertions in the cited files. Retained bounded evidence (qualification pending; current partial judgment and unscoped gaps retained): the new command proof covers only missing and malformed UPTIME_CONTROL_ORIGIN and UPTIME_RUNNER_KEY and corrected idle enrollment. It does not qualify the complete private-runner binding matrix or the other runtime entry points, ASSETS, D1 faults or readiness timing. Console requalification, hosted readiness and capacity, and provider-account qualification remain held.
+
+**Planner disposition.** A1–2 complete missing/malformed/conditional configuration matrix across Worker, scheduled, local app, preview, setup, deployment and runner; ASSETS/D1 faults and ≤3-second readiness fault response. Existing origin/runner/mail cells built/reserved f40/f146/f147/f158/f165.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/startup-config.mjs`, `tests/public-paths.mjs`, `tests/resilience/watches.mjs`, `tests/startup-runner-config-support.mjs`
+
+## FLOW-001 — Supported isolated browser transactions
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1544.
+
+#### FLOW-001 — Supported isolated browser transactions
+
+**Requirement.** Login, signup and checkout are supported monitored customer paths with explicit intended outcomes, immutable revisions, safe synthetic accounts and scheduled consensus. A constrained editor and isolated Playwright execution share the same evidence and authority rules. Every required outcome must pass; missing browser/credentials is Unknown. Per-run process/profile isolation, sanitized environment, network filtering, hard time/byte limits and credential-origin binding apply to all scripts. An effect beyond an explicitly authorized synthetic transaction needs the owner's exact effect grant (API-004). A changed-definition recovery is labeled and never presented as proof of the original outcome. Support qualification covers independently placed real-browser vantages and the complete login, signup and sandbox checkout outcomes. Reusable scripts and fixtures are required under FLOW-002, failure artifacts under FLOW-003, browser/device coverage under FLOW-004, and setup/teardown and effects grants under API-004; secret-bearing grants require ACCESS-003 second-factor step-up, and reports spanning migrated history require HISTORY-001 source segments. FLOW-001 is done only when its own acceptance and each of these dependent clauses are done.
+
+**Acceptance.**
+1. Configure supported login, signup and sandbox checkout journeys, run independent real-browser vantages, break required outcomes and recover through signed results.
+2. Wrong credentials, missing elements, server errors, slow pages, private redirects/subresources, extra origins and absent browsers have distinct retained outcomes; weakened definitions cannot silently clear the original incident.
+
+**Declared Evidence (verbatim).** `src/domain/flow.mjs`; `runners/src/flow/run-flow.mjs`; `src/domain/flow-changes.server.ts`; `tests/flow-journey.mjs`; `tests/flow-journey.mjs`; `tests/flow-profiles.mjs`; `docs/browser-flows.md`
+
+**Declared Gap (verbatim).** Login, synthetic signup and sandbox order submission now run through the real Worker and two isolated signed runner processes, with retained missing-control, HTTP-error, missing-outcome, navigation-timeout, private-redirect, metadata and extra-origin failures, unchanged-definition scheduled recovery and unavailable-browser Unknown. Navigation timeouts no longer claim a clicked control was missing; numeric forbidden destinations are refused before browser dispatch as well as at the proxy. Local 1440/390 evidence and guide journeys are proven; independently placed browser-vantage and hosted customer-path qualification remain open.
+
+**Planner disposition.** A1 independently placed browser vantages and hosted customer-path field proof; local login/signup/checkout, refusal/recovery and 1440/390 proof already exist. Need independently hosted browser runners.
+
+**Referenced tracked implementation/tests opened by the source audit:** `runners/src/flow/run-flow.mjs`, `src/domain/flow-changes.server.ts`, `src/domain/flow.mjs`, `tests/flow-journey.mjs`, `tests/flow-profiles.mjs`
+
+## MONITOR-001 — Owned monitor catalog and lifecycle
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1545.
+
+#### MONITOR-001 — Owned monitor catalog and lifecycle
+
+*Tier:* Core · *Register:* R-2
+
+**Requirement.** An operator organizes monitors by project, environment, service, tags, owner and dependencies; bulk create/edit/pause/resume/clone/search/filter preserve revision and incident history. Every monitor names its intended customer outcome, schedule, locations, assertions, maintenance and alert policy. Pausing never erases downtime. Bulk add takes a pasted list of URLs (one per line) or an uploaded CSV of up to 500 rows. The CSV has a `url` column and optional `name`, `type`, `keyword`, `interval`, `tags` and `group` columns. Settings shared across the batch (type, interval, locations, alert route, tags) fill whatever the rows leave out. A preview without writes marks each row as create, duplicate of an existing monitor, or refused with its reason (an invalid URL, a forbidden destination under NETWORK-001 or a quota). It also shows COST-001's projected traffic and cost. Apply creates the accepted rows in one transaction, as one IMPORT-001-style undoable batch. The monitors start paused unless the owner chooses "enable after create" in the reviewed preview.
+
+**Acceptance.**
+1. Create production/staging monitors in the console/API, bulk change a selected tag, clone one, pause/resume another and compare revision, ownership and incident history before/after.
+2. Paste 50 URLs, including a duplicate, an invalid URL and a private address, with a shared 60-second interval, two locations and a route.
+3. The preview marks 47 creates, 1 duplicate and 2 refusals with reasons.
+4. Apply with "enable after create" and see 47 monitors checking on their first slot.
+5. Undo the batch, and a CSV upload with per-row names and tags produces the same plan.
+
+**Declared Evidence (verbatim).** `src/domain/catalog/`; `src/domain/alert-routes.server.ts`; `public/assets/alert-route.js`; `tests/catalog.mjs`; `tests/alert-routes.mjs`; `docs/evidence/contracts/routing/`; `src/domain/catalog/routes.server.ts`; `migrations/0072_named_alert_routes.sql`; `scripts/routing.mjs`; `tests/catalog-routes-support.mjs` (called by the existing `tests/alert-routes.mjs` registration)
+
+**Declared Gap (verbatim).** Catalog metadata, retained URL search/filter/selection and reviewed undoable lifecycle/URL/CSV batches ship. Existing monitor/service/group/installation recipient selection and matched recovery remain supported. Immutable named copies of reviewed explicit monitor routes now have owner-only fresh-MFA API/CLI selection preview (counts, per-monitor before/after, refusals and no-confirmed-recipient warning), atomic assignment and undo. The existing routing registration proves zero-write preview; admin/email-only and stale/race refusal; an actual confirmed incident reaching the route's separately confirmed fake-mail recipient while an unassigned monitor sends nothing; undo restoring inheritance/overrides after checks run without touching definitions, evidence or consent; later-route conflict refusal; local-only archive authority; monitor erasure and anonymized batch ownership. Issuer erasure removes session-bound MFA rows before invitation-derived Base sessions and preserves the surviving owner's factor and fresh sign-in. The existing catalog registration proves undo retains a clone's real signed HTTP observation, its scheduled slot and every history record. The list journey in `tests/operator-browser.mjs` proves planned, recurring, quick and inactive maintenance at 1440 and 390 with zero axe violations, no overflow or console errors. Gaps: held console batch-route control; naming is limited to reviewed explicit monitor policies and saved names have no edit/remove door; route defaults during URL/CSV bulk creation; removal of a never-probed clone; USD pricing; the 500-monitor target; hosted capacity/timing acceptance. Current installation cap: 100 monitors. History-bearing clones remain paused and retained by undo.
+
+**Planner disposition.** A1 route-name edit/remove and never-probed clone removal; A2–5 bulk creation's shared routes, 47 first-slot executions, undo and CSV parity at target capacity plus USD projection. Named-route console held; f2/catalog and existing console rounds excluded.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/assets/alert-route.js`, `scripts/routing.mjs`, `src/domain/alert-routes.server.ts`, `src/domain/catalog/routes.server.ts`, `tests/alert-routes.mjs`, `tests/catalog-routes-support.mjs`, `tests/catalog.mjs`
+
+## API-002 — Authenticated monitoring and secret lifecycle
+
+Declared: partial; planner: CHEAP. CONTRACT.md Status line 1548.
+
+#### API-002 — Authenticated monitoring and secret lifecycle
+
+*Tier:* Core · *Cites:* BASE-SECRET-001
+
+**Requirement.** Basic, HTTP Digest and bearer, OAuth 2.0 acquisition/refresh, JWT signing and mTLS client certificates use owner-authorized secret references, least scope, expiry/rotation and exact origins. Test accounts and credentials remain under installation/runner custody; auth errors remain distinguishable from application failures and secrets never enter evidence or exports.
+
+**Acceptance.**
+1. Use each authentication mode against an authorized endpoint, expire/rotate/revoke it and redirect cross-origin; show expected failure/recovery, refusal of foreign references and no planted secret in storage, logs, browser artifacts or archives.
+
+**Declared Evidence (verbatim).** `runners/src/auth/`; `runners/src/credentials.mjs`; `src/domain/credential-binding.mjs`; `tests/api-auth-journey.mjs`; `tests/tls-auth.mjs`; `tests/api-auth-journey.mjs`; `docs/evidence/contracts/trust-auth/`
+
+**Declared Gap (verbatim).** Digest, OAuth acquisition/refresh, JWT, mTLS, expiry, rotation/revocation, cross-origin stripping, failure/recovery and archive secret exclusion remain asserted. Gap: Basic authentication, standalone bearer credentials scoped to their own monitor, foreign-reference refusal and planted-secret absence from storage, logs and browser artifacts lack assertions in the cited files.
+
+**Planner disposition.** A1 standalone Basic/Bearer lifecycle and foreign-monitor-reference negatives; planted-secret exclusion across storage, logs, artifacts and archives. Native support exists; f48 reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `runners/src/credentials.mjs`, `src/domain/credential-binding.mjs`, `tests/api-auth-journey.mjs`, `tests/tls-auth.mjs`
+
+## TCP-001 — TCP service checks
+
+Declared: partial; planner: CHEAP. CONTRACT.md Status line 1551.
+
+#### TCP-001 — TCP service checks
+
+*Tier:* Core
+
+**Requirement.** TCP monitors test a chosen host/port, handshake latency and optional bounded banner from selected locations with the same confirmation, evidence and alert policy as HTTP. Refused connections, timeout and probe failure remain distinct.
+
+**Acceptance.**
+1. Create a TCP monitor through the console/API; open, close and blackhole an authorized port from two locations, then read evidence and trigger/recovery events.
+
+**Declared Evidence (verbatim).** `src/domain/protocol/settings.mjs`; `src/domain/protocol/evaluate.mjs`; `runners/src/protocol-probes.mjs`; `src/domain/worker-protocols.server.ts`; `tests/protocol-monitors.mjs`
+
+**Declared Gap (verbatim).** Carried-done audit: every cited TCP check runs from one location, so running from two locations is unasserted. Owner-API creation, open, refused and blackholed ports, the pinned address and banner evidence and trigger and recovery events are asserted.
+
+**Planner disposition.** A1 open/refused/blackhole and trigger/recovery from two assigned locations; one-location proof exists. f23 reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `runners/src/protocol-probes.mjs`, `src/domain/protocol/evaluate.mjs`, `src/domain/protocol/settings.mjs`, `src/domain/worker-protocols.server.ts`, `tests/protocol-monitors.mjs`
+
+## DOMAIN-001 — Domain registration expiry
+
+Declared: partial; planner: CHEAP. CONTRACT.md Status line 1555.
+
+#### DOMAIN-001 — Domain registration expiry
+
+*Tier:* Core
+
+**Requirement.** Domain monitors use RDAP and authorized registrar/WHOIS data, retain source/freshness, warn the owner before registration expiry and follow through until renewal is independently observed. Redacted, unavailable or conflicting registry data is Unknown; certificate renewal is not domain renewal.
+
+**Acceptance.**
+1. Add a domain in the console, drive authorized registry-edge responses through approaching expiry, unavailable data, conflicting dates and renewal; inspect distinct warnings, source times and resolved follow-up.
+
+**Declared Evidence (verbatim).** `src/domain/protocol/rdap.mjs`; `src/domain/expiry-notices.server.ts`; `tests/protocol-monitors.mjs`
+
+**Declared Gap (verbatim).** Carried-done audit: the cited test adds the domain through the owner API, not the console. Approaching-expiry warnings, Unknown for conflicting, redacted and unavailable data, registry and registrar source times and renewal follow-through are asserted.
+
+**Planner disposition.** A1 create through the actual console, then expiry/unavailable/conflicting/renewal evidence and follow-up; existing registry-edge API proof is insufficient. Existing protocol-form/uip scope reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/expiry-notices.server.ts`, `src/domain/protocol/rdap.mjs`, `tests/protocol-monitors.mjs`
+
+## HEARTBEAT-002 — Cron and job heartbeat schedules
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1559.
+
+#### HEARTBEAT-002 — Cron and job heartbeat schedules
+
+*Tier:* Core · *Register:* R-2
+
+**Requirement.** A buyer monitors a scheduled job by choosing either an expected period (30 seconds to 31 days) or a five-field cron expression with an IANA time zone (US zones offered first, daylight-saving gaps and repeats handled explicitly), plus a grace period (0 seconds to 24 hours). A run is missed when no success ping arrives by its expected time plus grace: the scheduled evaluation due at that instant confirms Failing, never earlier, and a later success recovers it labeled as a late run. The job can report its own failure without waiting for the window: a `/fail` or `/fail/<exit code>` ping schedules an immediate evaluation, so the incident opens within SCHEDULE-002's alert bound with the exit code and a bounded redacted output excerpt (request body up to 10 KiB, owner masks and EVIDENCE-002 secret patterns applied); a later success recovers it. An optional `/start` ping measures run duration: a run exceeding the owner's maximum duration alerts as Running too long, a start with no finish is a missed run, and every completed run's duration appears in history and REPORT-001.
+
+**Acceptance.**
+1. Through the console and API configure `0 2 * * *` in America/New_York with 15-minute grace; skip one run and see the alert open at 02:15 local time and not before, including across a DST change.
+2. Send `/fail/3` with output containing a planted token and see an immediate incident naming exit code 3 with the token masked, then recover with a success.
+3. Send `/start`, then success after 40 minutes against a 30-minute maximum, and see Running too long plus the recorded duration.
+
+**Declared Evidence (verbatim).** `src/domain/heartbeat-cron.mjs`; `src/domain/heartbeat.server.ts`; `src/domain/heartbeat-snippets.mjs`; `tests/signed-runner.mjs`; `tests/signed-runner.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/job-schedules/`
+
+**Declared Gap (verbatim).** Cron/IANA schedules with explicit DST skip/first-repeat rules, deadline previews and masked exit/duration history ship, and Worker and signed-runner failure/recovery and desktop/phone save/error/reload/focus/axe/reflow are proven. Remaining: hosted SCHEDULE-002 timing.
+
+**Planner disposition.** A1–3 remaining hosted alert/due timing under SCHEDULE-002; cron/DST, fail masking, max duration and local desktop/phone journeys already built. Need the R-2 hosted timing installation.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/heartbeat-cron.mjs`, `src/domain/heartbeat-snippets.mjs`, `src/domain/heartbeat.server.ts`, `tests/signed-runner.mjs`
+
+## HEARTBEAT-003 — Heartbeat receipt forms and scheduler snippets
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1560.
+
+#### HEARTBEAT-003 — Heartbeat receipt forms and scheduler snippets
+
+*Tier:* Core · *From:* HEARTBEAT-002
+
+**Requirement.** Receipts accept GET, HEAD and POST so curl, wget, PowerShell and HTTP-only schedulers work, either through a URL-capability form (rotatable, hashed at rest, rate-limited and labeled replay-unprotected, matching incumbent heartbeat URLs) or the sequence-protected header form; both keep HEARTBEAT-001's revision, ingress and import rules, and no ping by itself establishes Healthy. The console and API generate copy-paste snippets for crontab, curl/wget, systemd timers, Kubernetes CronJob, GitHub Actions and Windows Task Scheduler that wrap a command so start, success and failure with exit code are all reported.
+
+**Acceptance.**
+1. Receive GET, HEAD and POST pings.
+2. Run each generated snippet unmodified against a real shell or scheduler edge.
+3. Rotate the URL and prove the old URL, a replayed header sequence and an imported receipt cannot establish Healthy.
+
+**Declared Evidence (verbatim).** `src/domain/heartbeat-cron.mjs`; `src/domain/heartbeat.server.ts`; `src/domain/heartbeat-snippets.mjs`; `tests/signed-runner.mjs`; `tests/signed-runner.mjs`; `tests/signed-runner.mjs`; `docs/evidence/contracts/job-schedules/`
+
+**Declared Gap (verbatim).** GET/HEAD/POST receipts, hashed rotatable replay-unprotected URL capabilities, protected header sequences and nine generated scheduler examples ship. Executed curl/wget/Bash wrappers, parsed GitHub Actions workflow steps and Kubernetes command/args and parsed systemd service/timer units with executed ExecStart are proven, all six formats preserving start/completion receipts, measured duration and success/failure exit codes; YAML uses a real parser and systemd calendars use systemd-analyze, and no cluster, user manager or hosted Actions run is claimed. Remaining: native PowerShell/Windows and actual systemd user-manager/Kubernetes cluster/GitHub scheduler execution; arbitrary cron conversion for the labeled daily scheduler examples.
+
+**Planner disposition.** A2 native PowerShell/Task Scheduler, actual systemd user manager, Kubernetes and GitHub scheduler execution; arbitrary cron conversion for daily-labelled examples. A1/A3 receipt/rotation rules already built. OS/scheduler matrix plus cron conversion; sd c14-b reserved for its existing shell slice.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/heartbeat-cron.mjs`, `src/domain/heartbeat-snippets.mjs`, `src/domain/heartbeat.server.ts`, `tests/signed-runner.mjs`
+
+## HEARTBEAT-004 — Heartbeat settings from incumbents
+
+Declared: partial; planner: CHEAP. CONTRACT.md Status line 1561.
+
+#### HEARTBEAT-004 — Heartbeat settings from incumbents
+
+*Tier:* Core · *From:* HEARTBEAT-002 · *Register:* R-3
+
+**Requirement.** Heartbeat migration uses documented source settings through the MIGRATE clauses, with newly issued Uptime URLs. [UptimeRobot](https://github.com/uptimerobot/ai/blob/main/skills/create-heartbeat-monitor/SKILL.md) `interval` and `gracePeriod` (seconds) map to Uptime period and grace; [Better Stack](https://betterstack.com/docs/uptime/api/create-a-hearbeat/) `period` and `grace` (seconds) map directly. Source alert contacts, delays/repeats and escalation settings are reviewed under the migration and routing clauses, never treated as grace. [Site24x7 heartbeats](https://www.site24x7.com/help/heartbeat/index.html) document no separate period/grace pair: their threshold profile sets late-ping Trouble and Down deadlines and an early-ping Trouble threshold. MIGRATE-004 requires the owner to choose an explicit local period and grace whose sum preserves the selected missed-ping deadline, and names any Trouble/early-ping behavior requiring a separate policy rather than silently converting it. [Pingdom’s documented check types](https://docs.pingdom.com/api/) contain no heartbeat, cron or push check: Pingdom has no heartbeat check; nothing to migrate. These source limits do not reduce Uptime’s cron, IANA/DST, receipt, period or grace capabilities.
+
+**Acceptance.**
+1. For UptimeRobot, preview `interval: 3600` and `gracePeriod: 300`; for Better Stack, preview `period: 3600` and `grace: 300`.
+2. Each becomes a paused 60-minute period plus 5-minute grace, discards source URL authority, and after owner activation with a new URL fails only at the 65-minute deadline and recovers on a late success.
+3. Reconcile each source’s alert settings separately.
+4. For Site24x7, review a 10-minute Trouble and 30-minute Down threshold plus an early-ping threshold; an owner-selected 25-minute period and 5-minute grace preserves the Down deadline, and the preview names Trouble and early-ping differences for explicit policy review.
+5. No Pingdom heartbeat entry or invented field is requested.
+
+**Declared Evidence (verbatim).** `src/domain/heartbeat-cron.mjs`; `src/domain/heartbeat.server.ts`; `src/domain/heartbeat-snippets.mjs`; `tests/signed-runner.mjs`: signed job failure, duration and recovery; `tests/definitions-import.mjs`: reviewed saved heartbeat pairs and paused apply; `tests/signed-runner-heartbeat-import.mjs` proveImportedHeartbeatJobs (invoked by `tests/signed-runner.mjs`): both exact source documents through owner activation, new local URL, no early failure, signed 65-minute deadline incident, retained labeled late recovery, inert source authority and revoked local URL; `docs/evidence/contracts/job-schedules/`
+
+**Declared Gap (verbatim).** Saved UptimeRobot and Better Stack 60-minute period plus five-minute grace previews and paused apply, explicit owner activation with a newly issued local URL, signed local evaluation with no early failure and a 65-minute deadline incident, retained labeled late-success recovery, no ingress health changes or source-alert replay are proven. Remaining: remaining documented UptimeRobot and Better Stack source mappings and separate alert-setting reconciliation; Site24x7 threshold review and explicit owner-selected local period/grace conversion; live source-account cutover. Pingdom has no heartbeat check; nothing to migrate.
+
+**Planner disposition.** A3 separate source alert-setting reconciliation; A4 explicit Site24x7 10-minute Trouble/30-minute Down/early-ping review and owner-selected 25+5 conversion; A1–2 already built, A5 no invented Pingdom heartbeat. Queue bounded A4.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/heartbeat-cron.mjs`, `src/domain/heartbeat-snippets.mjs`, `src/domain/heartbeat.server.ts`, `tests/definitions-import.mjs`, `tests/signed-runner-heartbeat-import.mjs`, `tests/signed-runner.mjs`
+
+## SCHEDULE-002 — Interval floor, on-time execution and alert latency
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1563.
+
+#### SCHEDULE-002 — Interval floor, on-time execution and alert latency
+
+*Tier:* Core · *Register:* R-1, R-2
+
+**Requirement.** Every protocol monitor (HTTP/API, keyword, TCP, ping, DNS, UDP, mail and heartbeat) can run every 30 seconds from each selected managed location, with 60 seconds as the default; TLS and domain expiry checks run at least hourly and browser transactions as often as every minute. A plan or budget that imposes a slower floor shows it before activation under COST-001. Cadence holds at scale: with 500 monitors at 30 seconds from three locations in one workspace, at least 99% of slots per location are claimed within 5 seconds of their due time and 99.9% within 15 seconds over any hour. Each location's on-time rate and lag distribution is visible in the console and METRICS-001, and a late or missed slot is recorded as such and counts as Unknown rather than being skipped silently. From the commit of the observation that confirms an incident to the first delivery attempt for every routed destination takes at most 10 seconds at p99, excluding and showing any ROUTING-002 delay. The editor shows each monitor's worst-case detection time for its saved settings (confirmation slots × interval + timeout + retry budget + the alert bound). Capacity or quota shortfall is visible and halts or labels work under COST-001; it never quietly stretches an interval.
+
+**Acceptance.**
+1. Through the public API create 500 monitors at 30 seconds from three managed locations against controlled targets and run them for at least one hour; compute claim lag from stored slot records and compare it with the console and metrics figures.
+2. Fail a target and measure from the confirming observation's commit time to each destination's first attempt start.
+3. Remove one location's capacity and see late or missed slots reported and coverage turn Unknown; reach a quota and see named halted work rather than a longer interval; compare the editor's detection-time figure with the measured outage-to-alert time.
+
+**Declared Evidence (verbatim).** `src/domain/policy.mjs`; `src/domain/schedule.ts`; `tests/signed-runner.mjs`
+
+**Declared Gap (verbatim).** Intervals from 5 seconds (60-second default, 5-minute browser floor) are accepted and due times are enforced; hosted Cron runs each minute, and on-time rate at scale, alert latency and the detection-time display are unmeasured or absent.
+
+**Planner disposition.** A1 500×30s×3 for ≥1 hour: 99% claim lag ≤5s and 99.9% ≤15s, console/metrics parity; A2 first destination attempt p99 ≤10s after confirming commit; A3 lost capacity/quotas/Unknown and detection-time display. Scheduler, storage, metrics and UI cross-cut.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/policy.mjs`, `src/domain/schedule.ts`, `tests/signed-runner.mjs`
+
+## PROBE-001 — US and global independent locations
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1564.
+
+#### PROBE-001 — US and global independent locations
+
+*Tier:* Core · *Register:* R-1
+
+**Requirement.** Buyers select managed US East, Central and West plus Europe and Asia-Pacific locations, see operator/network/region identity and IPv4/IPv6 coverage, and configure duration/location consensus. A lone network blip never fires a confirmed outage; independent target observations or an independently passing canary corroborate it. Probe health and regional partial failure remain visible; no label pretends to be physical independence.
+
+**Acceptance.**
+1. Run an authorized public target from real US and global locations, break only one probe network and then the target, stop a region and recover.
+2. Inspect independent network evidence, Degraded/Unknown coverage and confirmed trigger/recovery.
+
+**Declared Evidence (verbatim).** `src/domain/runner-registration.server.ts`; `src/domain/policy.mjs`; `tests/control-runtime.mjs`
+
+**Declared Gap (verbatim).** Multiple signed runners, labels and agreement exist; managed geographic placement and independent hosted coverage are not provided or proven.
+
+**Planner disposition.** A1–2 real US East/Central/West, Europe/APAC independent-network evidence, one-network versus target failure, stopped region and recovery. Need managed independent locations, not renamed local runners.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/policy.mjs`, `src/domain/runner-registration.server.ts`, `tests/control-runtime.mjs`
+
+## PROBE-002 — Published probe addresses and identification
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1565.
+
+#### PROBE-002 — Published probe addresses and identification
+
+*Tier:* Core · *Register:* R-1
+
+**Requirement.** Every managed location sends checks from stable dedicated egress addresses. Uptime publishes each location's IPv4 and IPv6 list as plain-text and JSON files, as DNS A/AAAA records under a documented name per location plus one all-locations name, and through an unauthenticated machine-readable API that always returns the current list with a version and effective date; the console also shows the subset a buyer's own monitors use. Address additions and removals are announced at least 30 days ahead by email to owners, a changelog/RSS feed and a `pending` section of the API, and a new address carries checks only after that notice period; an emergency change is labeled as such with its reason. Every hosted request carries a documented User-Agent naming Uptime, its version, a probe documentation URL and an opaque monitor reference, plus an optional per-installation secret header buyers can match in Cloudflare, AWS WAF, Akamai or origin bot rules; the header follows NETWORK-001's credential rules and is stripped on cross-origin redirects. The current Cloudflare Worker vantage uses shared egress with no dedicated address: until it moves behind published egress the console labels it not allowlistable and offers a published location instead. Private runners (PRIVATE-001) report their own observed egress address.
+
+**Acceptance.**
+1. From each managed location run a real check against an authorized target that logs source address, User-Agent and header; every observed source appears in that location's published file, DNS answer and API list, and no unpublished address appears.
+2. Allowlist only the published addresses at a controlled WAF and see every location pass.
+3. Stage an address change and verify the notice, pending entry and 30-day hold before the new address carries checks; redirect cross-origin and prove the secret header is not forwarded; inspect the Worker vantage's not-allowlistable label.
+
+**Declared Evidence (verbatim).** `src/domain/worker-http.server.ts`; `runners/src/public-http.mjs`; `tests/tls-auth.mjs`; `tests/hosted-alerts.mjs` invokes `tests/hosted-probe-identification-support.mjs` proveHostedProbeIdentification: owner-created HTTP and keyword monitors, actual scheduled Worker requests, independently received release and public documentation URL with distinct opaque references stable through retry, same-origin and cross-origin redirect, restart and owner edit; planted private names and session authority excluded; ordinary failure, recovery and immutable history retained with unchanged evidence runnerVersion
+
+**Declared Gap (verbatim).** Hosted and runner requests send a release-identifying User-Agent; dedicated egress, published address files/DNS/API, change notice and the WAF header do not exist.
+
+**Planner disposition.** A1–3 dedicated IPv4/IPv6 egress, files/DNS/API/version/effective date, WAF validation, 30-day notices/pending hold, optional secret header, cross-origin stripping, shared-Worker label and runner egress. UA/opaque identity already built; queue only secret-header transport slice.
+
+**Referenced tracked implementation/tests opened by the source audit:** `runners/src/public-http.mjs`, `src/domain/worker-http.server.ts`, `tests/hosted-alerts.mjs`, `tests/hosted-probe-identification-support.mjs`, `tests/tls-auth.mjs`
+
+## REPORT-001 — Latency, uptime and SLA reporting
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1568.
+
+#### REPORT-001 — Latency, uptime and SLA reporting
+
+*Tier:* Core
+
+**Requirement.** Per-monitor/service/location charts show response-time percentiles, availability, outage duration, incident timelines and SLA/SLO attainment for buyer-chosen periods and US time zones. Export CSV/JSON/PDF and schedule email/Slack reports to authorized recipients; the same figures are available through READAPI-002's authenticated API, computed by the same code, for the same period, time zone and denominator. Incident lists and SLA reports can be filtered and grouped by INCIDENT-003 root-cause category, with incident count and downtime per category. Unknown, partial, paused and maintenance time and denominator policy are visible. Incumbent history imported under HISTORY-001 appears as a labeled source segment with its own denominator, next to Uptime's own slots and a blended cross-cutover figure naming both sources; it cannot improve current health. SLOW-001 slow time is reported apart from downtime.
+
+**Acceptance.**
+1. Cause known failures, gaps, slow responses, maintenance and revisions; compare custom-period charts and downloaded reports to immutable slots, schedule a report, fail delivery and inspect its durable outcome.
+2. A report spanning a HISTORY-001 cutover shows the source and Uptime segments with their own denominators.
+3. A report filtered by an INCIDENT-003 root-cause category lists exactly the incidents with that category.
+4. Each downloaded report's figures equal READAPI-002's for the same period.
+
+**Declared Evidence (verbatim).** `src/domain/reports/`; `scripts/reports.mjs`; `tests/reporting.mjs` (proveScheduledReports in `tests/report-schedules-support.mjs`); `tests/reporting.mjs` (scheduled report outcome at 1440/390); `docs/scheduled-reports.md`; `public/assets/report-schedule-controls.js`; `tests/reporting.mjs`; `migrations/0075_recurring_reports.sql`; `src/domain/reports/recurring.server.ts`; `tests/report-recurrences-support.mjs` (proveRecurringReports); `tests/reporting.mjs` (proveRecurringReportConsole)
+
+**Declared Gap (verbatim).** Per-monitor custom/24h/7d/30d/90d snapshots share immutable coverage, location latency, root causes, Unknown/paused/maintenance denominators, SLA and separate Slow time across console/CSV/JSON/API/PDF. Heartbeat runs retain paged zone-aware receipt records; snapshots and paging focus survive polling. One-time per-monitor schedules freeze the same period-engine figures for an existing enabled email or Slack destination, retain initiating owner and due time, and use existing single-attempt delivery custody. API/CLI proof covers future-send refusal, restart before due, durable email uncertainty/Slack failure, matching period/zone/denominator figures and no duplicate on resume. The Notifications console shows scheduled delivery outcomes and one-time creation/cancellation controls at 1440/390. Queued cancellation is atomic, idempotent and retained with the report_cancelled reason across restart through API/CLI; a delivery that has started cannot be recalled. Daily/weekly/monthly schedules now retain an IANA zone, immutable anchor and owner admission; due occurrence snapshot, unique delivery and next occurrence commit together. The public calendar preview and CLI prove DST gaps/repeats and month-end clamping; missed occurrences skip to the next anchored time without a catch-up burst. Per-monitor and named service-member figures use the same period engine and summed observed denominators; READAPI-002 JSON/CSV and frozen console downloads agree. tests/report-recurrences-support.mjs (proveRecurringReports within tests/reporting.mjs and tests/reporting.mjs) proves real due/restart, single-attempt email/Slack outcomes, owner/destination revocation, cancellation, scoped service reads, inactive snapshot restore without recurrence authority, corrupt service-denominator refusal before restore writes, and aggregate-member erasure. tests/reporting.mjs (proveRecurringReportConsole) proves creation for each cadence, previews, service selection, frozen outcome/download and stop reasons at 1440/390 with axe/reflow. Gap: HISTORY-001 other-incumbent history, source-segment charts and source incident lists in the held monitor report view, and service charts. UptimeRobot source segments, denominators and labeled blending now ship through report JSON/CSV/PDF and explicit read-API source selection. Recurrence authority stays installation-local; frozen scheduled report history restores inactive. No combined service percentile is claimed; each member retains its own latency figures. The held public/monitor-report.js is unchanged. No live provider receipt is claimed.
+
+**Planner disposition.** A1 service charts; A2 held source-segment charts/incident lists and other-incumbent history; A4 maintain JSON/CSV/PDF/read parity. Recurrences, frozen delivery and cancellation already built. Depends on history and held UI.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/assets/report-schedule-controls.js`, `scripts/reports.mjs`, `src/domain/reports/recurring.server.ts`, `tests/report-recurrences-support.mjs`, `tests/report-schedules-support.mjs`, `tests/reporting.mjs`
+
+## DIAG-001 — Connection and network diagnostics
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1570.
+
+#### DIAG-001 — Connection and network diagnostics
+
+*Tier:* Core · *Register:* R-1
+
+**Requirement.** A confirmed timeout, connection refusal or reset, DNS failure or TLS failure automatically collects bounded traceroute/MTR, DNS, TCP and TLS phase timings from authorized probe locations, retains hop loss/latency, compares healthy regions and attaches the result to the EVIDENCE-002 incident report. Redaction and traffic caps apply; blocked diagnostics are explicitly unavailable and never alter the monitor verdict.
+
+**Acceptance.**
+1. Trigger a controlled route/connect timeout and a refused connection, open diagnostics from incident detail and compare two locations with one ICMP-blocked path; inspect bounded artifacts, visible unavailable reason and unchanged incident.
+
+**Declared Evidence (verbatim).** `runners/src/network-diagnostics.mjs`; `runners/src/network-phase-capture.mjs`; `runners/src/protocol-diagnostics.mjs`; `runners/src/dns-diagnostics.mjs`; `src/domain/network-diagnostics.mjs`; `src/domain/network-diagnostic-peers.server.ts`; `src/domain/worker-protocol-diagnostics.server.ts`; `public/assets/failure-snapshot-view.js`; `tests/protocol-monitors.mjs` (owner-to-runner TCP/DNS/TLS lifecycle and proveNetworkDiagnostics in `tests/network-diagnostics-support.mjs` with `tests/connection-diagnostics-protocols.mjs`); `tests/udp-monitors.mjs`; `tests/ping-monitors.mjs`; `tests/mail-journey.mjs`; `tests/hosted-alerts.mjs`; `tests/failure-page-browser.mjs` (diagnosticBrowser, protocolDiagnosticBrowser, within the protocol journey)
+
+**Declared Gap (verbatim).** HTTP/keyword and TCP, TLS, DNS, UDP, ping and mail connection failures retain bounded diagnostics in the existing failure-snapshot custody. Original pinned transports supply measured phases; numeric traceroute stays at five hops, one packet per hop, a three-second deadline and 16 KiB native-output cap, without another resolution or connection. Controlled TCP/TLS timeouts and refusals, DNS/certificate failures, UDP timeout, ICMP loss and mail connection/TLS failures (including a distinct receiving-mailbox pin) pass signed intake, incident detail/report, healthy-peer comparison, blocked-path reasons, unchanged verdicts, forged/oversized refusal, inactive restore and erasure. Incident diagnostics have 1440px reflow/axe assertions and 1440/390 browser proof; hosted socket phases/tracing and private-network tracing are explicitly unavailable. Gap: real independent-location route/TLS/DNS qualification remains unproved.
+
+**Planner disposition.** A1 real independent-location route/TLS/DNS comparison with ICMP-blocked path. Bounded native protocol diagnostics already built; need actual independent network locations.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/assets/failure-snapshot-view.js`, `runners/src/dns-diagnostics.mjs`, `runners/src/network-diagnostics.mjs`, `runners/src/network-phase-capture.mjs`, `runners/src/protocol-diagnostics.mjs`, `src/domain/network-diagnostic-peers.server.ts`, `src/domain/network-diagnostics.mjs`, `src/domain/worker-protocol-diagnostics.server.ts`, `tests/connection-diagnostics-protocols.mjs`, `tests/failure-page-browser.mjs`, `tests/hosted-alerts.mjs`, `tests/mail-journey.mjs`, `tests/network-diagnostics-support.mjs`, `tests/ping-monitors.mjs`, `tests/protocol-monitors.mjs`, `tests/udp-monitors.mjs`
+
+## PERF-001 — Page speed and real-user performance
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1571.
+
+#### PERF-001 — Page speed and real-user performance
+
+*Tier:* Core · *Cites:* BASE-PUBLIC-001
+
+**Requirement.** Synthetic page-speed checks retain DNS/connect/TLS/TTFB, resource waterfall and Core Web Vitals budgets. An optional consent-aware browser beacon measures real-user availability/performance by route, device and region with sampling, privacy exclusions and bot filtering; RUM and synthetic denominators remain distinct. Buyers can find a slow mobile checkout despite a healthy health endpoint.
+
+**Acceptance.**
+1. Configure a page-speed monitor and consented beacon on a controlled site, throttle mobile assets and produce a browser error; inspect waterfall, budget alert, privacy/sampling settings and separate RUM versus synthetic reports.
+
+**Declared Evidence (verbatim).** `tests/flow-journey.mjs` with `tests/pagespeed-support.mjs` provePageSpeed: mobile CLS above the 0.1 budget with retained failing budget:cls, desktop within budget, measured phone-profile RUM CLS, US and Canadian checkout rows each retaining one view, an actual consenting phone-profile HTTP 500 page measured unavailable by the shipped beacon, and the existing waterfall, LCP, TBT and error budgets, incident and email, healthy health endpoint, consent, sampling, exclusions, privacy, bot filtering and separate denominators; console CLS budget and real-user rows at 1440 and 390 with axe and reflow. `tests/pagespeed-timing-support.mjs` with `tests/pagespeed-network-fixture.mjs` and `tests/pagespeed-network-trust.mjs`: controlled wire DNS and generated-certificate TLS, each delayed phase moving its retained timing, independently delayed connect and first byte with cross-phase separation, signed scheduled history and report retention, TLS absent on HTTP. `tests/pagespeed-support.mjs` proveRumUpgrade: populated additive 0066 upgrade and preserved old sums across 0077; Candidate rider evidence: `tests/pagespeed-support.mjs` provePageSpeed asserts RUM error counts against actual shipped browser beacons, measured LCP, CLS and INP percentile values, weighted multi-value ranks and missing-metric denominators, bot exclusion, edge-provided US subdivision grouping and invokes proveRumErasure for owner erasure of the registration and all aggregate tables with a second site preserved, then provePopulatedRumRestore for populated owner-API archive and restore: registration and sampling remain local, restored collection is off and every RUM audit arrives. The receiving owner door also refuses unknown audit actions and mismatched subjects. proveRumUpgrade asserts additive `migrations/0077_rum_percentile_erasure.sql` preserves old sums and invents no old percentiles. `docs/monitors.md` discloses non-browser Origin spoofing, local settings and restored collection off.; `tests/public-paths.mjs`: beacon admission and rate limit.
+
+**Declared Gap (verbatim).** Synthetic budgets, waterfall and timing, consented sampled RUM and separate denominators are asserted. RUM error-count accuracy, percentile ranks and missing-metric denominators, US subdivision grouping, bot exclusion, erasure and populated restore/upgrade remain unqualified (RL-8).
+
+**Planner disposition.** A1 RUM error counts, percentile ranks/missing denominators, US subdivisions, bot exclusion, erasure and populated restore/upgrade (RL-8). Analytics/retention/archive cross-cut; sd c21/c28 and uip page-speed work reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `tests/flow-journey.mjs`, `tests/pagespeed-network-fixture.mjs`, `tests/pagespeed-network-trust.mjs`, `tests/pagespeed-support.mjs`, `tests/pagespeed-timing-support.mjs`, `tests/public-paths.mjs`
+
+## DEPENDENCY-002 — Third-party service catalog
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1573.
+
+#### DEPENDENCY-002 — Third-party service catalog
+
+*Tier:* Core · *Cites:* BASE-DATA-004
+
+**Requirement.** An owner can add a named third-party provider directly from a searchable catalog, without running discovery. The catalog covers at least the providers US small businesses commonly depend on: AWS, Google Cloud, Microsoft Azure and Microsoft 365, Cloudflare, Stripe, PayPal, Square, Shopify, GitHub, Vercel, Netlify, Twilio, SendGrid, Mailgun, Slack, Zoom, Atlassian, OpenAI, Anthropic, Okta, Auth0, DigitalOcean and Fastly. Each entry names the provider's official status source (a Statuspage-compatible JSON API, RSS/Atom feed or status page) and its components and regions. The owner can follow the whole provider or chosen components, such as Stripe API or AWS us-east-1 EC2. A followed service becomes a dependency monitor inheriting DEPENDENCY-001's attribution, contextual-evidence and separation rules; this clause replaces its ordinary separate-monitor incident default with dependency notices that open no Uptime incident. The provider's stated status is attributed contextual evidence, is never proof that the buyer's application is up or down, and never changes an application monitor's state. Provider incidents and recoveries notify through the owner's chosen ROUTING-001 route as dependency notices, not as Uptime incidents. They appear beside correlated application incidents under FOLLOWUP-001, and AGENT-002 can cite them. A dependency the owner links to a monitor, service or group (MONITOR-001) shows as linked and qualifies for grouped acknowledgment. An unlinked provider incident that overlaps in time shows only as contextual coincidence and never groups acknowledgment. Following an entry first checks its status source live; a failing source is marked needs review. An owner can add a provider not in the catalog by giving its status page URL, which goes through DEPENDENCY-001's reviewed proposal. Catalog entries are versioned and reviewed when a provider moves its status source. A source that stops answering makes that dependency Unknown, never operational. UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries during migration. An explicitly reviewed Auth0 follow sends only the named tenant domain to Auth0's fixed official status endpoint, and that egress is disclosed before the owner confirms the follow; an unusable or ambiguous provider source, such as a free-text feed with no status field, stays Unknown and no status is inferred from it (RL-101).
+
+The bounded native Auth0 source-check door reviews one tenant domain in Auth0's tenant namespace, the fixed `https://status.auth0.com/rss` endpoint and its sole domain query before explicit owner consent can queue work. The persisted check and signed result keep that reviewed binding across restart; a changed tenant or reviewing owner requires a new review. Unconfirmed reviews expire after ten minutes; queued work retains the initiating owner's revocation fence. `tests/service-catalog-auth0-support.mjs`, mounted by `tests/discovery-jobs.mjs`, exercises admission and refusal with provider responses controlled only at the network edge. This source-check evidence does not qualify successful Auth0 status interpretation or following, live tenant behavior, Fastly status semantics or the held console controls.
+
+**Acceptance.**
+1. Search the catalog for Stripe and add it with only the API component followed, then add AWS us-east-1.
+2. At an authorized status-source edge, report a Stripe API incident: a dependency notice reaches the chosen route, no Uptime incident opens, and the application monitor's state is unchanged.
+3. Fail the application at the same time and see the correlated dependency on its incident.
+4. Make the status source unreachable and see the dependency turn Unknown.
+5. Recover the provider and see the recovery notice.
+6. Import an UptimeRobot account that follows Stripe and AWS and see both mapped onto catalog entries.
+7. Overlap an unlinked provider incident and see it labelled coincident, outside the group.
+8. Import a Better Stack and a Site24x7 account with third-party monitors and see them mapped, or the clause cites the public API showing no such field and the import refuses conversion.
+
+**Declared Evidence (verbatim).** `src/domain/service-catalog/` (one streaming status-source reader in `src/domain/service-catalog/reader/`, part facts in `src/domain/service-catalog/parts.mjs`, scheduled reads in `src/domain/service-catalog/followed.mjs`, 1 MiB bound); `src/domain/service-catalog.server.ts`; `src/domain/dependency-notices.ts`; `src/domain/incident-work/dependencies.server.ts`; `src/domain/definitions/importers/third-party.ts`; `migrations/0064_service_catalog.sql`; `tests/discovery-jobs.mjs` — "DEPENDENCY-002 catalog providers are followed after a live source check, notify every contact and fallback on their route without opening an incident, show linked and coincident notices on application incidents, go Unknown when a source fails, and a provider outside the catalog goes through the reviewed proposal" (search, live check and follow, needs review, every-contact and fallback notices under quiet hours, no incident, unchanged application, linked and coincident overlap with grouped acknowledgment, Unknown on unreachable, moved and reshaped sources, one recovery notice, a provider added by address, 1440/390 axe and reflow), with `tests/service-catalog-sources.mjs` in the same journey (Cloudflare Workers, Google Compute Engine in us-central1, PayPal REST APIs in production and Okta followed through the console control with the location and environment choice from synthetic full-size documents over 64 KiB; a stated incident and recovery on each sends one dependency and one recovery notice on the route with no Uptime incident and the application monitor unchanged; a 32 MiB document and a changed shape turn Unknown with the review marker; the runner's peak RSS delta and the edge's unsent bytes on the oversize read; 1440/390 axe and reflow of the location choice and the Unknown review); `tests/notify-delivery.mjs` — "DEPENDENCY-002 fallbacks honor the saved delay across restart, cancel on primary acceptance or recovery, and retain zero-delay and quiet-hour behavior"; `tests/service-catalog-portability.mjs` (archive, inactive restore, erasure, populated upgrade); `tests/definitions-import.mjs` (UptimeRobot, Better Stack and Site24x7 mappings)
+
+**Declared Gap (verbatim).** Gap: Auth0 and Fastly cannot be followed from the catalog. Following Auth0 needs the disclosed tenant-domain egress RL-101 permits, which is not built: Auth0 publishes its regional status feeds only by tenant domain (`status.auth0.com/rss?domain={tenant}`; a build-host GET with a tenant that does not exist answered 400 “check your domain parameter”). Fastly's official feed (`https://www.fastlystatus.com/rss`, 85,172 bytes, confirmed by a build-host GET on 22 October 2026) is a history of free-text postings with no status, component or region field, so it stays Unknown and no stated status is read from it (RL-101).
+
+**Planner disposition.** Required catalog coverage: Auth0 successful status interpretation/follow after reviewed tenant egress; Fastly usable stated status without prose inference. A1–8 existing provider notice/correlation/import behavior must remain intact. Reviewed Auth0 source-check already built, not a follow.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/definitions/importers/third-party.ts`, `src/domain/dependency-notices.ts`, `src/domain/incident-work/dependencies.server.ts`, `src/domain/service-catalog.server.ts`, `src/domain/service-catalog/followed.mjs`, `src/domain/service-catalog/parts.mjs`, `tests/definitions-import.mjs`, `tests/discovery-jobs.mjs`, `tests/notify-delivery.mjs`, `tests/service-catalog-portability.mjs`, `tests/service-catalog-sources.mjs`
+
+## DISCOVERY-001 — Reviewed automatic endpoint discovery
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1574.
+
+#### DISCOVERY-001 — Reviewed automatic endpoint discovery
+
+*Tier:* Core · *Cites:* BASE-DATA-004 · *Register:* R-7
+
+**Requirement.** Read-only discovery combines DNS/authorized Route 53 or Cloudflare zones, robots/sitemaps, OpenAPI specifications and GitHub Actions, Vercel, Netlify and AWS CodeDeploy deployment events to propose HTTP/API/protocol/browser monitors. It shows source, intended outcome, duplicates, expected traffic/cost, locations and credential needs. Expected cost is COST-001's projected monitor-run, probe and browser-minute usage priced in USD; until COST-001 publishes prices it shows as Unknown. Rediscovery is owner-started and diffs against the previous run and current definitions; continuous upkeep is AGENT-001's. Buyers review targets, grants, budgets and activation in each proposal before they adopt it; an agent's adoption is a live call the company's policy decides. Discovery never sends mutating customer requests or silently enables traffic.
+
+**Acceptance.**
+1. Authorize a domain/spec/deploy source through the owner door, discover a new route and removed endpoint, review proposals and reject one; inspect provenance/deduplication and prove only explicitly adopted monitors run.
+
+**Declared Evidence (verbatim).** `src/domain/discovery-sources.server.ts`; `src/domain/discovery-sources.mjs`; `src/domain/discovery-proposals.ts`; `runners/src/discovery/sources/`; `src/editor/monitor/sources.mjs`; `migrations/0065_discovery_sources.sql`; `tests/discovery-jobs.mjs` — "Discover a site, review and adopt monitoring, follow its dependency, and retain source custody" (proveDiscoverySources); `tests/discovery-public-dns-support.mjs` — provePublicDnsDiscovery, invoked by that same journey: owner authorization of run-uptime.com, real signed runner completion through the unchanged system resolver and public transport, retained apex and www DNS proposals checked against independently resolved current answers, reviewed rejection across reload, bounded traffic, Unknown USD cost and no unadopted monitors or slots, including completion replay refusal; `tests/discovery-sources-portability.mjs`; `tests/access-matrix.mjs` (members refused)
+
+**Declared Gap (verbatim).** USD cost projection (blocked on COST-001) remains absent. Gap: Route 53, Cloudflare, GitHub Actions, Vercel, Netlify and CodeDeploy are proven at an authorized provider edge only; live provider-account authorization is Not proved. Continuous upkeep: see AGENT-001. Held-key round (26 October 2026), SD receipt report only: domain discovery for run-uptime.com recorded apex and www A and AAAA answers using the runner's default system resolver without a controlled listener or resolver override, seven proposals from three GETs and one rejection; GitHub Actions discovery for the run-uptime repository owned by just-every and its owner-started rediscovery recorded 12 and 2 allowlisted GETs, all HTTP 200, zero proposals and no rejection, using the production owner's broader classic PAT rather than the specified fine-grained read-only credential; Cloudflare receipts recorded zone metadata at HTTP 200 and DNS records at HTTP 403 with the original token, followed by six GETs, including zone metadata and a three-record DNS response both at HTTP 200, ten proposals and one rejection with a separately supplied credential described as restricted to run-uptime.com with Zone Read and DNS Read. The receipts recorded three incorrect DNS expectations of 100:: for proxied Cloudflare names and zero adopted monitors or created provider objects. The existing tagged discovery journey asserts that proxied names do not propose hidden origin DNS expectations, including mixed proxy flags, while DNS-only records retain their published-answer proposal. These historical receipt-reported provider observations are not retained assertions or proof here of live provider-account authorization or a live GitHub rejection. Public domain qualification is independently retained by the named public DNS journey; it supplies no provider-account authority. Route 53, Vercel, Netlify and CodeDeploy remain at the authorized provider edge only, USD cost projection remains blocked on COST-001, continuous upkeep remains AGENT-001's, and DISCOVERY-001 remains partial.
+
+**Planner disposition.** A1 itemized USD projection once COST-001 rates exist; real least-scope Route53/Cloudflare/GitHub/Vercel/Netlify/CodeDeploy authorization is separate R-7 field proof. Existing provider-edge and public-DNS tests are not missing implementations.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/discovery-proposals.ts`, `src/domain/discovery-sources.mjs`, `src/domain/discovery-sources.server.ts`, `src/editor/monitor/sources.mjs`, `tests/access-matrix.mjs`, `tests/discovery-jobs.mjs`, `tests/discovery-public-dns-support.mjs`, `tests/discovery-sources-portability.mjs`
+
+## FLOW-002 — Reusable Playwright monitoring as code
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1575.
+
+#### FLOW-002 — Reusable Playwright monitoring as code
+
+*Tier:* Core
+
+**Requirement.** Buyers import and version real Playwright scripts, test suites and fixtures for login, signup and checkout alongside API checks, with dependency locks, selected secrets, setup/teardown and safe effects grants. Each run is isolated outside ordinary Worker requests; scripts cannot bypass destination or resource controls. Editor and code revisions expose the same required outcomes.
+
+**Acceptance.**
+1. Import a real Playwright suite via CLI/GitHub Actions, preview and deploy it, then break a fixture, assertion and forbidden network call; scheduled runs preserve intended outcomes, isolation and reviewable revision history.
+
+**Declared Evidence (verbatim).** `scripts/definitions.mjs`; `scripts/definitions-http.mjs`; `scripts/playwright-import/`; `src/domain/flow-source.mjs`; `tests/flow-journey.mjs` with `tests/playwright-import-support.mjs`, `tests/playwright-workflow-support.mjs` and `tests/playwright-custody-support.mjs` (runner-flows)
+
+**Declared Gap (verbatim).** The supported real Playwright subset (RL-13) imports JSON fixtures and an npm v3 dependency lock without executing buyer code; unsupported constructs refuse by file and line. The checked-in workflow shell runs CLI import, Worker preview and apply with the fixture owner session, names immutable flow digests and reapplies the same source without changing revisions. Imported login/signup/checkout and a separate API check use ordinary deployment and scheduled runners. Broken setup, assertion and forbidden metadata calls retain distinct manual and scheduled outcomes and revision digests; ambiguous locators fail, and selected secrets stay runner-local. Definition export and inactive archive restore retain exact source/fixture/lock bytes and flow digests; erasure removes them and dependent custody. Gap: arbitrary Playwright execution requires an OS-level runner sandbox; console import-source and revision views are held UI. Hosted GitHub execution and least-scope CI credentials are not claimed (CODE-001).
+
+**Planner disposition.** A1 arbitrary Playwright isolation requires OS sandbox; held source/revision UI and least-scope hosted CI proof remain. Translate/refuse subset is adopted RL-13; do not weaken it.
+
+**Referenced tracked implementation/tests opened by the source audit:** `scripts/definitions-http.mjs`, `scripts/definitions.mjs`, `src/domain/flow-source.mjs`, `tests/flow-journey.mjs`, `tests/playwright-custody-support.mjs`, `tests/playwright-import-support.mjs`, `tests/playwright-workflow-support.mjs`
+
+## ROUTING-001 — Monitor, service and team alert routing
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1578.
+
+#### ROUTING-001 — Monitor, service and team alert routing
+
+*Tier:* Core
+
+**Requirement.** Route confirmed alerts by monitor/group, environment, severity, region, incident origin, team and US business/quiet hours; select multiple contacts with explicit inheritance, preview and test. Destination secrets stay installation-local and routing changes are auditable. A paused or disabled contact cannot silently count as covered. Per-contact delay and repeat are ROUTING-002's; retry and fallback contacts are DELIVERY-002's. The route's quiet-hour policy applies to every contact on the route, fallback contacts included. Team recipients, filters and quiet holds follow the rules in [Routing filters](docs/contract/safety-rules.md#routing-filters-routing-001).
+
+**Acceptance.**
+1. Configure two teams and production/staging routes through the UI/API; trigger each class inside/outside quiet hours, rotate a destination and inspect selected/excluded recipients and drill outcomes.
+
+**Declared Evidence (verbatim).** `src/domain/alert-routes.server.ts`; `src/domain/alert-route-delivery.server.ts`; `public/assets/alert-route.js`; `tests/alert-routes.mjs`; `docs/evidence/contracts/routing/`; `src/domain/contact-quiet.ts`; `src/domain/contact-scheduler.server.ts`; `migrations/0061_contact_quiet.sql`; `public/assets/contact-quiet.js`; `tests/notify-quiet-fixture.mjs` (email/webhook quiet holds, DST, overnight and transport-boundary restart); `tests/notify-delivery.mjs` (quiet hold and editor/preview/save/reopen at 1440/390); `src/domain/alert-teams.server.ts`; `src/domain/alert-team-policy.ts`; `src/domain/alert-route-filters.ts`; `scripts/routing.mjs`; `migrations/0069_alert_teams_filters.sql`; `tests/alert-routing-teams-support.mjs`; `tests/alert-routing-filters-support.mjs` (extended existing route journey; local routing/access/security checks passed, exact-head branch Verify remains required)
+
+**Declared Gap (verbatim).** Monitor → service → group → installation inheritance, explicit empty selection, credential/disabled/missing exclusions, recipient and affected-monitor previews, stale-plan guards, labeled tests, durable audit and original accepted-trigger recipient/credential recovery now ship. ROUTING-002 now supplies per-contact delay/repeat/cap, recovery preference and acknowledgment-stop policies, plus reviewed saved UptimeRobot/Pingdom schedule previews. DELIVERY-002 supplies transport retry and fallback chains. Contact quiet holds (optional daily IANA-zone windows, overnight and DST boundaries, persisted hold rechecked at handoff, restart) are built toward this clause's quiet hours and apply to fallback contacts. Explicit team membership and a live scope-eligible member's opt-in to their verified email destination now govern API/CLI selection. Paused, disabled, stale-role and rotated-credential recipients do not count. Environment filters use monitor metadata; region selectors are exact configured non-pass probe IDs; severity is derived critical/warning/info for outage/Slow/dependency; origin is monitor/slow/dependency, never the console URL. Omitted dimensions allow all, empty lists match none and missing values cannot satisfy nonempty filters. Route quiet combines with contact quiet and is snapshotted onto fallback contacts. Gap: The original two-team production and staging journey is not fully qualified through both UI and API. Console controls for teams, route filters, route quiet and weekly business selection remain required, and a console edit must preserve all saved extended fields. Basic geographic-region routing remains unqualified; exact non-pass probe-ID matching alone is not geographic qualification. Route-aware sending drills and weekly business-hour selection are unshipped, expiry and renewal notices still bypass effective routes (RL-11), and the two-team all-class inside-and-outside-quiet qualification is incomplete. Present-time quiet holds and fallback restart are proven, but real-alert DST dispatch remains unqualified. Per-contact delay and repeat remain ROUTING-002 duties; transport retry and fallback-chain behavior remain DELIVERY-002 duties. Richer optional provenance, geographic hierarchy, portable detailed route history and configurable severity are separate work candidates, without removing the original routing duties.
+
+**Planner disposition.** A1 UI+API two-team production/staging all-class inside/outside quiet journey; preserve extended fields; team/filter/quiet/business controls, actual geographic routing, route drills, expiry/renewal routing and real-alert DST dispatch. Reserved sd-rs1/c28 and strategy-trial-12/uip work.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/assets/alert-route.js`, `public/assets/contact-quiet.js`, `scripts/routing.mjs`, `src/domain/alert-route-delivery.server.ts`, `src/domain/alert-route-filters.ts`, `src/domain/alert-routes.server.ts`, `src/domain/alert-team-policy.ts`, `src/domain/alert-teams.server.ts`, `src/domain/contact-quiet.ts`, `src/domain/contact-scheduler.server.ts`, `tests/alert-routes.mjs`, `tests/alert-routing-filters-support.mjs`, `tests/alert-routing-teams-support.mjs`, `tests/notify-delivery.mjs`, `tests/notify-quiet-fixture.mjs`
+
+## WEBHOOK-001 — Custom webhook requests and payload templates
+
+Declared: partial; planner: CHEAP. CONTRACT.md Status line 1582.
+
+#### WEBHOOK-001 — Custom webhook requests and payload templates
+
+*Tier:* Core · *Cites:* BASE-SECRET-001
+
+**Requirement.** A webhook destination sets its HTTP method (GET, POST, PUT or PATCH), its delivery mode (JSON body, form-encoded fields or query-string parameters) and up to 10 custom headers (4 KiB in total). Header values such as `Authorization` or `X-Api-Key` are installation-local secrets: they are encrypted at rest under NOTIFY-001's credential custody, masked after save and never logged, exported or placed in evidence. Its body or parameter template draws on a documented, versioned variable set. The variables cover monitor ID, name, URL, type and tags; alert type (down, up, test, expiry warning, slow) with UptimeRobot-compatible numeric codes and friendly names; alert details (the plain-language down reason); alert start time in UTC and the owner's US time zone; alert duration in seconds and human-readable form; incident key, stable event ID and console link; failed locations and each location's outcome; HTTP status code; response time; failed assertion; SSL certificate expiry date and days left; domain expiry date and days left; and heartbeat last-receipt time. UptimeRobot's notification variables (`*monitorID*`, `*monitorURL*`, `*monitorFriendlyName*`, `*alertType*`, `*alertTypeFriendlyName*`, `*alertDetails*`, `*alertDuration*`, `*alertDateTime*`, `*httpStatusCode*`, `*sslExpiryDate*`, `*sslExpiryDaysLeft*` and the rest of its published list) are accepted as aliases. A variable with no Uptime equivalent is named at save and in the MIGRATE-001 preview; it is never silently rendered empty. Every substituted value is escaped for where it lands. In JSON bodies that means JSON string escaping, with quotes, backslashes and control characters escaped and `<`, `>` and `&` written as Unicode escapes. Form and query values are percent-encoded. A header value containing CR or LF is refused. A JSON template that does not parse after substitution with sample values is refused at save. The console preview renders the exact request (method, URL, headers with secret values masked, and body) for sample trigger, recovery, expiry and slow events. A test send delivers it to the receiver and shows the status code and a bounded response excerpt without changing monitor state. Optional HMAC-SHA256 signing (timestamp and signature headers over the exact rendered bytes) applies on top of any template; NOTIFY-001's default signed JSON envelope remains one template choice. Requests follow NETWORK-001 destination rules, DELIVERY-001/DELIVERY-002 attempt semantics (the stable event ID is a variable and can be sent as an idempotency header) and ROUTING-001/ROUTING-002 route selection. Templates, method, mode and header names travel in archives; header values and signing keys do not.
+
+**Acceptance.**
+1. Import an UptimeRobot webhook contact whose custom JSON POST value uses `*monitorFriendlyName*`, `*alertType*` and `*alertDetails*` and which sends an `X-Api-Key` header, then fail and recover a monitor: the controlled receiver gets the same field names, header and content type it got from UptimeRobot, with values substituted.
+2. A monitor named with quotes and `<script>` arrives correctly escaped, and the body parses as JSON.
+3. Query-string and form modes arrive as parameters, and GET mode sends no body.
+4. A header value containing CR/LF is refused at save.
+5. An unmappable variable is named in the migration preview and at save.
+6. The preview matches the received request byte for byte apart from masked secrets.
+7. The signed variant verifies with its HMAC.
+8. An archive export contains the template and header names but no header value.
+
+**Declared Evidence (verbatim).** `src/domain/webhook-template.mjs`; `src/domain/notification-webhook.ts`; `src/domain/webhook-contact-import.mjs`; `runners/src/notification-transport.mjs`; `public/webhook-editor.js`; `public/notifications.js`; `tests/webhook-custom.mjs`; `tests/webhook-custom.mjs`; `tests/hosted-alerts.mjs`; `docs/webhooks.md`
+
+**Declared Gap (verbatim).** Carried-done audit: no cited line compares the preview with the received request byte for byte. The imported UptimeRobot contact, substituted field names, header and content type on trigger and recovery, escaping and valid JSON, query, form and GET modes, CR/LF refusal, the named unmappable variable, HMAC signing and archives without header values are asserted.
+
+**Planner disposition.** A6 remaining byte-for-byte redacted preview versus authorized sample-send request comparison; modes, headers, HMAC and template refusals already built. f44 reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/notifications.js`, `public/webhook-editor.js`, `runners/src/notification-transport.mjs`, `src/domain/notification-webhook.ts`, `src/domain/webhook-contact-import.mjs`, `src/domain/webhook-template.mjs`, `tests/hosted-alerts.mjs`, `tests/webhook-custom.mjs`
+
+## CHAT-001 — Teams, Discord, Telegram and workplace chat
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1583.
+
+#### CHAT-001 — Teams, Discord, Telegram and workplace chat
+
+*Tier:* Core · *Register:* R-6
+
+**Requirement.** Microsoft Teams is supported through Microsoft's current mechanisms, because Microsoft is retiring Office 365 connectors (incoming webhooks). The first is a Teams Workflows webhook URL (the "post to a channel when a webhook request is received" workflow), to which Uptime posts Adaptive Cards. The second is the Uptime Teams app, which posts to a chosen channel or chat through the Bot Framework after a Teams admin installs it. A legacy Office 365 connector URL is accepted only with a "retiring connector" label. The label is shown on the destination, in the MIGRATE-001 preview and in drill results, with steps to create a Workflows URL. A connector URL that starts refusing posts is shown as failed with Microsoft's response, never as delivered. Discord, Telegram (Bot API with the buyer's bot token and chat or group ID), Google Chat and Mattermost destinations carry monitor, location, failed assertion, severity, incident key and authenticated evidence link with tested trigger/recovery/drill formatting. Per-channel scopes, credential rotation, rate limits and delivery uncertainty follow the same custody rules as Slack.
+
+**Acceptance.**
+1. Configure each named connector, including a Telegram bot posting to a group chat, a Teams Workflows URL and the Uptime Teams app in a channel, through the owner console, drill it, fail and recover a monitor, return a provider error and rotate credentials; inspect channel readback, correlation and distinct acknowledgment/receipt states.
+2. Import an UptimeRobot Teams contact with a legacy connector URL and see the retiring-connector label and replacement steps; make that URL refuse posts and see a failed outcome with the response.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1 native Teams Workflows Adaptive Cards and Teams app, Discord, Telegram group, Google Chat, Mattermost create/drill/trigger/recovery/error/rotation and receipt distinction through console; A2 legacy label, replacement and failure readback. Credential, transport and UI cross-cut. Queue API/CLI transport slice only.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## PHONE-001 — US SMS and voice alerts
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1584.
+
+#### PHONE-001 — US SMS and voice alerts
+
+*Tier:* Core · *Register:* R-4
+
+**Requirement.** SMS and voice calls sent from PHONE-002's Uptime-provided registered US sender (or, optionally, a buyer-connected Twilio account) to verified US E.164 numbers deliver incident context and secure acknowledgment with consent, quiet hours, opt-out, per-team USD budgets and visible provider/carrier outcomes. Repeats and call escalation follow the buyer policy and Oncall handoff; Uptime does not act as a carrier or guarantee receipt. Usage is metered and budgeted under COST-001. This clause inherits the SMS fallback acceptance from DELIVERY-002.
+
+**Acceptance.**
+1. In a new workspace with no provider account, verify a real US mobile number and trigger SMS/voice and acknowledgment on that handset (PHONE-002).
+2. At the provider edge, simulate opt-out, spend cap, a failed carrier and an uncertain call result; inspect no unauthorized sends/charges and visible unresolved follow-up.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1 verified handset SMS/voice/acknowledgment via managed or connected provider; A2 opt-out, spend-cap, carrier failure, uncertain result, fallback and unresolved follow-up. No implementation; phone, budget, consent and delivery subsystems coupled.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## PHONE-002 — Uptime-provided compliant US sender
+
+Declared: missing; planner: HELD-EXTERNAL. CONTRACT.md Status line 1585.
+
+#### PHONE-002 — Uptime-provided compliant US sender
+
+*Tier:* Core · *Register:* R-4
+
+**Requirement.** SMS and voice alerts work on day one in a new workspace, with no buyer provider account and no buyer carrier registration. Uptime runs a managed telephony relay, operated with Twilio in the same way as the RER mail relay used for email. Its alert SMS go out from a US A2P 10DLC-registered brand and campaign or a verified toll-free number, and its calls use a voice caller ID with STIR/SHAKEN attestation. The console shows the sender number, its registration state and a contact card recipients can save. Each recipient number is verified by a one-time code before it receives any alert. Uptime records consent, verification time and the opt-in text shown. STOP, HELP and START are honored at the carrier and in Uptime: an opted-out number is shown as opted out and receives nothing until it opts back in. Every attempt records the carrier delivery receipt (delivered, undelivered with the carrier error code, or unknown) and the call result (answered, busy, no answer or failed). Uptime owns and monitors registration status, sender changes and provider throughput. A suspension or filtering spike is shown to every affected owner, and the incident goes to the route's other channels and its DELIVERY-002 fallback chain. Connecting the buyer's own Twilio account and registered messaging service remains optional. Those credentials stay under installation-local custody, outcome reporting is the same, and Uptime never sends from a buyer account the buyer has not connected. This clause inherits the SMS fallback acceptance from DELIVERY-002.
+
+**Acceptance.**
+1. In a new workspace with no provider account, verify a real US mobile number on each of AT&T, Verizon and T-Mobile by one-time code.
+2. Confirm an outage: each handset receives the SMS and the voice call, with carrier delivery receipt and answered-call result recorded.
+3. Reply STOP and see further SMS stop and the opt-out shown; HELP returns the sender identification; START resumes.
+4. The console shows the registered sender and its state.
+5. Each send is metered at COST-001's shown USD price.
+6. Connect a buyer-owned Twilio account and see the alert sent from the buyer's number with the same outcomes.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; no telephony relay or registered sender exists. Acceptance journey above is required.
+
+**Planner disposition.** A1–6 new-workspace managed sender, three carriers' OTP/alerts/call receipts, STOP/HELP/START, registration display, metered price and optional buyer Twilio. Need an operator-authorized registered US relay sender; local relay/consent/metering code is also unbuilt and must not be disguised as field-only work.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## MOBILE-001 — Mobile operator access and push
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1586.
+
+#### MOBILE-001 — Mobile operator access and push
+
+*Tier:* Core · *Cites:* BASE-ACCESS-004, BASE-OPS-005, BASE-ROLE-001 · *Register:* R-5
+
+**Requirement.** Responsive operator flows and native iOS/Android clients support secure sign-in honoring ACCESS-003 second factors, monitor/incident evidence, pause/maintenance controls and push alerts via APNs/FCM; Pushover and Pushbullet are selectable provider destinations. Expired tokens, offline reads, revoked sessions and notification permissions have honest states.
+
+**Acceptance.**
+1. Install the iOS and Android apps from their public App Store and Google Play listings; on those devices and 390-pixel web, receive a test push and open its exact incident, acknowledge via the configured responder handoff, go offline, revoke a session and deny push permission; inspect stale data labels and failed delivery.
+2. Drill Pushover and Pushbullet separately.
+
+**Declared Evidence (verbatim).** `src/routes/_console.tsx`; `tests/operator-browser.mjs`
+
+**Declared Gap (verbatim).** Responsive web exists; native clients, APNs/FCM, Pushover and Pushbullet do not.
+
+**Planner disposition.** A1 public iOS/Android clients, second-factor sign-in, exact-incident APNs/FCM push, responder acknowledgment, offline/revoked/denied-permission states plus 390 web; A2 Pushover/Pushbullet drills. Native apps, identity and push custody cross-cut.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/routes/_console.tsx`, `tests/operator-browser.mjs`
+
+## FOLLOWUP-001 — Ongoing outage follow-up and correlation
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1587.
+
+#### FOLLOWUP-001 — Ongoing outage follow-up and correlation
+
+*Tier:* Core
+
+**Requirement.** Each confirmed incident has an owner, next-due follow-up, durable progress and stop/resolution state. The owner is a named workspace member (by default the monitor's or route's owner). Members with the ACCESS-001 responder role or above can take or reassign ownership, and each change is recorded. Next-due follow-up is the time and kind of the next scheduled reminder, escalation or handoff check, computed from the route's ROUTING-002 policy and shown on the incident and in READAPI-003. Durable progress is the incident's append-only timeline. Each entry has a time, an actor (a member, or a named feature such as scheduler, router or agent) and a kind: confirmation with its cause; each notification, reminder and handoff attempt with its outcome; acknowledgment, with who, when and through which channel; owner assignment and reassignment; INCIDENT-001 comments, edits and INCIDENT-003 root-cause changes; maintenance or pause applied during the incident; and recovery or manual resolution. Entries survive restart, travel in archives and are never rewritten; corrections are added as new entries. Stop/resolution state is open, acknowledged or resolved, and records what stopped reminders (recovery, acknowledgment policy or a member's stop). Configurable repeated reminders are new auditable events with stable incident identity; they never replay an uncertain send under DELIVERY-001. Correlate simultaneous dependency failures for grouped acknowledgment while preserving every monitor result; acknowledgment stops reminders only under the selected policy, and recovery closes the right incident. ROUTING-002 supplies contact notification and reminder scheduling, DELIVERY-002 fallback escalation scheduling and ONCALL-001 native handoff-check and responder-policy scheduling; FOLLOWUP-001 keeps named ownership, the next-due kind and time and every attempt and outcome in the incident timeline through the console, API/CLI and READAPI-003 doors, including restart and inactive archive behavior (RL-5).
+
+**Acceptance.**
+1. Trigger correlated outages, acknowledge one group, restart before a due reminder, lose a delivery response and recover one child; inspect one event per due reminder, retained uncertainty, unclosed children and final resolution without duplicate sends.
+2. Reassign the incident owner, restart the Worker and read the incident timeline through the console and READAPI-003: confirmation, every attempt with its outcome, the acknowledgment with actor and channel, both owner changes, the reminders and the recovery appear in order with actor and time, and the next-due time matches the route policy.
+
+**Declared Evidence (verbatim).** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs` (proveOwnIncidentCorrelation in `tests/incident-correlation-support.mjs`; proveIncidentMembers in `tests/incident-members-support.mjs`; proveCombinedIncident in `tests/incident-combined-support.mjs`, driven through the signed-in console by incidentConsole in `tests/incident-console-support.mjs`); `tests/contact-schedules.mjs` (contact schedules survive restart, stop on recovery/ack, and never replay uncertain attempts)
+
+**Declared Gap (verbatim).** Acceptance points 1 and 2 are proved through their doors on the candidate: tests/incident-work.mjs runs proveCombinedIncident with incidentConsole, in which the owner's signed-in console compares the rendered owner, response state, next-due kind and exact time and every timeline row with READAPI-003 at each phase (before and after Worker restart), reassigns the owner through the console, and a service-scoped responder signs in with its second factor, reads the in-scope incident and reassigns ownership through the API door; the final account shows confirmation, notification and escalation attempts with outcomes, the acknowledgment with actor and channel, both owner changes with their actors, the due reminder and the recovery in order, with axe and reflow checks at 1440 and 390. Remaining Gap: ONCALL-001 handoff-check scheduling and handoff attempts/outcomes remain a missing dependency of FOLLOWUP-001 (RL-5, RL-6, RL-7), not an exclusion from its acceptance; every current notification, reminder, fallback escalation, ownership and timeline door remains required. Adopted default (no ruling covers it; conservative owner-only): the console shell and setup stay owner-only, so a narrowed responder who signs in with a second factor is refused at the console with no incident exposed and takes or reassigns ownership through the API and CLI doors; responder console shell, navigation and in-console follow-up use are not built or proved and need a ct ruling. Response resolution never changes monitor health. ROUTING-002 supplies current contact notification and reminder scheduling, DELIVERY-002 supplies current fallback escalation scheduling, and ONCALL-001 will supply native handoff-check and responder-policy scheduling. FOLLOWUP-001 retains named ownership, next-due kind/time and every attempt/outcome in the incident timeline through the existing console, API/CLI and READAPI-003 doors, including restart and inactive archive behavior.
+
+**Planner disposition.** A1–2 native Oncall handoff-check/responder-policy due times and attempts/outcomes; narrowed responder initial console entry/navigation still needs ruling. Existing owner timeline/restart/scoped API proof already built; strategy-trial-7/main-readonly work reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/incident-work.js`, `tests/contact-schedules.mjs`, `tests/incident-combined-support.mjs`, `tests/incident-console-support.mjs`, `tests/incident-correlation-support.mjs`, `tests/incident-members-support.mjs`, `tests/incident-work.mjs`
+
+## INCIDENT-001 — Incident comments and edit history
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1588.
+
+#### INCIDENT-001 — Incident comments and edit history
+
+*Tier:* Core · *Cites:* BASE-ACCESS-002, BASE-ROLE-001
+
+**Requirement.** Every incident, open or resolved, has a comments section on its detail page and in the FOLLOWUP-001 timeline. Members with the ACCESS-001 responder role or above can add a comment of up to 5,000 characters. Each comment records its author and time, renders as escaped plain text with links, and can be edited by its author or an admin. Every edit keeps the earlier version in a visible edit history with editor and time. Deleting a comment requires its author or an admin and leaves a "comment deleted" timeline entry that names who deleted it and when; the text and its history are removed.
+
+**Acceptance.**
+1. Confirm an outage through scheduled evidence; as a responder, comment "restarted php-fpm" on the open incident.
+2. A read-only member is refused when trying to comment, edit or delete through the console and the direct API, and nothing is written.
+3. The owner edits the comment, and the edit history shows both versions with editor and time.
+
+**Declared Evidence (verbatim).** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs`; `tests/signed-runner.mjs`
+
+**Declared Gap (verbatim).** The bounded API/CLI slice adds live scoped responder/editor/admin/owner comments and author/admin edits and deletion; existing incident JSON and edit history remain. Gap: the held console comment, edit and delete role workflows.
+
+**Planner disposition.** A1–3 console add/edit/delete and edit history under author/admin and scoped responder roles; API/CLI already built. Held console and initial role navigation prevent an isolated proof-only change.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/incident-work.js`, `scripts/incidents.mjs`, `src/domain/incident-work/mention-delivery.server.ts`, `src/domain/incident-work/mention-members.server.ts`, `tests/incident-members-support.mjs`, `tests/incident-work.mjs`, `tests/signed-runner.mjs`
+
+## INCIDENT-002 — Comment mentions
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1589.
+
+#### INCIDENT-002 — Comment mentions
+
+*Tier:* Core · *From:* INCIDENT-001
+
+**Requirement.** Typing @ offers workspace members only. A mention notifies that member by email through the Base mail adapter, and by push once MOBILE-001 ships. The notice carries the incident, a bounded excerpt of the comment and an authenticated link. Each mention's delivery outcome is shown on the comment and follows DELIVERY-001's single-attempt rule.
+
+**Acceptance.**
+1. In a comment on the open incident, @mention a colleague: the colleague receives the email with the excerpt and link, and the delivery outcome is shown on the comment.
+
+**Declared Evidence (verbatim).** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `migrations/0085_incident_mention_dispatch.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs` — proveIncidentMembers; `tests/incident-mention-recovery-support.mjs` — proveMentionRecovery, invoked by `tests/incident-work.mjs`: committed responder comment, pre-reservation storage interruption and persisted Worker restart, bounded scheduled recovery with stable delivery identity and retained API and CLI outcome, competing dispatch once, stale comment and recipient refusal, erasure, inactive restore and no reserved or uncertain send replay; `tests/hosted-alerts.mjs` — hosted Cron with busy probes and ordinary email defers excess mentions without reserving them, then submits each stable delivery identity once; `tests/signed-runner.mjs`
+
+**Declared Gap (verbatim).** ID/display-name-only eligible member suggestions and Base email mentions with durable single-attempt outcomes ship through the API/CLI. Gap: the held console mention and outcome workflows and MOBILE-001 push.
+
+**Planner disposition.** A1 plus the requirement’s later push path: console eligible mention/outcome workflow and MOBILE push, retaining scope, consent and no duplicate mention delivery. API/CLI email mention custody already built; f12/f14/f152/f154 reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/incident-work.js`, `scripts/incidents.mjs`, `src/domain/incident-work/mention-delivery.server.ts`, `src/domain/incident-work/mention-members.server.ts`, `tests/hosted-alerts.mjs`, `tests/incident-members-support.mjs`, `tests/incident-mention-recovery-support.mjs`, `tests/incident-work.mjs`, `tests/signed-runner.mjs`
+
+## INCIDENT-003 — Incident root cause
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1590.
+
+#### INCIDENT-003 — Incident root cause
+
+*Tier:* Core · *From:* INCIDENT-001
+
+**Requirement.** Each incident also has a root-cause field: a category from a buyer-editable list plus free text of up to 2,000 characters. The default categories are hosting provider, deployment or code change, DNS, TLS certificate, third-party dependency, network, configuration, capacity, planned work, monitor or check issue, and unknown. The field can be set or changed during or after the incident, and each change is a timeline entry with editor and time. Incidents can be filtered, grouped and reported by root-cause category in the console, in REPORT-001 and in READAPI-003.
+
+**Acceptance.**
+1. After recovery, the owner sets the root cause "Hosting provider: disk full".
+2. A REPORT-001 report and a READAPI-003 incident list filtered by that category list the incident.
+
+**Declared Evidence (verbatim).** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs`; `tests/signed-runner.mjs`
+
+**Declared Gap (verbatim).** Root causes, categories and report filters ship through the API/CLI. Gap: the held console root-cause workflow; category administration remains owner-only.
+
+**Planner disposition.** A1–2 held console root-cause selection/editing and category-filter report journey; API/CLI and owner-only category administration already built.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/incident-work.js`, `scripts/incidents.mjs`, `src/domain/incident-work/mention-delivery.server.ts`, `src/domain/incident-work/mention-members.server.ts`, `tests/incident-members-support.mjs`, `tests/incident-work.mjs`, `tests/signed-runner.mjs`
+
+## INCIDENT-004 — Publish a comment to the status page
+
+Declared: missing; planner: HELD-EXTERNAL. CONTRACT.md Status line 1591.
+
+#### INCIDENT-004 — Publish a comment to the status page
+
+*Tier:* Core · *From:* INCIDENT-001 · *Register:* R-6
+
+**Requirement.** Each comment has an explicit "Publish to status page" action and is never published otherwise. The action previews the exact text and the update status (investigating, identified, monitoring or resolved) for the LAMP-001-mapped Lamp or Atlassian Statuspage incident. It then sends that text as an incident update under LAMP-001's signed idempotent handoff and the buyer's selected approval path. The publication outcome, and the public update once Lamp or Statuspage accepts it, is shown on the comment. Editing a published comment never changes the public update silently; it offers a "publish correction" action instead.
+
+**Acceptance.**
+1. Publish one comment to a mapped Lamp component: it appears there as an incident update with the chosen status, and a replayed publish creates no second update.
+2. A second, unpublished comment never reaches Lamp, Slack or any webhook receiver.
+
+**Declared Evidence (verbatim).** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs`; `tests/signed-runner.mjs`
+
+**Declared Gap (verbatim).** No implementation: LAMP-001 publication does not exist, so there is no Publish to status page action, preview, idempotent handoff, publication outcome or correction.
+
+**Planner disposition.** A1–2 per-comment publish preview/approval/version-keyed handoff/outcome and correction; unpublished comments send nothing. Need approved Lamp publication/import API; local action is unbuilt too.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/incident-work.js`, `scripts/incidents.mjs`, `src/domain/incident-work/mention-delivery.server.ts`, `src/domain/incident-work/mention-members.server.ts`, `tests/incident-members-support.mjs`, `tests/incident-work.mjs`, `tests/signed-runner.mjs`
+
+## INCIDENT-005 — Comment and root-cause custody
+
+Declared: partial; planner: CHEAP. CONTRACT.md Status line 1592.
+
+#### INCIDENT-005 — Comment and root-cause custody
+
+*Tier:* Core · *From:* INCIDENT-001 · *Cites:* BASE-DATA-003 · *Register:* R-3
+
+**Requirement.** Unpublished comments and root causes never leave Uptime, except for mention emails to the mentioned member and the owner's own exports. Comments, edit histories and root causes are included in incident exports, READAPI-003 incident detail and ARCHIVE-001/ARCHIVE-002 archives. They are erased with their monitor under ERASURE-001 and counted in its receipt. Erasing an operator keeps that member's comments, with the author shown as a former member, and removes mentions of them. Comment add, edit and delete actions and root-cause changes are audited under AUDIT-001 without their text. Comments and root causes never change a verdict, state, incident threshold, uptime or SLA figure. They are the team's account, kept apart from EVIDENCE-002's machine-derived cause. MIGRATE-001 imports UptimeRobot incident comments and root causes as HISTORY-001 labeled source history where the source API exposes them, and names them where it does not.
+
+**Acceptance.**
+1. An incident export and an archive round trip keep the comments, edit history and root cause.
+2. Erasing the monitor removes them, and the receipt counts them.
+3. Monitor state, incident thresholds, uptime and SLA figures are identical before and after every comment and root-cause change.
+4. Import an UptimeRobot incident with a comment and root cause: it appears as labeled source history, or the preview names the field the source does not expose.
+
+**Declared Evidence (verbatim).** `src/domain/incident-work/`; `public/incident-work.js`; `tests/incident-work.mjs`; `docs/evidence/contracts/incidents/`; `src/domain/incident-work/mention-delivery.server.ts`; `src/domain/incident-work/mention-members.server.ts`; `migrations/0070_incident_mentions.sql`; `scripts/incidents.mjs`; `tests/incident-members-support.mjs`; `tests/signed-runner.mjs`
+
+**Declared Gap (verbatim).** Safe archive history and operator/monitor erasure ship. Gap: sourced incumbent incident imports.
+
+**Planner disposition.** No new unbuilt own A1–4 implementation identified: UptimeRobot comments/root cause, archive/erasure and unchanged native figures already have source assertions. Declared gap is broader sourced-incumbent custody, now HISTORY-001 work, plus R-3 authentic-account proof. f12/f16 reserved; no judgment-only builder.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/incident-work.js`, `scripts/incidents.mjs`, `src/domain/incident-work/mention-delivery.server.ts`, `src/domain/incident-work/mention-members.server.ts`, `tests/incident-members-support.mjs`, `tests/incident-work.mjs`, `tests/signed-runner.mjs`
+
+## ONCALL-001 — Responder handoff and automatic resolution
+
+Declared: missing; planner: HELD-EXTERNAL. CONTRACT.md Status line 1593.
+
+#### ONCALL-001 — Responder handoff and automatic resolution
+
+*Tier:* Core · *Register:* R-6
+
+**Requirement.** Native [Oncall](https://github.com/just-every/run-oncall), PagerDuty Events API v2 and Splunk On-Call connectors hand confirmed failures to the buyer-selected service with stable deduplication key, severity, service/team mapping, regional/step evidence and authenticated attachments. Handoff acknowledgment and responder status remain separate. Recovery resolves the same remote incident; elapsed-time/team-availability/origin escalation invokes the configured responder policy rather than implementing rotations here. This clause inherits the PagerDuty destination-kind acceptance from DELIVERY-002. It owns connector-native handoff checks and the configured responder-escalation policy, including handoff attempts and outcomes; its scheduling and outcomes feed FOLLOWUP-001's incident timeline and next-due projection and READAPI-003's incident reads (RL-6).
+
+**Acceptance.**
+1. Cause a confirmed failure and repeats through each named connector, interrupt the response, receive acknowledgment and recover; inspect one remote incident with evidence, correct policy and resolution, visible failed/uncertain handoffs and no imported-event replay.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required. Missing: every named connector’s confirmed-failure/repeat, interrupted or uncertain handoff, deduplication, acknowledgment, responder-policy and same-incident recovery journey, including handoff-check kind/time and attempt/outcome projection into FOLLOWUP-001 and READAPI-003. Existing Uptime delivery and incident acceptance is not deferred by this missing implementation. ONCALL-001 receives connector-native handoff-check and configured responder-escalation policy, including handoff attempts/outcomes and the existing PagerDuty destination-kind inheritance. Its scheduling and outcomes must feed FOLLOWUP-001’s incident timeline and next-due projection and READAPI-003’s incident reads. Handoff acknowledgment remains separate from responder status, and recovery resolves the same remote incident.
+
+**Planner disposition.** A1 each native Oncall/PagerDuty/Splunk connector's confirmed failure/repeats, interrupted/uncertain send, stable-key dedup, acknowledgment distinct from response, same-incident recovery and due/timeline projection. Need scoped native Oncall handoff/check/response API contract; PagerDuty/Splunk local adapters also remain unbuilt.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## LAMP-001 — Status communication through Lamp
+
+Declared: missing; planner: HELD-EXTERNAL. CONTRACT.md Status line 1594.
+
+#### LAMP-001 — Status communication through Lamp
+
+*Tier:* Core · *Register:* R-6
+
+**Requirement.** Map monitors/services to [Lamp](https://github.com/just-every/run-lamp) or Atlassian Statuspage components and send signed idempotent confirmed incident/maintenance/recovery updates with evidence, source timestamps and confidence. The buyer chooses automatic publication or approval in Lamp; branded pages, subscriptions, subscriber updates and public narrative remain there. A stale probe never publishes a false recovery. An INCIDENT-001 comment reaches Lamp or Statuspage only through its explicit per-comment "Publish to status page" action (INCIDENT-004). It is sent as an incident update with the member's chosen status and an idempotency key per comment version, on the same approval path, and its outcome is shown on the comment.
+
+**Acceptance.**
+1. Map components, trigger a confirmed outage, replay an event, interrupt delivery and recover; inspect one Lamp/Statuspage incident, the selected approval/publication path and subscriber update there, with failed handoffs visible in Uptime.
+2. Publish an INCIDENT-001 comment and see one incident update in Lamp and in Statuspage, with the publication outcome on the comment.
+3. Replay the publish and see no duplicate; leave another comment unpublished and see nothing sent.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1–3 mapped confirmed incident/maintenance/recovery, approval/publication, replay/interruption, subscriber update, explicit comment publish and unpublished silence. Need approved Lamp component/publication API; Statuspage connector and local mapping also unbuilt.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## AUTOMATION-001 — Zapier, Make and custom automation
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1595.
+
+#### AUTOMATION-001 — Zapier, Make and custom automation
+
+*Tier:* Core · *Register:* R-6
+
+**Requirement.** Versioned signed webhook events, WEBHOOK-001 custom-template webhook requests and supported Zapier/Make triggers/actions expose confirmed failure, recovery, expiring asset and due follow-up, with least-scope tokens, event IDs, replay controls and bounded outcomes. Owners can test, pause and revoke automations; downstream work cannot rewrite evidence or silently create duplicate customer messages.
+
+**Acceptance.**
+1. Connect a Zapier and Make workflow through the supported connector, run failure/recovery and an expiry warning, replay callbacks and revoke access; inspect one downstream action per event and durable failed/stopped execution.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1 Zapier/Make failure/recovery/expiry workflows, replay controls, revoke/pause and failed/stopped durable execution. Generic signed webhooks are partial infrastructure, not supported connectors; connector auth and event lifecycle cross-cut.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## READAPI-001 — Versioned read API keys, limits and documentation
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1597.
+
+#### READAPI-001 — Versioned read API keys, limits and documentation
+
+*Tier:* Core
+
+**Requirement.** A documented, versioned REST API at `/api/v1` gives dashboards, customer portals, SLA scripts and third-party integrations the same monitoring figures as the console. It is described by an OpenAPI 3.1 document served at `/api/v1/openapi.json` and in the public `/docs`. Requests authenticate with bearer API keys created under ACCESS-001. A key belongs to one workspace and carries explicit scopes; `monitoring:read` is read-only. A key can be limited further to tags or monitors and given an expiry. It is shown once, stored hashed, revocable immediately, and its last use is recorded. Creating one requires ACCESS-003 step-up. Lists use cursor pagination with stable ordering and a documented maximum page size. Uptime and incident reads can also return CSV (`Accept: text/csv`). Rate limits are documented per key and reported in `RateLimit` headers. Exceeding one returns 429 with `Retry-After`, and the request has no effect. A `monitoring:read` key refuses every mutating method with 403 and writes nothing. A key for one workspace gets 404 for another workspace's monitors and incidents, and a tag- or monitor-limited key sees only its selection. A breaking change ships only as a new version. The old version keeps working for at least 12 months and carries `Deprecation` and `Sunset` headers in the meantime. The docs map each UptimeRobot v2 `getMonitors` read (uptime ratios, response times, logs) and v3 stats and incident read to its equivalent, so a migrating buyer can repoint a dashboard or script.
+
+**Acceptance.**
+1. A POST, PATCH or DELETE with the read-only key returns 403 and nothing changes.
+2. Exceeding the documented limit returns 429 with Retry-After.
+3. A key for one workspace cannot read another workspace's monitors, a tag-limited key sees only its tag, and a revoked key is refused at once.
+4. Repoint a script that read UptimeRobot `getMonitors` uptime ratios to the documented equivalent and get the same periods.
+
+**Declared Evidence (verbatim).** `src/domain/credentials/`; `migrations/0071_edition_credentials.sql`; `scripts/api-keys.mjs`; `tests/read-keys-support.mjs`; `src/server.ts`; `src/domain/incident-list.server.ts`; `src/domain/incident-work/`; `src/domain/reports/`; `src/domain/read-api-openapi.ts`; `src/domain/read-api/`; `tests/incident-work.mjs`; `tests/reporting.mjs`; `tests/read-api.mjs`; `tests/metrics.mjs`; `docs/read-api.md`; `docs/evidence/contracts/read-api/`; `tests/security-controls-browser-support.mjs` (proveSecurityControls); `src/domain/reports/service.server.ts`; `tests/report-recurrences-support.mjs` (proveRecurringReports); `tests/read-api-dashboard-support.mjs` proveReadApiDashboard through `tests/read-api.mjs`: executable authorized source ratios consumer and documented native command, explicit ID map, matching elapsed horizons and Chicago bounds, signed scheduled evidence and REPORT-001 equality, Unknown and excluded time, revoked-key visible failure; `docs/examples/uptime-ratios.mjs`
+
+**Declared Gap (verbatim).** The bounded API/CLI key slice adds Base-generated hash-only monitoring:read tokens, immutable installation/workspace resources, intersecting monitor/tag restrictions, explicit expiry/revocation/last use, per-key limits and owner-only fresh ACCESS-003 issuance; every v1 monitoring GET/HEAD, including metrics and CSV/PDF reports, uses resource fences before pagination/aggregation, and bearer writes cannot fall back to session authority. Public OpenAPI and Owner Settings key creation/list/revocation with shown-once custody are proven at 1440/390, including stale-proof step-up, selected monitors/tags/expiry, usage, immediate real-read 401 and nonowner refusal (RL-14). CODE-001 CI uses the same credential store with separate environment/tag authority. Acceptance 4 has an executable migration example preserving requested 1-, 7- and 30-day horizons as 24h, 7d and 30d in America/Chicago; native ratios remain separate from provider fixture data. Gap: delegated issuance.
+
+**Planner disposition.** Remaining delegated issuance with live role/scope ceilings; all existing hash-only keys, limits, OpenAPI, owner UI and migration example remain. RL-14 adopted owner-only issuance, so delegation needs an explicit revised authorization scope; not queued.
+
+**Referenced tracked implementation/tests opened by the source audit:** `scripts/api-keys.mjs`, `src/domain/incident-list.server.ts`, `src/domain/read-api-openapi.ts`, `src/domain/reports/service.server.ts`, `src/server.ts`, `tests/incident-work.mjs`, `tests/metrics.mjs`, `tests/read-api-dashboard-support.mjs`, `tests/read-api.mjs`, `tests/read-keys-support.mjs`, `tests/report-recurrences-support.mjs`, `tests/reporting.mjs`, `tests/security-controls-browser-support.mjs`
+
+## READAPI-002 — Uptime and response-time reads
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1598.
+
+#### READAPI-002 — Uptime and response-time reads
+
+*Tier:* Core · *From:* READAPI-001 · *Register:* R-2
+
+**Requirement.** The API offers these reads. Monitors: `GET /api/v1/monitors` and `GET /api/v1/monitors/{id}`, with current state, last check and coverage. Uptime: per-monitor `GET /api/v1/monitors/{id}/uptime` and bulk `GET /api/v1/uptime` for up to 500 monitors. Each takes a named period (24 hours, 7, 30 or 90 days, month, quarter or year to date, last month) or a custom `from`/`to`, and an IANA time zone that defaults to the owner's US zone and handles daylight saving. Each returns availability, observed, down, Unknown, paused and maintenance seconds, slow time (SLOW-001), incident count and the REPORT-001 denominator policy. An optional `source` parameter selects the HISTORY-001 source segment, Uptime's own segment and the labeled blended figure, never the blended figure alone. The OpenAPI document and public guide must list every accepted value exactly, including each supported HISTORY-001 source and the Uptime/blended selection. An unknown or currently unavailable value must be refused with a reason naming the unknown value or unavailable source, never silently ignored, replaced by Uptime-only data or returned as an empty successful result. Response times: `GET /api/v1/monitors/{id}/response-times`, by location or across locations. It returns min, mean, p50, p95, p99 and max per bucket at raw, 1-minute, 5-minute, 1-hour or 1-day resolution, over ranges up to 90 days. A request beyond 10,000 points per response is refused with a 400 naming the bound, and is never truncated. Every figure is computed by the same code as the console and REPORT-001, so the API, the console and a downloaded report agree exactly for the same monitor, period, time zone and source. METRICS-001's Prometheus and Grafana integration reads the same figures.
+
+**Acceptance.**
+1. Cause known outages, an Unknown gap, a maintenance window and slow responses on a monitor.
+2. With a `monitoring:read` key, call the API for 24-hour, 7-day, 30-day and custom-period uptime in America/Chicago, the bulk uptime read and the response-time series by location at two resolutions.
+3. Compare each result with the REPORT-001 console figure, the downloaded CSV and the immutable slots: they match exactly.
+4. Ask for the HISTORY-001 segment on a migrated monitor and see source, Uptime and labeled blended figures.
+5. Make one request per exact accepted `source` value in the OpenAPI schema, plus an unknown value and a currently unavailable source; accepted values select the documented figures, while each refused request names its reason and returns no substituted or empty success.
+6. An over-bound response-time request is refused, not truncated.
+
+**Declared Evidence (verbatim).** `src/domain/credentials/`; `migrations/0071_edition_credentials.sql`; `scripts/api-keys.mjs`; `tests/read-keys-support.mjs`; `src/server.ts`; `src/domain/incident-list.server.ts`; `src/domain/incident-work/`; `src/domain/reports/`; `src/domain/read-api-openapi.ts`; `src/domain/read-api/`; `tests/incident-work.mjs`; `tests/reporting.mjs`; `tests/read-api.mjs`; `tests/metrics.mjs`; `docs/read-api.md`; `docs/evidence/contracts/read-api/`; `tests/security-controls-browser-support.mjs` (proveSecurityControls); `src/domain/reports/service.server.ts`; `tests/report-recurrences-support.mjs` (proveRecurringReports)
+
+**Declared Gap (verbatim).** Owner-session monitor list/detail expose current state, last check and fixed coverage with stable ID cursors and tag filters. Bulk uptime shares exact console/report availability, SLA, incident and Slow figures with explicit seconds and CSV. Month/quarter/year-to-date and last-month periods honor IANA/DST boundaries and the owner-selected default zone; response-time ranges over 90 days refuse. Uptime/UptimeRobot/blended source selection now ships for uptime and reports, with Uptime/UptimeRobot selection for response times, exact documented selections and named unknown/unavailable-source refusals. Gap: HISTORY-001 other-incumbent history, held console source-segment views and 500-monitor hosted capacity.
+
+**Planner disposition.** Other-incumbent source selections, held console source segments, and 500-monitor hosted read capacity. UptimeRobot/blended selection already built; shares HISTORY/REPORT/scale work.
+
+**Referenced tracked implementation/tests opened by the source audit:** `scripts/api-keys.mjs`, `src/domain/incident-list.server.ts`, `src/domain/read-api-openapi.ts`, `src/domain/reports/service.server.ts`, `src/server.ts`, `tests/incident-work.mjs`, `tests/metrics.mjs`, `tests/read-api.mjs`, `tests/read-keys-support.mjs`, `tests/report-recurrences-support.mjs`, `tests/reporting.mjs`, `tests/security-controls-browser-support.mjs`
+
+## READAPI-003 — Incident reads
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1599.
+
+#### READAPI-003 — Incident reads
+
+*Tier:* Core · *From:* READAPI-001
+
+**Requirement.** Incidents: `GET /api/v1/incidents` and `GET /api/v1/incidents/{id}`. They return start, end, duration in seconds, EVIDENCE-002's plain-language cause, failed locations, owner, acknowledgment, INCIDENT-003 root cause and INCIDENT-001 comments, the FOLLOWUP-001 timeline and source (Uptime or imported). The list is filterable by monitor, tag, date range, state and root-cause category. Incident reads carry FOLLOWUP-001's authoritative next-due kind and time and its timeline; DELIVERY-002 fallback escalation and ROUTING-002 notification and reminder behavior are part of what they read, and ONCALL-001 handoff scheduling is an open dependency, not an exemption (RL-7).
+
+**Acceptance.**
+1. With a `monitoring:read` key, read the incident list filtered by root cause, then page through it.
+
+**Declared Evidence (verbatim).** `src/domain/credentials/`; `migrations/0071_edition_credentials.sql`; `scripts/api-keys.mjs`; `tests/read-keys-support.mjs`; `src/server.ts`; `src/domain/incident-list.server.ts`; `src/domain/incident-work/`; `src/domain/reports/`; `src/domain/read-api-openapi.ts`; `src/domain/read-api/`; `tests/incident-work.mjs`; `tests/reporting.mjs`; `tests/read-api.mjs`; `tests/metrics.mjs`; `docs/read-api.md`; `docs/evidence/contracts/read-api/`; `tests/security-controls-browser-support.mjs` (proveSecurityControls); `src/domain/reports/service.server.ts`; `tests/report-recurrences-support.mjs` (proveRecurringReports)
+
+**Declared Gap (verbatim).** Incident CSV preserves filters and cursor pages, and FOLLOWUP-001 exposes the durable DELIVERY-002 escalation deadline and ROUTING-002 reminder time in incident reads and the incident console at 1440/390. Paginated UptimeRobot source incidents now read separately with source comments and root cause. Gap: ONCALL-001 handoff next-due policy (RL-7).
+
+**Planner disposition.** A1 plus the requirement’s remaining native Oncall handoff next-due policy and outcome projection (RL-7). Existing reminders/escalation deadlines, CSV/source incidents and owner console already built. Need native Oncall scheduling API.
+
+**Referenced tracked implementation/tests opened by the source audit:** `scripts/api-keys.mjs`, `src/domain/incident-list.server.ts`, `src/domain/read-api-openapi.ts`, `src/domain/reports/service.server.ts`, `src/server.ts`, `tests/incident-work.mjs`, `tests/metrics.mjs`, `tests/read-api.mjs`, `tests/read-keys-support.mjs`, `tests/report-recurrences-support.mjs`, `tests/reporting.mjs`, `tests/security-controls-browser-support.mjs`
+
+## CODE-001 — CLI, TypeScript and CI deployment
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1600.
+
+#### CODE-001 — CLI, TypeScript and CI deployment
+
+*Tier:* Core
+
+**Requirement.** Supported API/CLI and TypeScript definitions preview/diff, validate, test, apply and roll back monitors, alert routes and maintenance from reviewed source. GitHub Actions and other CI use scoped credentials and explicit environment selection; Checkly CLI/suite migration maps supported constructs and names unsupported ones. Apply uses reviewed revisions and never silently enables new traffic or imports secret values.
+
+**Acceptance.**
+1. From a fresh checkout run CLI preview/test/apply/export/undo and a GitHub Actions change using least-scope credentials; reject drift after preview, migrate a Checkly suite and prove the deployed assertions match reviewed intent.
+
+**Declared Evidence (verbatim).** `scripts/definitions.mjs`; `scripts/definitions-http.mjs`; `scripts/definitions-typescript.mjs`; `src/domain/definitions/types.ts`; `src/domain/ci/`; `src/domain/credentials/`; `tests/definitions-import.mjs`; `tests/definitions-ci-support.mjs`; `tests/definitions-typescript-support.mjs`; `tests/security-controls-browser-support.mjs` (proveSecurityControls); `tests/definitions-ci-support.mjs` (proveDefinitionCI, revoked-job API/CLI/restart)
+
+**Declared Gap (verbatim).** JSON and trusted local TypeScript monitor definitions use the same native schema, preview digest and bounded apply. TypeScript executes only on the buyer machine; the Worker receives evaluated JSON. Shared shown-once hashed credentials narrow preview/apply to one explicit environment and selected tags; current and proposed definitions must remain in scope, and each resumed operation repeats live issuer, expiry and revocation fences. CI cannot read secrets, export, change roles or undo applied work; preview-only keys cannot apply. A checked-in fixture workflow exercises actual CLI preview, definition-validation test and apply against the controlled Worker; owner export and undo round-trip evaluated definitions and changed live revisions refuse reviewed apply (RL-15). Gap: runtime probe execution from CLI test, TypeScript route/maintenance deployment, mail-check/private/synthetic and cross-monitor dependency grants, Checkly suite migration (MIGRATE-005) and live GitHub execution.
+
+**Planner disposition.** A1 actual CLI runtime probes, TypeScript route/maintenance apply, mail/private/synthetic/dependency grants, Checkly migration and least-scope live Actions run. Current test only validates schema/plan; queue runtime-probe slice without granting CI new authority.
+
+**Referenced tracked implementation/tests opened by the source audit:** `scripts/definitions-http.mjs`, `scripts/definitions-typescript.mjs`, `scripts/definitions.mjs`, `src/domain/definitions/types.ts`, `tests/definitions-ci-support.mjs`, `tests/definitions-import.mjs`, `tests/definitions-typescript-support.mjs`, `tests/security-controls-browser-support.mjs`
+
+## CODE-002 — Terraform provider
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1601.
+
+#### CODE-002 — Terraform provider
+
+*Tier:* Core
+
+**Requirement.** A supported Terraform provider manages monitors, locations, contacts/routes and maintenance with import, plan, drift detection, sensitive secret references and safe apply/destroy. An operator sees the same revisions/audit as UI changes; destroy preserves erasure policy and never removes evidence without explicit destructive authority.
+
+**Acceptance.**
+1. Terraform import an existing monitor, plan/apply a route and recurring window, change the monitor in the console and detect drift; inspect no secret in plan/state exports and refusal of unauthorized destruction.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1 Terraform monitor import, route+recurring-window plan/apply, UI drift, secret-free state and unauthorized-destroy refusal; also location/contact management requirement. New provider plus native API/revision/erasure integration.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## MIGRATE-001 — Complete UptimeRobot migration
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1603.
+
+#### MIGRATE-001 — Complete UptimeRobot migration
+
+*Tier:* Core · *Register:* R-3
+
+**Requirement.** Import UptimeRobot v3 REST API pages and saved exports with paginated live extraction under read-only credentials. Preview each monitor, protocol, auth reference, interval, region, tags/groups, contact and maintenance mapping, unsupported field and expected quota/cost difference. Repoint heartbeats with new tokens, reauthorize contacts and run a side-by-side cutover. Incident and down/up logs (CSV export from the overall and per-monitor log tables, and v3 API incidents) and response-time samples, where the source exposes them, are imported as HISTORY-001 source history. That history appears in reports and never becomes current evidence. Each webhook contact's custom POST value, custom headers and send mode (query string, POST parameters or Send as JSON) become a WEBHOOK-001 template with the same field names, header names and content type. Header values the API does not return are re-entered as local secrets, and the preview names every variable that cannot be mapped. SSL-certificate and domain-expiry reminder settings on an HTTP monitor become TLS-001 and DOMAIN-001 monitors with the same reminder days. HTTP Digest credentials map to API-002, and "ignore SSL errors" maps to NETWORK-002's labeled exception. Every alert contact type the account holds (email, SMS, voice, mobile app push, Slack, Telegram, Discord, Microsoft Teams, Google Chat, Mattermost, Pushover, Pushbullet, webhook, Zapier, PagerDuty and Splunk On-Call) maps to its named Uptime destination, with per-monitor notify-after and repeat settings carried into ROUTING-002, and is reauthorized rather than silently dropped. Status pages — custom domain, password protection, branding, announcements, subscribers and monitor-to-component mapping — are handed to Lamp through its approved import door after buyer confirmation, and Uptime's migrated monitors feed those components under LAMP-001. A record the source API does not expose, such as a subscriber list, is named with export guidance. The custom-domain cutover keeps the old page serving until Lamp serves the domain with valid TLS, and imported subscribers receive no import or duplicate notice. Incident comments and root-cause details, which UptimeRobot Team plans add, are imported with their incidents as HISTORY-001 source history, where the source API exposes them; where it does not, the preview names them with export guidance. Login seats become ACCESS-001 invitations with their source role mapped (admin to admin, read-only to read-only), sent only after buyer confirmation. Notify-only seats become alert destinations, which need no Uptime account, and the read-back lists them as notify-only, never as dropped members. A Microsoft Teams contact using a legacy Office 365 connector incoming-webhook URL is flagged under CHAT-001 as a retiring connector, with steps to replace it with a Teams Workflows URL. The read-back also names each UptimeRobot API read the account's keys used and its READAPI-001 equivalent, so dashboards and scripts can be repointed before cutover. A read-back report lists every monitor, contact, notify-only seat, member, status page, subscriber count, maintenance window and integration as migrated, handed off or unsupported with its reason.
+
+**Acceptance.**
+1. Use an authorized UptimeRobot export/API account, preview paginated extraction, reconcile counts and every unsupported field, apply paused definitions, authorize secrets, compare both products and cut over without duplicate alerts; retain rollback.
+2. An account with two status pages (one password-protected, with subscribers) and Telegram and SMS contacts previews both pages and every contact; after approval Lamp holds both pages with mapped components, the custom domain switches with valid TLS, the read-back accounts for every record and no subscriber receives a duplicate or import notice.
+3. A webhook contact with a custom JSON POST value and an `X-Api-Key` header passes WEBHOOK-001's receiver journey.
+4. An HTTP monitor with SSL and domain reminders gains matching TLS-001 and DOMAIN-001 monitors.
+5. A 60-day log CSV passes HISTORY-001's report journey.
+6. An incident with a comment and root cause imports as labeled source history, or the preview names the unexposed field.
+7. An account with two login seats and three notify-only seats reads back two pending invitations with mapped roles and three notify-only destinations, with no member reported dropped.
+8. A legacy Teams connector URL is flagged with replacement steps.
+
+**Declared Evidence (verbatim).** `src/domain/definitions/importers/uptimerobot.ts`; `src/domain/webhook-contact-import.mjs`; `tests/definitions-import.mjs`; `tests/tls-trust-journey.mjs`; `tests/webhook-custom.mjs` (saved contact/seat reconciliation: every kind, per-kind counts, Teams replacement, seat refusals and no writes/sends); `docs/migrating-uptimerobot-contacts.md`; `docs/evidence/contracts/trust-auth/`; `docs/evidence/contracts/webhooks/`; `tests/source-history-support.mjs`; lines 100–106 preview and apply saved v3 incident details and assert retained comments, source-author text, root cause, secret withholding and no local operator creation; lines 89, 107–108 and 127–150 retain unchanged native evidence and source-labeled reads)
+
+**Declared Gap (verbatim).** Reviewed saved monitor pages and documented webhook create payloads retain their existing mappings and secret withholding. Owner-only read-only API previews now reconcile saved contact lists and login/notify-only seat rows, propose email/webhook kinds for local review, refuse other kinds with named handoffs, and flag legacy Teams connectors with replacement steps. Source status never becomes consent; no contact, confirmation, invitation or send is created. Contact/seat console file routing and apply remain absent. Incident comments and root cause are absent from these lists; the current source API exposes them separately, but labelled source-history import remains a HISTORY-001/INCIDENT-005 gap. Live extraction, complete contacts/history, sibling handoffs and authorized account cutover remain absent.
+
+**Planner disposition.** A1–2 paginated authentic extraction/cutover/rollback and complete contact/status/subscriber handoffs; A4 reminder expansion; A5–6 full history; A7 reviewed seat/contact apply; A8 legacy warning already built. Local saved mappings/history/webhook preview are not whole-account migration.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/definitions/importers/uptimerobot.ts`, `src/domain/webhook-contact-import.mjs`, `tests/definitions-import.mjs`, `tests/source-history-support.mjs`, `tests/tls-trust-journey.mjs`, `tests/webhook-custom.mjs`
+
+## MIGRATE-002 — Pingdom migration
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1604.
+
+#### MIGRATE-002 — Pingdom migration
+
+*Tier:* Core · *Register:* R-3
+
+**Requirement.** Read-only Pingdom API/export import maps uptime, transaction/page-speed checks, locations, teams/contacts, tags, schedules and maintenance with per-field differences and script conversion proposals. Buyer reviews test accounts, imports its historical outages and summary/performance data as HISTORY-001 source history and chooses side-by-side cutover without replaying notifications. Contact notification settings (email, SMS, notify after N failures and repeat) carry into ROUTING-002, and webhook, Slack and responder integrations map to their named destinations. Public status pages and public reports, with their custom domains, branding and check-to-component mapping, are handed to Lamp through its approved import door after buyer confirmation, with the same TLS-verified domain cutover and no subscriber notice. A read-back report lists every check, contact, integration and public page as migrated, handed off or unsupported with its reason.
+
+**Acceptance.**
+1. Import an authorized representative Pingdom account/export, reconcile every check and team, inspect refused/converted transactions, test matched failures in both systems and switch routes with rollback.
+2. An account with a public status page on a custom domain previews it with its checks; after approval Lamp serves it with mapped components and valid TLS, and the read-back accounts for every check, contact, integration and page.
+
+**Declared Evidence (verbatim).** `src/domain/definitions/importers/pingdom.ts`; `tests/definitions-import.mjs` (MIGRATE-002 saved check details: tags, named probe filters, TMS reconciliation, paused apply, unchanged re-import and undo); `tests/tls-trust-journey.mjs`; `tests/definitions-import.mjs`; `docs/migrating-pingdom.md`; `docs/evidence/contracts/trust-auth/`
+
+**Declared Gap (verbatim).** Saved HTTP check details retain cadence, literal criteria, local credential references and explicit certificate behavior, now with tag labels. Every requested probe filter is refused by name when no installed geographic choice matches; saved script/recording TMS and other unsupported types name the owning clause and reconcile counts. Page-speed export shape was not established in the published API 3.1 schema and is not invented. Account extraction, transaction/page-speed conversion, geographic placement, complete teams/contacts and schedule extraction, source history, Lamp handoff and representative cutover remain absent. ROUTING-002 retains its separate contact delay/repeat/recovery preview.
+
+**Planner disposition.** A1–2 account extraction, teams/contacts/schedules, transaction/page-speed conversion or named source limits, geographic placement, source history, Lamp handoff, representative cutover/rollback. Saved HTTP/protocol/tag and explicit unsupported TMS previews already built.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/definitions/importers/pingdom.ts`, `tests/definitions-import.mjs`, `tests/tls-trust-journey.mjs`
+
+## MIGRATE-003 — Better Stack Uptime migration
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1605.
+
+#### MIGRATE-003 — Better Stack Uptime migration
+
+*Tier:* Core · *Register:* R-3
+
+**Requirement.** Import Better Stack Uptime monitors, heartbeats, regions, groups, maintenance and notification mappings from read-only API/export. Preserve sourced incident history as HISTORY-001 source history; map bundled responder ownership to Oncall and customer status components/subscribers to Lamp using their approved import doors and buyer confirmation. No bundled data is silently discarded or absorbed into Uptime.
+
+**Acceptance.**
+1. Preview an authorized Better Stack workspace with monitors, incidents, paging and status data, reconcile counts and destinations, execute approved sibling imports and run a side-by-side outage/recovery cutover without duplicate communication.
+
+**Declared Evidence (verbatim).** `src/domain/definitions/importers/betterstack-heartbeats.ts`; `tests/signed-runner.mjs`; `tests/signed-runner.mjs`; `src/domain/definitions/importers/betterstack-monitors.ts`; `tests/definitions-import.mjs` (MIGRATE-003 saved monitor pages: supported types, group/region labels, reconciled counts, paused apply, unchanged re-import, undo and withheld credentials); `docs/migrating-betterstack.md`
+
+**Declared Gap (verbatim).** Saved heartbeat pages retain the existing period/grace mapping and need a new local URL. Saved monitor-only pages now convert HTTP/status, expected status, keyword/absence, ping and single-port TCP settings; group identifiers and regions become labels, with every unavailable geographic location named. Provider status addresses retain DEPENDENCY-002 catalog mapping; mixed heartbeat/status-page resources still use the existing reader and should be saved separately. Live extraction, geographic placement, source time-based confirmation/recovery, contacts, maintenance, history, Oncall/Lamp handoffs and side-by-side cutover remain absent.
+
+**Planner disposition.** A1 time-based confirmation/recovery parity, contacts/maintenance/history, real extraction, geographic coverage, Oncall/Lamp import and side-by-side cutover. Saved HTTP/keyword/ping/TCP and heartbeat mapping already built.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/definitions/importers/betterstack-heartbeats.ts`, `src/domain/definitions/importers/betterstack-monitors.ts`, `tests/definitions-import.mjs`, `tests/signed-runner.mjs`
+
+## MIGRATE-004 — Site24x7 website monitoring migration
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1606.
+
+#### MIGRATE-004 — Site24x7 website monitoring migration
+
+*Tier:* Core · *Register:* R-3
+
+**Requirement.** Import Site24x7 website/API, DNS, TLS/domain, network/mail and browser transaction definitions, location/threshold groups, contacts and scheduled reports through API/export with explicit per-field parity and conversion steps. Preserve sourced history as HISTORY-001 source history and name infrastructure/APM records for export to [RunEditRun Porthole](https://github.com/just-every/run-porthole) or the buyer's other observability system; no unsupported record disappears.
+
+**Acceptance.**
+1. Import a representative authorized Site24x7 export/account, reconcile every monitoring record and report, test converted API/browser flows, compare regional failures and approve cutover with rollback and retained unmapped exports.
+
+**Declared Evidence (verbatim).** `src/domain/definitions/importers/site24x7.ts`; `tests/definitions-import.mjs` (MIGRATE-004 saved monitor settings: five converted types, reconciled refusals, paused apply, unchanged re-import and undo); `docs/migrating-site24x7.md`
+
+**Declared Gap (verbatim).** Saved documented monitor lists now convert complete Website, REST API, plain Port, Ping and expressible DNS settings to paused definitions with per-field differences and reconciled counts. Unsupported browser, expiry, heartbeat and resolver settings name their owning clauses. Existing DEPENDENCY-002 catalog mappings remain unchanged. Accounts/live extraction, regional placement, threshold and notification groups/profiles, reports, history and representative cutover remain absent; DNS transport and local timeout/confirmation/ping-policy differences require review.
+
+**Planner disposition.** A1 threshold/notification groups, expiry/mail/browser conversions, scheduled reports/history, live extraction/regions/cutover and retained unsupported exports. Saved Website/REST/Port/Ping/expressible DNS mapping already built.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/definitions/importers/site24x7.ts`, `tests/definitions-import.mjs`
+
+## MIGRATE-005 — Challenger and advanced synthetic migration
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1607.
+
+#### MIGRATE-005 — Challenger and advanced synthetic migration
+
+*Tier:* Core · *Register:* R-3
+
+**Requirement.** Checkly, OpenStatus, Hyperping and Datadog Synthetics imports accept documented API/export and code bundles, preserve source IDs, intended outcomes, regions, alerting, maintenance and sourced history (as HISTORY-001 source history), and explicitly enumerate conversion/refusal for every entry. Playwright fixtures and private-location credentials require reviewed reauthorization; source-provider agent identity never becomes Uptime authority.
+
+**Acceptance.**
+1. Preview an authorized representative bundle from each named product, reconcile counts/unsupported constructs, deploy paused converted checks, compare original outcomes from matching locations and cut over with reversible alert routing.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1 Checkly/OpenStatus/Hyperping/Datadog bundles: source IDs/counts, explicit conversion/refusal, paused deploy, outcome comparison, matching locations and reversible routes. Code parser, grants and source-history integration; no importer exists.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## HISTORY-001 — Sourced incumbent uptime history
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1608.
+
+#### HISTORY-001 — Sourced incumbent uptime history
+
+*Tier:* Core · *Register:* R-3
+
+**Requirement.** Migration (MIGRATE-001 to MIGRATE-005) and the owner console import an incumbent's history. For UptimeRobot that means down/up incident logs from the log CSV export (overall and per-monitor) and v3 API incidents, plus response-time samples where the source API exposes them. For Pingdom it means outages and summary/performance data, and for Better Stack, Site24x7 and the challengers it means incidents and availability reports. Where the source exposes them, imported incidents keep their comments and root cause. They are attributed to the source author as text, never as a workspace member, and shown as source history beside INCIDENT-001's comments and INCIDENT-003's root cause. The migration preview maps each row by source monitor ID to its migrated Uptime monitor. It shows per-monitor row counts, date range, outage count and total downtime as the source states them, and counts and names rows for monitors that were not migrated or cannot be mapped. Imported history is stored as source history in its own tables, apart from slots and observations, with source name, export or extraction time, source row identity and file digest. Re-importing the same rows is idempotent. It never creates slots, observations, incidents, notifications or follow-up, and never feeds STATE-001, quorum, recovery or current health. REPORT-001 shows it in charts, incident lists and custom-period SLA reports as a visibly labeled segment (for example "source: UptimeRobot") with its own denominator. Source outage durations come exactly from the source timestamps, to the second, and Uptime's own slots appear beside them. A period spanning the cutover shows each segment's figure and a blended figure labeled with both sources, weighted by each segment's covered time; the blended figure never appears alone. Each migrated monitor has a cutover instant: by default its first scheduled Uptime slot, adjustable by the owner within the side-by-side overlap. Source history after that instant stays visible but outside the blended figure, so running both products never double counts. Source history travels in ARCHIVE-001/ARCHIVE-002 archives as sourced history. It is erased with its monitor under ERASURE-001, with per-table receipt counts, and the owner can remove one import batch.
+
+**Acceptance.**
+1. Import an authorized UptimeRobot account and its log CSV covering 60 days with three known outages, apply the migration and produce a 90-day SLA report spanning the cutover.
+2. The three outages appear labeled UptimeRobot, with durations matching the source to the second, beside Uptime's own slots; each segment shows its own denominator and the blended figure names both.
+3. Current state, incident quorum, notifications and follow-up are unchanged by the import.
+4. Re-importing the same CSV adds no rows, and an unmapped monitor's rows are named in the preview.
+5. An archive round trip keeps the labeled history, and erasing the monitor removes it with receipt counts.
+
+**Declared Evidence (verbatim).** `src/domain/source-history/`; `migrations/0078_source_history.sql`; `scripts/definitions-history.mjs`; `tests/source-history-support.mjs` through `tests/definitions-import.mjs`, `tests/reporting.mjs`, `tests/read-api.mjs`, `tests/archive-roundtrip.mjs` and `tests/erasure-audit.mjs`; `docs/definitions.md`; `docs/read-api.md`
+
+**Declared Gap (verbatim).** Owner API/CLI saved UptimeRobot overall/per-monitor log CSV and v3 incidents preview source-ID mapping, named unmapped rows, date/count/downtime figures and a reviewed digest. Apply stores idempotent source rows separately with provenance, source comments/root cause and response-time samples; populated upgrades, unchanged native monitoring, re-import and batch removal are asserted. Reports retain separate source/Uptime denominators, labeled weighted blending and overlap cutover adjustment; owner/scoped-key reads select the documented sources and refuse unknown/unavailable ones. Source labels, batch IDs and digests round-trip inactive, and erasure receipts account for all source tables. Gap: Pingdom, Better Stack, Site24x7 and challenger history; held owner-console move-in history preview and report-view source segments; real export, authorized account and hosted import unmeasured. IMPORT-001 remains partial.
+
+**Planner disposition.** Requirement's Pingdom/Better Stack/Site24x7/challenger sourced history; A1–5 exact source seconds, separate denominator/blend/cutover, unchanged native state, replay/unmapped rows, inactive archive and erasure for those sources; held owner-console preview/segments. Queue Pingdom saved-history slice.
+
+**Referenced tracked implementation/tests opened by the source audit:** `scripts/definitions-history.mjs`, `tests/archive-roundtrip.mjs`, `tests/definitions-import.mjs`, `tests/erasure-audit.mjs`, `tests/read-api.mjs`, `tests/reporting.mjs`, `tests/source-history-support.mjs`
+
+## ACCESS-001 — Teams, roles and accountable ownership
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1609.
+
+#### ACCESS-001 — Teams, roles and accountable ownership
+
+*Tier:* Core · *Cites:* BASE-ACCESS-004, BASE-OPS-005, BASE-ROLE-001, BASE-AUDIT-001
+
+**Requirement.** Workspaces provide owner/admin, editor, responder and read-only roles with service/team scope, invitations, removal and least-scope API/CI credentials, including READAPI-001's read-only `monitoring:read` API keys. Responders and above can comment on incidents and set root causes (INCIDENT-001, INCIDENT-003); read-only members and keys cannot. Every background action has an owner, due condition, visible progress/failure and stop/resolution.
+
+**Acceptance.**
+1. Invite each role through the app, perform and refuse representative actions through direct routes/API as well as UI, revoke a member/token mid-job and inspect preserved authorized results and blocked later operations.
+
+**Declared Evidence (verbatim).** `src/domain/access.server.ts`; `src/domain/access-members.server.ts`; `src/domain/access-database.server.ts`; `migrations/0067_edition_access.sql`; `scripts/access.mjs`; existing `tests/access-matrix.mjs` with access support modules, `tests/operator-security.mjs`, `tests/read-api.mjs`, `tests/definitions-import.mjs`, `tests/archive-roundtrip.mjs`; `tests/discovery-jobs.mjs` (exact actor receipts and zero-write missing/refused discovery requests); `tests/erasure-audit.mjs` (portable audit snapshot and later export receipt); `tests/signed-runner.mjs` (byte-boundary refusal with exact export receipts); `tests/access-matrix.mjs` / `tests/access-discovery-job-support.mjs` (member discovery cancellation/revocation); `tests/definitions-import.mjs` / `tests/definitions-ci-support.mjs` (CI revocation after first authorized 20-record batch); `tests/security-controls-browser-support.mjs` (proveSecurityControls, live owner/member Settings and revoked CI job); `tests/definitions-ci-support.mjs` (proveDefinitionCI); `tests/report-recurrences-support.mjs` (proveRecurringReports)
+
+**Declared Gap (verbatim).** Edition roles bind to live Base IDs and ceilings: owner/admin plus explicit editor/responder/read-only member narrowings. Service/team (existing group label) scopes intersect and never expand authority; no scopes means the role's workspace. Public API/CLI invitations, role/scope assignment and removal use Base's lifecycle; unchanged assignments are no-ops. One request policy gates ordinary documents/APIs/imports; later mutation batches repeat session/version/role/scope authority and commit opaque actor audit. Scoped workspace overview/list/runners/destinations/discovery/routes/export/archive/import doors refuse rather than leak unfiltered data. Populated upgrade, archive exclusion/inactive authority, erasure, allowed/refused role actions and stale/forged claims are proven through the existing public-door registrations. Bounded INCIDENT-001 responder collaboration, READAPI-001 monitoring credentials and CODE-001 environment/tag-scoped CI credentials now use the shared permission model. Settings invitations for admin/editor/responder/read-only, service/team scopes, no-op saves, removal and readable self-assignment refusal use Base's live lifecycle at 1440/390 (`public/assets/access-member-controls.js`; `tests/access-member-controls-browser-support.mjs` within the existing access matrix). Owner key management, live member issuance refusal, and the initiating-owner/authorized-batch/refused-next-operation/revoked-stop console now have 1440/390 proof (tests/security-controls-browser-support.mjs within tests/operator-security.mjs). tests/definitions-ci-support.mjs proves the same durable job projection through API/CLI and restart, while the native engine checkpoint remains retained. Gap: broader UI refusal coverage, initial narrowed-role console navigation and delegated key issuance; owner-only operator imports, erasure, metrics-key/identity/private-management and optional RUM administration remain conservative limits. Explicit site-discovery jobs record their initiating owner and stop with visible failure/cancellation metadata at live member authority boundaries; completed authorized outcomes survive revocation. CI-definition proof preserves an attributed authorized 20-record batch and refuses the next batch after token revocation. Background gaps: setup/catalog/source discovery jobs still lack the explicit site-job initiating-authority metadata; cleanup debt lacks assignee/due metadata; recurring report cancellation and initiating-member revocation now have API/CLI and 1440/390 console proof (tests/report-recurrences-support.mjs, tests/reporting.mjs); retry/fallback chains lack responsible owners and individual resolution; auth-mail and monitoring watches lack console outcomes and stop/resolution; synchronous exports record authorization but lack durable completion/download receipts and general jobs lack reloadable progress. Base authentication is unchanged; MFA is ACCESS-003 scope. Already-open-document member actions do not establish narrowed-role sign-in, initial MFA challenge, console shell entry or navigation. Those journeys remain required at 1440 and 390. The failed exact-pin console verification remains open.
+
+**Planner disposition.** A1 initial narrowed-role sign-in/MFA/shell/navigation at 1440/390; broader UI refusal/delegated-key coverage; initiating authority for setup/catalog/source discovery; debt assignee/due; retry-chain owner/resolution; mail/watch outcomes; export/download receipts and reloadable job progress. Existing batch revocation proof is built. Held UI/main-readonly and sd discovery rounds reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `scripts/access.mjs`, `src/domain/access-database.server.ts`, `src/domain/access-members.server.ts`, `src/domain/access.server.ts`, `tests/access-discovery-job-support.mjs`, `tests/access-matrix.mjs`, `tests/archive-roundtrip.mjs`, `tests/definitions-ci-support.mjs`, `tests/definitions-import.mjs`, `tests/discovery-jobs.mjs`, `tests/erasure-audit.mjs`, `tests/operator-security.mjs`, `tests/read-api.mjs`, `tests/report-recurrences-support.mjs`, `tests/security-controls-browser-support.mjs`, `tests/signed-runner.mjs`
+
+## ACCESS-002 — Enterprise identity lifecycle
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1610.
+
+#### ACCESS-002 — Enterprise identity lifecycle
+
+*Tier:* Later · *Cites:* BASE-SIGNIN-001 · *Register:* R-8
+
+**Requirement.** Beyond BASE-SIGNIN-001, the Okta, Microsoft Entra ID and Google Workspace integrations map provider groups to Uptime roles and retain recovery-owner access (R-8). Native standalone sign-in, with ACCESS-003 second factors, remains usable without a linked provider; a configured but broken integration never silently authenticates a user.
+
+**Acceptance.**
+1. Connect each named provider at an authorized identity edge; inspect group-to-role mapping, recovery-owner access, callback origin/state checks and blocked foreign tenants.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1 Okta/Entra/Google provider group→role mapping, recovery owner, callback state/origin and foreign-tenant refusal; Base SSO/SCIM and product role lifecycle integration. Real tenant qualification is separate R-8. Later tier; not ranked ahead of day-one gaps.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## ACCESS-003 — Multi-factor sign-in and step-up
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1611.
+
+#### ACCESS-003 — Multi-factor sign-in and step-up
+
+*Tier:* Core · *Cites:* BASE-ACCESS-001, BASE-ACCESS-002, BASE-SIGNIN-002
+
+**Requirement.** Beyond BASE-SIGNIN-002, Uptime issues ten single-use recovery codes, stored hashed and shown once. An owner policy can require MFA for all members: once it is enforced, an email-link session without a verified second factor reaches only factor enrollment, every private document and API refuses it server-side, and existing factorless sessions are revoked. Destructive or secret-bearing actions — erasure, archive export and import, destination credential creation and rotation, private-runner and synthetic grants, API/CI token creation, role changes and MFA policy changes — require a second-factor check within the previous 5 minutes. Enrollment, removal, recovery-code use and policy changes are rate-limited, audited without secrets and notified to the member by email; an owner can reset another member's factors, and the last owner recovers through recovery codes or local installation authority. With SSO under ACCESS-002 the owner can accept the identity provider's MFA assertion instead. API tokens, runner keys and heartbeat capabilities remain separate scoped credentials. Authentication stays in Base operator-auth; the requirement policy is product configuration.
+
+**Acceptance.**
+1. Enroll TOTP and a passkey through the console at an authorized authenticator edge, sign in by email link and complete each factor.
+2. Enforce MFA and prove an email-link-only session is refused at private documents and APIs and existing factorless sessions are revoked; attempt an erasure and a destination rotation without fresh step-up and be refused, then succeed after it; use and then reuse a recovery code; inspect audit entries and member notices for absent secrets.
+
+**Declared Evidence (verbatim).** `src/domain/mfa/`; `src/domain/access.server.ts`; `migrations/0068_mfa.sql`; `scripts/mfa.mjs`; `scripts/local/transfer.mjs`; existing `tests/operator-security.mjs` with `tests/mfa-policy-support.mjs` and `tests/mfa-webauthn-support.mjs`; shared real-auth fixtures; `tests/command-journey.mjs`; `public/assets/security-controls.js`; `tests/security-controls-browser-support.mjs` (proveSecurityControls, within `tests/operator-security.mjs`)
+
+**Declared Gap (verbatim).** TOTP and WebAuthn second factors bind live Base session IDs/versions; ten hashed single-use recovery codes, sealed edition-local factor/challenge custody, require-all policy, session revocation, fresh five-minute sensitive-action guards, member reset, opaque audit and separate member notices are implemented (RL-16). Local archive commands require the same live cookie and recheck authority at each progress boundary. Settings enrollment and fresh step-up cover owner/member factors, recovery codes, stale policy/key refusal, factor removal and require-all policy at 1440/390. Member proof uses live native sessions in an already-open Settings document. A signed-in owner who owes the second factor is forwarded from /login and /signin to the factor step, and /alert-drill shows the step instead of raw JSON (real-browser probe at 1440 and 390 in the landing round's EVIDENCE.md). Gap: a member who enrolled a factor is still refused at sign-in because the step is owner-only by design today (approved direction: show members the same step, access still decided by role afterwards; not yet built), and narrowed-role shell entry still needs held app.js/console-document work; provider MFA assertions depend on ACCESS-002 SSO, and recovery from total loss of all owner factors/codes or the sealing key needs local installation authority. API/CI key creation remains bounded by the credential features that actually ship. Already-open-document member actions do not establish narrowed-role sign-in, initial MFA challenge, console shell entry or navigation. Those journeys remain required at 1440 and 390.
+
+**Planner disposition.** A1 member initial factor step and narrowed-role shell; A2 complete initial-session enforcement journey, SSO MFA assertion acceptance and total-loss local recovery. Owner factor/step-up and already-open member Settings are built; main-MFA/uip branches reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `public/assets/security-controls.js`, `scripts/local/transfer.mjs`, `scripts/mfa.mjs`, `src/domain/access.server.ts`, `tests/command-journey.mjs`, `tests/mfa-policy-support.mjs`, `tests/mfa-webauthn-support.mjs`, `tests/operator-security.mjs`, `tests/security-controls-browser-support.mjs`
+
+## COST-001 — US buyer budgets and capacity transparency
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1612.
+
+#### COST-001 — US buyer budgets and capacity transparency
+
+*Tier:* Core
+
+**Requirement.** A US site operator sees USD pricing and projected monitor-run, browser-minute, probe, retained-artifact and SMS/voice usage before activation, plus quotas, interval/detection tradeoffs, retention and upgrade paths. Budgets prevent unauthorized traffic/spend and report insufficient coverage as Unknown rather than silently slowing checks below SCHEDULE-002's saved cadence or dropping notifications. For SMS and voice, each plan states its included monthly SMS segments and voice calls and the USD price per additional SMS segment and per voice call minute. Prices are published on the pricing page and shown in the console before a phone destination is enabled. Every PHONE-002 send is metered at that price, and the console shows month-to-date usage, remaining included usage and USD spend. The owner sets a monthly phone budget. Every owner is notified by email and push at 80%, again when the remaining budget covers fewer than 10 further messages (owner-adjustable), and when the budget is reached. No SMS or voice alert is withheld for budget before that notice has been sent. A withheld send is recorded as withheld for budget, and the incident still goes to the route's free channels and fallback chain; it is never silently dropped. Raising the budget releases future sends, without replaying withheld ones.
+
+**Acceptance.**
+1. Preview a mixed-region/browser/phone configuration, inspect itemized USD estimate, reach a quota and change plan/budget; verify explicit halted work, due follow-up and unchanged historical denominator.
+2. Set a phone budget, send SMS and voice alerts and compare each metered charge with the shown USD price.
+3. Drive spend past 80% and to the budget: owner notices arrive before the first withheld send, the withheld record is visible, and the same incident reaches email and Slack.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1 mixed run/probe/browser/phone USD estimate, quotas/plan/budget halts and honest denominators; A2 metered SMS/voice at displayed prices; A3 80%/remaining-message/reached notices before withholding, visible records and free-channel fallback. Pricing policy, reservations, delivery and UI cross-cut; owner-approved USD rates needed.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## OPS-001 — Recovery of monitoring itself
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1613.
+
+#### OPS-001 — Recovery of monitoring itself
+
+*Tier:* Core · *Cites:* BASE-OPS-004, BASE-BACKUP-001
+
+**Requirement.** Runner-local unreachable/recovery notices, Worker stale-contact email, optional independent external heartbeat and weekly healthy digest expose control-plane coverage separately from target health. Every auxiliary execution requires durable attempt/outcome, lease-expiry reconciliation and restart-safe progress; backups restore inactive and require a reviewed restart of checks and routes. Restore is judged at ARCHIVE-001 bounds.
+
+**Acceptance.**
+1. Stop/restart Worker and runner independently, miss an external heartbeat and interrupt auth-mail/watch jobs; inspect retained attempts, stale/Unknown coverage, nonduplicated notices and archive recovery with no alert replay.
+
+**Bounded qualification.** `tests/resilience/watches.mjs` mounts `tests/ops-healthy-digest-support.mjs` proveHealthyDigestCustody once in its registered native recovery journey. Independently migrated emitted Workers use native owner authentication and MFA, an enrolled production runner and genuine signed scheduled passing evidence. The mail-provider edge observes one accepted healthy digest with its durable window and attempt identity; repeated scheduled entries and persistent restart send no second digest. A separate interruption after provider observation but before acceptance restarts beyond the saved attempt lease within the original digest window and independently saved health and contact freshness bounds: the original attempt becomes uncertain without replay. Independent untouched installations and windows with no enabled monitoring, stale contact, Unknown coverage or nonpassing evidence emit no healthy digest; legitimate stale-contact notices remain distinct. Owner overview and history reads, durable evidence and incident comparisons, and independent target traffic counts prove the watch creates no passing target evidence and changes no incident. The optional external heartbeat stays unconfigured. This qualifies only the native healthy-digest custody slice of acceptance 1; OPS-001 remains partial. The independent-service heartbeat alarm, broader interruption, notification, weekly-digest, backup and archive qualification, uip-owned console work, public-DNS qualification, the sd-uptime-c-f39 predecessor and landing hold, real recipient and other-host proof, hosted readiness and capacity, and managed-location obligations remain owed.
+
+**Declared Evidence (verbatim).** `src/domain/auxiliary-execution.server.ts`; `src/domain/monitoring-watch.server.ts`; `src/domain/operator-mail.server.ts`; `runners/src/watch-store.mjs`; `tests/resilience/watches.mjs` Recover monitoring across runner and Worker crashes without replaying uncertain sends; `tests/archive-roundtrip.mjs`; `tests/ops-stale-coverage-support.mjs` proveStaleRunnerCoverage, mounted once by the resilience journey: independently migrated emitted Worker and isolated clock, native owner authentication and an enrolled production signed runner establish a scheduled Healthy check and Fresh contact; loss of that still-assigned runner past both saved freshness bounds reads simultaneous Stale contact and Unknown target with Incomplete coverage, the original denominator and observation identity; repeated owner reads and persistent Worker restart preserve contact, complete signed history, scheduling and alert records with independently counted zero replacement traffic; one genuinely due signed result restores Fresh contact and Healthy Complete coverage without rewriting the original observation or inventing a recovery event.
+
+**Declared Gap (verbatim).** Independent Worker and runner interruption, retry and recovery notices, retained uncertain executions, no duplicate uncertain sends and inactive archive recovery retain their existing proof. Gap: a missed external heartbeat causing an independent service alarm remains owed; its existing campaign is not repeated here. Broader Worker and runner interruption, watch and auth-mail, notification, weekly digest, backup and archive, and console requalification remain owed beyond the retained proof. Uip-owned console work is not released; public-DNS qualification is unavailable and the sd-uptime-c-f39 predecessor and landing hold remain unchanged. Real external-service and other-host qualification, hosted readiness and capacity, and managed-location obligations remain omitted.
+
+**Planner disposition.** A1 external independent heartbeat alarm and remaining Worker/runner/watch/auth-mail/notification interruption, weekly digest, backup/archive and console requalification. Healthy-digest custody already built in `tests/ops-healthy-digest-support.mjs`; external heartbeat f38/f39 and other held work excluded.
+
+**Referenced tracked implementation/tests opened by the source audit:** `runners/src/watch-store.mjs`, `src/domain/auxiliary-execution.server.ts`, `src/domain/monitoring-watch.server.ts`, `src/domain/operator-mail.server.ts`, `tests/archive-roundtrip.mjs`, `tests/ops-stale-coverage-support.mjs`, `tests/resilience/watches.mjs`
+
+## ARCHIVE-002 — Whole-workspace archives at monitoring scale
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1614.
+
+#### ARCHIVE-002 — Whole-workspace archives at monitoring scale
+
+*Tier:* Core · *Cites:* BASE-DATA-001 · *Register:* R-2
+
+**Requirement.** Whole-workspace export, OPS-001 backup and restore handle SCHEDULE-002's scale: 500 monitors on 30-second checks from 3 locations (about 4.3 million attempts a day) with at least 90 days of retained history. The archive streams in bounded chunks under a manifest with per-chunk digests rather than as one 2 MiB document. Restore keeps ARCHIVE-001's validation, inactive-restore and erasure-fencing semantics and resumes after interruption. Exports for a time range or a subset of monitors are available. Any remaining bound is shown in the console before export, and an export over that bound refuses with its counts; it never truncates.
+
+**Acceptance.**
+1. Populate 500 monitors with 90 days of 30-second, three-location history, export it, interrupt and resume the export, and verify the manifest digests.
+2. Restore into an empty installation and compare every table's counts and ARCHIVE-001 transformations.
+3. A 120-monitor account exports in full, and a range or subset export matches its selection.
+
+**Declared Evidence (verbatim).** `src/domain/archive.server.ts`; `tests/archive-roundtrip.mjs` with `tests/archive-selection-support.mjs` proveArchiveSelection: authenticated explicit monitor IDs, integrity-covered selection, complete scheduled revisions and evidence, incident and notification history, shared journals, inactive receiving-owner restore and zero-write authority, reference and bound refusals; retained whole-installation round trip and `tests/erasure-audit.mjs` later-journal fencing
+
+**Declared Gap (verbatim).** Validated inactive archives ship and refuse exports beyond 10,000 rows per table, 100 monitors or 2 MiB; streamed, resumable, range/subset archives at SCHEDULE-002 scale do not exist. Storage capacity and archive size at this monitoring scale remain unmeasured; current view/archive bounds are not storage-capacity measurements.
+
+**Planner disposition.** A1–2 actual 500-monitor/90-day three-location history, bounded working memory/storage, interrupted export+restore and exact counts/digests at that scale. A3’s 120-monitor/subset/range case and chunk/resume are already built; f61/f62/f169 reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/archive.server.ts`, `tests/archive-roundtrip.mjs`, `tests/archive-selection-support.mjs`, `tests/erasure-audit.mjs`
+
+## SURFACE-001 — The registry equals this table and the Base harness passes
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1615.
+
+#### SURFACE-001 — The registry equals this table and the Base harness passes
+
+*Tier:* Agent surface · *From:* new · *Cites:* BASE-AGENT-001, BASE-AGENT-002, BASE-AGENT-003, BASE-AGENT-013
+
+**Requirement.** Uptime's MCP door serves exactly the tools in the table above, with their declared classes, the Core clauses each covers and the not-a-tool reasons, and the Base conformance harness passes on Uptime's own fixtures.
+
+**Acceptance.**
+1. `tools/list` names exactly the tools in the table, each with its declared classes and Core clause ids in `_meta`.
+2. The Core clause ids with the not-a-tool reasons cover every Core clause in this contract, and none of those reasons is risk.
+3. `resources/templates/list` names exactly the resource templates above, and each write returns a link to the record it touched.
+4. The Base conformance harness passes on Uptime's seeded fixtures under both company policies.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: CORE registry, schema and both-policy harness checks.; `tests/agent-surface-discovery.mjs`
+
+**Declared Gap (verbatim).** No implementation: Uptime has no MCP door, tool registry, resource templates or Base conformance harness run.
+
+**Planner disposition.** A1–4 complete table/Core-job coverage, usable resource templates/write links and full two-policy conformance. Native tools/CORE harness already built; shared capability and product-job gaps remain.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-surface-discovery.mjs`
+
+## SURFACE-002 — Live and security are computed per call
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1616.
+
+#### SURFACE-002 — Live and security are computed per call
+
+*Tier:* Agent surface · *From:* new · *Cites:* BASE-AGENT-006
+
+**Requirement.** Uptime's server computes the live and security classes and their facts from the arguments and current records for every call that can carry them.
+
+**Acceptance.**
+1. `uptime.monitors.create` or `uptime.monitors.update` is standard for a paused revision and live, with the monitors affected, for a change to a running monitor or one that enables checks; it adds security when it binds a credential reference or a TLS trust exception. `uptime.monitors.create` or `uptime.monitors.update` adds live, with the monitors affected, when it binds, rotates or revokes a request credential reference used by a running monitor; the same change for a paused monitor does not add live.
+2. `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update`, `uptime.definitions.read` or `uptime.definitions.preview` and the pending settings update operation are standard for paused creations and live when they enable checks or change running monitors. `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update` adds security, with the setting, when a clone copies a TLS trust exception; a clone of a monitor without one does not add security. `uptime.definitions.read` or `uptime.definitions.preview` is also live when it changes routes, contacts or maintenance or destroys a running monitor, with the monitors and routes affected, and adds security when it binds or changes a request credential reference or destination endpoint credential, with the credential setting. the pending settings update operation adds security, with the setting changed, when it changes snapshot masks, safe values or email release.
+3. `uptime.routes.read` or `uptime.routes.preview` or `uptime.routes.update`, `uptime.maintenance.read` or `uptime.maintenance.preview` or `uptime.maintenance.update`, `uptime.monitors.pause` or `uptime.monitors.resume` and the pending handoffs update operation are live with the monitors and routes they change, and the pending handoffs update operation adds security when it stores a connector credential. `uptime.privacy.erase` adds live when it erases a running monitor, or a destination or operator on a running monitor's alert path; the pending automations update operation adds live when it pauses or revokes an automation on that path. Both name the monitors and routes affected; erasure outside running monitors and their alert paths, or an automation pause or revocation outside those paths, does not add live.
+4. `uptime.discovery.start` or `uptime.discovery.read` is standard for a run, adds live when it adopts a proposal that enables checks and adds security when it authorizes a provider source credential; the pending dependencies follow operation adds live when following starts checks or unfollowing stops them, with the dependency monitors affected.
+5. `uptime.destinations.read` or `uptime.destinations.update` is standard for a name change and adds live when it creates, enables, disables or removes a destination on a running monitor's route, with the routes and monitors affected; outside running monitors' routes those changes do not add live. It adds external as SURFACE-003 specifies for an outside alert recipient, and adds security when it sets or rotates an endpoint URL, signing key, header secret or bot token.
+6. Record text or arguments claiming a change is paused, internal or credential-free leave the computed classes unchanged.
+7. the pending runners update operation adds live when it revokes or relabels a runner with assigned probes, with the monitors affected; revoking or relabeling a runner without assigned probes does not add live. It adds security when it issues a runner key. `uptime.grants.read` adds live when it grants or revokes a live-effect, synthetic or private-network grant a running monitor's checks use, and the pending heartbeats issue operation adds live when it rotates or revokes a running heartbeat monitor's token or URL authority. Each names the monitors affected; changes to grants or heartbeat authority used only by paused monitors do not add live.
+8. `uptime.access.update` adds security when it resets a member's enrolled second factors, with the factor-reset setting; invitations, role changes and removals do not add security for a factor reset. It adds live when a removal or role or scope change drops a team recipient on a running monitor's route, with the monitors and routes affected; a change that drops no such recipient does not add live.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native live and security class fixtures under both policies.; `tests/agent-door.mjs` with `tests/agent-monitor-state-support.mjs` proveMonitorStateEffects: equivalent native paused and running name edits compute standard and live; live-blocked policy permits one paused revision and refuses the running edit with unchanged native records; named native person approval holds then commits once with monitor target and reviewed name; exact-key replay and stale native revisions preserve immutable definitions. `agent-surface.json`; `tests/agent-conformance/fixtures.mjs` with `tests/agent-conformance/monitor-state.mjs` pausedUpdateFixture; `tests/agent-conformance/journey.mjs` afterStep: independent standard paused update in published Base conformance under both policies; existing running external and security fixtures retained.; `tests/agent-destination-name-support.mjs`; native step-up refusal, autonomous completion, one attributed held review without approval, live and access blocked, exact-key replay, complete durable preservation and native enabled-state and credential-identity transaction fences. `tests/agent-conformance/destination-name.mjs` beforeDestinationName and afterDestinationName, mounted by existing fixtures and journey hooks: independent native name, state and ciphertext readback for the standard fixture; distinct legacy live and access fixture retained.; `tests/agent-paused-create-support.mjs`; ordinary explicitly paused public HTTP creation is standard measure 1, held standard review is attributable, and exact-key replay retains one paused monitor and immutable first revision; enabled and omitted-enabled creation retain live and public external facts, wait for native person approval under held policy, and produce no runner or provider traffic; existing enabled creation and paused and running update fixtures remain.
+
+**Declared Gap (verbatim).** No implementation: no tool declares or computes live or security classes.
+
+**Planner disposition.** A1–8 remaining per-tool live/security matrix for credential/TLS binding, clones, definition routes/maintenance/destroy, settings/handoffs and erasure; native paused-create/state/name slices already built/reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/destination-name.mjs`, `tests/agent-conformance/fixtures.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-conformance/monitor-state.mjs`, `tests/agent-destination-name-support.mjs`, `tests/agent-door.mjs`, `tests/agent-monitor-state-support.mjs`, `tests/agent-paused-create-support.mjs`
+
+## SURFACE-003 — External and money are computed per call
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1617.
+
+#### SURFACE-003 — External and money are computed per call
+
+*Tier:* Agent surface · *From:* new · *Cites:* BASE-AGENT-006
+
+**Requirement.** Uptime's server computes the external and money classes and their facts from the destination, the recipient and the price on record for every call that can carry them.
+
+**Acceptance.**
+1. `uptime.destinations.test` or `uptime.destinations.drill` carries external with its recipient count and counterparty, *known* for a destination already on record and *new* otherwise, and adds money with the USD price when the destination is SMS or voice.
+2. the pending phones verify operation carries external and money with the number and the USD price of the code message.
+3. the pending incidents publish operation carries external with counterparty *public*; the pending reports schedule operation adds external when a recipient is outside the business; the pending dependencies follow operation adds external with counterparty *known* when following Auth0 sends the tenant domain to Auth0; the pending automations update operation adds external when a test sends an event to the automation.
+4. the pending settings update operation adds money with the amount when it changes the phone budget or plan, and `uptime.grants.read` adds money with the spend limit when a grant allows live payments or refunds.
+5. Record text or arguments claiming a recipient is internal or a cost is zero leave the computed classes and facts unchanged.
+6. `uptime.checks.run` adds money when the monitor holds an active live-payment or refund grant, with the USD amount and payee from the grant and current transaction; a manual check without such a grant does not add money.
+7. `uptime.routes.read` or `uptime.routes.preview` or `uptime.routes.update`, `uptime.destinations.read` or `uptime.destinations.update` and `uptime.definitions.read` or `uptime.definitions.preview` add external when a route, an enabled destination or a code-applied contact puts a recipient outside the business on the alert path; `uptime.monitors.create` or `uptime.monitors.update` adds external when a slow policy's destinations include a recipient outside the business, and `uptime.monitors.list` or `uptime.monitors.create` or `uptime.monitors.update` adds external when the created monitors' shared alert route includes one. Each carries the recipient count and counterparty *known* for a recipient already on record and *new* otherwise; a change that exposes alerts only within the business does not add external.
+8. the pending handoffs update operation adds external when a mapping exposes incident, maintenance or recovery updates, evidence and attachments to a status page or an outside responder service, with the recipient count and counterparty *public* for a status page, *known* for a PagerDuty, Splunk On-Call or other outside responder service already on record and *new* otherwise; a mapping confined to the business does not add external.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native external class fixtures under both policies.; `tests/agent-destination-facts-support.mjs` — saved single-mailbox external recipient facts, native approval custody, exact-key replay and misleading-claim resistance through native queue admission only.; pending calls and exact-key replay queue nothing, native person approval queues one current-credential job, and completed replay retains that same job with no delivery attempt or drill confirmation (lines 66–109). This is acceptance 1's saved-email subset and acceptance 5's matching misleading-claim resistance through native queue admission only.
+
+**Declared Gap (verbatim).** No implementation: no tool declares or computes external or money classes.
+
+**Planner disposition.** A1–8 remaining external/money facts for all destination/route/definition/slow/handoff/phone/automation calls; provider cost and all counterparty/count variants. Existing email/Slack/webhook facts already built; f88/f91/f138/f141 reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-destination-facts-support.mjs`, `tests/agent-door.mjs`
+
+## SURFACE-004 — Access, destructive and gated are computed per call
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1618.
+
+#### SURFACE-004 — Access, destructive and gated are computed per call
+
+*Tier:* Agent surface · *From:* new · *Cites:* BASE-AGENT-006
+
+**Requirement.** Uptime's server computes access, destructive and gated from the people, credentials, records and provider steps a call touches, and marks the steps a provider keeps for a person as gated before they run.
+
+**Acceptance.**
+1. `uptime.access.update`, the pending runners update operation and the pending keys update operation carry access with the people or credentials and whether the change widens or narrows; the pending automations update operation adds access when it grants, changes or revokes an automation app's authority, with the app and whether the change widens or narrows.
+2. `uptime.privacy.erase` carries destructive with the item count per table and adds access when it erases an operator.
+3. `uptime.destinations.read` or `uptime.destinations.update` adds gated when a Teams admin must install the Uptime Teams app or a buyer must connect their own Twilio account, the pending automations update operation adds gated when a person must authorize Zapier or Make, and the pending phones verify operation adds gated for the recipient's own code entry; each gated step names the provider and the step.
+4. `uptime.incidents.note` adds destructive when it deletes a comment, with the number of comments whose text and edit history are irreversibly removed; an add or edit does not carry destructive.
+5. `uptime.destinations.read` or `uptime.destinations.update` adds destructive when it removes a destination, with the item count per table erased; creating, rotating or disabling a destination does not add destructive.
+6. the pending settings update operation adds destructive when it shortens snapshot retention, with the count of retained snapshots whose expiry is shortened; leaving retention unchanged or increasing it does not add destructive for retention and never restores an expiry already shortened.
+7. `uptime.definitions.read` or `uptime.definitions.preview` adds destructive when code-managed destruction irreversibly erases a monitor, its evidence or another managed record, with the item count per table; a preview or a reversible definition change does not add destructive.
+8. `uptime.checks.run` adds destructive when the monitor holds an active destructive-write grant, with the step and item count; a manual check without such a grant does not add destructive. `uptime.grants.read` adds destructive when it grants authority for destructive writes, with the step and item count; a grant that does not allow destructive writes does not add destructive.
+
+**Bounded implementation evidence (qualification pending).** `tests/agent-comment-edit-support.mjs` proveCommentEditing, mounted once by `tests/agent-door.mjs`, exercises the synchronous mention-free edit variant of `uptime.incidents.note` through MCP. The server selects standard without destructive, reuses native comment history and current author or administrator authority, and fences versions and exact-key replay. The journey covers both supported protocol versions and ordinary autonomous or reviewed standard decisions with destructive blocked, genuine named approval, native and MCP timeline attribution, stale and foreign references, deleted targets and unrelated durable state with zero provider traffic. Native mention reconciliation remains unchanged; this fixture makes no claim about arbitrary pending mentions. This is bounded acceptance 4 evidence only, with no status promotion or qualification of the remaining clause outcomes or existing holds.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native access and destructive class fixtures under both policies.; `tests/agent-access-facts-support.mjs`; public member authority derives exact access measure 1 and direction, operator audit target, direction-selective held widening, named native approval, autonomous narrowing, fresh native proof and current-version refusals.; `tests/agent-comment-delete-support.mjs`; `tests/agent-conformance/fixtures.mjs`
+
+**Declared Gap (verbatim).** No implementation: no tool declares or computes access, destructive or gated classes, and no incident record attributes an agent act. Retained bounded evidence (qualification pending; current missing judgment and unscoped gaps retained): `agent-surface.json` declares access for `uptime.access.update`; `src/agent-door/registry.server.ts` computes widening or narrowing for one member's role and service and team scopes. The native door at `tests/agent-door.mjs` line 50 mounts `tests/agent-access-facts-support.mjs` proveAccessFacts: independently observed native authority and exact access measure 1 and direction (lines 13–96), eight role and scope cases (lines 100–130), direction-selective approval and named-person attribution (lines 132–172), and current-version refusal (lines 174–181). These retained assertions do not qualify acceptance 1's other invitation and removal, runner, key or automation-authority operations. Destructive and gated class qualification and incident-record attribution remain unproved.
+
+**Planner disposition.** A1–8 full invite/remove/runner/key/automation access, erasure/destination/retention/code/manual-grant destruction, provider-gated steps and incident attribution. Scoped access facts and mention-free comment edit/delete already built/reserved; pending jobs depend on unfinished Core.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-access-facts-support.mjs`, `tests/agent-comment-delete-support.mjs`, `tests/agent-conformance/fixtures.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`
+
+## SURFACE-005 — The monitoring-operator journey under two company policies
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1619.
+
+#### SURFACE-005 — The monitoring-operator journey under two company policies
+
+*Tier:* Agent surface · *From:* new · *Cites:* BASE-AGENT-007, BASE-AGENT-013
+
+**Requirement.** A stranger agent given only the seed URL runs a seeded week of Uptime work through MCP under two company policies, one of them autonomous for every class.
+
+**Acceptance.**
+1. The seeded week: adopt two discovered monitors, pause one during a maintenance window, work a confirmed outage to recovery with an owner, a comment and a root cause, drill a destination and correct its route, and export the week's SLA report.
+2. Under the policy that makes every class autonomous, the week completes with no approval, nothing refused by policy and an empty review feed; the gated steps go to the named people.
+3. Under the held policy (standard reviewed, every other class Uptime declares waiting for approval, which the test person grants), each non-standard call waits with no effect and runs once approved, and the review feed lists the standard calls.
+4. Under the held policy with live blocked, the adoptions, the pause, the maintenance window and the route change are refused and the rest of the week completes.
+5. Before setup is answered, the first call returns `policy_unset` with the setup link, and setup asks every Uptime class with no answer pre-selected.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: nativeJourney, beforeStep and afterStep under both company policies.; `tests/agent-policy-entry-support.mjs`; no complete-week proof is claimed.; the continuation hold and uip-owned console work remain held.
+
+**Declared Gap (verbatim).** No implementation: no MCP door exists for a stranger agent to run the monitoring-operator week under either company policy.
+
+**Planner disposition.** A1–5 complete stranger seeded week under autonomous/held/live-blocked/unset policies, including recovery, route drill and SLA export. Native first-policy refusal is built, not the complete week; f86/f89/f139 reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-policy-entry-support.mjs`
+
+## SURFACE-006 — One-way operational actions carry their effects
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1620.
+
+#### SURFACE-006 — One-way operational actions carry their effects
+
+*Tier:* Agent surface · *From:* new · *Cites:* BASE-AGENT-006
+
+**Requirement.** Uptime computes the irreversible and live effects of manual checks, cleanup-debt resolution and incident response actions from the affected debts, incidents, running monitors and alert routes.
+
+**Acceptance.**
+1. the pending cleanup resolve operation carries destructive with the debts irreversibly closed; it adds live, with the monitor affected, when resolving a debt takes a running monitor below the open-debt limit so its next scheduled run performs setup again. A resolution that leaves setup refused, or affects only a paused monitor, does not add live.
+2. `uptime.incidents.assign` or `uptime.incidents.acknowledge` is standard for taking or reassigning ownership. Acknowledge, stop and resolve carry destructive with the incidents irreversibly changed, including incidents grouped by acknowledgment; assignment does not carry destructive.
+3. `uptime.incidents.assign` or `uptime.incidents.acknowledge` adds live when acknowledge, stop or resolve ends scheduled reminders or a pending fallback on an open incident of a running monitor, including other incidents grouped by acknowledgment. Facts name every monitor, incident and route affected, applying each contact’s acknowledgment policy. Assignment, and a response action that ends no such scheduled reminder or pending fallback, do not add live.
+4. `uptime.checks.run` adds live, with the monitor affected, when the monitor runs setup and cleanup fixtures and the cleanup debts this check can open (one for each cleanup step on each probe and attempt) would bring its open-debt count to the limit, so its next scheduled run would refuse setup. A check of a monitor without fixtures, or one whose possible debts cannot reach the limit, does not add live.
+
+**Bounded implementation evidence.** `tests/agent-door.mjs` invokes `tests/agent-manual-multicleanup-support.mjs` proveManualMultiCleanup for acceptance 4: an owner-created enabled API monitor with two saved cleanup steps, one probe and zero retries has one open debt from signed production-runner execution. The journey checks the named monitor and debt summary, selective live approval without a slot, genuine person approval queuing one undispatched manual slot, replay, live refusal and a below-boundary counterpart under both policies and both protocols, preserving scheduled evidence and unrelated durable state without admission traffic. This evidence does not qualify other API shapes, browser fixtures, multiple probes or retries, or acceptances 1 through 3; SURFACE-006 retains its current judgment.
+
+**Declared Evidence (verbatim).** `tests/agent-door.mjs` with `tests/agent-manual-debt-support.mjs` proveManualDebt: acceptance 4 single-probe zero-retry API setup and cleanup boundary, production-runner signed debt intake, below-boundary and ordinary-check exclusions, live-selective approval without a slot, named monitor and debt calculation, replaced debt evidence refusing old approval, fresh approval and exact-key replay queuing one manual slot without scheduled-health changes. `tests/agent-conformance/fixtures.mjs` with `tests/agent-conformance/manual-debt.mjs` prepareManualDebt provides the published Base harness manual-cleanup-boundary class fixture.
+
+**Declared Gap (verbatim).** No implementation: no tool computes irreversible cleanup-debt or incident transitions, setup resumption or reminder and fallback suppression across affected monitors, incidents and routes.
+
+**Planner disposition.** A1–4 cleanup resolution and incident response's full destructive/live effect set, grouped incidents/reminder/fallback suppression, browser/API fixtures across probes/retries. One-probe two-cleanup boundary already built; f96/f140/f167/f172 reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `tests/agent-conformance/fixtures.mjs`, `tests/agent-conformance/manual-debt.mjs`, `tests/agent-door.mjs`, `tests/agent-manual-debt-support.mjs`
+
+## AGENT-001 — Continuously maintain meaningful coverage
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1621.
+
+#### AGENT-001 — Continuously maintain meaningful coverage
+
+*Tier:* Core
+
+**Requirement.** An agent compares authorized DNS/sitemaps/OpenAPI, deploy diffs, current definitions and consented route analytics, identifies unmonitored high-value customer paths, stale checks and changed contracts, and drafts a minimal monitor/revision plan with intent, assertions, coverage and cost. Each target, grant and semantic change it proposes carries its class (live when it starts or changes checks, security when it uses a grant), which the company's policy decides; the actions it takes are bounded, reversible and audited. Rejection stays respected, retirement never deletes history and lack of coverage stays visible.
+
+**Acceptance.**
+1. Deploy a new checkout route, remove an old route and change an API schema; inspect evidence-backed create/change/retire proposals, and under the held policy a person rejects one and approves another.
+2. Under the held policy the rejected proposal starts no traffic, uses no secret and weakens no assertion, and history is retained after retirement.
+
+**Declared Evidence (verbatim).** `src/domain/discovery.server.ts`; `tests/discovery-jobs.mjs`
+
+**Declared Gap (verbatim).** Reviewed one-shot discovery exists; continuous agent planning, analytics/deploy comparison and maintenance are absent.
+
+**Planner disposition.** A1–2 continuous deploy/schema/analytics create/change/retire proposals with evidence/cost, policy approval, rejected proposal's zero traffic/secrets and retained history. Need ct release of the AI-data-flow hold; one-shot discovery is already built.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/discovery.server.ts`, `tests/discovery-jobs.mjs`
+
+## AGENT-002 — Distinguish outage, network and broken check
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1622.
+
+#### AGENT-002 — Distinguish outage, network and broken check
+
+*Tier:* Core
+
+**Requirement.** The diagnostic agent reads immutable multi-region attempts, DNS/TLS/route evidence, canaries, browser artifacts, recent deploys and dependency incidents; it offers competing hypotheses, citations, counterevidence and confidence, then proposes bounded independent verification. Missing evidence remains Unknown. Its narrative never discards a bad region, weakens an assertion, suppresses a real outage or changes Healthy/Failing, because state comes only from scheduled evidence. Extra traffic outside prior grants is a live call, security when it needs a new grant, and every remediation carries its own class; the company's policy decides each.
+
+**Acceptance.**
+1. Cause a target outage, a single probe-network break and a selector drift with healthy API evidence; inspect different hypotheses, contradictory/missing evidence and independent test proposals.
+2. Under the held policy a person declines the extra authority, and no verdict changes and no incident is suppressed.
+
+**Declared Evidence (verbatim).** `src/domain/policy.mjs`; `src/domain/evidence.server.ts`; `tests/control-runtime.mjs`
+
+**Declared Gap (verbatim).** Canary/network evidence exists; AI explanation and competing release/dependency investigation do not.
+
+**Planner disposition.** A1–2 competing outage/network/selector-drift hypotheses, citations/counterevidence/confidence, declined verification authority and unchanged verdict. Need ct release of the AI-data-flow hold.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/evidence.server.ts`, `src/domain/policy.mjs`, `tests/control-runtime.mjs`
+
+## AGENT-003 — Repair browser drift without weakening intent
+
+Declared: missing; planner: HELD-EXTERNAL. CONTRACT.md Status line 1623.
+
+#### AGENT-003 — Repair browser drift without weakening intent
+
+*Tier:* Core
+
+**Requirement.** An agent compares the last passing and failing DOM/trace/screenshots, revision intent and exact required outcomes, drafts a selector/fixture repair and runs old and candidate versions against healthy and intentionally broken paths. A repair candidate keeps every required outcome: it removes no assertion, adds no destination or credential, shortens no path and dismisses no failure to get green; a change that does any of these is an ordinary monitor revision with its own class, which the company's policy decides. Activating the new immutable revision is a live call, which the company's policy decides; under the held policy a person reviews the semantic diff and evidence before it activates. Rejection and rollback are retained.
+
+**Acceptance.**
+1. Rename a checkout button while preserving purchase confirmation, request a repair and inject a missing-order-confirmation defect; inspect candidate passing healthy/failing broken paths and unchanged required outcomes.
+2. Under the held policy the candidate does not activate until a person approves it, and the approval and rollback are recorded.
+
+**Declared Evidence (verbatim).** 
+
+**Declared Gap (verbatim).** No implementation; acceptance journey above is required.
+
+**Planner disposition.** A1–2 old/candidate healthy-versus-broken browser verification, unchanged required outcomes, semantic approval/activation and rollback. Need ct release of the AI-data-flow hold.
+
+**Referenced tracked implementation/tests opened by the source audit:** No direct source/test file in the evidence cell; see REPORT’s absence/ownership checks and registry/transport inspection.
+
+## AGENT-005 — Coordinate evidence handoff and verified recovery
+
+Declared: partial; planner: HELD-EXTERNAL. CONTRACT.md Status line 1625.
+
+#### AGENT-005 — Coordinate evidence handoff and verified recovery
+
+*Tier:* Core
+
+**Requirement.** The agent packages confirmed failures and uncertainty for Oncall and Lamp with source-linked regional/API/browser evidence and suggested impact wording. Under an exact repair-workflow grant a person gives it, it follows a repair/deployment in the owner development/CI system, then reruns the original API assertions and safe customer transaction from independent probes and compares before/after. Editing production itself is outside that grant unless the grant names it, and it never claims recovery from a health endpoint alone or weakens the original outcome. Scheduled state alone resolves the incident; downstream handoff failures stay owned and visible.
+
+**Acceptance.**
+1. Confirm failed checkout; after a person grants the repair-workflow handoff, deploy a fix that only repairs /health and inspect the unchanged open incident, evidence in Oncall/Lamp and failed original checkout.
+2. Deploy the real fix, independently rerun original outcomes and inspect correctly correlated recovery, published under the buyer's own publication choice in Lamp.
+
+**Declared Evidence (verbatim).** `src/domain/flow-changes.server.ts`; `src/domain/policy.mjs`; `tests/flow-journey.mjs`
+
+**Declared Gap (verbatim).** Original-assertion recovery/changed-definition labeling exists; agent repair coordination, supported browser verification and sibling handoff do not.
+
+**Planner disposition.** A1–2 granted repair-workflow handoff, failed original checkout after health-only fix, Oncall/Lamp evidence and independent original-outcome recovery/publication choice. Need ct release of the AI-data-flow hold; sibling APIs also remain dependencies.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/domain/flow-changes.server.ts`, `src/domain/policy.mjs`, `tests/flow-journey.mjs`
+
+## BASE-AGENT-001 — One MCP door per seed
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1626.
+
+#### BASE-AGENT-001 — One MCP door per seed
+
+*Tier:* Agent surface
+
+**Requirement.** Every seed, hosted or self-hosted, serves one remote MCP endpoint at `/mcp` over Streamable HTTP. It speaks the current revision (2026-07-28) and accepts 2025-11-25 clients through the twelve-month deprecation window. It implements `server / discover`, tools, resources and prompts. Lists are deterministic and carry `ttlMs` and `cacheScope: "private"`. Roots, Sampling and Logging are not served.
+
+**Acceptance.**
+1. `server / discover` returns the supported versions, capabilities, `serverInfo` and instructions.
+2. A 2026-07-28 request works with no handshake, and a 2025-11-25 client completes `initialize` and lists the same tools.
+3. An unsupported version returns `UnsupportedProtocolVersion`.
+4. Two `tools / list` calls return the same order, with cache fields.
+5. A foreign Origin returns 403, and a header and body method mismatch returns `HeaderMismatch`.
+6. An oversized body returns 413 with no effect.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: transport, discovery and capability refusals.; `tests/agent-oversize-support.mjs`; each 413 has no result or provider traffic and preserves all durable tables, including public-admission counters with delta zero; identical envelopes at the exact bound append one native revision, with held standard work creating its review.  (qualification pending; current judgment and gap retained)
+
+**Declared Gap (verbatim).** Native MCP transport, both protocol eras and the declared CORE discovery pass the published 0.2.94 harness. Resources, prompts, events and subscriptions remain undeclared and refused; their complete capability acceptance is unproved.
+
+**Planner disposition.** Complete resource/prompt capability exposure plus already-built A1–6 transport qualification at current pin; no new MCP endpoint. Shared capability-family scope remains undeclared.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-oversize-support.mjs`
+
+## BASE-AGENT-002 — The seed's jobs are tools, through the UI's own actions
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1627.
+
+#### BASE-AGENT-002 — The seed's jobs are tools, through the UI's own actions
+
+*Tier:* Agent surface
+
+**Requirement.** Each Core job a person does in the product is a tool. Where one is not, the Agent surface says why: it runs on a device, it is a person's interactive screen, it belongs to a connector or the import door, or it is an installation fact. Risk is never the reason: a risky job is a tool with its class (BASE-AGENT-006). Tools are named `<seed>.<area>.<verb>` and declare input and output schemas and truthful annotations. Each calls the same server action as the UI, so validation and authorization are written once, and the seed's embedded agents use the same registry. A business refusal returns `isError` with the seed's stable error code.
+
+**Acceptance.**
+1. The Core clause ids in each tool's `_meta`, with the not-a-tool reasons that `server / discover` serves, cover every Core clause in the contract, and no reason is risk; the harness and `rer check` fail on a gap.
+2. Each tool's fixture result validates against its `outputSchema`.
+3. Read tools declare `readOnlyHint`; tools that can carry destructive declare `destructiveHint`, and tools that can carry external declare `openWorldHint`.
+4. A refusal returns the same error code the UI gets for the same action.
+5. The UI action and its tool, on the same fixture, give the same record state and the same audit event type.
+6. The seed's embedded agents appear in the audit as calls to the same tools.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: tool schemas, annotations and native server actions.
+
+**Declared Gap (verbatim).** The 34 declared native tools share the existing server services and pass schema, annotation, stable-refusal and both-policy journey checks. Retained unfinished Core jobs and UI parity for every target action remain unproved.
+
+**Planner disposition.** A1 full Core coverage/not-tool reasons; A2–6 output/schema/annotation/refusal/UI-state-and-audit parity for all unfinished jobs and embedded-agent registry use. Existing 34-tool measurement is bounded.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`
+
+## BASE-AGENT-003 — Records are resources
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1628.
+
+#### BASE-AGENT-003 — Records are resources
+
+*Tier:* Agent surface
+
+**Requirement.** Each primary record type has a URI template, and tools return `resource_link`s to the records they touch. A read returns exactly the fields the caller's role sees in the UI. File bytes count against any byte budget on the grant. A record the caller cannot open reads as not found, identical to a missing id. Text from customers, imports or files carries an untrusted marker in `_meta`.
+
+**Acceptance.**
+1. `resources / templates / list` names every record type in the Agent surface.
+2. Reads as two roles return exactly what the UI shows each.
+3. An out-of-scope id and a missing id give identical responses.
+4. A write's `resource_link` reads back the new state.
+5. Bytes over budget return `budget_exhausted` and no partial content.
+6. Customer-sourced text carries the untrusted marker.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+
+**Declared Gap (verbatim).** Resources remain undeclared in CORE: native templates are retained as registry facts and public reads are refused. Base resource consent/operation-context support has shipped, but no resource-family conformance or complete-clause judgment is claimed.
+
+**Planner disposition.** A1–6 live resource templates, exact role fields/missing-scope parity, write links, byte budget no-partial-content and untrusted text markers. Registry templates exist, public resource reads intentionally refused; needs Base resource-family release/conformance.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`
+
+## BASE-AGENT-004 — Business identity and short-lived, audience-bound tokens
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1629.
+
+#### BASE-AGENT-004 — Business identity and short-lived, audience-bound tokens
+
+*Tier:* Agent surface
+
+**Requirement.** The door is an OAuth 2.1 resource server. Its RFC 9728 metadata names the authorization servers this installation trusts. That is the paired Business when Business provisioned it, verified with the owner-claim trust the installation already holds for its import door; otherwise it is the seed's own sign-in. Access tokens are RFC 9068 JWTs with `aud` set to the seed's canonical MCP URI, `sub` the sponsoring person, `act` the agent (RFC 8693) with its specialist, scopes per tool family, and a lifetime of 15 minutes or less (5 by default). The policy scopes rules on the sponsor, agent and specialist the token names. The consent behind the tokens can last longer and is revocable. Tokens travel only in the Authorization header, and there is no passthrough.
+
+**Acceptance.**
+1. An unauthenticated call returns 401 with `resource_metadata`, and the metadata names the trusted servers and scopes.
+2. A Business token for this seed works, and the same token sent to a sibling seed returns 401.
+3. An expired token returns 401, and a token with a lifetime over 15 minutes is refused.
+4. A read-only token calling a write tool returns 403 `insufficient_scope` with every needed scope in one challenge.
+5. A token in a query string is refused and not logged.
+6. Revoking consent in the seed or in Business refuses the next call within 60 seconds.
+7. After unpairing, Business tokens are refused and the seed's own sign-in still works.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: native sponsorship, token audience and renewal refusals. `tests/agent-query-token.mjs` with `tests/agent-query-token-child.mjs` — isolated native query-token refusal and diagnostic-secret exclusion: one fresh signed single-sponsor bearer succeeds in Authorization under autonomous and held policies and both protocol versions; query-only and query plus valid Authorization return 401 without changing any durable table or admission counter and without provider traffic. Harmless emitted-Worker logging canaries establish capture before and after the requests; complete child and raw runtime stdout and stderr, response headers and bodies and durable rows exclude the bearer and credential-bearing query or URL in raw and encoded forms.
+
+**Declared Gap (verbatim).** Owner-bound sponsorship, changed-email refusal, token audience and renewal negatives pass CORE measurement on published 0.2.94. Inactive and excluded sponsor fixtures remain undeclared; the complete sponsor lifecycle and multiple-sponsor family are unproved.
+
+**Planner disposition.** Remaining A2/A6/A7 complete multi-sponsor identity, revocation/unpair lifecycle and excluded/inactive sponsors. Owner-bound audience/expiry/query negatives already built; shared lifecycle scope not released.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-query-token-child.mjs`, `tests/agent-query-token.mjs`
+
+## BASE-AGENT-005 — An agent acts as a person in a role, never more
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1630.
+
+#### BASE-AGENT-005 — An agent acts as a person in a role, never more
+
+*Tier:* Agent surface
+
+**Requirement.** Every call is authorized as the sponsoring person's current role and access (BASE-ACCESS-004), intersected with the grant's resources, actions and budget. A grant only narrows. No call widens the calling agent's own authority. A call that would widen its own grant or its sponsor's role, or change the company policy or Pause, is refused with `self_escalation`, whatever the policy says; narrowing its own grant is allowed. Other access and security changes are ordinary actions in the access and security classes. An agent never acts after its sponsor is suspended. Anything an agent reads (records, files, emails, imports, other seeds' results) is data and cannot change its scope, its targets or a call's class.
+
+**Acceptance.**
+1. For each role fixture, every tool's allow or deny through MCP equals the UI's for the same action.
+2. A one-folder, read-only grant holds, and widening through arguments is refused.
+3. Downgrading the sponsor changes the next call's result, and suspending the sponsor returns 401.
+4. Calls that widen the agent's own grant or its sponsor's role, or change the policy or Pause, return `self_escalation` and change nothing, even under a policy with every class autonomous; dropping a scope from its own grant runs.
+5. An injection fixture yields no out-of-grant call and no change of class: record text asking for a wider action, or claiming that a recipient is internal.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-self-escalation-state-support.mjs` proveSelfEscalationState, mounted once by the native journey: synchronous owner-sponsored uptime.grants.update self-grants return self_escalation under autonomous and held policies in both supported MCP versions, with no success or pending work, zero provider traffic and exact preservation of every durable row except the enumerated agent admission and refusal audit with its sequence. Independent paused monitor and independently invited non-sponsor member grants qualify required native proof and signed-in person approval under held policy. `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: sponsor authority, self-escalation and BASE-AGENT-005.5.autonomous injection probes.
+
+**Declared Gap (verbatim).** Native sponsor authority, the bounded synchronous self-grant refusal and ordinary record operations pass. All autonomous additional-argument probes now pass on published 0.2.94: mutations retain their admitted arguments and exact idempotency key, while native stale-version and missing-target guards remain enforced. Complete role and UI parity across retained unfinished jobs, full grant resource narrowing and argument widening, sponsor downgrade and suspension, other own-grant and sponsor-role and policy and Pause escalation paths, actual scope dropping and remaining record-text injection families remain unproved. Uip-owned console work is held; ct's unscoped lifecycle families and the AGENT-001 through AGENT-005 AI-data-flow hold remain unchanged.
+
+**Planner disposition.** A1–5 full role/UI parity, grant-resource/argument narrowing, sponsor downgrade/suspension, every self-escalation route and allowed own-scope dropping, record-text injection families. Existing synchronous self-grant/current arguments are bounded proof.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-self-escalation-state-support.mjs`
+
+## BASE-AGENT-006 — Every action declares its risk class
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1631.
+
+#### BASE-AGENT-006 — Every action declares its risk class
+
+*Tier:* Agent surface
+
+**Requirement.** Classes come from the fleet list in RISK-POLICY.md: standard, external, money, commitment, accounts, gated, access, security, destructive, sensitive and live. In the registry, each tool declares the classes it can carry and a server-side classifier that decides them per call from the arguments, current records and, for gated, the provider's answer. The classifier also supplies each class's facts: the measure (items, recipients, amount and currency, people or records), the counterparty (internal, known, new or public), the direction for access, the provider and step for gated, and the data kind for sensitive. A classifier never reads a flag, label or claim supplied by the agent or by record text. A seed cannot add a class; it proposes one for the fleet list.
+
+**Acceptance.**
+1. Every tool in `tools / list` carries its possible classes in `_meta`, equal to the Agent surface table.
+2. For each tool, fixture calls cover every class it can carry, and the computed classes and facts equal the fixture's expected values.
+3. An argument or record text asserting a class or a confirmation (`internal: true`, `confirmExternal: true`) leaves the computed classes unchanged.
+4. Money calls carry amount and currency, external calls their counterparty and recipient count, access calls their direction, and destructive calls their item count.
+5. No tool in `tools / list` declares a class outside the fleet list, and `rer check` fails on one.
+6. A refused call's audit row still records its computed classes.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: computed native classes and both-policy decisions. `tests/agent-held-class-claims-support.mjs` — proveHeldClassClaims, mounted once from `tests/agent-door.mjs`: fresh synchronous pause controls and separate class, live, internal and confirmation claims under autonomous and held policies in both protocol versions; owner-created enabled monitors assigned to one enrolled unpolled private runner; independently saved native service and live measure 1, identical policy rules, native targets and ignored argument names; complete durable native preservation before actual sponsor approval, canonical approval handle, unchanged admitted arguments and summary, one pause revision and exact-key replay, zero provider traffic. Modern pending responses use input_required; the older protocol uses approval_required and a modern retry exposes the same pending handle as input_required. `tests/agent-record-class-claims-support.mjs` — proveRecordClassClaims, mounted once from `tests/agent-door.mjs`: acceptance 3's single saved monitor-name record-text cell, read first through MCP before fresh synchronous pause with ordinary arguments; independent owner-created enabled monitors assigned to one enrolled unpolled private runner, clean names and misleading standard, paused, internal and confirmation names under both policies and supported protocol versions. Native enabled definitions independently establish live measure 1 and service; policy rules, disposition and intended target remain unchanged. Held calls preserve the canonical pending approval, saved arguments and exact summary until actual sponsor approval; autonomous calls complete directly. Exact enumerated admission, audit, approval, event, usage and target-revision deltas preserve every unrelated durable row and sequence counter; one intended pause revision and effect-free exact-key replay, with zero runner or provider traffic.
+
+**Declared Gap (verbatim).** Declared native class checks pass under autonomous and held policies. Approved erasure replay retains trusted completed effect facts only after current workspace-owner admission. Acceptance 3 is qualified here only for fresh synchronous uptime.monitors.pause argument claims. Its other tools and record-text families, acceptance 2's wider per-tool class conditions, acceptance 4's complete money, external, access and destructive facts, broader refused-call qualification, provider costs and gated steps remain unproved. Uip-owned console work is not released; ct's unscoped lifecycle families and all existing channel, account, device, sibling and Platform holds remain unchanged. No provider dispatch, receipt or optional queued-lifecycle qualification is claimed.
+
+**Planner disposition.** A2–4 all per-tool class conditions/facts and argument/record-text invariance; A6 wider refusal audit; money/provider/gated/destructive breadth. Synchronous pause and native classification slices already built; no invented classes.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-held-class-claims-support.mjs`, `tests/agent-record-class-claims-support.mjs`
+
+## BASE-AGENT-007 — The company's policy decides, at one chokepoint
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1632.
+
+#### BASE-AGENT-007 — The company's policy decides, at one chokepoint
+
+*Tier:* Agent surface
+
+**Requirement.** Every agent door calls one decision function: MCP, the integration API with agent tokens, and the seed's embedded agents. It evaluates the call's classes against the company's policy, as above. The seed ships no dispositions and fills no gap with one: agent access opens only under a complete policy that setup has asked for (RISK-POLICY.md), and before then every agent call returns `policy_unset` with the setup link and changes nothing. *Autonomous* runs the call. *Review* runs it and adds it to the review feed. *Approval* saves a pending action with server-computed facts and returns `input_required`, with a URL-mode elicitation to the seed's approval page and a pending handle. Each person the rule names approves the exact saved revision in a signed-in browser, and changed inputs need a new approval. The retried call returns the result and a receipt. A rejection returns `approval_rejected`, and a lapse past the wait the rule sets returns `approval_expired`. *Blocked* returns `policy_blocked`, naming the class, rule and revision.
+
+**Acceptance.**
+1. The Base harness runs each tool under each disposition for every class it can carry, and sees it run, run and enter the review feed, wait with no effect, or be refused.
+2. Before setup is complete, the setup page lists every class the seed's tools carry with examples and no answer pre-selected, an agent call returns `policy_unset` with the setup link and changes nothing, and an incomplete revision cannot be confirmed; a `*` rule completes it, and a tool an upgrade adds with an unanswered class appears in `tools / list` once that class is answered, while the other tools keep running.
+3. Under "money autonomous up to $500, approval up to $10,000, blocked above", calls of $400, $600 and $20,000 run, wait and are refused; a per-day cap sends the call that crosses it to the next rule.
+4. A call carrying two classes takes the stricter disposition.
+5. An approval shows server-computed facts and an expiry, returns the URL elicitation and a handle, and completes once after the named approver approves; a changed input needs a new approval, and a rejection or lapse leaves no effect.
+6. The same call through MCP, the integration API and an embedded agent gets the same decision.
+7. A policy change applies to the next call within 60 seconds, and the audit cites the new revision.
+8. A policy document with a bad signature or another Business's id is rejected, and the door keeps the last valid revision.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: unset, renewal, blocked, review and approval policy phases.; `tests/agent-standard-approval-support.mjs`; sponsor refusal preserves the saved revision; the independently invited reviewer approves that revision; retry discloses the record with one execution, reviewer and sponsor audit attribution and a linked receipt. The existing native current-read replay journey remains registered.; `tests/agent-approval-rejection-support.mjs`; genuine held approval retains canonical handle, native revision and summary; the named person rejects that saved revision through the native session door, and repeated rejection plus identical-key retries with fresh JSON-RPC ids return approval_rejected without a success, execution receipt, second approval, pause or revision. Complete durable snapshots enumerate only person-decision state and its internal event, agent admission and exact audit and relay deltas, preserving monitoring, scheduling, notifications, credentials, usage and custody with zero runner or provider traffic; independent autonomous and genuinely approved held controls each pause once. (qualification pending; current main judgment and gap retained)
+
+**Declared Gap (verbatim).** Unanswered-policy refusal, policy renewal negatives, declared blocked variants, held approvals and approved erasure replay pass CORE measurement on published 0.2.94. Standard-only named approval and the retained complete policy lifecycle remain unproved.
+
+**Planner disposition.** A1–8 full disposition/policy lifecycle, standard-only named approval breadth, expiry, money/cap boundaries, mixed classes, every door, ≤60s revisions and bad-signature/foreign-Business retention. Bounded native approvals/rejections already built/reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-approval-rejection-support.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-standard-approval-support.mjs`
+
+## BASE-AGENT-008 — Truthful attribution
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1633.
+
+#### BASE-AGENT-008 — Truthful attribution
+
+*Tier:* Agent surface
+
+**Requirement.** Every agent act is recorded and shown as `"<agent> for <person>"`, and mail and messages an agent sends outside name it that way as their sender. An approval, a review mark, a confirmation (a warning dialog, a typed-field confirmation, a delivery confirmation), a decision or a signature attributed to a person comes only from that person's signed-in session. When an agent does the equivalent act, the record names the agent, and the act carries its own class; a binding decision or a signature is commitment. Agent doors ignore arguments that stand for a person's confirmation. No tool solves a bot check, or enters a person's own password or 2FA code at an outside service. A provider step that demands a person goes to a person, whatever the policy says; the gated class marks such steps before they run.
+
+**Acceptance.**
+1. An agent call carrying a person-confirmation flag is classified and decided exactly as without it.
+2. Approving, marking reviewed or answering a policy question with an agent or device token returns 403 and changes nothing.
+3. A form-mode elicitation "accept" never completes an approval.
+4. Where an agent's decision, signature or field confirmation runs without a person, it reads `"<agent> for <person>"` in the record, the activity view, exports and any certificate, never as the person's own act.
+5. After a person approves an agent's prepared action, the record shows the person as approver and the agent as preparer.
+6. Activity and exports at 1440 and 390 show `"<agent> for <person>"` for every agent act.
+7. Mail an agent sends to an outside address names `"<agent> for <person>"` as its sender.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: agent, sponsor, preparer and independent reviewer attribution.; `tests/agent-form-accept-support.mjs`; identical admitted arguments, explicit key and real returned continuation state retain the original pending approval, saved summary hash, revision, approver marks and version, without a receipt, native pause or second approval. Every durable table, including the sequence ledger, preserves exact rows except the enumerated agent admission counter and replay audit bookkeeping. Modern responses retain URL-mode input_required; the older protocol retains approval_required. Actual signed-in sponsor approval executes the exact saved revision once with person approver and agent preparer attribution; exact-key replay is effect-free, and autonomous counterparts pause once without approval. No runner or provider traffic occurs. (qualification pending; current judgment and gap retained)
+
+**Declared Gap (verbatim).** Native agent and preparer identity, sponsor and independent reviewer attribution pass through the shared door. Complete attribution for the retained unscoped lifecycle families remains unproved.
+
+**Planner disposition.** A1–7 complete lifecycle attribution, exports/activity at 1440/390, actual outside-mail sender identity and person-only confirmations; native preparer/reviewer/form-accept checks already built/reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-form-accept-support.mjs`
+
+## BASE-AGENT-009 — Every agent action is audited with its class and decision
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1634.
+
+#### BASE-AGENT-009 — Every agent action is audited with its class and decision
+
+*Tier:* Agent surface
+
+**Requirement.** Extending BASE-OPS-005, each call that reads private data or changes anything records the agent client, name and specialist, and the run or task id (`traceparent` when sent); the sponsoring person, the grant, the tool and the targets; the classes and their facts, and the policy revision and rule; the decision (autonomous, review, approval, blocked, unset or self_escalation) and the outcome (done, refused, pending or failed); the approval or review id and person, and the idempotency key. For a period, the seed's Agents page shows actions by class and decision with the notable ones, the review feed (Mark reviewed, Flag, and Undo where reversible), pending approvals, steps waiting for a person and setup questions. Business shows the same across seeds.
+
+**Acceptance.**
+1. One write leaves a complete audit row.
+2. Refused, pending, unset and self-escalation calls are audited.
+3. The Agents page's counts by class and decision equal the audit rows on a fixture week.
+4. The review feed lists exactly the calls decided as review; Mark reviewed records the person, and Undo restores a reversible one.
+5. Filtering by agent or class lists only those rows, and export includes every field.
+6. Removing the agent keeps its rows and its name.
+7. The Agents page works at 1440 and 390 with no serious or critical axe findings.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: review, execution, replay and native-target audit phases.; `tests/agent-revocation-audit-support.mjs`; synchronous owner revocation retains the complete original audit row and inventory name, specialist and sponsor, while the same unexpired bearer is refused with 401 on discovery; all 216 durable tables are compared with only the intended revoked flag changed and no provider or mail effects.
+
+**Declared Gap (verbatim).** Review, execution, exact-key replay and native-continuation audit checks pass the declared CORE measurement on published 0.2.94. Complete audit acceptance for retained unscoped lifecycle families remains unproved.
+
+**Planner disposition.** A1–7 complete retained lifecycle audit, Agents counts/filter/export/review/undo and 1440/390 UI. Revocation preserving audit rows/name already built; UI and lifecycle families held.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-revocation-audit-support.mjs`
+
+## BASE-AGENT-010 — Agents can follow changes
+
+Declared: missing; planner: HARD. CONTRACT.md Status line 1635.
+
+#### BASE-AGENT-010 — Agents can follow changes
+
+*Tier:* Agent surface
+
+**Requirement.** The seed emits a typed event for every record change and for every approval, review and policy decision. Each event carries a stable id, a type, the record URI, the actor (a person, or an agent acting for a person) and a time. Events never carry secrets or more than the subscriber may read. Agents can read events three ways: `subscriptions / listen`, an `events.list` tool with a cursor, and signed webhooks from Base `integrations` using the same ids. Every channel delivers at least once and filters by access at delivery.
+
+**Acceptance.**
+1. A subscribed record changed in the UI produces a notification within 10 seconds.
+2. `events.list` returns the same event id the webhook carries.
+3. Replaying from a cursor returns the same ids in order.
+4. After access is revoked, no channel delivers events about that record.
+5. A failed webhook is visible and replays without duplicate effects.
+6. `approval.pending`, `approval.decided`, `review.flagged` and `policy.adopted` carry the class and decision and nothing the subscriber may not read.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs`; `tests/agent-conformance/journey.mjs`
+
+**Declared Gap (verbatim).** Events and subscriptions remain undeclared and are refused in CORE. Multi-sponsor, mail edges and resource refresh remain unscoped obligations; no family conformance or complete-clause acceptance is claimed.
+
+**Planner disposition.** A1–6 subscriptions/events.list/signed webhook same IDs, ≤10s change delivery, ordered cursor replay, live access filters and approval/review/policy event fields. All are intentionally undeclared/refused; shared event capability first.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`
+
+## BASE-AGENT-011 — Limits are policy, and Pause stops everything
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1636.
+
+#### BASE-AGENT-011 — Limits are policy, and Pause stops everything
+
+*Tier:* Agent surface
+
+**Requirement.** Business limits are rules in the company's policy: per-call and per-day thresholds on any class's measure, such as money moved, outside recipients or items destroyed; spend caps on provider cost (models, SMS, email) per seed, specialist or agent, which setup asks with the classes; "no cap" is an answer. Tools with provider cost declare an estimate before they run, and an exhausted cap returns `budget_exhausted` before any partial effect. The seed's capacity limits (request rate, body and byte sizes) protect the installation: they bound rate and size, never daily business volume, are documented and are not policy. A grant carries budgets only when the person granting it sets them. A **Pause agents** control in the seed, and Pause all agents in Business when paired, refuses every agent token within 60 seconds until a person resumes; browser sessions and devices keep working.
+
+**Acceptance.**
+1. A rate overrun returns 429 with `Retry-After`.
+2. A per-day cap of three outside recipients sends the fourth to the rule that applies past the cap.
+3. An exhausted spend cap returns `budget_exhausted` with no partial effect and shows the spend.
+4. Under the answer "no cap", a spending call runs and its spend shows in usage; a call that spends nothing is unaffected by any cap.
+5. The usage view shows calls, decisions by class, money moved and provider spend per agent.
+6. Pause and Pause all agents each stop the next call within 60 seconds, and resume restores access.
+7. An agent token cannot resume.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: Pause, pending-execution refusal and declared limits.; `tests/agent-rate-overrun.mjs`; an otherwise-valid current-revision name write with a fresh key and its identical retry return HTTP 429, native rate_limited and a positive integral Retry-After matching the remaining window. Complete durable snapshots, including capacity and sequence counters, preserve all product, revision, scheduling, notification, credential, audit, approval, review, usage, idempotency and custody rows; public monitor and revision reads retain the successful counterpart and no provider traffic occurs.
+
+**Declared Gap (verbatim).** Native Pause, refusal of pending execution and declared policy limits pass CORE measurement. The full retained spend, recipient-cap, Business Pause and usage lifecycle remains unproved.
+
+**Planner disposition.** A2–7 recipient caps, provider-spend exhaustion/no-cap usage, Business Pause/usage lifecycle and 1440/390 UI. A1 rate refusal and native Pause already built; f94/f99 cover existing cap slice.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`, `tests/agent-rate-overrun.mjs`
+
+## BASE-AGENT-012 — Writes are idempotent and conflict-safe
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1637.
+
+#### BASE-AGENT-012 — Writes are idempotent and conflict-safe
+
+*Tier:* Agent surface
+
+**Requirement.** Every mutating tool requires an idempotency key and takes an optional expected revision. The same key with the same arguments returns the first outcome for at least 24 hours; the same key with different arguments returns `idempotency_conflict`; a stale revision returns `revision_conflict` with the current revision. Long work returns a job handle and a status tool, with no dependence on the Tasks extension.
+
+**Acceptance.**
+1. Two calls with one key give one effect and equal results.
+2. A retry with a new JSON-RPC id and the same key, after a dropped stream, returns the recorded outcome.
+3. The same key with different arguments returns a conflict and no effect.
+4. A stale revision returns a conflict naming the current revision.
+5. A job handle used by another person's token reads as not found.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: one-effect replay, current admission, revision conflicts and native continuation identity.; `tests/agent-current-revision-support.mjs`; owner readback establishes its current revision. A fresh explicit key with the current native version and stale expected_revision returns revision_conflict naming that exact current_revision in error metadata and matching agent-readable text, without success, approval, review or execution receipts or target and provider traffic. Every durable table, including sequence counters, preserves exact rows except enumerated agent admission and refusal audit with its relay; a matching expected revision completes one paused name edit with the ordinary autonomous or standard-review decision.
+
+**Declared Gap (verbatim).** Current admission, exact-key one-effect replay, argument conflict, stale revision, current native reads and trusted continuation identity pass. Deleted-target erasure replay rechecks current workspace-owner authority and native proof; Pause and fresh-key missing-target refusals remain asserted. Published 0.2.94 injection probes preserve the admitted mutation key and arguments. Retained long-work and full 24-hour lifecycle acceptance remains unproved.
+
+**Planner disposition.** Requirement's ≥24h replay plus A5 cross-person long-job-handle not-found lifecycle; broader long work, drop/retry and revision coverage. Current-key replay/current-revision/native continuation already built/reserved.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-current-revision-support.mjs`, `tests/agent-door.mjs`
+
+## BASE-AGENT-013 — Manifest, docs and the conformance journey
+
+Declared: partial; planner: HARD. CONTRACT.md Status line 1638.
+
+#### BASE-AGENT-013 — Manifest, docs and the conformance journey
+
+*Tier:* Agent surface
+
+**Requirement.** `server / discover` instructions and an on-site `/docs/agents` page are generated from the action registry. The page lists tools by job, with each tool's classes, the test that adds each computed class, its scopes, resource templates, event types, capacity limits and error codes, and the specialist role. `prompts / list` carries the specialist's jobs. Base ships the conformance journey, a harness that `rer verify` runs against `rer dev` and seeds run in CI. It is an MCP client; a signed-in test person takes a person's steps (setup answers, approvals, review marks, resume) through the URLs the door returns, and the same browser leg runs the UI-parity actions and the page checks at 1440 and 390. It runs every acceptance point of BASE-AGENT-001 to 012 and of the seed's SURFACE clauses under two company policies: *all autonomous* (`*`), and *held* (standard review, every other class the seed declares approval, which the test person grants), plus the single-class variants a point names. A point that names no disposition passes under both.
+
+**Acceptance.**
+1. The docs list exactly the names in `tools / list` and `resources / templates / list`.
+2. Each tool's classes, and the test behind each computed one, are documented.
+3. The harness fails on any of: a tool without a schema; an effect under approval or blocked, or before setup is complete; a computed class that differs from its fixture; a flag that changes a class or completes a person's step; a role-parity mismatch; a wrong-audience token being accepted; a duplicate effect on retry.
+4. Every acceptance point runs under both policies, every decision matches the policy in force, and under all autonomous no call waits for a person or is refused by policy.
+5. A stranger agent given only the seed URL completes the specialist journey through MCP.
+
+**Declared Evidence (verbatim).** `agent-surface.json`; `src/agent-door/registry.server.ts`; `tests/agent-door.mjs` — native signed identity, current authority and replay journey; `tests/agent-conformance/journey.mjs` — nativeJourney and step hooks; `src/base/modules/agent-door/conformance/index.mjs` — runAgentDoorConformance invoked by rer verify: published CORE conformance and nativeJourney under both policies.
+
+**Declared Gap (verbatim).** All declared CORE conformance points pass on published 0.2.94, including the formerly failing autonomous post-mutation injection probes. Worker admissions remain invoke-only. Resources, prompts, events and subscriptions are undeclared; timed, queued, dual-host and owner-native journeys remain outside CORE under ct 2026-10-29T14:12Z ruling 2. Complete-clause acceptance is unproved.
+
+**Planner disposition.** A1–5 complete docs/resources/prompts/events, every point of 001–012 and SURFACE under both policies, person browser parity at 1440/390 and stranger journey. Declared CORE passing is not full target conformance; shared unscoped families remain held.
+
+**Referenced tracked implementation/tests opened by the source audit:** `src/agent-door/registry.server.ts`, `src/base/modules/agent-door/conformance/index.mjs`, `tests/agent-conformance/journey.mjs`, `tests/agent-door.mjs`
+

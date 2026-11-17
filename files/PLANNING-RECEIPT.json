@@ -1,0 +1,71 @@
+{
+  "checks": [
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit_code": 0,
+      "output": "Contract prose: 0 errors, 0 warnings.\nContract documents are current."
+    },
+    {
+      "command": "git ls-remote --heads origin refs/heads/main refs/heads/evidence/ct-open-points-plan-uptime-1",
+      "evidence_ref_before_publication": "absent",
+      "exit_code": 0,
+      "main_head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129"
+    },
+    {
+      "command": "git status --porcelain=v1",
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "classification_counts": {
+    "CHEAP": 8,
+    "HARD": 56,
+    "HELD-EXTERNAL": 14
+  },
+  "cloud_refs_examined": 743,
+  "evidence_publication": "Separate report-only ref; not product custody or acceptance. Publication output and terminal verification are recorded separately after this immutable packet is selected.",
+  "evidence_push_identity_guard": {
+    "commit_command": "env GIT_AUTHOR_NAME=Run Edit Run fleet GIT_AUTHOR_EMAIL=fleet@runeditrun.com GIT_COMMITTER_NAME=Run Edit Run fleet GIT_COMMITTER_EMAIL=fleet@runeditrun.com git commit-tree ...",
+    "entrypoint": "outside product repo: .tools/evidence-audit-bin/git",
+    "method": "Before each actual report push, read every candidate and side parent using exact git log origin/main..HEAD format in isolated bare storage, validate fleet author/committer and allowed trailers, and restrict destination to refs/heads/evidence/ct-open-points-plan-uptime-1. No product push allowed."
+  },
+  "launches": [],
+  "no_secret_material": "Only explicit regular files authored from public tracked repository context and non-secret execution results; no environment dumps, credentials, symlinks or private gate inputs.",
+  "observed_at": "2026-11-17T11:01:18.828556+00:00",
+  "open_clauses": 78,
+  "origin_main": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "packet_selection": [
+    "REPORT.md",
+    "PLANNING-RECEIPT.json",
+    "CLAUSE-AUDIT.md",
+    "SOURCE-REVIEW.json",
+    "BRANCH-REVIEW.json"
+  ],
+  "product_branch": "main",
+  "product_commits_created": 0,
+  "product_head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "product_ready_or_acceptance_claimed": false,
+  "product_refs_pushed": [],
+  "provider_calls": [],
+  "queue_entries": 5,
+  "reads": [
+    "launcher AGENTS.md",
+    "repository AGENTS.md",
+    "CONTRACT.md",
+    "ACCEPTANCE.md",
+    "docs/CLAIMS.md",
+    "RULINGS.md",
+    "public tracked implementation and tests",
+    "all cloud remote-tracking refs",
+    "recent main history",
+    "remote main/evidence advertised refs"
+  ],
+  "repository": "just-every/run-uptime",
+  "role": "planner",
+  "runtime_test_reason": "Read-only planning; source/assertion review and nonmutating document consistency check only.",
+  "runtime_tests_run": false,
+  "schema": 1,
+  "tag": "ct-open-points-plan-uptime-1",
+  "unmerged_by_ancestry": 418,
+  "worktree_status_porcelain": ""
+}

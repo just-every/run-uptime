@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "blob": "077e3a740c9bfe528b88c6eb3cbfce52b9cba4a6",
+      "bytes": 246615,
+      "path": "BRANCH-REVIEW.json",
+      "sha256": "28f17faf976413b73f01dc041dfd5f005cc63b1a1cfe469f8a0f9c50e73a064e"
+    },
+    {
+      "blob": "2501adab261e1ca0933a44ab8fcb0d68b08fb1e3",
+      "bytes": 265008,
+      "path": "CLAUSE-AUDIT.md",
+      "sha256": "2230d6428ad964e4f46cd31f16060ea11979ea2b1b9e21b9fe8d1fc369132fbb"
+    },
+    {
+      "blob": "832effc7aedf019c825bea0898a7551b3d78a056",
+      "bytes": 2908,
+      "path": "PLANNING-RECEIPT.json",
+      "sha256": "727c911e02a929e5aff19bb35817c97d8c6e997344388d7a8e10c02b4e52d1a0"
+    },
+    {
+      "blob": "83a897de06e9b42fed7028ce154a4bb1af94c4a1",
+      "bytes": 42709,
+      "path": "REPORT.md",
+      "sha256": "087cd9a24bc0535b85b4e847b86bc13d30bd5195f2b2c49adce75563ae7f403a"
+    },
+    {
+      "blob": "ee5e42b5fb37894aacd45ba057d3668f7569bc9d",
+      "bytes": 205181,
+      "path": "SOURCE-REVIEW.json",
+      "sha256": "7e98ba18b904d8fd607a4ec6220fab8359dfdf6752af5232fd17111be8045950"
+    }
+  ],
+  "product_branch": "main",
+  "product_head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "ref": "refs/heads/evidence/ct-open-points-plan-uptime-1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "ct-open-points-plan-uptime-1"
+}
