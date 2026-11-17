@@ -1,8 +1,8 @@
 {
   "capture": {
-    "bytes": 461771,
+    "bytes": 463079,
     "path": "capture.json",
-    "sha256": "70e42a3dbd67e07b21ec8f8112d011a82006d26ea13ccf5aad410fa785ab59eb"
+    "sha256": "608c0da6fb8a29fae68a9443b2031495b652b0dde3f6ec6bcd179d11d39d3e7b"
   },
   "capturedAt": "2026-11-01T00:00:00Z",
   "counts": {
@@ -217,7 +217,7 @@
       "sourceId": "61006"
     },
     {
-      "bytes": 817,
+      "bytes": 816,
       "id": "checks/detail-61007",
       "kind": "check-detail",
       "path": "checks/detail-61007.json",
@@ -229,11 +229,11 @@
           "include_teams": true
         }
       },
-      "sha256": "fac1f11666f6a0ddbfee043f460c9bad1a99386c3471a11b0c530370f374af92",
+      "sha256": "1e9c11491e24e35eed903a6fee732af93e380df46fe53cb22fc63a1595a3772b",
       "sourceId": "61007"
     },
     {
-      "bytes": 903,
+      "bytes": 904,
       "id": "checks/detail-61008",
       "kind": "check-detail",
       "path": "checks/detail-61008.json",
@@ -245,7 +245,7 @@
           "include_teams": true
         }
       },
-      "sha256": "8ab10532cd6701758483f9e46843aeea0e4c055a01a5a48ef7c2b55dcf209f94",
+      "sha256": "1d21fae95181e185ecbb69c44f9b65674b4abd3fbbdcd12f82303853323beb1c",
       "sourceId": "61008"
     },
     {
@@ -1412,7 +1412,7 @@
       "sha256": "179af6d4a5ab866ca9acfbbffaf0aa9c370f00562471428ba937fe8a9d0a331d"
     },
     {
-      "bytes": 1287,
+      "bytes": 1273,
       "id": "tms/detail-83001",
       "kind": "tms-detail",
       "path": "tms/detail-83001.json",
@@ -1422,11 +1422,11 @@
         "path": "/api/3.1/tms/check/83001",
         "query": {}
       },
-      "sha256": "10c2554f3c05459e3403bd6c8b99420c170839652e175b6157e1e14e3fa3a467",
+      "sha256": "06f8ad2cbba1f2d3c9fd3d08c33b460618c08b8329814d4ac71eef7a0820a458",
       "sourceId": "83001"
     },
     {
-      "bytes": 1289,
+      "bytes": 1367,
       "id": "tms/detail-83002",
       "kind": "tms-detail",
       "path": "tms/detail-83002.json",
@@ -1436,11 +1436,11 @@
         "path": "/api/3.1/tms/check/83002",
         "query": {}
       },
-      "sha256": "b6558d36cfe4b7dd213ff91b42acd3f3c9e436341c686517e8787ff11b3592d0",
+      "sha256": "4b45da6fe0959d83ca31248eed0d1b58ce3bc2fa9f98e039539d3c5511de4b55",
       "sourceId": "83002"
     },
     {
-      "bytes": 1198,
+      "bytes": 1853,
       "id": "tms/detail-83003",
       "kind": "tms-detail",
       "path": "tms/detail-83003.json",
@@ -1450,11 +1450,11 @@
         "path": "/api/3.1/tms/check/83003",
         "query": {}
       },
-      "sha256": "a42ba6150aebb3fe58c28008c5f28a242134b3cd9cfb6ca54b39342172e1833a",
+      "sha256": "61530dfb017d83257544c1cc49224d8ae53c2754aa1b260a3e7214fde330a3cd",
       "sourceId": "83003"
     },
     {
-      "bytes": 915,
+      "bytes": 1017,
       "id": "tms/detail-83004",
       "kind": "tms-detail",
       "path": "tms/detail-83004.json",
@@ -1464,11 +1464,11 @@
         "path": "/api/3.1/tms/check/83004",
         "query": {}
       },
-      "sha256": "381367e0c265463e5c7b5782626b48c4dc43f51e5936a6fe21d1f2292ff70f51",
+      "sha256": "bb8c50860487cdf35d4e6f8cfe60c3b01ee0cedce08c9d55638acb608471cf43",
       "sourceId": "83004"
     },
     {
-      "bytes": 621,
+      "bytes": 554,
       "id": "tms/status-report",
       "kind": "tms-status-report",
       "path": "tms/status-report.json",
@@ -1477,15 +1477,15 @@
         "method": "GET",
         "path": "/api/3.1/tms/check/83001/report/status",
         "query": {
-          "from": 1793404800,
-          "to": 1793491200
+          "from": "2026-10-31T00:00:00.000Z",
+          "to": "2026-11-01T00:00:00.000Z"
         }
       },
-      "sha256": "c4a3a7f1ebbd82c985ec83583b004d746878dcac6af637d339669cf6edab5178",
+      "sha256": "49c06c35c1ca4e94abf56cb1defc1d1dab45803fa9eeeae948b9cd37867a0346",
       "sourceId": "83001"
     },
     {
-      "bytes": 1738,
+      "bytes": 1740,
       "id": "tms/performance-report",
       "kind": "tms-performance-report",
       "path": "tms/performance-report.json",
@@ -1494,12 +1494,13 @@
         "method": "GET",
         "path": "/api/3.1/tms/check/83001/report/performance",
         "query": {
-          "from": 1793404800,
+          "from": "2026-10-31T00:00:00.000Z",
+          "include_uptime": true,
           "resolution": "day",
-          "to": 1793491200
+          "to": "2026-11-01T00:00:00.000Z"
         }
       },
-      "sha256": "6d046806ed360eee7de9f691aaf5eab7fb8a555b3b0bb66ad982f002cdaa2db2",
+      "sha256": "28edcef7022deaaf7a0e0796b250434f27e92f7ee606ea4c5d9b1801fef30f46",
       "sourceId": "83001"
     }
   ],
@@ -1529,6 +1530,11 @@
       "description": "Source shouldcontain and shouldnotcontain are mutually exclusive. Positive controls set one or neither; the combination is a separate negative case.",
       "id": "keywords-exclusive",
       "path": "check.type.http"
+    },
+    {
+      "description": "The API property name suggests true disables security, but its description says false disables the same-origin policy. Preserve the source value for review; no value may relax native browser security.",
+      "id": "recording-security-description",
+      "path": "metadata.disableWebSecurity"
     },
     {
       "description": "API 3.1 publishes no Page Speed export schema. Operator transcription is separately labeled, not an API response.",

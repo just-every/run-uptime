@@ -8,6 +8,7 @@ import {buildAws} from '../tests/fixtures/incumbent-import/generator/aws.mjs'
 import {buildVariants} from '../tests/fixtures/incumbent-import/generator/variants.mjs'
 import {expectations,legacyFixture,pageSpeed} from '../tests/fixtures/incumbent-import/generator/expectations.mjs'
 import {json,sha256,seed,clock} from '../tests/fixtures/incumbent-import/generator/transport.mjs'
+import {documentedCoverage} from '../tests/fixtures/incumbent-import/generator/coverage.mjs'
 
 const script=fileURLToPath(import.meta.url),repo=resolve(dirname(script),'..'),fixtureRoot=join(repo,'tests/fixtures/incumbent-import')
 const args=process.argv.slice(2)
@@ -23,7 +24,10 @@ const merge=(prefix,entries)=>{for(const [path,bytes] of entries){const name=pre
 merge('pingdom',pingdom.files);merge('aws',aws.files);merge('pagespeed',pagespeed.files);merge('',variants.files)
 files.set('pingdom-checks.synthetic.json',json(legacyFixture()))
 files.set('expected/expectations.json',json(expectations(pingdom,aws,variants.cases)))
-files.set('expected/documented-field-map.csv',await readFile(join(fixtureRoot,'generator/documented-field-map.csv')))
+const documentedFields=await readFile(join(fixtureRoot,'generator/documented-field-map.csv'))
+files.set('expected/documented-field-map.csv',documentedFields)
+const coverage=documentedCoverage(files,documentedFields.toString('utf8'))
+files.set('expected/documented-field-coverage.json',json(coverage))
 files.set('expected/provenance.json',json({author:'Codex',date:'2026-11-17',synthetic:true,seed,clock,plannerCommit:'99eeacb8f36b6c97ead141fd1703fbbdec89f0b2',sources:[
  {url:'https://docs.pingdom.com/API_3.1.yaml',scope:'Checks, TMS, relationships, maintenance and history'},
  {url:'https://documentation.solarwinds.com/en/success_center/pingdom/content/topics/page-speed-check.htm',scope:'Page Speed UI transcription only; no API export invented'},

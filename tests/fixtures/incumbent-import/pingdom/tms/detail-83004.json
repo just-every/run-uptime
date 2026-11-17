@@ -26,13 +26,15 @@
       "args": {
         "url": "https://flow.example.test/login"
       },
-      "fn": "go_to"
+      "contains_navigate": true,
+      "fn": "wpm_go_to",
+      "guid": "00000000-0000-4000-8000-000000000401"
     },
     {
-      "args": {
-        "value": "throw new Error(\"SYNTHETIC_DO_NOT_EXECUTE\")"
-      },
-      "fn": "execute_javascript"
+      "args": {},
+      "contains_navigate": false,
+      "fn": "wpm_close_tab",
+      "guid": "00000000-0000-4000-8000-000000000402"
     }
   ],
   "tags": [

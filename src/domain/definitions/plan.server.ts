@@ -140,7 +140,7 @@ export function tokenNote(current:any,next:any,live:boolean){
 export function keptAssignments(current:any,next:any){return Object.fromEntries(Object.entries(current.assignments??{}).filter(([probe])=>next.probes.includes(probe)))}
 
 export type FieldDisposition={path:string;disposition:string;reason:string;sourceId?:string;target?:string}
-const FIELD_TARGETS:Record<string,string>={id:'source identity',name:'name',hostname:'protocol host / URL',resolution:'intervalMs',status:'paused creation; existing local state retained',sendnotificationwhendown:'confirmSlots',responsetime_threshold:'slow.thresholdMs (non-outage Slow)',
+const FIELD_TARGETS:Record<string,string>={tags:'tags','type/ping':'ICMP type (explicit adapter convention)',id:'source identity',name:'name',hostname:'protocol host / URL',resolution:'intervalMs',status:'paused creation; existing local state retained',sendnotificationwhendown:'confirmSlots',responsetime_threshold:'slow.thresholdMs (non-outage Slow)',
  'type/http/url':'url','type/http/port':'url port','type/http/encryption':'url scheme','type/http/verify_certificate':'tlsTrust','type/http/ssl_down_days_before':'separate TLS monitor',
  'type/http/shouldcontain':'assertions.bodyIncludes','type/http/shouldnotcontain':'assertions.bodyExcludes','type/tcp/port':'tcp.port','type/tcp/stringtoexpect':'tcp.bannerIncludes',
  'type/smtp/port':'mail.port','type/smtp/encryption':'mail.security (inferred TLS mode)','type/dns/nameserver':'dns.nameserver (TCP 53)','type/dns/expectedip':'dns.expect (includes)',
@@ -148,9 +148,11 @@ const FIELD_TARGETS:Record<string,string>={id:'source identity',name:'name',host
 /** A report contains paths and fixed explanations only, never source values. Unknown keys are explicit unsupported leaves.
  * Empty arrays/objects count as leaves; companion monitors share a source but never double-count its fields. */
 export function fieldReport(documents:unknown[],entries:PlanEntry[]){
- const records=entries.filter(e=>!e.companionOf),fields:FieldDisposition[]=[]
+ const records=entries.filter(e=>!e.companionOf),containers:{path:string;disposition:string;reason:string}[]=[],fields:FieldDisposition[]=[]
  for(const [documentIndex,doc] of documents.entries()){
   const root=documents.length===1?'':`/documents/${documentIndex}`
+  const visit=(value:any,path:string)=>{if(value&&typeof value==='object'){containers.push({path:path||'/',disposition:'accounted',reason:'Container and nested records accounted for by their exact descendant field dispositions; no unlisted operative mapping.'});for(const [key,child] of Object.entries(value))visit(child,path+'/'+key.replace(/~/g,'~0').replace(/\//g,'~1'))}}
+  visit(doc,root)
   for(const path of suppliedLeaves(doc)){
    const fullPath=root+path,owner=records.filter(e=>e.sourcePath!==undefined&&(fullPath===e.sourcePath||fullPath.startsWith(e.sourcePath+'/'))).sort((a,b)=>b.sourcePath!.length-a.sourcePath!.length)[0]
    const parts=path.split('/').slice(1).map(p=>p.replace(/~1/g,'/').replace(/~0/g,'~')),value=parts.reduce((v:any,k)=>v?.[k],doc)
@@ -162,14 +164,14 @@ export function fieldReport(documents:unknown[],entries:PlanEntry[]){
     if(target){const lossy=['status','sendnotificationwhendown','responsetime_threshold','type/http/verify_certificate','type/http/ssl_down_days_before','type/smtp/encryption','type/dns/expectedip','type/dns/nameserver'].includes(relative)
      fields.push({...base,disposition:lossy?'lossy':'mapped',target,reason:lossy?`Reviewed adapter difference: ${target}. Source semantics are not claimed equivalent.`:`Mapped to ${target}.`});continue}
    }
-   const metadata=/^\/(format|source|synthetic|seed|capturedAt|scope|schemaNotes)(\/|$)/.test(path)||/^\/records\/\d+\/(kind|sourceId|request)(\/|$)/.test(path)
+   const metadata=/^\/(format|source|synthetic|seed|capturedAt|scope|schemaNotes)(\/|$)/.test(path)||/^\/records\/\d+\/(id|kind|sourceId|request|pagination)(\/|$)/.test(path)
    fields.push({...base,disposition:metadata?'metadata':'unsupported',reason:metadata?'Capture provenance only; grants no authority and changes no product state.':'No adapter mapping for this supplied field; it is not carried into an operative monitor, route or source history.'})
   }
  }
  const summary=Object.fromEntries(['mapped','lossy','withheld','metadata','unsupported','refused'].map(key=>[key,fields.filter(f=>f.disposition===key).length]))
  const captures=documents.filter((doc:any)=>doc?.format==='uptime.incumbent-capture.v1') as any[]
  const captureRows=captures.flatMap(doc=>captureOf(JSON.stringify(doc))!.rows)
- const recordLedger=captureRows.length?captureRows.map(row=>{const entry=records.find(e=>e.sourcePath!==undefined&&(row.path===e.sourcePath||row.path.startsWith(e.sourcePath+'/')));return {path:row.path,kind:row.kind,sourceId:entry?.sourceId,disposition:entry?.action??'unsupported',reason:entry?.reason??'Source metadata only; no operative mapping.'}}):records.map(e=>({sourceId:e.sourceId,path:e.sourcePath,kind:e.sourceKind,disposition:e.action,reason:e.reason??'Reviewed monitor definition; creation is paused and local operational state is preserved.'}))
+ const recordLedger=captures.length?captureRows.map(row=>{const entry=records.find(e=>e.sourcePath!==undefined&&(row.path===e.sourcePath||row.path.startsWith(e.sourcePath+'/')));return {path:row.path,kind:row.kind,sourceId:entry?.sourceId,disposition:entry?.action??'unsupported',reason:entry?.reason??'Source metadata only; no operative mapping.'}}):records.map(e=>({sourceId:e.sourceId,path:e.sourcePath,kind:e.sourceKind,disposition:e.action,reason:e.reason??'Reviewed monitor definition; creation is paused and local operational state is preserved.'}))
  const uniqueChecks=new Set<string>()
  for(const doc of captures)for(const record of doc.records){
   if(record.kind==='check-detail')uniqueChecks.add('uptime:'+record.sourceId)
@@ -180,5 +182,5 @@ export function fieldReport(documents:unknown[],entries:PlanEntry[]){
  return {version:1,counts:{sourceChecks:captures.length?uniqueChecks.size:records.length,sourceRecords:recordLedger.length,nativeEntries:captures.length?entries.filter(e=>e.sourceKind==='check-detail').length:entries.length,tlsCompanions:entries.filter(e=>e.companionOf).length,leaves:fields.length},summary,
   records:recordLedger,
   captures:captures.flatMap(doc=>doc.records.map((r:any,i:number)=>({path:`/records/${i}`,kind:r.kind,disposition:'accounted',reason:'Every resource leaf is listed below; request/provenance metadata grants no authority.'}))),
-  schemaNotes:captures.length?SCHEMA_NOTES:[],fields}
+  schemaNotes:captures.length?SCHEMA_NOTES:[],containers,fields}
 }

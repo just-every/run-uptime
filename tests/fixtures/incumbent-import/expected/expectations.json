@@ -120,8 +120,18 @@
     },
     {
       "category": "refusal",
+      "path": "negative/smtp-source-secrets.json",
+      "reason": "SMTP credentials require local re-entry and must never become portable secret values."
+    },
+    {
+      "category": "refusal",
       "path": "negative/tms-secrets-and-unsafe-command.json",
       "reason": "Preserve command/locator inventory, withhold values, never relax browser security or execute uploaded instructions."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/tms-performance-embedded-secrets.json",
+      "reason": "Embedded step arguments in sourced performance reports require the same per-field withholding as TMS definitions."
     },
     {
       "category": "refusal",
@@ -172,6 +182,16 @@
       "category": "adapter-convention",
       "path": "edge/ping-adapter-convention.json",
       "reason": "Uptime adapter-only empty ping detail convention; not a documented Pingdom GET alternative."
+    },
+    {
+      "category": "adapter-convention",
+      "path": "edge/http-regex-adapter-extension.json",
+      "reason": "Existing adapter extension only, absent from retrieved native HTTP GET schema; regex requires explicit conversion."
+    },
+    {
+      "category": "proposal",
+      "path": "edge/ignored-expiry-source-policy.json",
+      "reason": "Pingdom documents expiry settings as ignored when verification is disabled; this source intent must not silently create an operative expiry companion."
     },
     {
       "category": "proposal",
@@ -1168,7 +1188,7 @@
       "sourceId": "83003"
     },
     {
-      "command": "execute_javascript",
+      "command": "wpm_close_tab",
       "disposition": "refused",
       "outcome": "unsupported command",
       "sourceId": "83004",

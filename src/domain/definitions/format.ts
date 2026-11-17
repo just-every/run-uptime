@@ -81,7 +81,7 @@ const COLLECTIONS:Record<string,string[]>={
  'tms-list':['checks'],'tms-status-report':['report','states'],'tms-performance-report':['report','intervals'],
  'canaries-list':['Canaries'],
 }
-const SINGLE=new Set(['check-detail','tms-detail','summary-average','summary-performance','canary-detail','canary-code-input','page-speed-transcription'])
+const SINGLE=new Set(['check-detail','tms-detail','summary-average','summary-performance','canary-detail','canary-code-input','canary-run-config-input','page-speed-transcription'])
 export function captureOf(text:string,requested='auto'):Capture|null{
  if(!/^\s*[[{]/.test(text))return null
  const values=jsonValues(text,'file')
@@ -93,12 +93,15 @@ export function captureOf(text:string,requested='auto'):Capture|null{
  for(const [index,record] of doc.records.entries()){
   const base=`/records/${index}`,kind=record?.kind
   if(!object(record)||typeof kind!=='string'||!object(record.request)||!['GET','POST','LOCAL'].includes(record.request.method)||typeof record.request.path!=='string'||!object(record.response))fail(`record ${index+1} needs kind, request method/path and an object response.`)
-  if(doc.source==='aws-synthetics'&&!['canaries-list','canary-detail','canary-code-input','alarms-list'].includes(kind)||doc.source==='pingdom-pagespeed-transcription'&&kind!=='page-speed-transcription'||doc.source==='pingdom'&&['canaries-list','canary-detail','canary-code-input','alarms-list','page-speed-transcription'].includes(kind))fail(`record ${index+1} kind does not belong to this source.`)
+  if(doc.source==='aws-synthetics'&&!['canaries-list','canary-detail','canary-code-input','canary-run-config-input','alarms-list'].includes(kind)||doc.source==='pingdom-pagespeed-transcription'&&kind!=='page-speed-transcription'||doc.source==='pingdom'&&['canaries-list','canary-detail','canary-code-input','canary-run-config-input','alarms-list','page-speed-transcription'].includes(kind))fail(`record ${index+1} kind does not belong to this source.`)
   const query=record.request.query??{}
   if(query.offset!==undefined&&(!Number.isInteger(query.offset)||query.offset<0)||query.limit!==undefined&&(!Number.isInteger(query.limit)||query.limit<1))fail('page offset/limit must be nonnegative/positive integers.')
   if(['check-detail','tms-detail'].includes(kind)&&record.request.path.split('/').at(-1)!==String(record.sourceId))fail('detail request path does not match sourceId.')
-  if(record.response.NextToken){if(typeof record.response.NextToken!=='string'||tokens.has(record.response.NextToken))fail('repeated or invalid continuation token.');tokens.add(record.response.NextToken)}
-  const add=(value:any,path:string)=>{if(!object(value))fail(`${path} must be an object.`);rows.push({kind,sourceId:String(record.sourceId??''),value,path,request:record.request})}
+  if(record.response.NextToken){if(typeof record.response.NextToken!=='string'||tokens.has(kind+':'+record.response.NextToken))fail('repeated or invalid continuation token.');tokens.add(kind+':'+record.response.NextToken)}
+  const add=(value:any,path:string)=>{if(!object(value))fail(`${path} must be an object.`);
+   const epochs=kind==='maintenance'||kind==='maintenance-occurrences'?['from','to']:kind==='results'?['time']:kind==='summary-outage'?['timefrom','timeto']:[]
+   for(const field of epochs)if(value[field]!==undefined&&(!Number.isSafeInteger(value[field])||value[field]<0))fail(`${kind}.${field} must be an integer source epoch, not a parsed or guessed date.`)
+   rows.push({kind,sourceId:String(record.sourceId??''),value,path,request:record.request})}
   if(kind==='alarms-list'){
    if(!Array.isArray(record.response.MetricAlarms)||!Array.isArray(record.response.CompositeAlarms))fail('DescribeAlarms needs MetricAlarms and CompositeAlarms arrays.')
    for(const key of ['MetricAlarms','CompositeAlarms'])record.response[key].forEach((row:any,i:number)=>add(row,`${base}/response/${key}/${i}`))

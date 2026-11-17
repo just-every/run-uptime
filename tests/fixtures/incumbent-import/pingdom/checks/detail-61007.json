@@ -26,7 +26,7 @@
         "shouldnotcontain": "failure",
         "ssl_down_days_before": 14,
         "url": "/health/8",
-        "verify_certificate": false
+        "verify_certificate": true
       }
     }
   }

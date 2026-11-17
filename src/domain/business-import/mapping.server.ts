@@ -63,8 +63,9 @@ export function lineEntries(source:Source,value:Json,line:number):(PlanItem&{sou
     grouped.add(parent)
     const ordinal=Number(parent.split('/')[2]);row={...original,path:parent,value:capture.document.records[ordinal].response}
    }
-   const id=row.value.id??row.value.Id??row.value.AlarmArn??row.value.Name??sha256(JSON.stringify(canonical(row.value)))
-   const sourceId=[scope,row.kind,row.sourceId,row.kind==='results'?sha256(JSON.stringify(canonical(row.request))):id].join(':')
+   const single=['tms-detail','canary-code-input','canary-run-config-input','page-speed-transcription','summary-average','summary-performance','results'].includes(row.kind)
+   const id=single?sha256(JSON.stringify(canonical(row.request))):row.value.id??row.value.Id??row.value.AlarmArn??row.value.Name??row.value.time??row.value.timefrom??row.value.starttime??row.value.from??sha256(JSON.stringify(canonical(row.value)))
+   const sourceId=[scope,row.kind,row.sourceId,id].join(':')
    const content=JSON.stringify(canonical(row.value))
    if(seen.has(sourceId)){if(seen.get(sourceId)!==content)throw new DefinitionFileError('Capture has conflicting content for one source identity.');continue}
    seen.set(sourceId,content)
@@ -76,13 +77,14 @@ export function lineEntries(source:Source,value:Json,line:number):(PlanItem&{sou
      // A documented positive check cannot request both mutually exclusive keywords.
      const checked=http?.shouldcontain&&http?.shouldnotcontain?{refused:'Pingdom shouldcontain and shouldnotcontain are mutually exclusive in the documented check shape.'}:mapping
      items.push({...entry,index:items.length,mapping:checked,sourceId:entry.value.certificateSource?sourceId+':tls':sourceId,
-      report:{...report,...(entry.value.certificateSource?{companionOf:sourceId}:{}),schemaNotes:SCHEMA_NOTES}})
+      report:{...report,sourceId:entry.value.certificateSource?sourceId+':tls':sourceId,...(entry.value.certificateSource?{companionOf:sourceId}:{}),schemaNotes:SCHEMA_NOTES}})
     }
    }else{
     const reason=row.kind==='checks-list'?'Summary only: complete check details are required; no protocol settings or current health are inferred.':row.kind==='tms-detail'?'Pingdom transaction script/recording conversion is unsupported; steps are withheld and never executed.':`${row.kind}: source fields are reported only. Conversion, contact routing, history and provider extraction are not implemented for this resource.`
     items.push({index:items.length,label:`${row.kind} ${String(row.value.name??row.value.Name??row.sourceId??id).slice(0,100)}`,value:row.value,sourceId,mapping:{unsupported:reason},report})
    }
   }
+  if(!items.length)items.push({index:0,label:'Empty capture',sourceId:scope+':empty',value:capture.document,mapping:{unsupported:'Empty source collections: no resource records or monitor effects to import.'},report:{sourceKind:'capture-metadata',sourceId:scope+':empty',sourcePath:'/records'}})
   return items
  }
  const docs=jsonValues(text,'file')
@@ -97,7 +99,8 @@ export function lineEntries(source:Source,value:Json,line:number):(PlanItem&{sou
   for(const [i,doc] of docs.entries()){const found=visit(doc,docs.length===1?'':`/documents/${i}`);if(found!==undefined)return found}
  }
  return importer.entries(text).map(entry=>{
-  const id=sourceId(entry.value,line,entry.index,importer===nativeImporter),mapping=importer.map(entry)
+  const missing=importer===pingdomImporter&&entry.value.id===undefined
+  const id=missing?'missing:'+sha256(JSON.stringify(canonical(entry.value))):sourceId(entry.value,line,entry.index,importer===nativeImporter),mapping=missing?{refused:'Pingdom details require a stable source id. For a TMS response without id, use a capture with its request/list sourceId.'}:importer.map(entry)
   return {...entry,mapping,sourceId:id,report:{sourceKind:'legacy',sourcePath:location(entry),sourceId:id,...(entry.value.certificateSource?{companionOf:id.replace(/:tls$/,'')}:{})}}
  })
 }

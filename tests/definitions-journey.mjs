@@ -85,9 +85,10 @@ export async function incumbentReportJourney(page,origin){
  for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.locator('.definition-field-report > summary').click();await audit(page,'incumbent-applied-report',evidence,width);if(width===1440)await page.locator('.definition-field-report > summary').click()}
  // Recognition errors preserve the reviewed report and are announced without hiding the message on refresh.
  await page.getByLabel(/^A file from\b/).setInputFiles({name:'malformed.json',mimeType:'application/json',buffer:Buffer.from('{"check":')});
- await page.getByRole('button',{name:'Preview',exact:true}).click();await page.locator('#action-notice').filter({hasText:/JSON/i}).waitFor();assert.ok(await report.isVisible());await audit(page,'incumbent-input-error',evidence,390);
+ await page.getByRole('button',{name:'Preview',exact:true}).click();await page.locator('#action-notice').filter({hasText:/JSON/i}).waitFor();assert.ok(await report.isVisible());for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await audit(page,'incumbent-input-error',evidence,width)};
  await page.reload();await page.locator('.definition-batches > li').first().getByRole('button',{name:/^Undo/}).click();await page.getByRole('dialog').getByRole('button',{name:'Undo import',exact:true}).click();await page.locator('#action-notice').filter({hasText:/^Batch undone/}).waitFor();
  for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await audit(page,'incumbent-undone',evidence,width)}
+ for(const path of ['definitions','migrating-pingdom'])for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.goto(origin+'/docs/'+path);await page.locator('main h1').waitFor();await audit(page,'guide-'+path,evidence,width)}
 }
 
 // A focused executable for this import screen; the command journey also calls the same flow.

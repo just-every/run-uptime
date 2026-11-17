@@ -5,7 +5,7 @@
       {
         "average_response": 850,
         "downtime": 100,
-        "from": 1793404800,
+        "from": "2026-10-31T00:00:00.000Z",
         "steps": [
           {
             "average_response": 100,
@@ -23,7 +23,7 @@
                 "input": "#email",
                 "value": "synthetic-login@example.test"
               },
-              "fn": "fill_in"
+              "fn": "fill"
             }
           },
           {
@@ -33,7 +33,7 @@
                 "input": "#password",
                 "value": "SYNTHETIC_LOCAL_PASSWORD_LOGIN"
               },
-              "fn": "fill_in"
+              "fn": "fill"
             }
           },
           {
@@ -60,7 +60,7 @@
               "args": {
                 "element": "[data-synthetic=dashboard]"
               },
-              "fn": "assert_element"
+              "fn": "exists"
             }
           }
         ],

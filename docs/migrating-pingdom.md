@@ -43,7 +43,7 @@ Expand **Field report** in the console and use **Download field report JSON** to
 - `counts.sourceRecords`: supplied resource rows, including unsupported resources; these are not all runnable checks.
 - `counts.nativeEntries`: potential native plan entries, including refused/unsupported check details and expanded TLS entries. This is not a successful-create count.
 - `counts.tlsCompanions`: generated companion entries, counted separately from original checks; `counts.leaves` counts supplied leaf paths.
-- `fields`: each path, disposition and reason, with `sourceId` and `target` where available. Unknown fields and empty containers are included. `records` accounts for resource identities/paths/kinds; `captures` accounts for request descriptors. `schemaNotes` retains the public-schema defects.
+- `fields`: each path, disposition and reason, with `sourceId` and `target` where available. Unknown fields and empty containers are included. `records` accounts for resource identities/paths/kinds; `containers` accounts for every nested object/array record; `captures` accounts for request descriptors. `schemaNotes` retains the public-schema defects.
 
 The `summary` groups dispositions as `mapped`, `lossy` (changed semantics), `withheld` (local re-entry needed), `metadata` (source attribution only), `unsupported` and `refused`. Read the reason and target for review work. Source paths identify the saved record without displaying secret values. A field being present in the sanitized package or report does not mean it has an operative native mapping.
 

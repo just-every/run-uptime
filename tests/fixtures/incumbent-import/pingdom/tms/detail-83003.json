@@ -26,31 +26,48 @@
       "args": {
         "url": "https://flow.example.test/sandbox/checkout"
       },
-      "fn": "go_to"
+      "contains_navigate": true,
+      "fn": "wpm_go_to",
+      "guid": "00000000-0000-4000-8000-000000000301"
     },
     {
       "args": {
-        "radio": "#sandbox-payment"
+        "element": "#sandbox-payment",
+        "offsetX": 0,
+        "offsetY": 0
       },
-      "fn": "click"
+      "contains_navigate": true,
+      "fn": "wpm_click",
+      "guid": "00000000-0000-4000-8000-000000000302"
     },
     {
       "args": {
         "seconds": "1"
       },
-      "fn": "wait"
+      "contains_navigate": false,
+      "fn": "wpm_wait",
+      "guid": "00000000-0000-4000-8000-000000000303"
     },
     {
       "args": {
-        "element": "[data-synthetic=place-sandbox-order]"
+        "element": "[data-synthetic=place-sandbox-order]",
+        "offsetX": 0,
+        "offsetY": 0
       },
-      "fn": "click"
+      "contains_navigate": true,
+      "fn": "wpm_click",
+      "guid": "00000000-0000-4000-8000-000000000304"
     },
     {
       "args": {
-        "element": "[data-synthetic=sandbox-receipt]"
+        "element": "[data-synthetic=sandbox-receipt]",
+        "useRegularExpression": false,
+        "value": "Sandbox order accepted",
+        "waitTime": 10
       },
-      "fn": "assert_element"
+      "contains_navigate": false,
+      "fn": "wpm_contains_timeout",
+      "guid": "00000000-0000-4000-8000-000000000305"
     }
   ],
   "tags": [

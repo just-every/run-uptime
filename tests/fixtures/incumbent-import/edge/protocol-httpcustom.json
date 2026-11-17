@@ -77,9 +77,7 @@
           ],
           "type": {
             "httpcustom": {
-              "additionalurls": [
-                "https://secondary.example.test/api"
-              ],
+              "additionalurls": "https://secondary.example.test/api",
               "encryption": true,
               "port": 443,
               "ssl_down_days_before": 14,
@@ -117,6 +115,11 @@
       "description": "Source shouldcontain and shouldnotcontain are mutually exclusive. Positive controls set one or neither; the combination is a separate negative case.",
       "id": "keywords-exclusive",
       "path": "check.type.http"
+    },
+    {
+      "description": "The API property name suggests true disables security, but its description says false disables the same-origin policy. Preserve the source value for review; no value may relax native browser security.",
+      "id": "recording-security-description",
+      "path": "metadata.disableWebSecurity"
     },
     {
       "description": "API 3.1 publishes no Page Speed export schema. Operator transcription is separately labeled, not an API response.",

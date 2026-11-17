@@ -1,8 +1,8 @@
 {
   "capture": {
-    "bytes": 20815,
+    "bytes": 20853,
     "path": "capture.json",
-    "sha256": "6195008f454ff633c4dfc048e07cbc10add4ae62d7ef6d6f3ad3419e91b79156"
+    "sha256": "58a2f5eba053c1fe57a1de18e62c235b6a432414e98dcfe8acfbbf0d147347ad"
   },
   "capturedAt": "2026-11-01T00:00:00Z",
   "counts": {
@@ -15,7 +15,7 @@
   },
   "entries": [
     {
-      "bytes": 1795,
+      "bytes": 1764,
       "id": "canaries/list-0",
       "kind": "canaries-list",
       "pagination": {
@@ -30,10 +30,10 @@
           "MaxResults": 1
         }
       },
-      "sha256": "1fcdb4391153f4fca832fd69b1f7fb404da18cbf060ba4a60832db201ecce760"
+      "sha256": "39519d11aeffd4e300a3f7be18e6af8c026da6e8d4f08120cd1976ef33c979ed"
     },
     {
-      "bytes": 1636,
+      "bytes": 1609,
       "id": "canaries/detail-synthetic-browser",
       "kind": "canary-detail",
       "path": "canaries/detail-synthetic-browser.json",
@@ -43,7 +43,7 @@
         "path": "/canary/synthetic-browser",
         "query": {}
       },
-      "sha256": "be46d30b9b3dd8539af664f5469b563f80b0e75c73cb9e2b24eb582eb55cac8d",
+      "sha256": "e6054aab7666f4942c9812e896a8912a903de957040b428a646a643ab0aa25f3",
       "sourceId": "00000000-0000-4000-8000-000000000001"
     },
     {
@@ -61,7 +61,7 @@
       "sourceId": "00000000-0000-4000-8000-000000000001"
     },
     {
-      "bytes": 1680,
+      "bytes": 1655,
       "id": "canaries/list-1",
       "kind": "canaries-list",
       "pagination": {
@@ -78,10 +78,10 @@
           "NextToken": "synthetic-page-1"
         }
       },
-      "sha256": "b0b57632037f0f06b0335f1b39b4c1136f2014d9b0033272f4d885f2ff8f2e2d"
+      "sha256": "301fa00b278a0a7ec9a52e963ea91acb9716db066ebd3f9122e29f396a448b25"
     },
     {
-      "bytes": 1531,
+      "bytes": 1510,
       "id": "canaries/detail-synthetic-api",
       "kind": "canary-detail",
       "path": "canaries/detail-synthetic-api.json",
@@ -91,7 +91,7 @@
         "path": "/canary/synthetic-api",
         "query": {}
       },
-      "sha256": "e3a22656f634bd2b69098e9f60064393814654b0e8825e52ef190106d8d92573",
+      "sha256": "0496d7ccac38cd3d0e553c4ee51fd693e0f8ffdac08a513688ec430a89010c71",
       "sourceId": "00000000-0000-4000-8000-000000000002"
     },
     {
@@ -141,6 +141,10 @@
         "path": "/",
         "query": {
           "Action": "DescribeAlarms",
+          "AlarmTypes": [
+            "MetricAlarm",
+            "CompositeAlarm"
+          ],
           "MaxRecords": 2,
           "Version": "2010-08-01"
         }
@@ -161,6 +165,10 @@
         "path": "/",
         "query": {
           "Action": "DescribeAlarms",
+          "AlarmTypes": [
+            "MetricAlarm",
+            "CompositeAlarm"
+          ],
           "MaxRecords": 100,
           "NextToken": "synthetic-alarm-page-1",
           "Version": "2010-08-01"

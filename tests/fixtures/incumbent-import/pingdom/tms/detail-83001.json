@@ -31,14 +31,14 @@
         "input": "#email",
         "value": "synthetic-login@example.test"
       },
-      "fn": "fill_in"
+      "fn": "fill"
     },
     {
       "args": {
         "input": "#password",
         "value": "SYNTHETIC_LOCAL_PASSWORD_LOGIN"
       },
-      "fn": "fill_in"
+      "fn": "fill"
     },
     {
       "args": {
@@ -56,7 +56,7 @@
       "args": {
         "element": "[data-synthetic=dashboard]"
       },
-      "fn": "assert_element"
+      "fn": "exists"
     }
   ],
   "tags": [

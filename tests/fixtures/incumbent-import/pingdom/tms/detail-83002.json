@@ -25,20 +25,26 @@
         "input": "#email",
         "value": "synthetic-signup@example.test"
       },
-      "fn": "fill_in"
+      "fn": "fill"
     },
     {
       "args": {
         "input": "#password",
         "value": "SYNTHETIC_LOCAL_PASSWORD_SIGNUP"
       },
-      "fn": "fill_in"
+      "fn": "fill"
     },
     {
       "args": {
         "checkbox": "#terms"
       },
       "fn": "check"
+    },
+    {
+      "args": {
+        "radio": "sandbox"
+      },
+      "fn": "select_radio"
     },
     {
       "args": {
@@ -57,7 +63,7 @@
       "args": {
         "element": "[data-synthetic=welcome]"
       },
-      "fn": "assert_element"
+      "fn": "exists"
     }
   ],
   "tags": [

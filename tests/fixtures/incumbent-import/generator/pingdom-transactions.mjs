@@ -1,10 +1,11 @@
 import {epoch,get,copy} from './transport.mjs'
 
 const step=(fn,args)=>({fn,args})
-const login=[step('go_to',{url:'https://flow.example.test/login'}),step('fill_in',{input:'#email',value:'synthetic-login@example.test'}),step('fill_in',{input:'#password',value:'SYNTHETIC_LOCAL_PASSWORD_LOGIN'}),step('click',{element:'button[type=submit]'}),step('wait_for_element',{element:'[data-synthetic=dashboard]'}),step('assert_element',{element:'[data-synthetic=dashboard]'})]
-const signup=[step('go_to',{url:'https://flow.example.test/signup'}),step('fill_in',{input:'#email',value:'synthetic-signup@example.test'}),step('fill_in',{input:'#password',value:'SYNTHETIC_LOCAL_PASSWORD_SIGNUP'}),step('check',{checkbox:'#terms'}),step('select',{select:'#plan',option:'sandbox'}),step('submit',{form:'#signup'}),step('assert_element',{element:'[data-synthetic=welcome]'})]
-const checkout=[step('go_to',{url:'https://flow.example.test/sandbox/checkout'}),step('click',{radio:'#sandbox-payment'}),step('wait',{seconds:'1'}),step('click',{element:'[data-synthetic=place-sandbox-order]'}),step('assert_element',{element:'[data-synthetic=sandbox-receipt]'})]
-const unsupported=[step('go_to',{url:'https://flow.example.test/login'}),step('execute_javascript',{value:'throw new Error("SYNTHETIC_DO_NOT_EXECUTE")'})]
+const login=[step('go_to',{url:'https://flow.example.test/login'}),step('fill',{input:'#email',value:'synthetic-login@example.test'}),step('fill',{input:'#password',value:'SYNTHETIC_LOCAL_PASSWORD_LOGIN'}),step('click',{element:'button[type=submit]'}),step('wait_for_element',{element:'[data-synthetic=dashboard]'}),step('exists',{element:'[data-synthetic=dashboard]'})]
+const signup=[step('go_to',{url:'https://flow.example.test/signup'}),step('fill',{input:'#email',value:'synthetic-signup@example.test'}),step('fill',{input:'#password',value:'SYNTHETIC_LOCAL_PASSWORD_SIGNUP'}),step('check',{checkbox:'#terms'}),step('select_radio',{radio:'sandbox'}),step('select',{select:'#plan',option:'sandbox'}),step('submit',{form:'#signup'}),step('exists',{element:'[data-synthetic=welcome]'})]
+const recording=(steps,index)=>steps.map((value,i)=>({...value,guid:`00000000-0000-4000-8000-${String(index*100+i+1).padStart(12,'0')}`,contains_navigate:i===0||value.fn==='wpm_click'}))
+const checkout=recording([step('wpm_go_to',{url:'https://flow.example.test/sandbox/checkout'}),step('wpm_click',{element:'#sandbox-payment',offsetX:0,offsetY:0}),step('wpm_wait',{seconds:'1'}),step('wpm_click',{element:'[data-synthetic=place-sandbox-order]',offsetX:0,offsetY:0}),step('wpm_contains_timeout',{element:'[data-synthetic=sandbox-receipt]',value:'Sandbox order accepted',waitTime:10,useRegularExpression:false})],3)
+const unsupported=recording([step('wpm_go_to',{url:'https://flow.example.test/login'}),step('wpm_close_tab',{})],4)
 
 export function addTransactions(c){
  const iso=time=>new Date(time*1000).toISOString()

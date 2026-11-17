@@ -21,7 +21,7 @@ function detail(summary,i,teams){
  const kind=summary.type,check={...copy(summary),type:{},probe_filters:[],integrationids:i%3===0?[91001,91002]:[],notifyagainevery:i%3===0?3:0,notifywhenbackup:i%2===0,sendnotificationwhendown:2,custom_message:i===0?'Synthetic latency review: café ☕':'Synthetic migration check'}
  if(kind==='http'){
   const encrypted=i<8||i%2===0
-  check.type.http={url:`/health/${i+1}`,encryption:encrypted,port:encrypted?443:80,verify_certificate:i!==7,...(i<8?{ssl_down_days_before:7+i}:{}),...(i%3===0?{shouldcontain:'ready'}:i%3===1?{shouldnotcontain:'failure'}:{})}
+  check.type.http={url:`/health/${i+1}`,encryption:encrypted,port:encrypted?443:80,verify_certificate:i!==8,...(i<8?{ssl_down_days_before:7+i}:{}),...(i%3===0?{shouldcontain:'ready'}:i%3===1?{shouldnotcontain:'failure'}:{})}
   if(i===0)check.type.http.requestheaders=['Accept: application/json','X-Synthetic-Context: region: lab: east']
   if(i===1)check.responsetime_threshold=30000
   if(i===2)check.probe_filters=['region: EU','region: NA']

@@ -27,9 +27,7 @@
               }
             ],
             "Code": {
-              "BlueprintTypes": [
-                "heartbeat"
-              ],
+              "BlueprintTypes": [],
               "Dependencies": [],
               "Handler": "index.handler",
               "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-browser-code:1"
@@ -57,7 +55,7 @@
             "Status": {
               "State": "RUNNING",
               "StateReason": "Synthetic source state, not current local health",
-              "StateReasonCode": "CREATE_COMPLETE"
+              "StateReasonCode": "UPDATE_COMPLETE"
             },
             "SuccessRetentionPeriodInDays": 31,
             "Tags": {
@@ -97,9 +95,7 @@
             }
           ],
           "Code": {
-            "BlueprintTypes": [
-              "heartbeat"
-            ],
+            "BlueprintTypes": [],
             "Dependencies": [],
             "Handler": "index.handler",
             "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-browser-code:1"
@@ -127,7 +123,7 @@
           "Status": {
             "State": "RUNNING",
             "StateReason": "Synthetic source state, not current local health",
-            "StateReasonCode": "CREATE_COMPLETE"
+            "StateReasonCode": "UPDATE_COMPLETE"
           },
           "SuccessRetentionPeriodInDays": 31,
           "Tags": {
@@ -179,9 +175,7 @@
             },
             "ArtifactS3Location": "s3://synthetic-artifacts-example/synthetic-api/",
             "Code": {
-              "BlueprintTypes": [
-                "api"
-              ],
+              "BlueprintTypes": [],
               "Dependencies": [],
               "Handler": "index.handler",
               "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-api-code:1"
@@ -209,7 +203,7 @@
             "Status": {
               "State": "STOPPED",
               "StateReason": "Synthetic source state, not current local health",
-              "StateReasonCode": "CREATE_COMPLETE"
+              "StateReasonCode": "UPDATE_COMPLETE"
             },
             "SuccessRetentionPeriodInDays": 31,
             "Tags": {
@@ -244,9 +238,7 @@
           },
           "ArtifactS3Location": "s3://synthetic-artifacts-example/synthetic-api/",
           "Code": {
-            "BlueprintTypes": [
-              "api"
-            ],
+            "BlueprintTypes": [],
             "Dependencies": [],
             "Handler": "index.handler",
             "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-api-code:1"
@@ -274,7 +266,7 @@
           "Status": {
             "State": "STOPPED",
             "StateReason": "Synthetic source state, not current local health",
-            "StateReasonCode": "CREATE_COMPLETE"
+            "StateReasonCode": "UPDATE_COMPLETE"
           },
           "SuccessRetentionPeriodInDays": 31,
           "Tags": {
@@ -328,6 +320,10 @@
         "path": "/",
         "query": {
           "Action": "DescribeAlarms",
+          "AlarmTypes": [
+            "MetricAlarm",
+            "CompositeAlarm"
+          ],
           "MaxRecords": 2,
           "Version": "2010-08-01"
         }
@@ -417,6 +413,10 @@
         "path": "/",
         "query": {
           "Action": "DescribeAlarms",
+          "AlarmTypes": [
+            "MetricAlarm",
+            "CompositeAlarm"
+          ],
           "MaxRecords": 100,
           "NextToken": "synthetic-alarm-page-1",
           "Version": "2010-08-01"

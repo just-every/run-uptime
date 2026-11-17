@@ -2189,7 +2189,7 @@
               "shouldnotcontain": "failure",
               "ssl_down_days_before": 14,
               "url": "/health/8",
-              "verify_certificate": false
+              "verify_certificate": true
             }
           }
         }
@@ -2243,7 +2243,7 @@
               "encryption": true,
               "port": 443,
               "url": "/health/9",
-              "verify_certificate": true
+              "verify_certificate": false
             }
           }
         }
@@ -15614,14 +15614,14 @@
               "input": "#email",
               "value": "synthetic-login@example.test"
             },
-            "fn": "fill_in"
+            "fn": "fill"
           },
           {
             "args": {
               "input": "#password",
               "value": "SYNTHETIC_LOCAL_PASSWORD_LOGIN"
             },
-            "fn": "fill_in"
+            "fn": "fill"
           },
           {
             "args": {
@@ -15639,7 +15639,7 @@
             "args": {
               "element": "[data-synthetic=dashboard]"
             },
-            "fn": "assert_element"
+            "fn": "exists"
           }
         ],
         "tags": [
@@ -15688,20 +15688,26 @@
               "input": "#email",
               "value": "synthetic-signup@example.test"
             },
-            "fn": "fill_in"
+            "fn": "fill"
           },
           {
             "args": {
               "input": "#password",
               "value": "SYNTHETIC_LOCAL_PASSWORD_SIGNUP"
             },
-            "fn": "fill_in"
+            "fn": "fill"
           },
           {
             "args": {
               "checkbox": "#terms"
             },
             "fn": "check"
+          },
+          {
+            "args": {
+              "radio": "sandbox"
+            },
+            "fn": "select_radio"
           },
           {
             "args": {
@@ -15720,7 +15726,7 @@
             "args": {
               "element": "[data-synthetic=welcome]"
             },
-            "fn": "assert_element"
+            "fn": "exists"
           }
         ],
         "tags": [
@@ -15768,31 +15774,48 @@
             "args": {
               "url": "https://flow.example.test/sandbox/checkout"
             },
-            "fn": "go_to"
+            "contains_navigate": true,
+            "fn": "wpm_go_to",
+            "guid": "00000000-0000-4000-8000-000000000301"
           },
           {
             "args": {
-              "radio": "#sandbox-payment"
+              "element": "#sandbox-payment",
+              "offsetX": 0,
+              "offsetY": 0
             },
-            "fn": "click"
+            "contains_navigate": true,
+            "fn": "wpm_click",
+            "guid": "00000000-0000-4000-8000-000000000302"
           },
           {
             "args": {
               "seconds": "1"
             },
-            "fn": "wait"
+            "contains_navigate": false,
+            "fn": "wpm_wait",
+            "guid": "00000000-0000-4000-8000-000000000303"
           },
           {
             "args": {
-              "element": "[data-synthetic=place-sandbox-order]"
+              "element": "[data-synthetic=place-sandbox-order]",
+              "offsetX": 0,
+              "offsetY": 0
             },
-            "fn": "click"
+            "contains_navigate": true,
+            "fn": "wpm_click",
+            "guid": "00000000-0000-4000-8000-000000000304"
           },
           {
             "args": {
-              "element": "[data-synthetic=sandbox-receipt]"
+              "element": "[data-synthetic=sandbox-receipt]",
+              "useRegularExpression": false,
+              "value": "Sandbox order accepted",
+              "waitTime": 10
             },
-            "fn": "assert_element"
+            "contains_navigate": false,
+            "fn": "wpm_contains_timeout",
+            "guid": "00000000-0000-4000-8000-000000000305"
           }
         ],
         "tags": [
@@ -15840,13 +15863,15 @@
             "args": {
               "url": "https://flow.example.test/login"
             },
-            "fn": "go_to"
+            "contains_navigate": true,
+            "fn": "wpm_go_to",
+            "guid": "00000000-0000-4000-8000-000000000401"
           },
           {
-            "args": {
-              "value": "throw new Error(\"SYNTHETIC_DO_NOT_EXECUTE\")"
-            },
-            "fn": "execute_javascript"
+            "args": {},
+            "contains_navigate": false,
+            "fn": "wpm_close_tab",
+            "guid": "00000000-0000-4000-8000-000000000402"
           }
         ],
         "tags": [
@@ -15865,8 +15890,8 @@
         "method": "GET",
         "path": "/api/3.1/tms/check/83001/report/status",
         "query": {
-          "from": 1793404800,
-          "to": 1793491200
+          "from": "2026-10-31T00:00:00.000Z",
+          "to": "2026-11-01T00:00:00.000Z"
         }
       },
       "response": {
@@ -15875,25 +15900,21 @@
           "name": "Synthetic login",
           "states": [
             {
-              "error_in_step": 0,
-              "from": 1793404800,
-              "message": "Synthetic successful run",
-              "status": "successful",
-              "to": 1793487500
+              "from": "2026-10-31T00:00:00.000Z",
+              "status": "up",
+              "to": "2026-10-31T22:58:20.000Z"
             },
             {
               "error_in_step": 3,
-              "from": 1793487500,
+              "from": "2026-10-31T22:58:20.000Z",
               "message": "Synthetic assertion failed",
-              "status": "failing",
-              "to": 1793487600
+              "status": "down",
+              "to": "2026-10-31T23:00:00.000Z"
             },
             {
-              "error_in_step": 0,
-              "from": 1793487600,
-              "message": "Synthetic recovery",
-              "status": "successful",
-              "to": 1793491200
+              "from": "2026-10-31T23:00:00.000Z",
+              "status": "up",
+              "to": "2026-11-01T00:00:00.000Z"
             }
           ]
         }
@@ -15907,9 +15928,10 @@
         "method": "GET",
         "path": "/api/3.1/tms/check/83001/report/performance",
         "query": {
-          "from": 1793404800,
+          "from": "2026-10-31T00:00:00.000Z",
+          "include_uptime": true,
           "resolution": "day",
-          "to": 1793491200
+          "to": "2026-11-01T00:00:00.000Z"
         }
       },
       "response": {
@@ -15919,7 +15941,7 @@
             {
               "average_response": 850,
               "downtime": 100,
-              "from": 1793404800,
+              "from": "2026-10-31T00:00:00.000Z",
               "steps": [
                 {
                   "average_response": 100,
@@ -15937,7 +15959,7 @@
                       "input": "#email",
                       "value": "synthetic-login@example.test"
                     },
-                    "fn": "fill_in"
+                    "fn": "fill"
                   }
                 },
                 {
@@ -15947,7 +15969,7 @@
                       "input": "#password",
                       "value": "SYNTHETIC_LOCAL_PASSWORD_LOGIN"
                     },
-                    "fn": "fill_in"
+                    "fn": "fill"
                   }
                 },
                 {
@@ -15974,7 +15996,7 @@
                     "args": {
                       "element": "[data-synthetic=dashboard]"
                     },
-                    "fn": "assert_element"
+                    "fn": "exists"
                   }
                 }
               ],
@@ -16014,6 +16036,11 @@
       "description": "Source shouldcontain and shouldnotcontain are mutually exclusive. Positive controls set one or neither; the combination is a separate negative case.",
       "id": "keywords-exclusive",
       "path": "check.type.http"
+    },
+    {
+      "description": "The API property name suggests true disables security, but its description says false disables the same-origin policy. Preserve the source value for review; no value may relax native browser security.",
+      "id": "recording-security-description",
+      "path": "metadata.disableWebSecurity"
     },
     {
       "description": "API 3.1 publishes no Page Speed export schema. Operator transcription is separately labeled, not an API response.",

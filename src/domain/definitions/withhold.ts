@@ -10,8 +10,8 @@ import {jsonValues} from './format.ts'
 // - any source: a field named as a credential (authorization, cookie, password, token, api key, secret), and the
 //   userinfo of a URL.
 export const WITHHELD='[withheld]'
-const FIELDS=new Set(['httpUsername','httpPassword','customHttpHeaders','postValueData','username','password','postdata','headers','body','auth','request_param','custom_headers','client_certificate_password','auth_username','auth_password','request_headers','request_body','proxy_password'])
-const CREDENTIAL=/^(?:access[_-]?token|refresh[_-]?token|token|authorization|proxy[_-]?authorization|cookie|set[_-]?cookie|password|passwd|api[_-]?key|x[_-]?api[_-]?key|secret|client[_-]?secret)$/i
+const FIELDS=new Set(['httpUsername','httpPassword','customHttpHeaders','postValueData','username','password','postdata','headers','body','auth','request_param','custom_headers','client_certificate_password','auth_username','auth_password','request_headers','request_body','proxy_password','apns_device','agcm_id'])
+const CREDENTIAL=/^(?:credentials?|user[_-]?name|access[_-]?token|refresh[_-]?token|token|authorization|proxy[_-]?authorization|cookie|set[_-]?cookie|password|passwd|api[_-]?key|x[_-]?api[_-]?key|secret|client[_-]?secret)$/i
 const USERINFO=/^([a-z][a-z0-9+.-]*:\/\/)([^/?#]*)@/i
 const present=(value:unknown)=>value!==null&&value!==undefined&&value!==''&&value!==false&&!(Array.isArray(value)&&!value.length)&&!(typeof value==='object'&&!Array.isArray(value)&&!Object.keys(value as object).length)
 
@@ -30,7 +30,7 @@ export function withholdValue(value:unknown):any{
  // Keep their presence for recognition, never their script payload in import custody.
  const record=value
  return Object.fromEntries(Object.entries(record).map(([key,child])=>{
-  if((FIELDS.has(key)||CREDENTIAL.test(key)||['steps','ZipFile','EnvironmentVariables','script','code','SourceLocationArn'].includes(key))&&present(child))return [key,withheldShape(child)]
+  if((FIELDS.has(key)||CREDENTIAL.test(key)||['steps','ZipFile','EnvironmentVariables','script','SourceLocationArn'].includes(key))&&present(child))return [key,withheldShape(child)]
   // Pingdom request headers keep their names; their values are the secrets.
   if(key==='requestheaders'&&child&&typeof child==='object'&&!Array.isArray(child))return [key,Object.fromEntries(Object.keys(child).map(name=>[name,present((child as any)[name])?WITHHELD:(child as any)[name]]))]
   if(key==='requestheaders'&&Array.isArray(child))return [key,child.map(header=>typeof header==='string'&&header.includes(':')?header.slice(0,header.indexOf(':'))+': '+WITHHELD:WITHHELD)]

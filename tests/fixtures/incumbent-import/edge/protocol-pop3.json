@@ -113,6 +113,11 @@
       "path": "check.type.http"
     },
     {
+      "description": "The API property name suggests true disables security, but its description says false disables the same-origin policy. Preserve the source value for review; no value may relax native browser security.",
+      "id": "recording-security-description",
+      "path": "metadata.disableWebSecurity"
+    },
+    {
       "description": "API 3.1 publishes no Page Speed export schema. Operator transcription is separately labeled, not an API response.",
       "id": "no-page-speed-export",
       "path": "Page Speed"

@@ -25,9 +25,7 @@
             }
           ],
           "Code": {
-            "BlueprintTypes": [
-              "heartbeat"
-            ],
+            "BlueprintTypes": [],
             "Dependencies": [
               {
                 "Reference": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-dependency:1",
@@ -47,7 +45,7 @@
           "Id": "00000000-0000-4000-8000-000000000001",
           "KmsKeyArn": "arn:aws:kms:us-east-1:000000000000:key/00000000-0000-4000-8000-000000000002",
           "MultiLocationConfig": {
-            "LocationType": "PRIMARY",
+            "LocationType": "Primary",
             "PrimaryLocation": "us-east-1",
             "Replicas": [
               {
@@ -55,7 +53,7 @@
                 "LastModified": 1793487600,
                 "Location": "eu-west-1",
                 "ReplicationStatus": {
-                  "State": "COMPLETED",
+                  "State": "InSync",
                   "StateReason": "Synthetic replicated",
                   "StateReasonCode": "SYNCHRONIZED"
                 },
@@ -71,7 +69,7 @@
                 }
               }
             ],
-            "ReplicationState": "ENABLED"
+            "ReplicationState": "InSync"
           },
           "Name": "synthetic-browser",
           "ProvisionedResourceCleanup": "OFF",
@@ -92,7 +90,7 @@
           "Status": {
             "State": "RUNNING",
             "StateReason": "Synthetic source state, not current local health",
-            "StateReasonCode": "CREATE_COMPLETE"
+            "StateReasonCode": "UPDATE_COMPLETE"
           },
           "SuccessRetentionPeriodInDays": 31,
           "Tags": {
