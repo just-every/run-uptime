@@ -4,8 +4,7 @@
 export const hero = {
   title: 'Sleep through the night.',
   sub: 'Uptime checks your sites and APIs on schedule, tells you only when a failure is confirmed, and never calls a missing check healthy.',
-  alt: 'Open source alternative to',
-  altNames: ['Pingdom', 'UptimeRobot', 'Better Stack'],
+  boundary: 'Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.',
   primary: 'Run Uptime',
   demo: 'Try the demo',
   secondary: 'Read the docs',

@@ -27,6 +27,10 @@ const reasons={
 };
 const keyReasons={
  last_owner:'You are the only owner. Add another owner first.',
+ invalid_email:'Enter a valid email address.',
+ invalid_display_name:'Enter your name.',
+ email_in_use:'This email already belongs to another account.',
+ step_up_required:'Confirm your current sign-in email before changing it.',
  mail_unavailable:'Email is off for this installation. Invitations need email.',
  'Another administrator must change your product assignment':'Another administrator must change your product assignment',
  'Choose a product role':'Choose a role for this member.',
@@ -50,7 +54,7 @@ const keyReasons={
 function securityReason(result,status){return reasons[result.code]??keyReasons[result.error]??(status===401?'Sign in again to continue.':status===403?'Only the owner manages keys and factor policy.':status===429?'Too many requests. Wait and try again.':'This action could not finish. Check the values and try again.')}
 export async function securityRequest(path,method='GET',body){
  const response=await fetch(path,{method,headers:{'content-type':'application/json'},cache:'no-store',...(body===undefined?{}:{body:JSON.stringify(body)})});
- const result=await response.json();if(!response.ok)throw Object.assign(Error(securityReason(result,response.status)),{status:response.status,code:result.code,stepUp:result.stepUp,readable:true});return result;
+ const result=await response.json();if(!response.ok)throw Object.assign(Error(securityReason(result,response.status)),{status:response.status,code:result.code??result.error,stepUp:result.stepUp,readable:true});return result;
 }
 import {firstMount} from '../dom-patch.js';
 const prefix='/api/access/mfa';

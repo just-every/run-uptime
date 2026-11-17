@@ -1,3 +1,4 @@
+import {patch} from '../dom-patch.js';
 import {escape} from '/console-format.js';
 // Settings › Alerts › Alert teams (ROUTING-001): named teams of active members that a route can tell, and the signed-in
 // person's own opt-in to be told at their verified email contact. Team and member names only: no address or credential is
@@ -15,10 +16,13 @@ export function mountAlertTeams(card,{api,manage=true}){
   const chosen=new Set(team.members.map(m=>m.operatorId));
   return `<form id="alert-team-form" class="alert-team-form"><label for="alert-team-name">Team name<input id="alert-team-name" name="name" required maxlength="100" value="${escape(team.name)}"></label><label class="route-target-check" for="alert-team-enabled"><input id="alert-team-enabled" type="checkbox" name="enabled" ${team.enabled?'checked':''}>Team is active</label><fieldset><legend>Members</legend>${people.filter(p=>p.status==='active'&&p.productRole).map((p,i)=>`<label class="route-target-check" for="alert-team-member-${i}"><input id="alert-team-member-${i}" type="checkbox" name="member" value="${escape(p.id)}" ${chosen.has(p.id)?'checked':''}>${escape(p.displayName||p.name||'Member')} · ${escape(p.productRole)}</label>`).join('')||'<p>No active members yet.</p>'}</fieldset><div class="btn-row"><button type="submit" class="primary ui-compact">Save team</button><button type="button" class="ui-link" id="alert-team-cancel">Cancel</button></div></form>`;
  }
- function draw(){
+ function recipientMarkup(){
   const consents=self?.destinations??[];
+  return `<h3>Your alert email</h3>${consents.length?`<ul class="route-recipients" id="alert-consents">${consents.map((d,i)=>`<li><label class="route-target-check" for="alert-consent-${i}"><input id="alert-consent-${i}" type="checkbox" data-consent="${escape(d.id)}" ${d.optedIn?'checked':''}><span>Tell me at <strong>${escape(d.name)}</strong> when a team I belong to is routed an alert${d.enabled?'':' (contact is disabled)'}</span></label></li>`).join('')}</ul>${manage?`<p>${self.teams.length?`You are in ${escape(self.teams.map(t=>t.name).join(', '))}.`:'You are not in a team yet.'}</p>`:''}`:`<p>No email destination matches your sign-in email, <strong>${escape(self.accountEmail)}</strong>. ${manage?'Add that address under Destinations, or change your email in <a href="/app/settings/people">Settings › People</a>.':'Ask an owner or administrator to add that address under Destinations.'}</p>`}`;
+ }
+ function draw(){
   const teamList=manage?teams:self?.teams??[];
-  body.innerHTML=`<p>A route can tell a team. Each member is told only at their own verified email contact, after they opt in below.</p><ul class="route-recipients" id="alert-team-list">${teamList.map(t=>`<li data-team="${escape(t.id)}"><div><strong>${escape(t.name)}</strong> <span>${t.enabled?'Active':'Paused'}</span>${manage?`<p>${t.members.length?escape(t.members.map(m=>`${personName(m.operatorId)}${m.status==='active'?'':' (inactive)'}`).join(', ')):'No members'}</p>`:''}</div>${manage?`<button type="button" class="ui-link" data-edit-team="${escape(t.id)}" aria-label="Edit team ${escape(t.name)}">Edit team</button>`:''}</li>`).join('')||`<li>${manage?'No teams yet.':'You are not in a team yet. Ask an owner or administrator to add you.'}</li>`}</ul>${manage?(editing?form():'<button type="button" id="alert-team-add">Add team</button>'):''}<h3>Your alert email</h3>${consents.length?`<ul class="route-recipients" id="alert-consents">${consents.map((d,i)=>`<li><label class="route-target-check" for="alert-consent-${i}"><input id="alert-consent-${i}" type="checkbox" data-consent="${escape(d.id)}" ${d.optedIn?'checked':''}><span>Tell me at <strong>${escape(d.name)}</strong> when a team I belong to is routed an alert${d.enabled?'':' (contact is disabled)'}</span></label></li>`).join('')}</ul>${manage?`<p>${self.teams.length?`You are in ${escape(self.teams.map(t=>t.name).join(', '))}.`:'You are not in a team yet.'}</p>`:''}`:'<p>No email contact matches your verified account email. Ask an owner or administrator to add one under Destinations.</p>'}`;
+  body.innerHTML=`<p>A route can tell a team. Each member is told only at their own verified email contact, after they opt in below.</p><ul class="route-recipients" id="alert-team-list">${teamList.map(t=>`<li data-team="${escape(t.id)}"><div><strong>${escape(t.name)}</strong> <span>${t.enabled?'Active':'Paused'}</span>${manage?`<p>${t.members.length?escape(t.members.map(m=>`${personName(m.operatorId)}${m.status==='active'?'':' (inactive)'}`).join(', ')):'No members'}</p>`:''}</div>${manage?`<button type="button" class="ui-link" data-edit-team="${escape(t.id)}" aria-label="Edit team ${escape(t.name)}">Edit team</button>`:''}</li>`).join('')||`<li>${manage?'No teams yet.':'You are not in a team yet. Ask an owner or administrator to add you.'}</li>`}</ul>${manage?(editing?form():'<button type="button" id="alert-team-add">Add team</button>'):''}<div id="alert-self-recipient">${recipientMarkup()}</div>`;
  }
  async function load(){
   try{
@@ -27,6 +31,9 @@ export function mountAlertTeams(card,{api,manage=true}){
    draw();
   }catch{body.textContent='Your alert settings could not be read. Reload the page to try again.'}
  }
+ card.addEventListener('uptime:destinations-changed',async()=>{
+  try{self=await api('/api/routing/recipient');const host=card.querySelector('#alert-self-recipient');if(host)patch(host,recipientMarkup())}catch{say('Your alert settings could not be read. Reload the page to try again.')}
+ });
  card.addEventListener('click',event=>{
   if(!manage)return;
   const edit=event.target.closest('[data-edit-team]');

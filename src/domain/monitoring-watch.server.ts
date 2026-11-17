@@ -1,4 +1,5 @@
 import {queueCheckerStopped} from './checker-alerts.server.ts'
+import {ownerAccount} from './owner-account.server.ts'
 import {demoEffect} from '@runeditrun/rer/modules/demo'
 import type {Bindings} from './control.server.ts'
 import {claimAuxiliary,submitAuxiliary,finishAuxiliary,reconcileAuxiliary} from './auxiliary-execution.server.ts'
@@ -10,14 +11,15 @@ import {legacyMonitoringWarning} from './legacy-monitoring.server.ts'
 import {publicTarget} from './public-target.mjs'
 export function watchDuration(value:string|undefined,fallback:number){const number=value===undefined?fallback:Number(value);if(!Number.isSafeInteger(number)||number<=0)throw Error('Invalid monitoring watch interval');return number}
 async function ownerNotice(env:Bindings,id:string,subject:string,text:string,now:number,retryMs:number){
- if(!mailSender(env)||!env.OWNER_EMAIL)return;
+ if(!mailSender(env))return;
+ const owner=await ownerAccount(env);if(!owner)return;
  const attempt=await claimAuxiliary(env,'watch',id,now,{retryMs});if(!attempt)return;
  let submitted=false,outcome='expired',code='submission_not_started';
  try{
   const sender=mailSender(env,{fetch:async(url:RequestInfo|URL,init?:RequestInit)=>{await submitAuxiliary(env,attempt);submitted=true;return fetch(url,init)}})!;
   // Development delivery has no network transport boundary.
   if(env.MAIL_PROVIDER==='development'){await submitAuxiliary(env,attempt);submitted=true}
-  const result=await sender.send({deliveryId:id,from:env.MAIL_FROM,to:[env.OWNER_EMAIL],subject,text});
+  const result=await sender.send({deliveryId:id,from:env.MAIL_FROM,to:[owner.email],subject,text});
   if(submitted){outcome=result.status;code=result.code??`mail_${result.status}`}
  }catch{if(submitted){outcome='uncertain';code='mail_result_unknown'}}
  await finishAuxiliary(env,attempt,outcome,code);

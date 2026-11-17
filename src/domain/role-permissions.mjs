@@ -18,6 +18,7 @@ export function requestPermission(request,input){
  const url=new URL(request.url),path=url.pathname,method=request.method==='HEAD'?'GET':request.method,read=method==='GET';
  const monitor=/^\/api\/(?:v1\/)?monitors\/([^/]+)(?:\/(.*))?$/.exec(path);
  const decode=value=>{try{return decodeURIComponent(value)}catch{return ''}};
+ if(path==='/api/installation-name')return {action:'owner',workspace:true};
  if(path==='/api/routing/named-routes'||path.startsWith('/api/catalog/routes/'))return {action:'owner',workspace:true};
  if(path.startsWith('/api/definitions/history/'))return {action:'import',workspace:true};
  if(path.startsWith('/api/credentials'))return {action:'owner',workspace:true};
@@ -27,6 +28,7 @@ export function requestPermission(request,input){
  // Console monitoring reads share the documented read role; configuration and
  // every mutating method retain their existing classifications.
  if(path==='/api/overview'&&read)return {action:'read',workspace:true};
+ if(path==='/api/profile')return {action:'read',workspace:false};
  if(path==='/api/access/self')return {action:'read',workspace:false};
  if(path.startsWith('/api/access/'))return {action:'members',workspace:true};
  if(path==='/api/auth/sign-out'||path==='/auth/signout')return {action:'read',workspace:false};

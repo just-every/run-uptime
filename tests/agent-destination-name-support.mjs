@@ -100,6 +100,7 @@ export async function proveDestinationNameEffects({c,native,db,origin,cookie,pro
  // remain unchanged: this deterministically exercises the stale-read window.
  const {updateDestination}=await import('../src/domain/notification-destinations.server.ts');
  for(const race of ['enabled','credential']){
+  await completeSecondFactor(origin,cookie);
   const racing=await native('/api/notifications/destinations',{name:'synthetic-uptime-race',kind:'email',enabled:true,address:['synthetic-uptime-3','recipient.example.test'].join(String.fromCharCode(64))});
   const old=await db.prepare('SELECT * FROM notification_destinations WHERE id=?').bind(racing.id).first();
   const traffic=structuredClone(providerRequests),mailCount=allDeliveredMessages().length;

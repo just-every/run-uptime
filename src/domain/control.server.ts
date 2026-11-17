@@ -11,6 +11,7 @@ import {hostedInstallation} from './hosted-runner.ts'
 import {cronStarted} from './cron-run.server.ts'
 import {notificationOverview} from './notifications.server.ts'
 import {notificationPreferences} from './notification-preferences.server.ts'
+import {installationName} from './installation-name.server.ts'
 import {mutationGuard,auditStatement,type AuditActor} from './audit.server.ts'
 import {availabilityOverview} from './availability.server.ts'
 import {operatorSession,type AuthBindings} from './operator-auth.server.ts'
@@ -62,16 +63,16 @@ export async function overview(env:Bindings,{monitorId,readOnly=false}:{monitorI
  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
  // The first runner rows exist after the first overview; only an installation still missing one writes them, then reads again.
  const present=async()=>{const [runners,legacy]=await Promise.all([listRunners(env),runnerIdentity(env)]);return legacy&&(!hostedInstallation(env)||runners.some((r:any)=>r.hosted))?{runners,legacy}:null};
- const [found,rows,alerts,started,contact,external,notifications,preferences]=await Promise.all([present(),
+ const [found,rows,alerts,started,contact,external,notifications,preferences,name]=await Promise.all([present(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
-  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env)]);
+  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env),installationName(env)]);
  const {runners,legacy}=found??(readOnly?{runners:await listRunners(env),legacy:await runnerIdentity(env)}:(await ensureFirstRunner(env),(await present())!));
  const basics=rows.results.map(monitorRow);
  const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs,readOnly))),availabilityOverview(env.DB,basics,now)]);
  return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
   runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,...(readOnly?{}:{grants:grants(env),contact,externalCheckUrl:external.url})},
-  timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
+  installationName:name,timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
 }
 export {MONITOR_LIMIT} from './monitor-cap.ts'
 // The revision guard runs in the write transaction. A racing create returns the same useful capacity error as preflight.

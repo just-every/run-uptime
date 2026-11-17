@@ -1,3 +1,4 @@
+import {ownerAccount} from '../owner-account.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {permission,accessResponse,accessFence} from '../access.server.ts'
 import {configureClaim} from '../../base/modules/owner-claim/verify.mjs'
@@ -15,7 +16,7 @@ export function businessClaim(env:Bindings){
   appOrigin:env.RER_OWNER_CLAIM_APP_ORIGIN??'',expectedEmail:env.OWNER_EMAIL??'',publicKeys:JSON.parse(env.RER_OWNER_CLAIM_PUBLIC_KEYS??'null')})
 }
 export async function businessOwner(env:Bindings){
- const owner=await env.DB.prepare("SELECT id FROM oa_operators WHERE email=? AND role='owner' AND status='active'").bind(env.OWNER_EMAIL??'').first<{id:string}>()
+ const owner=await ownerAccount(env)
  if(!owner)throw Object.assign(Error('The installation owner is unavailable'),{status:403})
  return owner.id
 }
