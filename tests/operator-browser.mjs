@@ -242,13 +242,25 @@ try{
    page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
    await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
-   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await bulkAddDoor(page);await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click()}
+   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await bulkAddDoor(page);
+    // A different loopback port still follows the private-address path, without receiving the practice allowance.
+    await page.getByLabel('Website URL',{exact:true}).fill('http://127.0.0.1:15480/health');
+    await page.getByRole('button',{name:'Check',exact:true}).click();await page.locator('#discovery-problem').waitFor();
+    assert.ok(new URL(await page.locator('#discovery-problem a').getAttribute('href'),origin).pathname.startsWith('/app/monitors/new/manual/private/'));
+    // The bundled local target goes through the website check's result to the ordinary saveable form.
+    await page.getByLabel('Website URL',{exact:true}).fill('http://127.0.0.1:15481/health');
+    await page.getByRole('button',{name:'Check again',exact:true}).click();await page.locator('#discovery-problem').waitFor();
+    await page.locator('#discovery-problem a').click();await page.locator('.editor-context-ready').waitFor();
+    assert.equal(await page.locator('[name=url]').inputValue(),'http://127.0.0.1:15481/health','the checked target travels to the form');
+    assert.equal(await page.locator('[name=networkScope]').inputValue(),'public','practice does not ask for a private-network grant');
+    assert.equal(await page.locator('[name=privateGrantRef]').isEnabled(),false);
+   }
    else{await ready(page);await audit(page,`console-${width}`);
     await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
     await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await bulkAddDoor(page);await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click()}
    const name=`Operator ${width} ${Date.now()}`;
    await page.locator('input[name=name]:visible').fill(name);await page.locator('input[name=url]:visible').fill('http://169.254.169.254/latest/meta-data/');
-   await page.getByRole('button',{name:'Save monitor'}).click();await page.locator('#editor-feedback').filter({hasText:/grant|literal|target|URL|host|port|loopback/i}).waitFor();assert.equal(new URL(page.url()).pathname,'/app/monitors/new/manual');
+   await page.getByRole('button',{name:'Save monitor'}).click();await page.locator('#editor-feedback').filter({hasText:/grant|literal|target|URL|host|port|loopback/i}).waitFor();assert.ok(new URL(page.url()).pathname.startsWith('/app/monitors/new/manual'));
    // Wait for a response, Extra attempts and Unknown after sit in Advanced.
    await page.locator('#editor-advanced > summary').click();
    const values={url:'http://127.0.0.1:15481/health',intervalMinutes:String(5000/60000),freshnessMinutes:String(10000/60000),retries:'0',confirmSlots:'1',recoverSlots:'1'};
@@ -257,7 +269,7 @@ try{
    for(const [rule,fields] of Object.entries(rules)){await addRule(page,rule);for(const [field,value] of Object.entries(fields))await page.locator(`[name=${field}]:visible`).fill(value)}
    await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
    const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
-   assert.ok(monitor);assert.deepEqual(Object.values(monitor.definition.assignments).map(a=>a.runnerId),overview.runner.runners.filter(r=>!r.revokedAt).map(r=>r.runnerId),'a new monitor checks from every location');
+   assert.ok(monitor);assert.equal(monitor.definition.network,'synthetic');assert.equal(monitor.definition.privateGrantRef,undefined);assert.deepEqual(Object.values(monitor.definition.assignments).map(a=>a.runnerId),overview.runner.runners.filter(r=>!r.revokedAt).map(r=>r.runnerId),'a new monitor checks from every location');
    await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);await page.locator('#all-checks > summary').click();
    await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
    await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});

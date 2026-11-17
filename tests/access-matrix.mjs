@@ -56,7 +56,7 @@ try{
   }
   const revoked=await login();assert.equal((await call('/auth/signout',{}, {cookie:revoked})).status,204);
   const valid=await login();await finishSetup(origin,valid,fetcher);
-  if(!hosted)await proveMemberLifecycle({origin,call,fetcher,DB,cookie:valid,hosted,mails,browserOnly:true});
+  if(!hosted)await proveMemberLifecycle({origin,call,fetcher,DB,cookie:valid,hosted,mails,runnerKey:bindings.UPTIME_RUNNER_KEY,browserOnly:true});
   assert.equal((await call('/api/monitors',{name:'Private access evidence',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie:valid})).status,201);
   const before=await snapshot(DB);
   for(const [state,cookie] of [['missing',''],['expired',expired],['revoked',revoked]]){
@@ -118,7 +118,7 @@ try{
    for(const [path,body] of [['/auth/operator/role',{operatorId:'member',role:'owner'}],['/auth/operator/status',{operatorId:ownerId,status:'inactive'}],['/auth/invite',{email:'friend@example.test',displayName:'Friend',role:'owner'}],['/auth/invite/cancel',{operatorId:ownerId}]])assert.equal((await call(path,body,{cookie:memberCookie})).status,403,`member ${path}`);
    assert.equal((await call('/setup',{}, {cookie:memberCookie})).status,403,'member first-run setup');
    assert.deepEqual(await everything(DB),memberBefore,'a member changes nothing durable');
-   await proveMemberLifecycle({origin,call,fetcher,DB,cookie:valid,memberCookie,hosted,mails});
+   await proveMemberLifecycle({origin,call,fetcher,DB,cookie:valid,memberCookie,hosted,mails,runnerKey:bindings.UPTIME_RUNNER_KEY});
    // Identity, role and ownership claims a client sends are never authority: an owner's request carrying forged claims in its
    // headers and body is recorded under the session's own operator, and no claim is stored anywhere.
    const marker='forged-claim-0001',claims={'x-operator-id':marker,'x-user-id':marker,'x-forwarded-user':marker,'x-forwarded-email':`${marker}@example.test`,'cf-access-authenticated-user-email':`${marker}@example.test`,'x-runner-id':marker};

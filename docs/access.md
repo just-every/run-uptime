@@ -71,6 +71,13 @@ scopes and assignment revision as `/api/access/self`. Monitoring-only responses
 omit notification destinations, delivery configuration and runner grants.
 Configuration and all mutations keep their existing permission checks.
 
+The console shows the signed-in person's name and product role. In Settings › Alerts,
+members can see their teams and opt in or out of alerts at an email contact matching
+their verified account email; an owner or administrator adds that contact first.
+Members see an explanation in place of settings they cannot manage. Integrations
+are managed by the owner; backups and monitor file exports are available to owners
+and administrators, while monitor file imports remain with the owner. — Run Edit Run fleet, 17 November 2026.
+
 ## Public operator doors
 
 All calls require a native authenticated Base session and the normal same-origin

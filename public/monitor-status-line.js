@@ -1,3 +1,4 @@
+import {missingCheckers,checkerRestart} from './monitor-status.js';
 import {escape,icon,shownState} from './console-format.js';
 import {statusLine,clock,dayClock,joinNames} from './monitor-status.js';
 import {share} from './monitor-coverage.js';
@@ -19,6 +20,7 @@ function slowLine(m,slow,runners){
 const startingUp=(m,data)=>Object.values(m.definition.assignments??{}).some(a=>(data.runner.runners??[]).some(r=>r.runnerId===a.runnerId&&r.hosted))&&!data.runner.demo&&!data.runner.cronStarted&&!m.availability?.lastCheckAt&&m.state.targetState==='Unknown';
 // "99.93% passing · last 24 hours"; a monitor younger than the window says since when.
 function passing(m,data,seen){
+ if(missingCheckers(m).length)return '';
  const day=m.availability?.last24h;
  if(!day||!Number.isFinite(day.observedMs)||day.observedMs<=0||!Number.isFinite(day.windowMs))return '';
  const young=Number.isFinite(seen.start)&&Number.isFinite(data.now)&&seen.start>data.now-day.windowMs;
@@ -30,11 +32,12 @@ const breakable=text=>escape(text).replace(/[^\s<>&]{24,}/g,word=>word.replace(/
 const READS={route:'who is told',slow:'the open Slow notice',followed:'the followed service’s review',debt:'cleanup debt'};
 export function statusCard(m,{readUnavailable,data,seen}){
  const d=m.definition,state=m.state.state,shown=shownState(m,readUnavailable),slow=openSlow(m,seen.slow),runners=data.runner.runners??[];
- let tone=readUnavailable?'unknown':!d.enabled?'paused':{Healthy:'up',Failing:'down',Maintenance:'maint',Degraded:'degraded',Recovering:'recovering'}[state]??'unknown';
+ let tone=readUnavailable||m.checking?.reporting===0&&missingCheckers(m).length?'unknown':!d.enabled?'paused':{Healthy:'up',Failing:'down',Maintenance:'maint',Degraded:'degraded',Recovering:'recovering'}[state]??'unknown';
  let text=statusLine(m,{readUnavailable,data,seen}),action='',slowMain=false;
  if(tone==='maint'&&d.maintenanceUntil>Date.now())action='<button type="button" class="ui-link" id="end-maintenance" data-action="end-maintenance">End now</button>';
  if(tone==='up'&&slow){({text,action}=slowLine(m,slow,runners));tone='slow';slowMain=true}
  const held=[];
+ if(missingCheckers(m).length)held.push(['checker',`<span>${escape(checkerRestart(missingCheckers(m)))}</span> <a class="ui-link" href="/app/locations">Locations</a>`]);
  if(slow&&!slowMain&&!readUnavailable){const line=slowLine(m,slow,runners);held.push(['slow',`<span>${escape(line.text)}</span> ${line.action}`])}
  if(seen.debt&&seen.debt.open.length>=seen.debt.limit)held.push(['debt','<span>Setup is stopped until a cleanup is resolved.</span> <a class="ui-link" href="#cleanup">Cleanup debt</a>']);
  if(seen.followed?.review)held.push(['review','<span>The followed service’s catalog entry needs review.</span> <a class="ui-link" href="#followed">Review it</a>']);

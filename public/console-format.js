@@ -33,4 +33,4 @@ export function humaneDuration(ms,{roundUp=false}={}){
  }
 }
 // The state a monitor shows: Paused when disabled, Unknown while the overview could not be refreshed.
-export const shownState=(m,readUnavailable)=>m.definition.enabled?(readUnavailable?'Unknown':m.state.state):'Paused';
+export const shownState=(m,readUnavailable)=>m.definition.enabled?(readUnavailable||m.checking?.reporting===0&&m.checking?.missing?.length?'Unknown':m.state.state):'Paused';

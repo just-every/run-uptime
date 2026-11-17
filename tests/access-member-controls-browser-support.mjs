@@ -5,7 +5,7 @@ import {completeSecondFactor,completeBrowserSecondFactor} from './mfa-auth-suppo
 import {fixture} from './resilience/support.mjs';
 import {deliveredLink,finishSetup} from './auth-test-support.mjs';
 import {chromium} from 'playwright';
-export async function proveMemberControls({origin,cookie,accept,call,DB}){
+export async function proveMemberControls({origin,cookie,accept,call,DB,contactChecker}){
  const browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
  try{
   const context=await browser.newContext({viewport:{width:1440,height:1000}}),[name,...parts]=cookie.split('=');await context.addCookies([{name,value:parts.join('='),url:origin}]);const page=await context.newPage();
@@ -34,6 +34,7 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
      reader=person;
      const created=await call('/api/monitors',{name:'synthetic-uptime-reader-monitor',type:'heartbeat',canaryUrl:'https://canary.example.test/health',heartbeat:{maxAgeMs:60000}},{cookie});
      assert.equal(created.status,201);const monitor=await created.json();
+     await contactChecker();
      assert.equal((await call('/api/monitors/'+monitor.id+'/run',{},{cookie})).status,200);
      const fresh=await browser.newContext({viewport:{width:1440,height:1000}});
      try{

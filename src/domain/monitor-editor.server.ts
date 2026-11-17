@@ -1,4 +1,4 @@
-import type {Bindings} from './control.server.ts'
+import {grants,type Bindings} from './control.server.ts'
 import {firstRunnerStatements,runnerListQuery,describeRunners} from './runner-registration.server.ts'
 import {runnerRuntime} from './private-runner.ts'
 import {externalCheckOf} from './external-check.server.ts'
@@ -15,5 +15,6 @@ export async function monitorEditor(env:Bindings,id?:string){
  const settings={url:row?.url??null,legacyUrl:row?.legacy_url??null},monitor=rows[initialize.length+2]?.results[0] as {definition:string}|undefined
  const definition=id&&monitor?JSON.parse(monitor.definition):null
  // The edited monitor's own external check URL, if it has one; empty means it follows Settings.
- return {now:Date.now(),runner:{...runnerRuntime(env,runners),runners,externalCheckUrl:settings.url},...(id?{definition,externalCheck:definition?externalCheckOf(definition,settings):null}:{first:!rows[initialize.length+2]?.results.length})}
+ const practicePort=env.UPTIME_LOCAL_REVIEW==='true'?grants(env)[0]:undefined
+ return {now:Date.now(),...(practicePort?{practiceTargetOrigin:`http://127.0.0.1:${practicePort}`} : {}),runner:{...runnerRuntime(env,runners),runners,externalCheckUrl:settings.url},...(id?{definition,externalCheck:definition?externalCheckOf(definition,settings):null}:{first:!rows[initialize.length+2]?.results.length})}
 }

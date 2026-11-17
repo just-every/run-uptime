@@ -1,5 +1,7 @@
 A monitor describes what to check, how often, and what counts as success. Uptime runs the check on schedule, keeps the result as evidence, and only raises an incident when a failure is confirmed. This page explains the monitor kinds and how a series of checks becomes a state you can trust.
 
+With the bundled practice target running on this computer, paste its health address into **New monitor › Website URL** and choose **Check**, then **Set up the practice monitor**. The form keeps the address: give it a name and choose **Save monitor**. Keep **Reachable from** at **The public internet**, as in the README practice walk; this target has its own local allowance and needs no private-network grant. Other private addresses still use the private-network setup. — sd, 17 November 2026.
+
 ## Supported monitor kinds
 
 The editor offers {{monitorKindCount}} kinds: {{monitorKinds}}. Keyword and JSON assertions use the Website or API (HTTP) form.

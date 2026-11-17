@@ -9,6 +9,9 @@ const RENDER={};
 // An area's first render waits for its module and draws only while the console still shows that area. It returns that
 // pending draw, so the console reports itself signed in only once the area it shows has drawn (public/app.js).
 export function renderSettings(area,context){
+ if(['general','people'].includes(area)&&!['owner','admin'].includes(context.data.access?.role)){
+  patch(context.area,`<div class="settings-area"><section class="ui-card set-card"><h2>${AREAS[area]}</h2><p>An owner or administrator manages ${area==='general'?'the installation settings':'accounts and security settings'}. Ask them if you need a change.</p></section></div>`);return;
+ }
  if(RENDER[area]){RENDER[area](context);return}
  return MODULES[area]().then(render=>{RENDER[area]=render;if(context.showing(area))render(context)},()=>{if(context.showing(area))patch(context.area,'<p class="rows-note">This area could not load. Reload the page to try again.</p>')});
 }

@@ -27,14 +27,18 @@ export function mountDiscovery({form,overview,openCheck,showManualForm,onCheck,f
   result.hidden=next!=='result';problem.hidden=next!=='problem';
   if(!busy){stopTimer();status.replaceChildren();status.removeAttribute('data-state')}
  }
+ function isPracticeTarget(url){
+  try{const target=new URL(url);return Boolean(overview.practiceTargetOrigin)&&target.origin===overview.practiceTargetOrigin&&!target.username&&!target.password&&!target.search&&!target.hash}catch{return false}
+ }
  function privateLink(container,url){
   try{if(!['http:','https:'].includes(new URL(url).protocol))return}catch{return}
-  const link=document.createElement('a');link.className='ui-link';link.textContent='Check a private address';
-  link.href=manualPath({network:'private',url});container.append(link);
+  const practice=isPracticeTarget(url),link=document.createElement('a');link.className='ui-link';link.textContent=practice?'Set up the practice monitor':'Check a private address';
+  link.href=manualPath({network:practice?'public':'private',url});container.append(link);
  }
  function fail(message){
   show('problem','Check again');
-  const text=document.createElement('p');text.textContent=message;problem.replaceChildren(text);privateLink(problem,entered&&!SCHEME.test(entered)?`http://${entered}`:input.value);
+  const url=entered&&!SCHEME.test(entered)?`http://${entered}`:input.value,practice=isPracticeTarget(url);
+  const text=document.createElement('p');text.textContent=practice?'Website suggestions cannot check the practice target on this computer. Open its monitor form, give it a name, then save it to start checking.':message;problem.replaceChildren(text);if(practice)text.append(' ');privateLink(practice?text:problem,url);
   problem.focus();
  }
  function succeed(job){
