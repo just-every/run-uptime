@@ -1,0 +1,85 @@
+{
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "recorded_at": "2026-11-17T17:06:07.712179+00:00",
+  "checks": [
+    {
+      "name": "import",
+      "command": "node --import /tmp/uptime-local-fetch.mjs tests/definitions-import.mjs",
+      "exit_code": 0,
+      "log": "checks/import.log",
+      "log_sha256": "a9375f96739f408d98928cdce74d612981ffdb871b4b692132f8ff586caac3b7"
+    },
+    {
+      "name": "ui",
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/definitions-journey.mjs",
+      "exit_code": 0,
+      "log": "checks/ui.log",
+      "log_sha256": "ed460fa006ee79a92fb1023379494c88d6dc4f2ec484194668e942abe89cf127"
+    },
+    {
+      "name": "build",
+      "command": "npx -y @runeditrun/rer build",
+      "exit_code": 0,
+      "log": "checks/build.log",
+      "log_sha256": "84b195598b0f0e0d471bd9478c722df783b260fd8fb064def9606b587184ca4f"
+    },
+    {
+      "name": "typecheck",
+      "command": "pnpm run typecheck",
+      "exit_code": 0,
+      "log": "checks/typecheck.log",
+      "log_sha256": "1f5983616dcb7fde3039372405719a96846857e251b37832933732f71d2767d7"
+    },
+    {
+      "name": "fixtures",
+      "command": "node scripts/generate-incumbent-import-fixtures.mjs --check",
+      "exit_code": 0,
+      "log": "checks/fixtures.log",
+      "log_sha256": "da00d24d950b77beab9de5fe2356fe174ffa00a684339593e939462440c883b3"
+    },
+    {
+      "name": "contract",
+      "command": "node src/base/contract-docs.mjs check",
+      "exit_code": 0,
+      "log": "checks/contract.log",
+      "log_sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "name": "source-lock",
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0,
+      "log": "checks/source-lock.log",
+      "log_sha256": "687c39f469f471fab366ca2adacc0ee560af19c9bb355db4b39341649820db60"
+    },
+    {
+      "name": "spec",
+      "command": "pnpm spec:check",
+      "exit_code": 0,
+      "log": "checks/spec.log",
+      "log_sha256": "e344bf8cfd3e97d61a45b10260d7e3fbb00a3771420f3cb470a4f94d76e2242b"
+    },
+    {
+      "name": "base",
+      "command": "node scripts/edition-authoring/cli.mjs verify-base --offline",
+      "exit_code": 0,
+      "log": "checks/base.log",
+      "log_sha256": "069f2cee5a76f30fc0d3804da8dab69bada7afd380f6a0580643050bd0eb4e70"
+    },
+    {
+      "name": "structural",
+      "command": "npx -y @runeditrun/rer check --profile first-party",
+      "exit_code": 0,
+      "log": "checks/structural.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "command",
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium node tests/command-journey.mjs",
+      "exit_code": 0,
+      "log": "checks/command.log",
+      "log_sha256": "ec0a113055f9d1fc611b69bab7edd37fd9e3e6238c931fab990be87bf56449ce"
+    }
+  ],
+  "command_journey": "passed"
+}

@@ -1,0 +1,5 @@
+path=/home/agent/rer-consolidation/work/sd-uptime-import-pingdom-2/product-99cfebdf813f.bundle
+head=99cfebdf813f0f639239e0a8add9ba6a6bec4941
+sha256=ccec6c76ac3e26002acbe2fb0cf98f88f8c3ac2ec4b0257ea74ed0d506ef1144
+verified=true
+Purpose: recovery outside the clone; not product readiness or evidence publication.

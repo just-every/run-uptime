@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "tag": "sd-uptime-import-pingdom-2",
+  "repository": "just-every/run-uptime",
+  "recorded_at": "2026-11-17T17:22:23.331664+00:00",
+  "prior_head": "67752d3d186946e643ca58a833c171dcb86cce2e",
+  "base_head": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "fixture_manifest_sha256": "081f10b7befeb427e0bfbcc95a1feb72c3681a14c664307f11af7fe8b8ea37a9",
+  "fixture_counts": {
+    "aws": {
+      "alarmPages": 2,
+      "canaries": 2,
+      "canaryPages": 3,
+      "codePackages": 2,
+      "compositeAlarms": 1,
+      "metricAlarms": 4
+    },
+    "generatedFiles": 191,
+    "negativeAndVariantCases": 80,
+    "pingdom": {
+      "byType": {
+        "dns": 10,
+        "http": 25,
+        "ping": 10,
+        "smtp": 10,
+        "tcp": 10
+      },
+      "contacts": 5,
+      "dailyAggregates": 60,
+      "expectedTlsCompanions": 8,
+      "historyDays": 60,
+      "integrationIds": 2,
+      "maintenanceWindows": 2,
+      "outageSeconds": 4465,
+      "outages": 3,
+      "pingSummaryOnly": 10,
+      "resultPages": 7,
+      "resultSamples": 1205,
+      "teams": 2,
+      "tmsChecks": 4,
+      "tmsRecordings": 2,
+      "tmsScripts": 2,
+      "tmsSupportedProposals": 3,
+      "tmsUnsupportedCommands": 1,
+      "unmappedHistoryRows": 1,
+      "uptimeChecks": 65,
+      "uptimeDetails": 55,
+      "uptimeListPages": 3
+    },
+    "totalBytes": 9708319
+  },
+  "clauses_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clauses_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "status_changes": [],
+  "native_preview_before": {
+    "create": 0,
+    "refused": 1
+  },
+  "native_preview_expected_after": {
+    "create": 1,
+    "refused": 0
+  },
+  "command_batches_before": 5,
+  "command_batches_expected_after": 4,
+  "command_count_assertion_changed": false,
+  "browser_assertion_width": 1440,
+  "browser_proof_widths": [
+    1440,
+    390
+  ],
+  "product_head": "99cfebdf813f0f639239e0a8add9ba6a6bec4941",
+  "product_push": "successful",
+  "candidate_merges": 0,
+  "candidate_commits": 1,
+  "native_preview_after": {
+    "create": 1,
+    "refused": 0
+  },
+  "command_batches_after": 4,
+  "local_checks": "passed",
+  "pr": null,
+  "ci_run_id": 44133159499,
+  "ci_head": "99cfebdf813f0f639239e0a8add9ba6a6bec4941",
+  "ci_last_status": "completed",
+  "ci_conclusion": "success",
+  "github_calls_used": 4,
+  "bundle": {
+    "path": "/home/agent/rer-consolidation/work/sd-uptime-import-pingdom-2/product-99cfebdf813f.bundle",
+    "sha256": "ccec6c76ac3e26002acbe2fb0cf98f88f8c3ac2ec4b0257ea74ed0d506ef1144",
+    "verified": true
+  },
+  "ci_last_observed_at": "2026-11-17T17:21:40Z",
+  "product_custody": "READY",
+  "blockers": [],
+  "evidence_ref": "refs/heads/evidence/sd-uptime-import-pingdom-2"
+}
