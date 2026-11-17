@@ -44,7 +44,7 @@ async function api(path,method='GET',body,retried=false){
   throw Object.assign(Error(method==='GET'?'Too many requests. Waiting before trying again.':'Too many requests. Wait before trying this action again.'),{status:429,retryAt});
  }
  const result=await response.json();
- if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result);return api(path,method,body,true)}
+ if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result,{destination:path==='/api/notifications/destinations'&&method==='POST'});return api(path,method,body,true)}
  if([401,403].includes(response.status)&&!needsStepUp(result))window.dispatchEvent(new Event('uptime:auth-lost'));
  if(!response.ok)throw Object.assign(Error(result.error??`Request ${response.status}`),{status:response.status,code:result.code});return result;
 }

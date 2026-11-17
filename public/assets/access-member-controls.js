@@ -1,5 +1,5 @@
 import {securityControls,securityRequest} from './security-controls.js';
-import {confirmErasure,showErasureReceipt} from '../notification-dialogs.js';
+import {confirmDestination,confirmErasure,showErasureReceipt} from '../notification-dialogs.js';
 // Settings › People's two cards (public/settings-people.js). Accounts lists everyone who can sign in, each once: the name,
 // then email · role · You, Invited or Removed. Opening a person shows their role and service or team scope (Save assignment,
 // Remove member) and, to the owner, Erase… for anyone but the last active owner (the typed-name confirm), never for an
@@ -37,7 +37,7 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
   who.append(name,line);summary.append(who);item.append(summary,form);fields(form,person);
   const save=document.createElement('button'),remove=document.createElement('button');save.textContent='Save assignment';remove.type='button';remove.textContent='Remove member';buttons.append(save,remove);form.append(buttons);
   form.onsubmit=async event=>{event.preventDefault();save.disabled=true;try{const result=await request(`/api/access/members/${encodeURIComponent(person.id)}`,'POST',{role:form.elements.role.value,scopes:scopes(form)});await load(result.unchanged?'Assignment unchanged.':'Assignment saved.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'})}finally{save.disabled=false}};
-  remove.onclick=async()=>{remove.disabled=true;try{await request(`/api/access/members/${encodeURIComponent(person.id)}`,'DELETE');await load('Member removed.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'});remove.disabled=false}};
+  remove.onclick=()=>confirmDestination({title:`Remove ${person.displayName}?`,explanation:'They can no longer sign in.',button:'Remove member',tone:'danger',onConfirm:async()=>{remove.disabled=true;try{await request(`/api/access/members/${encodeURIComponent(person.id)}`,'DELETE',undefined,{title:`Confirm removing ${person.displayName}`});await load('Member removed.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'});remove.disabled=false}}});
   // Erasure is the owner's. Nobody can erase the last active owner, and an invitation is not an account to erase yet.
   const lastOwner=person.role==='owner'&&person.status==='active'&&owners===1;
   if(self.role==='owner'&&person.status!=='invited'&&!lastOwner){
