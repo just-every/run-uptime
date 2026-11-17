@@ -46,7 +46,7 @@ Already have Node 22 or later? This alternative does the same:
 ```sh
 npx -y @runeditrun/rer dev just-every/run-uptime
 ```
-To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, install `rer` with `curl -fsSL https://runeditrun.com/install.sh | sh`, then run `rer install just-every/run-uptime`, then these from the checkout instead:
+To start it again later, run `cd run-uptime && rer dev`. If a new terminal says `rer: command not found`, the installer's PATH line has not taken effect there: run `$HOME/.local/bin/rer cli path` to see that one line (it changes no shell file), or call `$HOME/.local/bin/rer` by its full path for every `rer` command in this README. To choose the owner yourself, install `rer` with `curl -fsSL https://runeditrun.com/install.sh | sh`, then run `rer install just-every/run-uptime`, then these from the checkout instead:
 
 ```sh
 rer setup
@@ -95,7 +95,7 @@ target_url="$(rer run practice-target)"
 printf '%s/health\n' "$target_url"
 ```
 
-`rer` uses its managed runtime, so you do not need `node` on your PATH. Copy the printed health URL, including its selected port; it can change when you start a new installation. Before saving the monitor, set **External check URL** in **Settings › General** to a public site you do not run. **New monitor** first asks for a website address so it can suggest checks; choose **Fill in the form yourself** to open the full form. There, name the monitor **Local practice**, enter the copied health URL as the **Target URL**, leave **Request method** (under **Advanced**) at `GET` and **Status** at `200` under **Up when**, and keep only the local location ticked under **Check from**. It is named after a city (or the name you gave it); check **Locations** if you need to identify it, and leave the hosted location unticked. Enter `0.1` for **Check every (minutes)**; that is a six-second interval. Set **Failed checks in a row** and **Back up after passing checks** to `1`, then choose **Save monitor**.
+`rer` uses its managed runtime, so you do not need `node` on your PATH. Copy the printed health URL, including its selected port; it can change when you start a new installation. **External check URL** in **Settings › General** already holds `https://example.org/`, a public site you do not run; keep it, or change it to another before you save the monitor. **New monitor** first asks for a website address so it can suggest checks; choose **Fill in the form yourself** to open the full form. There, name the monitor **Local practice**, enter the copied health URL as the **Target URL**, leave **Request method** (under **Advanced**) at `GET` and **Status** at `200` under **Up when**, and keep only the local location ticked under **Check from**. It is named after a city (or the name you gave it); check **Locations** if you need to identify it, and leave the hosted location unticked. Enter `0.1` for **Check every (minutes)**; that is a six-second interval. Set **Failed checks in a row** and **Back up after passing checks** to `1`, then choose **Save monitor**.
 
 The new scheduled check is due when you save. The private runner polls about once a second and the console refreshes every five seconds, so leave the monitor open until its first result appears. After changing the target mode below, wait for the next scheduled result; the six-second interval is followed by runner polling and the page refresh. **RUN NOW** creates a manual check and does not change scheduled health or incident thresholds.
 

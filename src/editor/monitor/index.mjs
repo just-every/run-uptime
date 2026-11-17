@@ -74,7 +74,7 @@ export async function mountMonitorEditor(signal){
    // Without a runner that can look at a website (a hosted installation with no private runner in contact, outside a demo),
    // the form is the working path, so it opens first; public checks still run in the Cloudflare Worker.
    const hostedWithoutRunner=overview.runner.hosted&&!overview.runner.privateRunnerReady&&overview.runner.workerDiscovery!==true;
-   const dispose=mountDiscovery({form,overview,openCheck:hostedWithoutRunner?null:state.discovery,showManualForm,onCheck:()=>ways.close(),focusInput:!ways.current});
+   const dispose=mountDiscovery({form,overview,openCheck:hostedWithoutRunner?null:state.discovery??(first&&!state.way?overview.proposalJob:null),showManualForm,onCheck:()=>ways.close(),focusInput:!ways.current});
    signal.addEventListener('abort',dispose,{once:true});
    if(hostedWithoutRunner&&!ways.current){
     showManualForm();

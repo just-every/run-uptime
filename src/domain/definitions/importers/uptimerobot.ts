@@ -15,6 +15,8 @@ function pages(text:string){
  if(!flat.length||!flat.every(isPage))throw new DefinitionFileError('This is not an UptimeRobot v3 monitor list: expected one or more saved GET /monitors pages, each {"data": [...], "nextLink": ...}.')
  return flat as {data:unknown[]}[]
 }
+// UptimeRobot types Uptime runs itself but this file format cannot carry over.
+const OWN_CHECK:Record<string,string>={PORT:'TCP',PING:'ping',DNS:'DNS'}
 const seconds=(ms:number)=>`${(ms/1000).toLocaleString('en-US')} s`
 const list=(values:string[])=>values.join(', ')
 const present=(value:unknown)=>value!==null&&value!==undefined&&value!==''&&!(Array.isArray(value)&&!value.length)&&!(typeof value==='object'&&!Array.isArray(value)&&!Object.keys(value as object).length)
@@ -41,7 +43,7 @@ function map(entry:SourceEntry):Mapping{
  const m=entry.value,label=entry.label
  if(!m||typeof m!=='object'||Array.isArray(m))return {refused:`${label} is not a monitor object.`}
  const type=String(m.type??'').toUpperCase(),differences:string[]=[]
- if(!['HTTP','KEYWORD','HEARTBEAT'].includes(type))return {unsupported:type==='API'?'API monitors with response assertions are not supported; Uptime runs HTTP(S), keyword and heartbeat checks.':`${type||'Untyped'} monitors are not supported; Uptime runs HTTP(S), keyword and heartbeat checks.`}
+ if(!['HTTP','KEYWORD','HEARTBEAT'].includes(type))return {unsupported:type==='API'?'API monitors with response assertions are not imported. Add an API check with New monitor.':`${type||'Untyped'} monitors are not imported from this file. ${OWN_CHECK[type]?`Add it with New monitor as a ${OWN_CHECK[type]} check.`:'Add it with New monitor.'}`}
  if(typeof m.friendlyName!=='string'||!m.friendlyName.trim())return {refused:`${label} has no friendlyName.`}
  if(typeof m.interval!=='number'||!Number.isFinite(m.interval)||m.interval<=0)return {refused:`${label} has no usable interval.`}
  if(m.interval<MIN_INTERVAL_S)return {unsupported:`Interval ${m.interval} s is below Uptime's ${MIN_INTERVAL_S} s floor.`}

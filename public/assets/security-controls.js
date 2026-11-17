@@ -1,5 +1,6 @@
 import {keyUsage} from './key-usage.js';
 import {authenticatorEnrollment} from './authenticator-enrollment.js';
+import {copyButton} from './copy-button.js';
 const reasons={
  invalid_factor_response:"That code didn't match. Use the newest code from your app.",
  fresh_second_factor_required:'Verify a second factor within the last five minutes',
@@ -83,9 +84,9 @@ export function securityControls(host,transport){
  // Startup reads must finish before an action runs, without consuming the
  // mutation guard and silently discarding a click on an already visible control.
  const run=async action=>{await initialized;if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
- const shownOnce=(title,value,help)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,...(help?[help]:[]),done);once.scrollIntoView({block:'nearest'});done.focus()};
+ const shownOnce=(title,value,help)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.dataset.saved='';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,...(help?[help]:[]),copyButton(Array.isArray(value)?'codes':'value',()=>text.textContent),done);once.scrollIntoView({block:'nearest'});done.focus()};
  const showCodes=result=>{if(result.recoveryCodes)shownOnce('Save these ten recovery codes once',result.recoveryCodes)};
- const continueEnrollment=async result=>{if(!pendingAction)return;if(result.recoveryCodes){once.querySelector('button').onclick=()=>{once.replaceChildren();void run(verified)}}else await verified()};
+ const continueEnrollment=async result=>{if(!pendingAction)return;if(result.recoveryCodes){once.querySelector('[data-saved]').onclick=()=>{once.replaceChildren();void run(verified)}}else await verified()};
  async function factorState(){
   const state=await api(prefix+'/status');if(!host.isConnected)return state;
   host.querySelector('[data-factor-state]').textContent=`Second factors: ${state.factors.length} · ${state.fresh?'Fresh verification':'Verification needed for sensitive actions'} · Require all: ${state.required?'On':'Off'}`;
