@@ -548,7 +548,7 @@
       "executable": false
     },
     "docs/access.md": {
-      "sha256": "f61cfc17243a7d632418f43d7ab789115924f05c3fb38ace91a267c7a7d11b4e",
+      "sha256": "530aa0ec5a4ddf040460d29cc4134418cac3fa15db444b36eb9a566bf863cd7a",
       "executable": false
     },
     "docs/api-keys.md": {
@@ -3048,7 +3048,7 @@
       "executable": false
     },
     "public/settings-backup.js": {
-      "sha256": "6f8e9461ba1f5cd108ac9e74f41a15cf8e9ebb4e787f7217f4d99e85052a9c9b",
+      "sha256": "2c2f650de4b86ea1b5a01a5806457b28f20307aae7b26f77ac5500dd45794a85",
       "executable": false
     },
     "public/settings-general.js": {
@@ -9456,7 +9456,7 @@
       "executable": false
     },
     "tests/member-settings-browser-support.mjs": {
-      "sha256": "65768c2b91a1663f6c25fb3634631f5ad3c3b575db23fc463d9448705f04730b",
+      "sha256": "aeea4d557005463e053becc5fa95232660287098e4e65f9a0c194cf6e2f15657",
       "executable": false
     },
     "tests/metrics-fixture.mjs": {
