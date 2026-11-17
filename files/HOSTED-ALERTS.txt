@@ -1,0 +1,21 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+Uptime deferred 5 due public check(s) to the next scheduled run: this run's outbound request budget is spent.
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+{"event":"storage_error","method":"POST","route":"/api/incidents/:id/comments","operation":null,"class":"other","status":503,"cause":"D1_ERROR: synthetic-uptime-552: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)"}
+Uptime deferred 7 due public check(s) to the next scheduled run: this run's outbound request budget is spent.
+PASS hosted Cron shares its outbound budget with incident mentions, defers unreserved work and submits each stable delivery ID once
+PASS hosted Worker sends webhook and Slack alerts without a runner, fails unresolved names and defers checks beyond its request budget
+PASS hosted routed-target failure details: HTTP status and error code, bounded redacted body, localhost and metadata refusals, private redirect refusal
+PASS hosted HTTP and keyword probe identification: public documentation, distinct stable opaque references, retries, redirects, restart, owner edit, private-data exclusion and retained failure and recovery history
+PASS RER relay Retry-After survives Worker restart, submits once when due and keeps acceptance separate from recipient proof

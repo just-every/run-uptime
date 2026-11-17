@@ -1,0 +1,31 @@
+shards (push-4)	Run this shard	﻿2026-11-16T23:38:32.4258940Z ##[group]Run node .github/scripts/verify-ci.mjs "$SHARD"
+shards (push-4)	Run this shard	2026-11-16T23:38:32.4259376Z [36;1mnode .github/scripts/verify-ci.mjs "$SHARD"[0m
+shards (push-4)	Run this shard	2026-11-16T23:38:32.4272393Z shell: /usr/bin/bash -e {0}
+shards (push-4)	Run this shard	2026-11-16T23:38:32.4276779Z ##[endgroup]
+shards (push-4)	Run this shard	2026-11-16T23:38:32.5322510Z > node tests/command-journey.mjs
+shards (push-4)	Run this shard	2026-11-16T23:38:34.3287135Z (node:2929) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+shards (push-4)	Run this shard	2026-11-16T23:38:34.3287891Z (Use `node --trace-warnings ...` to show where the warning was created)
+shards (push-4)	Run this shard	2026-11-16T23:40:26.3821535Z HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.
+shards (push-4)	Run this shard	2026-11-16T23:40:29.4608460Z COMMAND-JOURNEY PDF PASS: the freshly installed development app downloads a readable period report.
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3508696Z node:internal/modules/run_main:123
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3509311Z     triggerUncaughtException(
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3509675Z     ^
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3509870Z 
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3510484Z AssertionError [ERR_ASSERTION]: live Base session reaches factor status
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3512959Z 
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3513350Z 401 !== 200
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3513520Z 
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3514142Z     at completeSecondFactor (file://<checkout>/tests/mfa-auth-support.mjs:15:94)
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3515600Z     at async signIn (file://<checkout>/tests/local-signin-truth-support.mjs:83:271)
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3516733Z     at async proveLocalSignInTruth (file://<checkout>/tests/local-signin-truth-support.mjs:84:4)
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3517679Z     at async file://<checkout>/tests/command-journey.mjs:184:2 {
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3518235Z   generatedMessage: false,
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3518513Z   code: 'ERR_ASSERTION',
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3518758Z   actual: 401,
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3518974Z   expected: 200,
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3519216Z   operator: 'strictEqual',
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3519455Z   diff: 'simple'
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3519670Z }
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3519785Z 
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3519885Z Node.js v22.20.0
+shards (push-4)	Run this shard	2026-11-16T23:40:45.3752251Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,8 @@
+fc4ab424c812ad5d4309bdb68ddadc4093480a8e
+Run Edit Run fleet <fleet@runeditrun.com>
+Run Edit Run fleet <fleet@runeditrun.com>
+
+Route hosted uptime checks through the public Cloudflare edge
+
+Enable strictly public global fetch in every Worker deployment path and regenerate the deployment spec. Name failed status evidence with the HTTP status and a sanitized numeric error label; retain body excerpts under the existing encrypted snapshot policy. Extend the emitted-runtime journey and document deployment permissions and the later live account proof.
+

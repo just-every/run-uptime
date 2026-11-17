@@ -1,0 +1,148 @@
+{
+  "tag": "sd-uptime-same-account-1",
+  "author": "Run Edit Run fleet",
+  "recorded_at": "2026-11-16T23:37:38.608890+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-same-account-1",
+  "head": "fc4ab424c812ad5d4309bdb68ddadc4093480a8e",
+  "base": "f5ae7e2e254bc90c64d2ec617e617a2fe3dd1ed9",
+  "checks": [
+    {
+      "command": "cloud_run npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit_code": 0,
+      "receipt": "Setup completed; private setup output intentionally excluded."
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit_code": 0,
+      "receipt": "Emitted Worker built successfully; private setup artifacts excluded."
+    },
+    {
+      "command": "pnpm run spec:generate",
+      "exit_code": 0
+    },
+    {
+      "command": "pnpm run spec:check",
+      "exit_code": 0
+    },
+    {
+      "command": "cloud_run pnpm run typecheck",
+      "exit_code": 0,
+      "log": "TYPECHECK.txt"
+    },
+    {
+      "command": "cloud_run node tests/hosted-alerts.mjs",
+      "exit_code": 0,
+      "log": "HOSTED-ALERTS.txt"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0
+    }
+  ],
+  "changed_files": [
+    "OPERATIONS.md",
+    "deploy.json",
+    "docs/deploy.md",
+    "docs/same-account-checks.md",
+    "management/integration/deployment-spec.json",
+    "scripts/deployment/plan.mjs",
+    "sources.lock.json",
+    "src/domain/worker-http.server.ts",
+    "tests/hosted-probe-identification-support.mjs",
+    "wrangler.jsonc"
+  ],
+  "generated_worker_config": {
+    "compatibility_date": "2026-09-08",
+    "compatibility_flags": [
+      "nodejs_compat",
+      "global_fetch_strictly_public"
+    ]
+  },
+  "contract_counts_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contract_counts_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "push_journey_commands_before": 47,
+  "push_journey_commands_after": 47,
+  "test_registration_change": 0,
+  "initial_local_test_failure": {
+    "cause": "New assertion incorrectly expected localhost monitor creation to be refused; existing enforcement occurs at DNS validation.",
+    "resolution": "Test exercises the actual scheduled DNS refusal and adds mixed public/private DNS, without changing application authorization."
+  },
+  "live_same_account_workers_dev": "NOT RUN; later authorized round",
+  "live_same_account_zone": "NOT RUN; later authorized round",
+  "publication_scan": "Fleet Mac gate; unavailable in this cloud as specified by task adaptation.",
+  "contract_claim": "No contract clause claimed; this is the same-account check fix.",
+  "github_calls_used": 8,
+  "ci_run_id": 43980786946,
+  "ci_observations": [
+    {
+      "receipt": "CI-DISCOVERY.jsonl",
+      "observed_at": "2026-11-16T23:36:59Z"
+    },
+    {
+      "receipt": "CI-POLL-1.json",
+      "observed_at": "2026-11-16T23:42:16Z"
+    },
+    {
+      "receipt": "CI-POLL-2.json",
+      "observed_at": "2026-11-16T23:47:37Z"
+    },
+    {
+      "receipt": "CI-POLL-3.json",
+      "observed_at": "2026-11-16T23:52:46Z"
+    },
+    {
+      "receipt": "CI-POLL-4.json",
+      "observed_at": "2026-11-16T23:58:04Z"
+    }
+  ],
+  "ci_status": "completed",
+  "ci_conclusion": "failure",
+  "ci_failed_jobs": [
+    {
+      "id": 133696920242,
+      "name": "shards (push-4)",
+      "failure": "tests/command-journey.mjs -> proveLocalSignInTruth -> completeSecondFactor: live Base session reaches factor status; 401 !== 200"
+    },
+    {
+      "id": 133704028764,
+      "name": "verify",
+      "failure": "aggregate rejects failed shard"
+    }
+  ],
+  "ci_passed_jobs": [
+    "plan",
+    "contract-docs",
+    "build",
+    "prepare",
+    "shards (push-1)",
+    "shards (push-2)",
+    "shards (push-3)",
+    "shards (push-5)",
+    "shards (push-6)",
+    "shards (push-7)",
+    "shards (push-8)"
+  ],
+  "ci_touched_journey_shard": "push-3: hosted-alerts and owner-deploy-lifecycle passed",
+  "terminal_state": "BLOCKED",
+  "blocker": "Successful exact-SHA Verify: local invited-role sign-in returned 401 at MFA status. Auth/test paths unchanged and outside lease.",
+  "failed_log_capture": "Both failed-job archives retrieved once with gh run view --log-failed; published receipts omit environment blocks and normalize checkout paths."
+}
