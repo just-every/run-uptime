@@ -25,8 +25,8 @@ importers:
         specifier: 1.168.60
         version: 1.168.60(esbuild@0.28.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.8)(vite@8.2.4(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0))
       hono:
-        specifier: 4.13.7
-        version: 4.13.7
+        specifier: 4.13.11
+        version: 4.13.11
       jsonpathly:
         specifier: 3.0.1
         version: 3.0.1
@@ -1240,8 +1240,8 @@ packages:
       crossws:
         optional: true
 
-  hono@4.13.7:
-    resolution: {integrity: sha512-c8/gF9ac8Y78/agExVocyLevgR+JlpNB444Py0FSX8pJoPdYUfUzRcXtYEYGwt6l19qIlVZPN5Mfsw9jFShmQQ==}
+  hono@4.13.11:
+    resolution: {integrity: sha512-/SMX/RQNJn7oNmFwH6DtwDqcrzZU2otm1FD6OJe2cWF6cfy/F8hq0XVBv7xW3FTJshRQwuBnXHDq2kNsdZnshg==}
     engines: {node: '>=16.9.0'}
 
   is-fullwidth-code-point@3.0.0:
@@ -2813,7 +2813,7 @@ snapshots:
       rou3: 0.8.1
       srvx: 0.11.22
 
-  hono@4.13.7: {}
+  hono@4.13.11: {}
 
   is-fullwidth-code-point@3.0.0: {}
 
