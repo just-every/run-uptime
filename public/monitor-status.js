@@ -69,6 +69,7 @@ export function statusLine(m,{readUnavailable,data,seen={}}){
  if(readUnavailable)return 'Couldn’t refresh. Showing the last result.';
  if(d.enabled&&d.type==='heartbeat'&&data.runner.hosted&&!data.runner.privateRunnerReady)return 'No private runner is in contact, so receipts are not read yet. Start the command in the Heartbeat section.';
  if(!d.enabled)return 'Paused. Nothing is checked until you resume.';
+ const stopped=checkerWarning(m);if(stopped)return stopped;
  switch(state.state){
   case 'Healthy':return checked?`Up · checked from ${where} ${ago(checked)}`:`Up · waiting for the next check from ${where}`;
   case 'Failing':return `Down${seen.since?` since ${dayClock(seen.since,now)}`:''}: ${seen.failure?.length?failureText(seen.failure):'the latest checks did not pass'}`;
@@ -79,6 +80,15 @@ export function statusLine(m,{readUnavailable,data,seen={}}){
   default:return 'Status unavailable.';
  }
 }
+// The current checker warning is separate from historical target observations.
+export const missingCheckers=m=>m.definition.enabled?(m.checking?.missing??[]):[];
+export function checkerWarning(m){
+ const missing=missingCheckers(m);if(!missing.length)return '';
+ const places=joinNames(missing.map(r=>`${r.name}${r.thisComputer?' (this computer)':''}`));
+ return `${places} ${missing.length===1?'has':'have'} stopped checking. ${m.checking.reporting?'Other locations are still checking.':'Current health is unknown.'}`;
+}
+export const checkerRestart=missing=>missing.some(r=>r.thisComputer)?'In Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.':'Restart the Uptime checker on that machine.';
+
 // A short line with the longer explanation behind a "?" disclosure, so fine print is there when wanted and not read
 // otherwise. `name` says what the "?" explains: its tooltip and its accessible name.
 export const moreInfo=(line,more,cls,name)=>`<div class="fine-print${cls?' '+cls:''}"><p>${line}</p><details class="more-info"><summary ${tip(name)}><span aria-hidden="true">?</span></summary><p>${more}</p></details></div>`;

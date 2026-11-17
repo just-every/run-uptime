@@ -1,3 +1,4 @@
+import {checkerStatus} from './checker-status.ts'
 import {MONITOR_LIMIT} from './monitor-cap.ts'
 import {definitionTimeline} from './incident-work/definition-timeline.server.ts'
 import type {CredentialAuthority} from './credentials/model.server.ts'
@@ -47,9 +48,10 @@ async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:num
   const runner=runners.find((r:any)=>r.runnerId===assignment.runnerId) as any;
   if(runner&&runner.revokedAt===null&&runner.lastContactAt!==null&&runner.lastContactAt<=now&&now-runner.lastContactAt<=staleMs)activeLabels.add(assignment.networkLabel);
  }
+ const checking=checkerStatus(m.definition,runners,now,staleMs);
  const maintenanceEndsAt:number|undefined=activeMaintenance(m.definition,now)?.endsAt;
  const prepared=await env.DB.prepare('SELECT principal FROM uptime_agent_revisions WHERE monitor_id=? AND revision=?').bind(m.id,m.revision).first<{principal:string}>();
- return {...m,...(prepared?{preparedBy:JSON.parse(prepared.principal).attribution}:{}),...(maintenanceEndsAt===undefined?{}:{maintenanceEndsAt}),configurationWarning:m.definition.assignments?null:legacyWarning,activeVantages:activeLabels.size,state:m.definition.enabled?state:{...state,state:'Paused',targetState:'Unknown',reason:'Monitor paused; historical observations do not establish current target health.'}};
+ return {...m,checking,...(prepared?{preparedBy:JSON.parse(prepared.principal).attribution}:{}),...(maintenanceEndsAt===undefined?{}:{maintenanceEndsAt}),configurationWarning:m.definition.assignments?null:legacyWarning,activeVantages:activeLabels.size,state:m.definition.enabled?state:{...state,state:'Paused',targetState:'Unknown',reason:'Monitor paused; historical observations do not establish current target health.'}};
 }
 // A monitor's page reads only its own monitor (`monitorId`): the same projection, its own alerts and no installation-wide
 // notification history, so opening one monitor costs one monitor's reads however many the installation has. Both carry the

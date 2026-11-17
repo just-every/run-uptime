@@ -1,3 +1,4 @@
+import {checkerWarning,checkerRestart,missingCheckers} from './monitor-status.js';
 import {escape,ago,monitorHref,shownState,tip} from './console-format.js';
 import {checkedFrom,locationNamer} from './monitor-rules.js';
 import {dayClock} from './monitor-status.js';
@@ -57,10 +58,10 @@ function passing({upMs,observedMs}){
  const hundredths=upMs*10000/observedMs;
  return hundredths>0&&hundredths<1?'under 0.01%':hundredths>9999&&hundredths<10000?'over 99.99%':`${Math.floor(hundredths)/100}%`;
 }
-function day(metrics,enabled){
+function day(metrics,enabled,stopped){
  const known=valid(metrics),observed=known&&metrics.observedMs>0,share=observed?passing(metrics):enabled?'Unknown':'Paused';
  const parts=known?PARTS.filter(([,key])=>metrics[key]>0).map(([kind,key])=>`<span class="coverage-segment ${kind}" style="flex-grow:${metrics[key]}"></span>`).join(''):'<span class="coverage-segment unknown" style="flex-grow:1"></span>';
- return `<div class="monitor-day"><div class="coverage-bar" aria-hidden="true">${parts}</div><p class="monitor-share"><span class="ui-visually-hidden">Last 24 hours: </span>${escape(share)}${observed?'<span class="ui-visually-hidden"> passing</span>':''}</p></div>`;
+ return `<div class="monitor-day"><div class="coverage-bar" aria-hidden="true">${parts}</div><p class="monitor-share"><span class="ui-visually-hidden">Last 24 hours: </span>${escape(share)}${observed?(stopped?' of past checks':'<span class="ui-visually-hidden"> passing</span>'):''}</p></div>`;
 }
 
 // The checkbox names its monitor for screen readers; its tooltip stays short. Healthy is a quiet dot, any other state its pill.
@@ -68,5 +69,5 @@ export function monitorRow(m,{runners,readUnavailable,selected,monitoringOnly=fa
  const d=m.definition,state=shownState(m,readUnavailable),id=escape(m.id),href=escape(monitorHref(m.id));
  const mark=state==='Healthy'?'<span class="monitor-dot"><span class="ui-visually-hidden">Healthy</span></span>':'',pill=state==='Healthy'?'':`<span class="ui-pill state ${escape(state.toLowerCase())}">${escape(state)}</span>`;
  const warning=m.configurationWarning&&!monitoringOnly?`<a class="ui-link monitor-warning" href="${href}/edit">Needs a second location or an external check</a>`:'';
- return `<li class="monitor-row${selected?' is-selected':''}${monitoringOnly?' monitoring-only':''}" data-key="${id}">${monitoringOnly?'':`<input type="checkbox" id="catalog-select-${id}" data-monitor-select="${id}" ${tip('Select monitor')} aria-labelledby="catalog-select-label-${id} monitor-link-${id}"${selected?' checked':''}><span id="catalog-select-label-${id}" class="ui-visually-hidden">Select</span>`}<div class="monitor-main"><div class="monitor-title">${mark}<a class="monitor-link" id="monitor-link-${id}" href="${href}"><span class="monitor-name">${escape(d.name)}</span></a>${pill}</div>${meta(m,state,runners)}${warning}</div>${day(m.availability?.last24h,d.enabled)}</li>`;
+ return `<li class="monitor-row${selected?' is-selected':''}${monitoringOnly?' monitoring-only':''}" data-key="${id}">${monitoringOnly?'':`<input type="checkbox" id="catalog-select-${id}" data-monitor-select="${id}" ${tip('Select monitor')} aria-labelledby="catalog-select-label-${id} monitor-link-${id}"${selected?' checked':''}><span id="catalog-select-label-${id}" class="ui-visually-hidden">Select</span>`}<div class="monitor-main"><div class="monitor-title">${mark}<a class="monitor-link" id="monitor-link-${id}" href="${href}"><span class="monitor-name">${escape(d.name)}</span></a>${pill}</div>${meta(m,state,runners)}${missingCheckers(m).length?`<p class="monitor-warning">${escape(checkerWarning(m))} ${escape(checkerRestart(missingCheckers(m)))}</p>`:''}${warning}</div>${day(m.availability?.last24h,d.enabled,missingCheckers(m).length)}</li>`;
 }

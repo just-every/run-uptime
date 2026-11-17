@@ -9,7 +9,7 @@ import {proveScopedAccess} from './access-scope-support.mjs';
 
 // Extend the existing access matrix, with real Base invitations and mail only
 // faked at the authorized provider edge. No extra registration or fake session.
-export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,memberCookie,hosted,mails,browserOnly=false}) {
+export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,memberCookie,hosted,mails,runnerKey,browserOnly=false}) {
  async function accept(email){
   const delivered=hosted?mails.findLast(m=>m.personalizations.some(p=>p.to.some(to=>to.email===email))): (await readDeliveredMessages()).findLast(m=>m.origin===origin&&m.message.personalizations.some(p=>p.to.some(to=>to.email===email)))?.message;
   assert.ok(delivered,'invitation reached the authorized mail edge');
@@ -29,7 +29,8 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
   assert.deepEqual(await response.json(),{id:person.id,role,scopes,revision:(await DB.prepare('SELECT revision FROM uptime_member_roles WHERE operator_id=?').bind(person.id).first()).revision});
   return person;
  }
- if(browserOnly){await proveMemberControls({origin,cookie,accept,call,DB});return}
+ const contactChecker=async()=>{assert.equal((await call('/api/runner/claim',{}, {'x-runner-key':runnerKey})).status,200)};
+ if(browserOnly){await proveMemberControls({origin,cookie,accept,call,DB,contactChecker});return}
  // The original Base admin invitation door remains public and authoritative.
  const email='synthetic-uptime-admin@example.test';
  assert.equal((await call('/auth/invite',{email,displayName:'Synthetic Uptime Admin',role:'admin'},{cookie})).status,202);
@@ -63,6 +64,7 @@ export async function proveMemberLifecycle({origin,call,fetcher,DB,cookie,member
  const patch=(person,body)=>fetcher(origin+'/api/monitors/'+target.id,{method:'PATCH',redirect:'manual',headers:{host:new URL(origin).host,origin,'content-type':'application/json',cookie:person.cookie},body:JSON.stringify(body)});
  assert.equal((await patch(editor,{...target.definition,name:'synthetic-uptime-editor-revised'})).status,200);
  for(const person of [reader,responder])assert.equal((await patch(person,{...target.definition,name:'synthetic-refused-edit'})).status,403);
+ await contactChecker();
  for(const person of [admin,responder,editor])assert.equal((await call(`/api/monitors/${target.id}/run`,{},{cookie:person.cookie})).status,200);
  assert.equal((await call(`/api/monitors/${target.id}/run`,{},{cookie:reader.cookie})).status,403);
  const contact=await call('/api/notifications/destinations',{name:'synthetic-admin-contact',kind:'email',address:'synthetic-uptime-contact@example.test'},{cookie:admin.cookie});assert.equal(contact.status,201);const destination=await contact.json();

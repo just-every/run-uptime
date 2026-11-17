@@ -21,6 +21,6 @@ export function clausesMarkup(notes,readUnavailable){
   else if(reason==='failed')lines.push(clause('failed-'+d.id,'warning',`${name} cannot send: its last send was refused${delivery.status?` (HTTP ${escape(delivery.status)})`:''}.`,fix('Edit')));
  }
  if(notes.workerSends&&!notes.demo&&!notes.cronStarted)lines.push(clause('starting','','Sending is starting up; this can take up to two hours. Queued alerts wait under Sent alerts until then.'));
- if(!notes.workerSends&&notes.runnerContact?.state!=='Fresh contact')lines.push(clause('server','warning',readUnavailable?'Sending status is unavailable.':'Sending is waiting for your server to connect.'));
+ if(!notes.workerSends&&notes.runnerContact?.state!=='Fresh contact')lines.push(clause('server','warning',readUnavailable?'Sending status is unavailable.':'The checker is not reporting. Uptime can still send checker warnings while the app is running.'));
  return lines.join('');
 }

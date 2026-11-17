@@ -3,7 +3,7 @@ import {triggerContext,recoveryContext,incidentContextText,incidentUrl,type Inci
 import {eventWebhookContext,type WebhookContext} from './notification-webhook-context.ts'
 export interface NotificationEvent {
  preparedBy?:{label:string;agent:{id:string;name:string};for:{id:string;name:string}};
- schemaVersion:2; id:string; kind:'report'|'trigger'|'recovery'|'test'|'expiry'|'renewal'|'reminder'|'slow'|'slow_recovery'|'slow_reminder'|'dependency'|'dependency_recovery'; eventType:string;
+ schemaVersion:2; id:string; kind:'checker_stopped'|'report'|'trigger'|'recovery'|'test'|'expiry'|'renewal'|'reminder'|'slow'|'slow_recovery'|'slow_reminder'|'dependency'|'dependency_recovery'; eventType:string;
  incidentKey:string|null; state:'report'|'firing'|'recovered'|'test'|'warning'|'renewed'; title:string;
  monitorId:string|null; monitorRevision:number|null; monitorName:string; url:string;
  slotId:string|null; observedAt:number; visibility:'private'; evidenceRef:string;

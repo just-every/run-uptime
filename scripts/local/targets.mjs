@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { priorOwnerEmails } from './prior-owner.mjs';
 import { installationFailure } from '@runeditrun/rer/failures';
 import { selectLocalState } from '@runeditrun/rer/local/state';
-import { privateDirectory } from '@runeditrun/rer/private-files';
+import { privateDirectory, writePrivateFile } from '@runeditrun/rer/private-files';
 import { syntheticPortFor } from '../local-ports.mjs';
 import { migrationCommand } from './commands.mjs';
 export async function prepare({ root, input, store }) {
@@ -52,15 +52,23 @@ export async function runtimeTarget(context, development) {
   try { grant = JSON.parse(await readFile(grantPath, 'utf8')); return grant.pid === synthetic.pid && grant.expiresAt > Date.now(); } catch { return false; }
  }, { signal });
 
+ const checkerFile=join(state,'checker-process.json');
+ if(development)await writePrivateFile(checkerFile,JSON.stringify({pid:null}));
  let runner;
  const ready = async (url, healthSignal) => {
-  const response = await fetch(url, { signal: healthSignal });
+  const response = await fetch(development ? url+'?app=1' : url, { signal: healthSignal });
   if (!response.ok || (await response.json()).status !== 'ok') return false;
-  if (!runner) runner = store.spawn('Starting the private runner', process.execPath, ['runners/src/private-runner.mjs'], { cwd: root, signal, env: { ...runtime, UPTIME_CONTROL_ORIGIN: origin, UPTIME_LOCAL_REVIEW: 'true', UPTIME_RUNNER_KEY: vars.UPTIME_RUNNER_KEY, UPTIME_GRANT_FILE: grantPath } });
-  return runner.exitCode === null;
+  if (!runner) {
+   runner = store.spawn('Starting the private runner', process.execPath, ['runners/src/private-runner.mjs'], { cwd: root, signal, env: { ...runtime, UPTIME_CONTROL_ORIGIN: origin, UPTIME_LOCAL_REVIEW: 'true', UPTIME_RUNNER_KEY: vars.UPTIME_RUNNER_KEY, UPTIME_GRANT_FILE: grantPath } });
+   if(development)await writePrivateFile(checkerFile,JSON.stringify({pid:runner.pid}));
+  }
+  if (runner.exitCode !== null || runner.signalCode !== null) throw Error('This computer’s checker stopped. Stop Uptime, then run rer dev again.');
+  if (!development) return true;
+  const checking = await fetch(url, { signal: healthSignal });
+  return checking.ok && (await checking.json()).status === 'ok';
  };
  // Only the control runtime receives the checkout's dev key (the synthetic target and the private runner never do).
- const env = { ...runtime, UPTIME_SYNTHETIC_PORT: String(grant.port), ...(development ? { RER_DEV_ORIGIN: origin } : {}), ...(devKey ? { RER_DEV_KEY: devKey, ...(development ? { RER_DEV_IDENTITY: devLogin ? 'off' : 'on' } : {}) } : {}) };
+ const env = { ...runtime, UPTIME_SYNTHETIC_PORT: String(grant.port), ...(development ? { RER_DEV_ORIGIN: origin, UPTIME_CHECKER_PROCESS_FILE:checkerFile } : {}), ...(devKey ? { RER_DEV_KEY: devKey, ...(development ? { RER_DEV_IDENTITY: devLogin ? 'off' : 'on' } : {}) } : {}) };
  return development
   ? [process.execPath, ['scripts/local/vite-runtime.mjs'], { env, ready, runtimePortHandshake: true, stdio: ['ignore','pipe','pipe','ipc'] }]
   : [process.execPath, ['scripts/local/worker.mjs'], { env, ready }];
