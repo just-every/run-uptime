@@ -2,10 +2,13 @@ import {firstMount,patch} from './dom-patch.js';
 import {escape} from './console-format.js';
 import {externalCheckSection} from './external-check.js';
 import {saveAsYouGo,savedLine,failureLine} from './settings-save.js';
-// Settings › General: the installation's one time zone, which alerts, reports, maintenance and job schedules use (it saves
+import {mountInstallationName,showInstallationName} from './assets/installation-name.js';
+// Settings › General: the installation's name and one time zone, which alerts, reports, maintenance and job schedules use (it saves
 // as it changes), and the External check URL (public/external-check.js), which keeps its one-step Save.
 export function renderGeneral({area,data,api,refresh}){
- patch(area,'<div class="settings-area"><section class="ui-card set-card" id="settings-time-zone" data-owned="time-zone" aria-labelledby="time-zone-heading"></section><section class="ui-card set-card external-check" id="external-check" data-owned="external-check"></section></div>');
+ patch(area,'<div class="settings-area"><section class="ui-card set-card" id="settings-installation-name" data-owned="installation-name" aria-labelledby="installation-name-heading"></section><section class="ui-card set-card" id="settings-time-zone" data-owned="time-zone" aria-labelledby="time-zone-heading"></section><section class="ui-card set-card external-check" id="external-check" data-owned="external-check"></section></div>');
+ const name=area.querySelector('#settings-installation-name');
+ if(firstMount(name))mountInstallationName(name,{data,api,refresh});else showInstallationName(name,data.installationName);
  const zone=area.querySelector('#settings-time-zone'),external=area.querySelector('#external-check');
  if(firstMount(zone))mountZone(zone,{data,api,refresh});else showZone(zone,data.timeZone);
  if(firstMount(external))externalCheckSection(external,{url:data.runner.externalCheckUrl,api,refresh});

@@ -98,7 +98,9 @@ try {
   await setup.waitForURL(runtime.origin + '/setup');
   for (const width of [1440]) {
     await setup.setViewportSize({width, height: 900});
-    await setup.getByRole('heading', {name: 'Welcome, Native browser owner', exact: true}).waitFor();
+    const profile = (await (await bootstrap.request.get(runtime.origin + '/auth/session')).json()).operator;
+    assert.equal(await setup.getByLabel('Your name', {exact: true}).inputValue(), profile.displayName);
+    assert.equal(await setup.getByLabel('Your email', {exact: true}).inputValue(), profile.email);
     assert.equal(await setup.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     if (process.env.UPTIME_AUTH_SHOTS) {
       await mkdir(process.env.UPTIME_AUTH_SHOTS, {recursive: true});

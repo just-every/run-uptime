@@ -20,6 +20,7 @@ export function ConsoleDocument({monitor=false}:{monitor?:boolean}){
  // The console mutates this markup. Start it after React hydrates the document,
  // just as the monitor form does, so it cannot race hydration on the save return.
  useEffect(()=>{
+  window.dispatchEvent(new Event('uptime:brand-ready'))
   let mounted=true
   const openMonitor=()=>{void router.navigate({to:'/app/monitors/new'})}
   window.addEventListener('uptime:new-monitor',openMonitor)

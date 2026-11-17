@@ -21,6 +21,7 @@ function Editor({path}:{path:string}){
  const [content]=useState(()=>({__html:initialMarkup(markup,path)}))
  useEditorLeafReady(path)
  useEffect(()=>{
+  window.dispatchEvent(new Event('uptime:brand-ready'))
   const controller=new AbortController()
   void mountMonitorEditor(controller.signal)
   return()=>{controller.abort();document.documentElement.classList.remove('editor-ready','editor-context-ready')}

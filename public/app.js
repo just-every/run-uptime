@@ -9,6 +9,7 @@ import {AREAS,renderSettings} from './settings-view.js';
 import {savesSettled,savePending,holdRefused,refusalPending} from './settings-save.js';
 import {alertCount} from './alert-health.js';
 import {rememberZone} from './installation-zone.js';
+import {updateInstalledName} from './assets/installation-name.js';
 import {patch} from './dom-patch.js';
 // Each console screen has a stable path: a section (/app/monitors, /app/locations) or a Settings area (/app/settings/<area>;
 // /app/settings itself opens Alerts, first in its menu). On a section a link to another section or area switches the view in
@@ -85,9 +86,8 @@ function markCurrent(){
   else if(link.dataset.view==='monitors'&&view==='monitor')link.setAttribute('aria-current','true');else link.removeAttribute('aria-current');
  }
 }
-// The heading and the tab title name the section or Settings area being shown, an area under the eyebrow Settings; a
-// monitor's page names itself once it has read the monitor.
-function setHeading(){if(view==='monitor')return;const name=view==='settings'?AREAS[settingsArea]:TITLES[view];$('.top h1').textContent=name;$('.top .eyebrow').hidden=view!=='settings';document.title=name+(view==='settings'?' · Settings':'')+' · Uptime'}
+// The heading names the section or Settings area; the tab identifies the installation.
+function setHeading(){if(view==='monitor')return;const name=view==='settings'?AREAS[settingsArea]:TITLES[view];$('.top h1').textContent=name;$('.top .eyebrow').hidden=view!=='settings';if(data)updateInstalledName(data)}
 // An outcome notice belongs to the section where the action ran.
 function leaveSection(){notice('');feedback?.clearAction()}
 markCurrent();
@@ -112,6 +112,7 @@ window.addEventListener('popstate',followHistory);
 function showSection(next){if(next.view==='monitors')catalog.read();view=next.view;settingsArea=next.area??null;leaveSection();setHeading();markCurrent();render()}
 const header=$('.top > div'),actions=$('.actions');
 const n=document.createElement('div');n.id='notice';n.className='ui-notice';n.hidden=true;n.innerHTML='<p id="action-notice" role="status" hidden></p><p id="read-notice" role="status" hidden></p><p id="background-notice" role="status" hidden></p>';$('.top').after(n);
+const installationNote=document.createElement('p');installationNote.className='ui-helper';installationNote.hidden=true;n.after(installationNote);
 const area=$('.table-scroll');area.id='content-area';const right=$('.right');right.id='side-panel';
 // Only a location being added uses the side column; every other view has the full width.
 const sideHidden=()=>!(view==='locations'&&addingLocation());
@@ -157,11 +158,14 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  const screen=view==='settings'?'settings/'+settingsArea:view;
  if(screen!==shown){area.replaceChildren();right.replaceChildren();shown=screen}right.hidden=sideHidden();
  markCurrent();showAlertCount();let drawn;
+ installationNote.hidden=!['monitors','locations'].includes(view);
+ patch(installationNote,`${data.runner.hosted===false?'This copy runs only on this computer. Checks run only while this computer is on and Uptime is running. <a href="/docs/deploy">Put it online</a>. ':''}Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.`);
  if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable,lockControls});
  else{const buttons=view==='monitors'&&data.access?.monitoringOnly?'':viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons;summary.hidden=view!=='monitors';
   setHeading();
   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');
   if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')drawn=renderSettings(settingsArea,{area,right,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,showing:requested=>!closed&&shown==='settings/'+requested,readUnavailable})}
+ updateInstalledName(data);
  if(feedback.busy)lockControls(true);
  return drawn}
 {const flash=sessionStorage.getItem('uptime-notice');if(flash){sessionStorage.removeItem('uptime-notice');notice(flash)}}
