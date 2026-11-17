@@ -1,0 +1,7 @@
+{
+  "path": "/home/agent/rer-consolidation/work/push-rescue/cloud_sd-uptime-practice-1-20261117T131119Z-395b92f1c37a.bundle",
+  "head": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "sha256": "5a8b671cf9248f8b6ace2bee679fec8899e9bbc377c837dc736e133eba56b00c",
+  "verified": true,
+  "purpose": "Recovery backup created after temporary Git credential rejection; product was already pushed and ref-confirmed"
+}

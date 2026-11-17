@@ -1,0 +1,9 @@
+{
+  "repository": "just-every/run-uptime",
+  "productHead": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "failingCommand": "git ls-remote origin refs/heads/cloud/sd-uptime-practice-1",
+  "exit": 128,
+  "httpStatus": "unknown (not supplied by Git)",
+  "diagnostic": "remote: Invalid username or token. Password authentication is not supported for Git operations.\nfatal: Authentication failed for https://github.com/just-every/run-uptime.git/",
+  "scope": "Credential rejection after successful product push and remote ref confirmation; evidence ls-remote fails with the same injected helper. No alternative credential sought."
+}

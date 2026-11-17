@@ -40,3 +40,11 @@ Out-of-scope note: the broader operator journey timed out on an existing report 
 GitHub REST poll (call 2, five minutes after discovery): exact-SHA Verify `44088103828` is in progress. Git ref transport independently confirmed that the published product branch still points to `395b92f1c37ab3ff166a18112643b18a31b5339e`.
 
 GitHub REST call 3 failed (exit 1); the watcher did not retain its stderr or HTTP status. No CI conclusion was obtained. The authorized launcher bundle was refreshed and the fleet helper reinstalled before a bounded retry; the per-run 300-second minimum still applies.
+
+Credential recovery: a Git ref probe using the authorized decrypted-bundle helper returned exit 128: "Invalid username or token. Password authentication is not supported for Git operations." Git supplied no HTTP status. The evidence publisher failed at `Git ls-remote` (exit 128). The bounded publication retry recovered on attempt 2 after a 15-second delay, launcher refresh and helper reinstall. The initial evidence packet was published successfully at `0319369838149b48a4383c37cc2b449ec36aa0ab`; a final packet update will include the terminal CI receipt. The product push and prior exact remote-ref check remain successful facts; no READY claim is made without an exact-SHA result.
+
+Recovery backup: created a verified Git bundle outside the product clone at `/home/agent/rer-consolidation/work/push-rescue/cloud_sd-uptime-practice-1-20261117T131119Z-395b92f1c37a.bundle`, SHA-256 `5a8b671cf9248f8b6ace2bee679fec8899e9bbc377c837dc736e133eba56b00c`. No finished work was discarded.
+
+Terminal result: exact-SHA Verify run `44088103828` completed successfully for `395b92f1c37ab3ff166a18112643b18a31b5339e` (REST call 4). There are no remaining product blockers. The temporary credential rejection recovered after the authorized refresh; no other credential was sought. The broader local browser timeout remains an out-of-scope observation, while the focused touched flow and the complete exact-SHA Verify pass. No PR was created.
+
+Final custody: READY branch=cloud/sd-uptime-practice-1 head=395b92f1c37ab3ff166a18112643b18a31b5339e. Product landing and the full-history publication scan remain fleet work. The disposable checkout will be deleted after the final evidence transfer; the complete packet and verified bundle remain outside it.
