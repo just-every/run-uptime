@@ -130,12 +130,13 @@ try {
   if (setupEvidence) await page.screenshot({ path: join(setupEvidence, `setup-${width}.png`), fullPage: true });
  }
  // The actual first-run form works without JavaScript or hydration.
+ const setupInstallation='Synthetic workspace';
  const nativeSetup = await browser.newContext({viewport:{width:1440,height:1000}, javaScriptEnabled: false, storageState: await page.context().storageState() });
  try {
   const p = await nativeSetup.newPage(); await p.goto(origin + '/setup');
   await p.getByLabel('Your name',{exact:true}).fill('Synthetic setup owner');
   await p.getByLabel('Your email',{exact:true}).fill('synthetic-uptime-setup@example.test');
-  await p.getByLabel('What should we call this?',{exact:true}).fill('Brightwell Support');
+  await p.getByLabel('What should we call this?',{exact:true}).fill(setupInstallation);
   await p.getByRole('button', { name: 'Continue', exact: true }).click(); await p.waitForURL(url => url.origin === origin && /^\/app\/monitors\/new\/discovery\/[^/]+$/.test(url.pathname));
   const job = await page.request.get(origin + '/api/discoveries/' + decodeURIComponent(new URL(p.url()).pathname.split('/').at(-1)));
   assert.equal(job.status(), 200); assert.equal((await job.json()).url, startSite, 'finishing setup lands on the discovery of the owner\'s website');
@@ -144,6 +145,7 @@ try {
  assert.equal(finished.status(), 303); assert.equal(finished.headers().location, '/app/monitors');
  await page.goto(origin + '/app');
  const account=(await (await page.request.get(origin+'/auth/session')).json()).operator;
+ assert.equal((await (await page.request.get(origin+'/api/overview')).json()).installationName,setupInstallation);
  assert.equal(account.displayName,'Synthetic setup owner');assert.equal(account.email,'synthetic-uptime-setup@example.test');
  await ownerProfileJourney(page,origin);
  if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app/monitors' }, null, 2));

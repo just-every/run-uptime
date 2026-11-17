@@ -9208,7 +9208,7 @@
       "executable": false
     },
     "tests/command-journey.mjs": {
-      "sha256": "6ebda19955d471d7ec5673ca67d96ff94c80b0e2158688b0cb7314bf4ce4e0aa",
+      "sha256": "99076f8b5b9699d3205b73b8fd90e719127680dfefda8e86b57ad15c5037611f",
       "executable": false
     },
     "tests/connection-diagnostics-protocols.mjs": {
