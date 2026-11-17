@@ -1,3 +1,4 @@
+import {showRecoveryCodes} from './recovery-codes.js';
 import {keyUsage} from './key-usage.js';
 import {authenticatorEnrollment} from './authenticator-enrollment.js';
 const reasons={
@@ -25,6 +26,7 @@ const reasons={
  not_found:'This item is no longer available.'
 };
 const keyReasons={
+ last_owner:'You are the only owner. Add another owner first.',
  mail_unavailable:'Email is off for this installation. Invitations need email.',
  'Another administrator must change your product assignment':'Another administrator must change your product assignment',
  'Choose a product role':'Choose a role for this member.',
@@ -84,8 +86,8 @@ export function securityControls(host,transport){
  // mutation guard and silently discarding a click on an already visible control.
  const run=async action=>{await initialized;if(busy)return;busy=true;try{await action()}catch(problem){error(problem)}finally{busy=false}};
  const shownOnce=(title,value,help)=>{once.replaceChildren();const heading=document.createElement('h4'),text=document.createElement('pre'),done=document.createElement('button');heading.textContent=title;text.textContent=Array.isArray(value)?value.join('\n'):value;done.type='button';done.textContent='I saved this';done.onclick=()=>once.replaceChildren();once.append(heading,text,...(help?[help]:[]),done);once.scrollIntoView({block:'nearest'});done.focus()};
- const showCodes=result=>{if(result.recoveryCodes)shownOnce('Save these ten recovery codes once',result.recoveryCodes)};
- const continueEnrollment=async result=>{if(!pendingAction)return;if(result.recoveryCodes){once.querySelector('button').onclick=()=>{once.replaceChildren();void run(verified)}}else await verified()};
+ const showCodes=result=>{if(result.recoveryCodes){const saved=showRecoveryCodes(once,result.recoveryCodes);once.scrollIntoView({block:'nearest'});saved.focus()}};
+ const continueEnrollment=async result=>{if(!pendingAction)return;if(result.recoveryCodes){once.querySelector('[data-recovery-saved]').onclick=()=>{once.replaceChildren();void run(verified)}}else await verified()};
  async function factorState(){
   const state=await api(prefix+'/status');if(!host.isConnected)return state;
   host.querySelector('[data-factor-state]').textContent=`Second factors: ${state.factors.length} · ${state.fresh?'Fresh verification':'Verification needed for sensitive actions'} · Require all: ${state.required?'On':'Off'}`;
@@ -105,13 +107,14 @@ export function securityControls(host,transport){
  }
  // A sensitive action can start in another card (People's invite and rows), so the prompt for a fresh factor comes to the
  // middle of the screen with its field.
- async function fresh(action){
+ async function fresh(action,{title}={}){
   const state=await factorState();if(state.fresh)return action();
+  const guidance=title?`${title}. ${state.stepUp.message}`:state.stepUp.message;
   const target=status.parentElement;pendingAction=async()=>{if(target?.isConnected)target.append(status);await action()};
-  if(!state.factors.length){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.after(status);button.focus();outcome(state.stepUp.message,'center');const link=document.createElement('a');link.href=state.stepUp.enrollmentUrl;link.textContent='Add an authenticator';link.onclick=event=>{if(event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();button.click()};status.append(' ',link);return}
-  const form=host.querySelector('[data-stepup]');form.closest('details').open=true;form.elements.code.closest('label').after(status);form.elements.code.focus();outcome(state.stepUp.message,'center');
+  if(!state.factors.length){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.after(status);button.focus();outcome(guidance,'center');const link=document.createElement('a');link.href=state.stepUp.enrollmentUrl;link.textContent='Add an authenticator';link.onclick=event=>{if(event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();button.click()};status.append(' ',link);return}
+  const form=host.querySelector('[data-stepup]');form.closest('details').querySelector('summary').textContent=title??'Verify a second factor';form.closest('details').open=true;form.elements.code.closest('label').after(status);form.elements.code.focus();outcome(guidance,'center');
  }
- async function verified(){status.textContent='Second factor verified.';await factorState();const action=pendingAction;pendingAction=null;if(action){await action();if(status.textContent==='Second factor verified.')status.textContent='';host.querySelector('[data-stepup]').closest('details').open=false}}
+ async function verified(){host.querySelector('[data-stepup]').closest('details').querySelector('summary').textContent='Verify a second factor';status.textContent='Second factor verified.';await factorState();const action=pendingAction;pendingAction=null;if(action){await action();if(status.textContent==='Second factor verified.')status.textContent='';host.querySelector('[data-stepup]').closest('details').open=false}}
  host.querySelector('[data-stepup]').onsubmit=event=>{event.preventDefault();const form=event.currentTarget;void run(async()=>{const code=form.elements.code.value;await api(prefix+(code.length===32?'/recovery/verify':'/totp/verify'),'POST',{code});form.reset();await verified()})};
  host.querySelector('[data-verify-passkey]').onclick=()=>run(async()=>{await passkey(api,false);await verified()});
  host.querySelector('[data-enroll-totp]').onclick=()=>run(async()=>{
@@ -140,5 +143,5 @@ export function securityControls(host,transport){
  }
  const initialized=(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()})().catch(error);
  void initialized.then(()=>{if(new URLSearchParams(location.search).get('enroll')==='authenticator'){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.click()}});
- return {request:async(path,method,body)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;return new Promise((resolve,reject)=>{void fresh(async()=>{try{resolve(await api(path,method,body))}catch(error){reject(error)}}).catch(reject)})}}};
+ return {request:async(path,method,body,context)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;return new Promise((resolve,reject)=>{void fresh(async()=>{try{resolve(await api(path,method,body))}catch(error){reject(error)}},context).catch(reject)})}}};
 }

@@ -1,15 +1,22 @@
 import {securityRequest,passkey} from './security-controls.js';
+import {showRecoveryCodes} from './recovery-codes.js';
 import {authenticatorEnrollment} from './authenticator-enrollment.js';
 import {containModalKeyboard} from '../notification-dialogs.js';
 export const needsStepUp=result=>['fresh_second_factor_required','second_factor_required'].includes(result.code);
 // Only a server refusal opens this flow. The caller retains its original request,
 // and retries it once after real verification; the server rechecks every rule.
-export async function recoverStepUp(refusal){
+export async function recoverStepUp(refusal,{destination=false}={}){
  if(!document.querySelector('link[href="/assets/security-controls.css"]')){const style=document.createElement('link');style.rel='stylesheet';style.href='/assets/security-controls.css';document.head.append(style)}
  const state=await securityRequest('/api/access/mfa/status'),guidance=refusal.stepUp??state.stepUp;
  const opener=document.activeElement,dialog=document.createElement('dialog');dialog.className='editor notification-dialog stepup-dialog';dialog.dataset.stepupDialog='';
  dialog.innerHTML='<h2 id="stepup-heading">Verify to continue</h2><p data-stepup-guidance></p><div data-stepup-controls></div><p role="status" data-stepup-status></p><div class="buttons"><button type="button" class="secondary" data-stepup-cancel>Cancel</button></div>';
- dialog.setAttribute('aria-labelledby','stepup-heading');const controls=dialog.querySelector('[data-stepup-controls]'),status=dialog.querySelector('[data-stepup-status]');dialog.querySelector('[data-stepup-guidance]').textContent=guidance.message;
+ if(destination)dialog.querySelector('h2').textContent='Confirm saving this alert destination';
+ dialog.setAttribute('aria-labelledby','stepup-heading');const controls=dialog.querySelector('[data-stepup-controls]'),status=dialog.querySelector('[data-stepup-status]');
+ const methods=['a recovery code'];
+ if(state.factors.some(f=>f.kind==='totp'))methods.push('a code from your authenticator');
+ if(state.passkeysAvailable&&state.factors.some(f=>f.kind==='webauthn'))methods.push('your passkey');
+ const last=methods.pop(),verification=[methods.join(', '),last].filter(Boolean).join(' or ');
+ dialog.querySelector('[data-stepup-guidance]').textContent=destination?`A second factor helps protect where your alerts go. ${state.factors.length?`Use ${verification} to save this destination.`:`Add an authenticator app${state.passkeysAvailable?' or passkey':''}, then verify to save this destination without retyping.`}`:guidance.message;
  let busy=false,finished=false;
  return new Promise((resolve,reject)=>{
   const finish=()=>{finished=true;dialog.close();resolve()};
@@ -18,7 +25,8 @@ export async function recoverStepUp(refusal){
   const enrolled=result=>{
    controls.replaceChildren();
    if(!result.recoveryCodes){finish();return}
-   const heading=document.createElement('h3'),codes=document.createElement('pre'),saved=document.createElement('button');heading.textContent='Save these ten recovery codes once';codes.textContent=result.recoveryCodes.join('\n');codes.dataset.recoveryCodes='';saved.type='button';saved.textContent='I saved this';saved.onclick=finish;controls.append(heading,codes,saved);saved.focus();
+   dialog.querySelector('[data-stepup-guidance]').hidden=true;
+   showRecoveryCodes(controls,result.recoveryCodes,finish).focus();
   };
   const enroll=()=>run(async()=>{const pending=await securityRequest('/api/access/mfa/totp/enroll','POST',{}),form=authenticatorEnrollment(controls,pending);form.onsubmit=event=>{event.preventDefault();void run(async()=>enrolled(await securityRequest('/api/access/mfa/totp/confirm','POST',{challengeId:pending.challengeId,code:form.elements.code.value.replace(/\s+/g,'')})))}});
   if(!state.factors.length){

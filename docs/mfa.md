@@ -8,6 +8,8 @@ through the API and CLI below. Provider MFA assertions await ACCESS-002 SSO.
 
 ## Enroll in the console
 
+Saving an alert destination asks you to confirm your identity to protect where your alerts go; enrollment continues the saved request without retyping. Recovery codes let you complete verification after signing in when your authenticator or passkey is unavailable. Use **Copy all** or **Download** to keep the codes somewhere safe before choosing **I saved this**; each works once. Removing a member asks you to confirm their name before verification, and the only owner must add another owner first. (Run Edit Run fleet, 17 November 2026.)
+
 Open **Settings › People**, then **Security and keys** › **Manage second
 factors**. **Enroll authenticator** shows a QR code, an `otpauth:` link and a
 manual secret once. Scan the QR code or open the link in an RFC 6238
