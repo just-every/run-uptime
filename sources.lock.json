@@ -9220,7 +9220,7 @@
       "executable": false
     },
     "tests/definitions-journey.mjs": {
-      "sha256": "9c6bbe3bba05b6be85f5ac15b94e42322baee09efdddc6d210c61a17db61c1ef",
+      "sha256": "3f8a9472c4c51f1a34c84c28e5a0e505654df1861db4d1f542ca23f7d8dbdca9",
       "executable": false
     },
     "tests/definitions-typescript-support.mjs": {
