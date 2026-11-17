@@ -60,8 +60,8 @@ export async function firstRun(env:Bindings,request:Request){
    if(valid){
     try{
      const auth=operatorAuth(env);
-     if(profile.email.trim().toLowerCase()!==owner.operator.email)await auth.changeEmail(request,{email:profile.email});
-     if(profile.displayName.trim()!==owner.operator.displayName)await auth.changeDisplayName(request,{displayName:profile.displayName});
+     if(profile.email.trim().toLowerCase()!==owner.operator.email)await auth.changeEmail!(request,{email:profile.email});
+     if(profile.displayName.trim()!==owner.operator.displayName)await auth.changeDisplayName!(request,{displayName:profile.displayName});
      await saveInstallationName(env,request,profile.installationName);
     }catch(error){
      const code=(error as {code?:string}).code;

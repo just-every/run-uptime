@@ -7564,7 +7564,7 @@
       "executable": false
     },
     "src/domain/first-run.server.ts": {
-      "sha256": "627b89d07e022f66050cbc511360fc7370af1f7881fbbc722b8b215ded96a9cb",
+      "sha256": "50d6a134f2e8dd3ce08580266a5d7e7528fa2753126e6d5b90c3391922ede0d0",
       "executable": false
     },
     "src/domain/flow-artifacts.d.mts": {
@@ -7972,7 +7972,7 @@
       "executable": false
     },
     "src/domain/profile.server.ts": {
-      "sha256": "a54646dbb6c173ed63bc006c950b79d2c32230205cbaeea026d743516c9f881b",
+      "sha256": "352828d6e185ab84cece82476a5c3ac8b6cccc0a9b0858df2d19c9e14d1a4f8f",
       "executable": false
     },
     "src/domain/protocol/cloudflare-ranges.mjs": {
