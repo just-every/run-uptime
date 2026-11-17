@@ -1,0 +1,20 @@
+{
+  "check": {
+    "created": 1785715200,
+    "hostname": "check-61035.example.test",
+    "id": 61035,
+    "ipv6": true,
+    "lastdownend": 1793404861,
+    "lastdownstart": 1793404800,
+    "lasterrortime": 1793404800,
+    "lastresponsetime": 215,
+    "lasttesttime": 1793491140,
+    "name": "Synthetic PING 36",
+    "resolution": 1,
+    "status": "up",
+    "tags": [],
+    "type": {
+      "ping": {}
+    }
+  }
+}

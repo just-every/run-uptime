@@ -1,0 +1,52 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "empty-canaries",
+      "kind": "canaries-list",
+      "request": {
+        "method": "POST",
+        "path": "/canaries",
+        "query": {}
+      },
+      "response": {
+        "Canaries": []
+      }
+    },
+    {
+      "id": "empty-alarms",
+      "kind": "alarms-list",
+      "request": {
+        "method": "POST",
+        "path": "/",
+        "query": {}
+      },
+      "response": {
+        "CompositeAlarms": [],
+        "MetricAlarms": []
+      }
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "request.query contains documented SDK operation parameters, not an assertion about HTTP wire query serialization. DescribeCanaries and DescribeAlarms use POST.",
+      "id": "sdk-operation-parameters"
+    },
+    {
+      "description": "CanaryCodeInput is separately supplied local input, never a field returned inside GetCanary.Code. ZIP packages are deterministic synthetic files. Code references are not fetched.",
+      "id": "code-input-boundary"
+    },
+    {
+      "description": "Dummy account 000000000000 and reserved targets only. IAM/KMS/S3/Lambda/SNS identifiers remain inert source metadata.",
+      "id": "no-aws-authority"
+    }
+  ],
+  "scope": {
+    "accountId": "000000000000",
+    "region": "us-east-1"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "aws-synthetics",
+  "synthetic": true
+}

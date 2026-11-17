@@ -1,0 +1,132 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "proposal-full-metadata",
+      "kind": "canary-detail",
+      "request": {
+        "method": "LOCAL",
+        "path": "proposal/full-metadata",
+        "query": {}
+      },
+      "response": {
+        "Canary": {
+          "ArtifactConfig": {
+            "S3Encryption": {
+              "EncryptionMode": "SSE_KMS",
+              "KmsKeyArn": "arn:aws:kms:us-east-1:000000000000:key/00000000-0000-4000-8000-000000000001"
+            }
+          },
+          "ArtifactS3Location": "s3://synthetic-artifacts-example/synthetic-browser/",
+          "BrowserConfigs": [
+            {
+              "BrowserType": "CHROME"
+            }
+          ],
+          "Code": {
+            "BlueprintTypes": [],
+            "Dependencies": [
+              {
+                "Reference": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-dependency:1",
+                "Type": "LambdaLayer"
+              }
+            ],
+            "Handler": "index.handler",
+            "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-browser-code:1"
+          },
+          "DryRunConfig": {
+            "DryRunId": "00000000-0000-4000-8000-000000000020",
+            "LastDryRunExecutionStatus": "PASSED"
+          },
+          "EngineArn": "arn:aws:lambda:us-east-1:000000000000:function:synthetic-browser-engine",
+          "ExecutionRoleArn": "arn:aws:iam::000000000000:role/synthetic-canary-execution",
+          "FailureRetentionPeriodInDays": 31,
+          "Id": "00000000-0000-4000-8000-000000000001",
+          "KmsKeyArn": "arn:aws:kms:us-east-1:000000000000:key/00000000-0000-4000-8000-000000000002",
+          "MultiLocationConfig": {
+            "LocationType": "Primary",
+            "PrimaryLocation": "us-east-1",
+            "Replicas": [
+              {
+                "CanaryState": "RUNNING",
+                "LastModified": 1793487600,
+                "Location": "eu-west-1",
+                "ReplicationStatus": {
+                  "State": "InSync",
+                  "StateReason": "Synthetic replicated",
+                  "StateReasonCode": "SYNCHRONIZED"
+                },
+                "VpcConfig": {
+                  "Ipv6AllowedForDualStack": false,
+                  "SecurityGroupIds": [
+                    "sg-00000000000000002"
+                  ],
+                  "SubnetIds": [
+                    "subnet-00000000000000002"
+                  ],
+                  "VpcId": "vpc-00000000000000002"
+                }
+              }
+            ],
+            "ReplicationState": "InSync"
+          },
+          "Name": "synthetic-browser",
+          "ProvisionedResourceCleanup": "OFF",
+          "RunConfig": {
+            "ActiveTracing": false,
+            "EphemeralStorage": 1024,
+            "MemoryInMB": 960,
+            "TimeoutInSeconds": 30
+          },
+          "RuntimeVersion": "syn-nodejs-puppeteer-10.0",
+          "Schedule": {
+            "DurationInSeconds": 0,
+            "Expression": "rate(5 minutes)",
+            "RetryConfig": {
+              "MaxRetries": 0
+            }
+          },
+          "Status": {
+            "State": "RUNNING",
+            "StateReason": "Synthetic source state, not current local health",
+            "StateReasonCode": "UPDATE_COMPLETE"
+          },
+          "SuccessRetentionPeriodInDays": 31,
+          "Tags": {
+            "environment": "synthetic",
+            "service": "browser"
+          },
+          "Timeline": {
+            "Created": 1785715200,
+            "LastModified": 1793404800,
+            "LastStarted": 1793484000,
+            "LastStopped": 1793487600
+          }
+        }
+      },
+      "sourceId": "00000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "request.query contains documented SDK operation parameters, not an assertion about HTTP wire query serialization. DescribeCanaries and DescribeAlarms use POST.",
+      "id": "sdk-operation-parameters"
+    },
+    {
+      "description": "CanaryCodeInput is separately supplied local input, never a field returned inside GetCanary.Code. ZIP packages are deterministic synthetic files. Code references are not fetched.",
+      "id": "code-input-boundary"
+    },
+    {
+      "description": "Dummy account 000000000000 and reserved targets only. IAM/KMS/S3/Lambda/SNS identifiers remain inert source metadata.",
+      "id": "no-aws-authority"
+    }
+  ],
+  "scope": {
+    "accountId": "000000000000",
+    "region": "us-east-1"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "aws-synthetics",
+  "synthetic": true
+}

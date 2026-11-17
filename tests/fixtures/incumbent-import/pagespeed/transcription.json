@@ -1,0 +1,37 @@
+{
+  "filmstrip": [
+    {
+      "artifact": "synthetic-filmstrip-000.svg",
+      "timeMs": 0
+    },
+    {
+      "artifact": "synthetic-filmstrip-500.svg",
+      "timeMs": 500
+    }
+  ],
+  "historicalReports": [
+    {
+      "from": "2026-10-01T00:00:00Z",
+      "medianLoadTimeMs": 1500,
+      "to": "2026-11-01T00:00:00Z"
+    }
+  ],
+  "intervalMinutes": 30,
+  "medianLoadTimeMs": 1500,
+  "name": "Synthetic page speed — café",
+  "region": "North America",
+  "resources": [
+    {
+      "loadTimeMs": 600,
+      "startTimeMs": 0,
+      "url": "https://page-speed.example.test/"
+    },
+    {
+      "loadTimeMs": 100,
+      "startTimeMs": 600,
+      "url": "https://page-speed.example.test/site.css"
+    }
+  ],
+  "url": "https://page-speed.example.test/",
+  "yslowGrade": "B"
+}

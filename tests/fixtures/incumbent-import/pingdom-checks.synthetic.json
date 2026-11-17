@@ -1,0 +1,129 @@
+[
+  {
+    "check": {
+      "hostname": "synthetic-uptime-1.example",
+      "id": 6001,
+      "name": "synthetic-uptime-1",
+      "resolution": 5,
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic-uptime-1",
+          "type": "a"
+        },
+        {
+          "count": 1,
+          "name": "synthetic-uptime-2",
+          "type": "a"
+        }
+      ],
+      "type": {
+        "http": {
+          "encryption": true,
+          "port": 443,
+          "shouldcontain": "ready",
+          "url": "/status",
+          "verify_certificate": true
+        }
+      }
+    }
+  },
+  {
+    "check": {
+      "hostname": "synthetic-uptime-2.example",
+      "id": 6002,
+      "name": "synthetic-uptime-2",
+      "probe_filters": [
+        "region: EU",
+        "region: NA"
+      ],
+      "resolution": 5,
+      "type": {
+        "http": {
+          "encryption": true,
+          "port": 443,
+          "shouldnotcontain": "failure",
+          "url": "/status",
+          "verify_certificate": true
+        }
+      }
+    }
+  },
+  {
+    "check": {
+      "hostname": "synthetic-uptime-3.example",
+      "id": 6003,
+      "name": "synthetic-uptime-3",
+      "probe_filters": [
+        "region: APAC"
+      ],
+      "resolution": 5,
+      "type": {
+        "http": {
+          "encryption": true,
+          "port": 443,
+          "shouldcontain": "ready",
+          "url": "/status",
+          "verify_certificate": true
+        }
+      }
+    }
+  },
+  {
+    "check": {
+      "hostname": "synthetic-uptime-4.example",
+      "id": 6004,
+      "name": "synthetic-uptime-4",
+      "resolution": 5,
+      "type": {
+        "tcp": {
+          "port": 443
+        }
+      }
+    }
+  },
+  {
+    "id": 6005,
+    "interval": 5,
+    "name": "synthetic-uptime-5",
+    "region": "eu",
+    "steps": [],
+    "tags": [
+      "synthetic-uptime-1"
+    ],
+    "type": "script"
+  },
+  {
+    "id": 6006,
+    "interval": 5,
+    "name": "synthetic-uptime-6",
+    "region": "eu",
+    "steps": [],
+    "tags": [
+      "synthetic-uptime-1"
+    ],
+    "type": "recording"
+  },
+  {
+    "check": {
+      "hostname": "synthetic-uptime-7.example",
+      "id": 6007,
+      "name": "synthetic-uptime-7",
+      "resolution": 5,
+      "tags": [
+        {
+          "name": ""
+        }
+      ],
+      "type": {
+        "http": {
+          "encryption": true,
+          "port": 443,
+          "shouldcontain": "ready",
+          "url": "/status",
+          "verify_certificate": true
+        }
+      }
+    }
+  }
+]

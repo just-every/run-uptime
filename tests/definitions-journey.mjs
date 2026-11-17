@@ -16,8 +16,14 @@ async function audit(page, label, evidence, width) {
  const result = await page.evaluate(() => axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] } }));
  const severe = result.violations.filter(v => ['serious', 'critical'].includes(v.impact)).map(v => v.id);
  if (evidence) {
-  await page.screenshot({ path: join(evidence, `${label}-${width}.png`), fullPage: true });
+  await page.screenshot({ path: join(evidence, `${label}-${width}.png`), fullPage: !label.startsWith('guide-') });
   await writeFile(join(evidence, `${label}-${width}-axe.json`), JSON.stringify({ severe, violations: result.violations.map(v => ({ id: v.id, impact: v.impact })) }, null, 2));
+  // Assertions run once at desktop width; retain the changed screens at both proof widths.
+  if(width===1440&&(label.startsWith('incumbent-')||label.startsWith('guide-'))){
+   const viewport=page.viewportSize();await page.setViewportSize({...viewport,width:390});
+   await page.screenshot({path:join(evidence,`${label}-390.png`),fullPage:!label.startsWith('guide-')});
+   await page.setViewportSize(viewport);
+  }
  }
  assert.deepEqual(severe, [], `${label} at ${width}px has no serious or critical axe violations`);
 }
@@ -61,4 +67,48 @@ export async function definitionsJourney(page, origin) {
   for (const name of step.created) await page.locator('.definition-batches > li').first().getByText(`${name} — created; Paused, history kept`, { exact: true }).waitFor();
   await audit(page, 'definitions-undone', evidence, step.width);
  }
+ await isolatedIncumbentReportJourney(page.context().browser());
+}
+
+export async function incumbentReportJourney(page,origin){
+ const evidence=process.env.UPTIME_DEFINITIONS_EVIDENCE;
+ if(evidence)await mkdir(evidence,{recursive:true});
+ await page.setViewportSize({width:1440,height:1000});await page.goto(origin+'/app/settings/backup');
+ const input=fileURLToPath(new URL('./fixtures/incumbent-import/edge/unknown-fields.json',import.meta.url));
+ await page.getByLabel(/^A file from\b/).setInputFiles(input);await page.getByRole('button',{name:'Preview',exact:true}).click();
+ const report=page.locator('.definition-field-report');await report.waitFor();await report.locator(':scope > summary').click();
+ assert.match(await report.textContent(),/unsupported/);assert.match(await report.textContent(),/unknown|supplied/i);
+ const download=page.getByRole('button',{name:'Download field report JSON',exact:true});
+ for(const width of [1440]){
+  await page.setViewportSize({width,height:1000});
+  await download.focus();assert.equal(await download.evaluate(el=>el===document.activeElement),true);await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');assert.equal(await download.evaluate(el=>el===document.activeElement),true,'report download is reachable by keyboard');
+  const pending=page.waitForEvent('download');await page.keyboard.press('Enter');const file=await pending,stream=await file.createReadStream();let text='';for await(const bytes of stream)text+=bytes;
+  const data=JSON.parse(text);assert.ok(data.fields.length);assert.ok(data.fields.some(field=>field.path.includes('future')||field.path.includes('syntheticExtension')),'unknown supplied keys are named');assert.ok(!text.includes('SYNTHETIC_SOURCE_'));
+  const session=await page.context().newCDPSession(page);const tree=await session.send('Accessibility.getFullAXTree');await session.detach();assert.ok(tree.nodes.some(node=>node.role?.value==='button'&&node.name?.value==='Download field report JSON'));
+  await audit(page,'incumbent-field-report',evidence,width);
+ }
+ await page.getByRole('button',{name:/^Apply: create/}).click();await page.locator('#action-notice').filter({hasText:/^Applied:/}).waitFor();
+ for(const width of [1440]){await page.setViewportSize({width,height:1000});await page.locator('.definition-field-report > summary').click();await audit(page,'incumbent-applied-report',evidence,width);if(width===1440)await page.locator('.definition-field-report > summary').click()}
+ // Recognition errors preserve the reviewed report and are announced without hiding the message on refresh.
+ await page.getByLabel(/^A file from\b/).setInputFiles({name:'malformed.json',mimeType:'application/json',buffer:Buffer.from('{"check":')});
+ await page.getByRole('button',{name:'Preview',exact:true}).click();await page.locator('#action-notice').filter({hasText:/JSON/i}).waitFor();assert.ok(await report.isVisible());for(const width of [1440]){await page.setViewportSize({width,height:1000});await audit(page,'incumbent-input-error',evidence,width)};
+ await page.reload();await page.locator('.definition-batches > li').first().getByRole('button',{name:/^Undo/}).click();await page.getByRole('dialog').getByRole('button',{name:'Undo import',exact:true}).click();await page.locator('#action-notice').filter({hasText:/^Batch undone/}).waitFor();
+ for(const width of [1440]){await page.setViewportSize({width,height:1000});await audit(page,'incumbent-undone',evidence,width)}
+ for(const path of ['definitions','migrating-pingdom'])for(const width of [1440]){await page.setViewportSize({width,height:1000});await page.goto(origin+'/docs/'+path);await page.locator('main h1').waitFor();await audit(page,'guide-'+path,evidence,width);if(path==='definitions'){await page.getByRole('heading',{name:'Pingdom saved check details',exact:true}).scrollIntoViewIfNeeded();await audit(page,'guide-pingdom-fields',evidence,width)}}
+}
+
+// Keep this journey's retained import and undo history out of the command journey's archive.
+// Both the full command suite and this focused executable use the same isolated installation.
+async function isolatedIncumbentReportJourney(existingBrowser){
+ const {chromium}=await import('playwright'),{migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts}=await import('./notify-acceptance-runtime.mjs'),{browserSignIn}=await import('./auth-test-support.mjs');
+ const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;let worker,browser,context;
+ try{
+  ({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings:{UPTIME_ORIGIN:origin}}));
+  browser=existingBrowser??await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
+  context=await browser.newContext();const page=await context.newPage();await browserSignIn(page,origin);await incumbentReportJourney(page,origin);
+ }finally{await context?.close();if(!existingBrowser)await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}
+}
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+ await isolatedIncumbentReportJourney();
+ console.log('Incumbent report owner console passed: isolated history; keyboard, downloads, focus, accessibility tree, axe, errors, paused apply and undo at 1440; optional browser proof at 1440/390.');
 }

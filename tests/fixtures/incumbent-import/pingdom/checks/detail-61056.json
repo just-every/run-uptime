@@ -1,0 +1,30 @@
+{
+  "check": {
+    "created": 1785715200,
+    "custom_message": "Synthetic migration check",
+    "hostname": "check-61056.example.test",
+    "id": 61056,
+    "integrationids": [],
+    "ipv6": false,
+    "lastdownend": 1793404861,
+    "lastdownstart": 1793404800,
+    "lasterrortime": 1793404800,
+    "lastresponsetime": 236,
+    "lasttesttime": 1793491140,
+    "name": "Synthetic SMTP 57",
+    "notifyagainevery": 0,
+    "notifywhenbackup": true,
+    "probe_filters": [],
+    "resolution": 5,
+    "sendnotificationwhendown": 2,
+    "status": "down",
+    "tags": [],
+    "type": {
+      "smtp": {
+        "encryption": true,
+        "port": 465,
+        "stringtoexpect": "220 synthetic.example.test ESMTP"
+      }
+    }
+  }
+}

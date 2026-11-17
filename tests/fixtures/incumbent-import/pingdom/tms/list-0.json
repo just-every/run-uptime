@@ -1,0 +1,40 @@
+{
+  "checks": [
+    {
+      "active": true,
+      "created_at": 1785715200,
+      "id": 83001,
+      "interval": 5,
+      "last_downtime_end": 1793487600,
+      "last_downtime_start": 1793487500,
+      "modified_at": 1793404800,
+      "name": "Synthetic login",
+      "region": "us-east",
+      "status": "successful",
+      "tags": [
+        "synthetic",
+        "transaction"
+      ],
+      "type": "script"
+    },
+    {
+      "active": true,
+      "created_at": 1785715200,
+      "id": 83002,
+      "interval": 10,
+      "last_downtime_end": 1793487600,
+      "last_downtime_start": 1793487500,
+      "modified_at": 1793404800,
+      "name": "Synthetic signup",
+      "region": "us-west",
+      "status": "failing",
+      "tags": [
+        "synthetic",
+        "transaction"
+      ],
+      "type": "script"
+    }
+  ],
+  "limit": 2,
+  "offset": 0
+}

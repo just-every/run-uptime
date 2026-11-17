@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "hours": [
+      {
+        "avgresponse": 133,
+        "downtime": 0,
+        "starttime": 1788307200,
+        "unmonitored": 0,
+        "uptime": 3600
+      },
+      {
+        "avgresponse": 133,
+        "downtime": 0,
+        "starttime": 1788310800,
+        "unmonitored": 0,
+        "uptime": 3600
+      }
+    ]
+  }
+}

@@ -5,13 +5,14 @@ import {assignRunners,type Runner} from '../runner-registration.server.ts'
 import {externalCheck,externalCheckMode,type ExternalCheck} from '../external-check.server.ts'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
 import {FLOW_LIMITS} from '../flow.mjs'
-import {COMPARED_FIELDS,canonical,sha256} from './format.ts'
+import {COMPARED_FIELDS,canonical,sha256,suppliedLeaves,SCHEMA_NOTES,captureOf} from './format.ts'
 // @ts-ignore Shared catalog recognition; edition JavaScript.
 import {followedMappingOf,followedPart} from '../service-catalog/match.mjs'
 import type {Mapping,SourceEntry} from './importers/index.ts'
 
 export type Action='create'|'unchanged'|'change'|'refused'|'unsupported'
-export type PlanEntry={index:number;label:string;action:Action;name?:string;reason?:string;monitorId?:string;revision?:number;
+export type SourceReport={sourceKind:string;sourceId:string;sourceProtocol?:string;sourcePath?:string;companionOf?:string;schemaNotes?:string[]}
+export type PlanEntry=Partial<SourceReport>&{index:number;label:string;action:Action;name?:string;reason?:string;monitorId?:string;revision?:number;
  /** The import door's expected target revision for a change: the import's own revision, or the native one. */
  expectedRevision?:string;changes?:{field:string;from:unknown;to:unknown}[];differences:string[];definition?:any}
 type Marker={kit_revision:string;native_revision:number;retired:number}
@@ -20,7 +21,7 @@ export type PlanState={local:number[];monitors:{id:string;revision:number;defini
  tokens:Set<string>;external:ExternalCheck;markers:Map<string,Marker>;demo:boolean;origin?:string;
  /** DEPENDENCY-002: the catalog parts this installation follows, and the monitors that follow them. */
  followed:{parts:Set<string>;monitors:Set<string>}}
-export type PlanItem=SourceEntry&{mapping:Mapping;sourceId?:string}
+export type PlanItem=SourceEntry&{mapping:Mapping;sourceId?:string;report?:SourceReport}
 
 export const RELEASED='Imported before and released by undo or erasure; it stays in Uptime as its own monitor. Erase that monitor to import it again.'
 export const NO_RUNNER='Open Locations to set up this installation’s first location before importing.'
@@ -114,7 +115,7 @@ export function planEntries(state:PlanState,items:PlanItem[],{idFor,requireRunne
    expectedRevision:marker&&marker.native_revision===current.revision?marker.kit_revision:`native:${current.revision}`,differences,definition,
    changes:COMPARED_FIELDS.filter(k=>!same(before[k],after[k])).map(field=>({field,from:before[field],to:after[field]}))})
  }
- return entries
+ return entries.map((entry,i)=>({...items[i].report,...entry}))
 }
 export function planCounts(entries:{action:Action}[]){
  const counts={create:0,unchanged:0,change:0,refused:0,unsupported:0} as Record<Action,number>
@@ -124,7 +125,7 @@ export function planCounts(entries:{action:Action}[]){
 /** The digest a reviewed preview names: its source, the installation's monitor count and each entry's outcome. */
 export async function planDigest(source:string,monitorCount:number,entries:PlanEntry[]){
  return sha256(JSON.stringify(canonical({plan:'uptime.definitions',version:2,source,monitors:monitorCount,
-  entries:entries.map(e=>({index:e.index,action:e.action,monitorId:e.action==='create'?null:e.monitorId??null,revision:e.revision??null,definition:e.definition?compared(e.definition):null,enabled:e.definition?.enabled??null,reason:e.reason??null}))})))
+  entries:entries.map(e=>({index:e.index,sourceId:e.sourceId??null,action:e.action,monitorId:e.action==='create'?null:e.monitorId??null,revision:e.revision??null,definition:e.definition?compared(e.definition):null,enabled:e.definition?.enabled??null,reason:e.reason??null}))})))
 }
 // Monitors whose heartbeat token is live: issued for the monitor's current revision.
 export async function liveHeartbeatTokens(env:Bindings){return new Set((await env.DB.prepare('SELECT a.monitor_id FROM heartbeat_authority a JOIN monitors m ON m.id=a.monitor_id AND m.revision=a.revision').all<any>()).results.map(r=>r.monitor_id as string))}
@@ -137,3 +138,51 @@ export function tokenNote(current:any,next:any,live:boolean){
 }
 // A change keeps the monitor's installation-local runner assignments and canaries for the probes it still uses.
 export function keptAssignments(current:any,next:any){return Object.fromEntries(Object.entries(current.assignments??{}).filter(([probe])=>next.probes.includes(probe)))}
+
+export type FieldDisposition={path:string;disposition:string;reason:string;sourceId?:string;target?:string}
+const FIELD_TARGETS:Record<string,string>={tags:'tags','type/ping':'ICMP type (explicit adapter convention)',id:'source identity',name:'name',hostname:'protocol host / URL',resolution:'intervalMs',status:'paused creation; existing local state retained',sendnotificationwhendown:'confirmSlots',responsetime_threshold:'slow.thresholdMs (non-outage Slow)',
+ 'type/http/url':'url','type/http/port':'url port','type/http/encryption':'url scheme','type/http/verify_certificate':'tlsTrust','type/http/ssl_down_days_before':'separate TLS monitor',
+ 'type/http/shouldcontain':'assertions.bodyIncludes','type/http/shouldnotcontain':'assertions.bodyExcludes','type/tcp/port':'tcp.port','type/tcp/stringtoexpect':'tcp.bannerIncludes',
+ 'type/smtp/port':'mail.port','type/smtp/encryption':'mail.security (inferred TLS mode)','type/dns/nameserver':'dns.nameserver (TCP 53)','type/dns/expectedip':'dns.expect (includes)',
+}
+/** A report contains paths and fixed explanations only, never source values. Unknown keys are explicit unsupported leaves.
+ * Empty arrays/objects count as leaves; companion monitors share a source but never double-count its fields. */
+export function fieldReport(documents:unknown[],entries:PlanEntry[]){
+ const records=entries.filter(e=>!e.companionOf),containers:{path:string;disposition:string;reason:string}[]=[],fields:FieldDisposition[]=[]
+ for(const [documentIndex,doc] of documents.entries()){
+  const root=documents.length===1?'':`/documents/${documentIndex}`
+  const visit=(value:any,path:string)=>{if(value&&typeof value==='object'){containers.push({path:path||'/',disposition:'accounted',reason:'Container and nested records accounted for by their exact descendant field dispositions; no unlisted operative mapping.'});for(const [key,child] of Object.entries(value))visit(child,path+'/'+key.replace(/~/g,'~0').replace(/\//g,'~1'))}}
+  visit(doc,root)
+  for(const path of suppliedLeaves(doc)){
+   const fullPath=root+path,owner=records.filter(e=>e.sourcePath!==undefined&&(fullPath===e.sourcePath||fullPath.startsWith(e.sourcePath+'/'))).sort((a,b)=>b.sourcePath!.length-a.sourcePath!.length)[0]
+   const parts=path.split('/').slice(1).map(p=>p.replace(/~1/g,'/').replace(/~0/g,'~')),value=parts.reduce((v:any,k)=>v?.[k],doc)
+   const base={path:root+path,...(owner?.sourceId?{sourceId:owner.sourceId}:{})}
+   if(typeof value==='string'&&value.includes('[withheld]')){fields.push({...base,disposition:'withheld',reason:'Secret or executable payload withheld before upload; local review/re-entry required.'});continue}
+   if(owner){
+    if(['refused','unsupported'].includes(owner.action)){fields.push({...base,disposition:owner.action,reason:owner.reason??'This source record has no imported target.'});continue}
+    const relative=fullPath.slice(owner.sourcePath!.length+1)
+    if(relative==='responsetime_threshold'&&owner.sourceProtocol!=='http'){fields.push({...base,disposition:'unsupported',reason:'Pingdom response-time down thresholds are not converted for this protocol. Review a native latency-failure policy before enabling.'});continue}
+    const target=FIELD_TARGETS[relative]??(/^tags\/\d+\/name$/.test(relative)?'tags':undefined)
+    if(target){const lossy=['status','sendnotificationwhendown','responsetime_threshold','type/http/verify_certificate','type/http/ssl_down_days_before','type/smtp/encryption','type/dns/expectedip','type/dns/nameserver'].includes(relative)
+     fields.push({...base,disposition:lossy?'lossy':'mapped',target,reason:lossy?`Reviewed adapter difference: ${target}. Source semantics are not claimed equivalent.`:`Mapped to ${target}.`});continue}
+   }
+   const metadata=/^\/(format|source|synthetic|seed|capturedAt|scope|schemaNotes)(\/|$)/.test(path)||/^\/records\/\d+\/(id|kind|sourceId|request|pagination)(\/|$)/.test(path)
+   fields.push({...base,disposition:metadata?'metadata':'unsupported',reason:metadata?'Capture provenance only; grants no authority and changes no product state.':'No adapter mapping for this supplied field; it is not carried into an operative monitor, route or source history.'})
+  }
+ }
+ const summary=Object.fromEntries(['mapped','lossy','withheld','metadata','unsupported','refused'].map(key=>[key,fields.filter(f=>f.disposition===key).length]))
+ const captures=documents.filter((doc:any)=>doc?.format==='uptime.incumbent-capture.v1') as any[]
+ const captureRows=captures.flatMap(doc=>captureOf(JSON.stringify(doc))!.rows)
+ const recordLedger=captures.length?captureRows.map(row=>{const entry=records.find(e=>e.sourcePath!==undefined&&(row.path===e.sourcePath||row.path.startsWith(e.sourcePath+'/')));return {path:row.path,kind:row.kind,sourceId:entry?.sourceId,disposition:entry?.action??'unsupported',reason:entry?.reason??'Source metadata only; no operative mapping.'}}):records.map(e=>({sourceId:e.sourceId,path:e.sourcePath,kind:e.sourceKind,disposition:e.action,reason:e.reason??'Reviewed monitor definition; creation is paused and local operational state is preserved.'}))
+ const uniqueChecks=new Set<string>()
+ for(const doc of captures)for(const record of doc.records){
+  if(record.kind==='check-detail')uniqueChecks.add('uptime:'+record.sourceId)
+  if(record.kind==='checks-list')for(const check of record.response.checks)uniqueChecks.add('uptime:'+check.id)
+  if(record.kind==='tms-detail')uniqueChecks.add('tms:'+record.sourceId)
+  if(record.kind==='tms-list')for(const check of record.response.checks)uniqueChecks.add('tms:'+check.id)
+ }
+ return {version:1,counts:{sourceChecks:captures.length?uniqueChecks.size:records.length,sourceRecords:recordLedger.length,nativeEntries:captures.length?entries.filter(e=>e.sourceKind==='check-detail').length:entries.length,tlsCompanions:entries.filter(e=>e.companionOf).length,leaves:fields.length},summary,
+  records:recordLedger,
+  captures:captures.flatMap(doc=>doc.records.map((r:any,i:number)=>({path:`/records/${i}`,kind:r.kind,disposition:'accounted',reason:'Every resource leaf is listed below; request/provenance metadata grants no authority.'}))),
+  schemaNotes:captures.length?SCHEMA_NOTES:[],containers,fields}
+}

@@ -1,0 +1,79 @@
+{
+  "active": true,
+  "contact_ids": [],
+  "created_at": 1785715200,
+  "custom_message": "Synthetic transaction",
+  "integration_ids": [],
+  "interval": 20,
+  "last_downtime_end": 1793487600,
+  "last_downtime_start": 1793487500,
+  "metadata": {
+    "authentications": {
+      "httpAuthentications": []
+    },
+    "disableWebSecurity": false,
+    "height": 900,
+    "width": 1440
+  },
+  "modified_at": 1793404800,
+  "name": "Synthetic sandbox checkout",
+  "region": "eu",
+  "send_notification_when_down": 2,
+  "severity_level": "high",
+  "status": "unknown",
+  "steps": [
+    {
+      "args": {
+        "url": "https://flow.example.test/sandbox/checkout"
+      },
+      "contains_navigate": true,
+      "fn": "wpm_go_to",
+      "guid": "00000000-0000-4000-8000-000000000301"
+    },
+    {
+      "args": {
+        "element": "#sandbox-payment",
+        "offsetX": 0,
+        "offsetY": 0
+      },
+      "contains_navigate": true,
+      "fn": "wpm_click",
+      "guid": "00000000-0000-4000-8000-000000000302"
+    },
+    {
+      "args": {
+        "seconds": "1"
+      },
+      "contains_navigate": false,
+      "fn": "wpm_wait",
+      "guid": "00000000-0000-4000-8000-000000000303"
+    },
+    {
+      "args": {
+        "element": "[data-synthetic=place-sandbox-order]",
+        "offsetX": 0,
+        "offsetY": 0
+      },
+      "contains_navigate": true,
+      "fn": "wpm_click",
+      "guid": "00000000-0000-4000-8000-000000000304"
+    },
+    {
+      "args": {
+        "element": "[data-synthetic=sandbox-receipt]",
+        "useRegularExpression": false,
+        "value": "Sandbox order accepted",
+        "waitTime": 10
+      },
+      "contains_navigate": false,
+      "fn": "wpm_contains_timeout",
+      "guid": "00000000-0000-4000-8000-000000000305"
+    }
+  ],
+  "tags": [
+    "synthetic",
+    "transaction"
+  ],
+  "team_ids": [],
+  "type": "recording"
+}

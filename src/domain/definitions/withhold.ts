@@ -10,8 +10,8 @@ import {jsonValues} from './format.ts'
 // - any source: a field named as a credential (authorization, cookie, password, token, api key, secret), and the
 //   userinfo of a URL.
 export const WITHHELD='[withheld]'
-const FIELDS=new Set(['httpUsername','httpPassword','customHttpHeaders','postValueData','username','password','postdata','headers','body','auth','request_param','custom_headers','client_certificate_password','auth_username','auth_password','request_headers','request_body','proxy_password'])
-const CREDENTIAL=/^(?:access[_-]?token|refresh[_-]?token|token|authorization|proxy[_-]?authorization|cookie|set[_-]?cookie|password|passwd|api[_-]?key|x[_-]?api[_-]?key|secret|client[_-]?secret)$/i
+const FIELDS=new Set(['httpUsername','httpPassword','customHttpHeaders','postValueData','username','password','postdata','headers','body','auth','request_param','custom_headers','client_certificate_password','auth_username','auth_password','request_headers','request_body','proxy_password','apns_device','agcm_id'])
+const CREDENTIAL=/^(?:credentials?|user[_-]?name|access[_-]?token|refresh[_-]?token|token|authorization|proxy[_-]?authorization|cookie|set[_-]?cookie|password|passwd|api[_-]?key|x[_-]?api[_-]?key|secret|client[_-]?secret)$/i
 const USERINFO=/^([a-z][a-z0-9+.-]*:\/\/)([^/?#]*)@/i
 const present=(value:unknown)=>value!==null&&value!==undefined&&value!==''&&value!==false&&!(Array.isArray(value)&&!value.length)&&!(typeof value==='object'&&!Array.isArray(value)&&!Object.keys(value as object).length)
 
@@ -19,20 +19,23 @@ function text(value:string){
  const match=USERINFO.exec(value)
  return match&&match[2]!=='withheld'?match[1]+'withheld@'+value.slice(match[0].length):value
 }
+// Keep object/array topology so every withheld leaf still has a field disposition.
+function withheldShape(value:any):any{if(Array.isArray(value))return value.map(withheldShape);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,withheldShape(v)]));return present(value)?WITHHELD:value}
 /** One source value with its request secrets withheld; anything else is unchanged. */
-export function withholdValue(value:unknown):any{
- if(Array.isArray(value))return value.map(withholdValue)
+export function withholdValue(value:unknown,nativeFlow=false):any{
+ if(Array.isArray(value))return value.map(child=>withholdValue(child))
  if(typeof value==='string')return text(value)
  if(!value||typeof value!=='object')return value
- // Unsupported Pingdom TMS steps may contain typed passwords or arbitrary form values.
- // Keep their presence for recognition, never their script payload in import custody.
- const record=['script','recording'].includes((value as any).type)&&Array.isArray((value as any).steps)?{...value,steps:WITHHELD}:value
+ // Source steps, including TMS performance rows without a type, can carry arbitrary form values.
+ // Only the flow member of a native flow monitor keeps its closed operations and credential references.
+ const record=value
  return Object.fromEntries(Object.entries(record).map(([key,child])=>{
-  if((FIELDS.has(key)||CREDENTIAL.test(key))&&present(child))return [key,WITHHELD]
+  if((FIELDS.has(key)||CREDENTIAL.test(key)||key==='steps'&&!nativeFlow||['ZipFile','EnvironmentVariables','script','SourceLocationArn'].includes(key))&&present(child))return [key,withheldShape(child)]
   // Pingdom request headers keep their names; their values are the secrets.
   if(key==='requestheaders'&&child&&typeof child==='object'&&!Array.isArray(child))return [key,Object.fromEntries(Object.keys(child).map(name=>[name,present((child as any)[name])?WITHHELD:(child as any)[name]]))]
+  if(key==='requestheaders'&&Array.isArray(child))return [key,child.map(header=>typeof header==='string'&&header.includes(':')?header.slice(0,header.indexOf(':'))+': '+WITHHELD:WITHHELD)]
   if(key==='requestheaders'&&present(child))return [key,WITHHELD]
-  return [key,withholdValue(child)]
+  return [key,withholdValue(child,key==='flow'&&(value as any).type==='flow')]
  }))
 }
 /** A source file's text with its request secrets withheld: the file exactly as chosen when it carries none, otherwise
@@ -41,7 +44,7 @@ export function withholdText(source:string):string{
  if(!/^\s*[[{]/.test(source))return source
  let values:unknown[]
  try{values=jsonValues(source,'file')}catch{return source}
- const withheld=values.map(withholdValue)
+ const withheld=values.map(value=>withholdValue(value))
  if(JSON.stringify(withheld)===JSON.stringify(values))return source
  return withheld.map(value=>JSON.stringify(value)).join('\n')
 }

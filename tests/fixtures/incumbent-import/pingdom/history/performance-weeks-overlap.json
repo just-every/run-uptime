@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "weeks": [
+      {
+        "avgresponse": 133,
+        "downtime": 61,
+        "starttime": 1788307200,
+        "unmonitored": 0,
+        "uptime": 604739
+      },
+      {
+        "avgresponse": 133,
+        "downtime": 0,
+        "starttime": 1788912000,
+        "unmonitored": 1800,
+        "uptime": 603000
+      }
+    ]
+  }
+}

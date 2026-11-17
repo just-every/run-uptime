@@ -1,0 +1,46 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "proposal-run-config-input-alternative",
+      "kind": "canary-run-config-input",
+      "request": {
+        "method": "LOCAL",
+        "path": "proposal/run-config-input-alternative",
+        "query": {}
+      },
+      "response": {
+        "ActiveTracing": false,
+        "EnvironmentVariables": {
+          "SYNTHETIC_API_TOKEN": "SYNTHETIC_LOCAL_SECRET_AWS_ENV"
+        },
+        "EphemeralStorage": 1024,
+        "MemoryInMB": 960,
+        "TimeoutInSeconds": 30
+      },
+      "sourceId": "00000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "request.query contains documented SDK operation parameters, not an assertion about HTTP wire query serialization. DescribeCanaries and DescribeAlarms use POST.",
+      "id": "sdk-operation-parameters"
+    },
+    {
+      "description": "CanaryCodeInput is separately supplied local input, never a field returned inside GetCanary.Code. ZIP packages are deterministic synthetic files. Code references are not fetched.",
+      "id": "code-input-boundary"
+    },
+    {
+      "description": "Dummy account 000000000000 and reserved targets only. IAM/KMS/S3/Lambda/SNS identifiers remain inert source metadata.",
+      "id": "no-aws-authority"
+    }
+  ],
+  "scope": {
+    "accountId": "000000000000",
+    "region": "us-east-1"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "aws-synthetics",
+  "synthetic": true
+}
