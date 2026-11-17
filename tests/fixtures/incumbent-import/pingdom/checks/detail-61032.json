@@ -1,0 +1,41 @@
+{
+  "check": {
+    "created": 1785715200,
+    "custom_message": "Synthetic migration check",
+    "hostname": "check-61032.example.test",
+    "id": 61032,
+    "integrationids": [],
+    "ipv6": false,
+    "lastdownend": 1793404861,
+    "lastdownstart": 1793404800,
+    "lasterrortime": 1793404800,
+    "lastresponsetime": 212,
+    "lasttesttime": 1793491140,
+    "name": "Synthetic TCP 33",
+    "notifyagainevery": 0,
+    "notifywhenbackup": true,
+    "probe_filters": [],
+    "resolution": 15,
+    "sendnotificationwhendown": 2,
+    "status": "unconfirmed_down",
+    "tags": [
+      {
+        "count": 1,
+        "name": "synthetic",
+        "type": "u"
+      },
+      {
+        "count": 1,
+        "name": "tcp",
+        "type": "u"
+      }
+    ],
+    "type": {
+      "tcp": {
+        "port": 12345,
+        "stringtoexpect": "PONG",
+        "stringtosend": "PING\r\n"
+      }
+    }
+  }
+}

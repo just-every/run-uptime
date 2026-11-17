@@ -1,0 +1,41 @@
+{
+  "teams": [
+    {
+      "id": 81001,
+      "members": [
+        {
+          "id": 71001,
+          "name": "Synthetic Owner",
+          "type": "user"
+        },
+        {
+          "id": 71002,
+          "name": "Synthetic Notify",
+          "type": "contact"
+        }
+      ],
+      "name": "Synthetic Platform"
+    },
+    {
+      "id": 81002,
+      "members": [
+        {
+          "id": 71003,
+          "name": "Synthetic SMS",
+          "type": "contact"
+        },
+        {
+          "id": 71004,
+          "name": "Synthetic APNS",
+          "type": "user"
+        },
+        {
+          "id": 71005,
+          "name": "Synthetic AGCM",
+          "type": "contact"
+        }
+      ],
+      "name": "Synthetic Réponse"
+    }
+  ]
+}

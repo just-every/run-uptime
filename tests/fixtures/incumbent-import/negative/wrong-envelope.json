@@ -1,0 +1,67 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "checks/detail-61000",
+      "kind": "check-detail",
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61000",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "response": {
+        "checks": {
+          "id": 61000
+        }
+      },
+      "sourceId": "61000"
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "The published GET oneOf omits ping although create/list document ping. Positive ping records retain documented list/common fields only. The empty ping settings object appears solely in an explicitly labeled adapter-convention fixture.",
+      "id": "ping-detail-omission",
+      "path": "GET /checks/{checkid}.check.type"
+    },
+    {
+      "description": "The schema describes arrays of target alternatives; its example uses channel-keyed email/sms arrays. Both documented alternatives are separate fixtures, not a fabricated universal provider shape.",
+      "id": "contact-target-alternatives",
+      "path": "GET /alerting/contacts.contacts[].notification_targets"
+    },
+    {
+      "description": "GET declares boolean with integer example 30000; create/modify declare integer milliseconds. This corpus uses documented integer semantics. Pingdom latency down alerts differ from Uptime Slow and require review.",
+      "id": "threshold-schema-defect",
+      "path": "check.responsetime_threshold"
+    },
+    {
+      "description": "Detail has no ID. List IDs and descriptor request/sourceId carry stable identity; native detail objects are unmodified.",
+      "id": "tms-identity-context",
+      "path": "GET /tms/check/{cid}"
+    },
+    {
+      "description": "Source shouldcontain and shouldnotcontain are mutually exclusive. Positive controls set one or neither; the combination is a separate negative case.",
+      "id": "keywords-exclusive",
+      "path": "check.type.http"
+    },
+    {
+      "description": "API 3.1 publishes no Page Speed export schema. Operator transcription is separately labeled, not an API response.",
+      "id": "no-page-speed-export",
+      "path": "Page Speed"
+    },
+    {
+      "description": "Complete public-page and integration-detail APIs are absent from the retrieved schema. Unknown count, not zero; handoff and export still require review.",
+      "id": "unavailable-resources",
+      "path": "public pages/integrations"
+    }
+  ],
+  "scope": {
+    "account": "synthetic-pingdom-account",
+    "timezone": "not-supplied-by-provider"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "pingdom",
+  "synthetic": true
+}

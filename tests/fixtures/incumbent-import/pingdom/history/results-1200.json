@@ -1,0 +1,48 @@
+{
+  "activeprobes": [
+    85001,
+    85002
+  ],
+  "results": [
+    {
+      "probeid": 85001,
+      "responsetime": 161,
+      "status": "up",
+      "statusdesc": "OK",
+      "statusdesclong": "Synthetic response accepted",
+      "time": 1793469689
+    },
+    {
+      "probeid": 85002,
+      "responsetime": 162,
+      "status": "up",
+      "statusdesc": "OK",
+      "statusdesclong": "Synthetic response accepted",
+      "time": 1793473991
+    },
+    {
+      "probeid": 85001,
+      "responsetime": 163,
+      "status": "up",
+      "statusdesc": "OK",
+      "statusdesclong": "Synthetic response accepted",
+      "time": 1793478293
+    },
+    {
+      "probeid": 85002,
+      "responsetime": 164,
+      "status": "up",
+      "statusdesc": "OK",
+      "statusdesclong": "Synthetic response accepted",
+      "time": 1793482595
+    },
+    {
+      "probeid": 85001,
+      "responsetime": 165,
+      "status": "up",
+      "statusdesc": "OK",
+      "statusdesclong": "Synthetic response accepted",
+      "time": 1793486897
+    }
+  ]
+}

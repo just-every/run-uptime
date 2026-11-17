@@ -1,8 +1,8 @@
-import {DefinitionFileError,boundDefinitionText,jsonValues} from './format.ts'
+import {DefinitionFileError,boundDefinitionText,jsonValues,captureOf} from './format.ts'
 import {recogniseHistory} from './history.ts'
 import {withholdText} from './withhold.ts'
 import {HISTORY_SOURCE,selectImporter,type Importer} from './importers/index.ts'
-import {planCounts,planDigest,type PlanEntry} from './plan.server.ts'
+import {planCounts,planDigest,fieldReport,type PlanEntry} from './plan.server.ts'
 // @ts-ignore Shared immutable runner definition digest.
 import {flowDigest} from '../flow.mjs'
 export {undoBatch,listBatches} from './apply.server.ts'
@@ -12,6 +12,8 @@ export {exportDefinitions} from './export.server.ts'
  * The move-in screen and the local command name this source to the import door. */
 export function recogniseSource(text:string,source='auto'):string{
  boundDefinitionText(text)
+ const capture=captureOf(text,source)
+ if(capture)return capture.source
  const importer=selectImporter(text,source)
  if(!importer){
   if((source==='auto'||source===HISTORY_SOURCE)&&recogniseHistory(text))return HISTORY_SOURCE
@@ -35,8 +37,10 @@ const outcomeCounts=(entries:{action:string;differences:string[]}[])=>({
  refused:entries.filter(e=>e.action==='refused').length,
 })
 /** The preview the move-in screen and the local command show: counts, then each entry. */
-export async function definitionView(importer:Importer,entries:PlanEntry[],monitorCount:number,digest?:string){
+export async function definitionView(importer:Importer,entries:PlanEntry[],monitorCount:number,digest?:string,documents:unknown[]=[]){
+ const report=fieldReport(documents,entries)
+ const reported=entries.map(entry=>{const fields=report.fields.filter(f=>f.sourceId===entry.sourceId&&['unsupported','withheld','lossy','refused'].includes(f.disposition));return {...entry,differences:[...entry.differences,...(fields.length?[`Field dispositions: ${fields.map(f=>`${f.path} (${f.disposition})`).join('; ')}. See the field report for reasons and targets.`]:[])]}})
  return {kind:'definitions' as const,source:importer.source,sourceLabel:importer.label,digest:digest??await planDigest(importer.source,monitorCount,entries),
-  reviewDigest:await planDigest(importer.source,monitorCount,entries),counts:planCounts(entries),outcomes:outcomeCounts(entries),
-  entries:await Promise.all(entries.map(async({definition,expectedRevision,...entry})=>({...entry,...(definition?{target:{type:definition.type,network:definition.network,privateGrantRef:definition.privateGrantRef??null,assertions:definition.assertions,url:definition.url||null,service:definition.service??null,intervalMs:definition.intervalMs,probes:definition.probes,credentialRef:definition.request?.credentialRef??null,tlsTrust:definition.tlsTrust??null,...(definition.heartbeat?{heartbeat:definition.heartbeat}:{}),...(definition.flow?{flow:{digest:await flowDigest(definition.flow),intent:definition.flow.intent,browser:definition.flow.browser,device:definition.flow.device,steps:definition.flow.steps.length,outcomes:definition.flow.outcomes.length}}:{})}}:{})})))}
+  fieldReport:report,reviewDigest:await planDigest(importer.source,monitorCount,entries),counts:planCounts(entries),outcomes:outcomeCounts(entries),
+  entries:await Promise.all(reported.map(async({definition,expectedRevision,...entry})=>({...entry,...(definition?{target:{type:definition.type,network:definition.network,privateGrantRef:definition.privateGrantRef??null,assertions:definition.assertions,url:definition.url||null,service:definition.service??null,intervalMs:definition.intervalMs,probes:definition.probes,credentialRef:definition.request?.credentialRef??null,tlsTrust:definition.tlsTrust??null,...(definition.heartbeat?{heartbeat:definition.heartbeat}:{}),...(definition.flow?{flow:{digest:await flowDigest(definition.flow),intent:definition.flow.intent,browser:definition.flow.browser,device:definition.flow.device,steps:definition.flow.steps.length,outcomes:definition.flow.outcomes.length}}:{})}}:{})})))}
 }

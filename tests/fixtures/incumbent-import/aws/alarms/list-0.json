@@ -1,0 +1,76 @@
+{
+  "CompositeAlarms": [],
+  "MetricAlarms": [
+    {
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+      ],
+      "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-availability",
+      "AlarmConfigurationUpdatedTimestamp": 1793404800,
+      "AlarmDescription": "Synthetic source alarm — review required",
+      "AlarmName": "synthetic-availability",
+      "ComparisonOperator": "LessThanThreshold",
+      "DatapointsToAlarm": 1,
+      "Dimensions": [
+        {
+          "Name": "CanaryName",
+          "Value": "synthetic-browser"
+        }
+      ],
+      "EvaluationPeriods": 1,
+      "InsufficientDataActions": [],
+      "MetricName": "SuccessPercent",
+      "Namespace": "CloudWatchSynthetics",
+      "OKActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+      ],
+      "Period": 300,
+      "StateReason": "Synthetic source state, never local evidence",
+      "StateReasonData": "{\"synthetic\":true}",
+      "StateTransitionedTimestamp": 1793490600,
+      "StateUpdatedTimestamp": 1793490900,
+      "StateValue": "OK",
+      "Statistic": "Average",
+      "Threshold": 100,
+      "TreatMissingData": "missing",
+      "Unit": "Percent"
+    },
+    {
+      "ActionsEnabled": true,
+      "AlarmActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+      ],
+      "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-duration",
+      "AlarmConfigurationUpdatedTimestamp": 1793404800,
+      "AlarmDescription": "Synthetic source alarm — review required",
+      "AlarmName": "synthetic-duration",
+      "ComparisonOperator": "GreaterThanThreshold",
+      "DatapointsToAlarm": 1,
+      "Dimensions": [
+        {
+          "Name": "CanaryName",
+          "Value": "synthetic-api"
+        }
+      ],
+      "EvaluationPeriods": 1,
+      "InsufficientDataActions": [],
+      "MetricName": "Duration",
+      "Namespace": "CloudWatchSynthetics",
+      "OKActions": [
+        "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+      ],
+      "Period": 300,
+      "StateReason": "Synthetic source state, never local evidence",
+      "StateReasonData": "{\"synthetic\":true}",
+      "StateTransitionedTimestamp": 1793490600,
+      "StateUpdatedTimestamp": 1793490900,
+      "StateValue": "OK",
+      "Statistic": "Average",
+      "Threshold": 2000,
+      "TreatMissingData": "missing",
+      "Unit": "Milliseconds"
+    }
+  ],
+  "NextToken": "synthetic-alarm-page-1"
+}

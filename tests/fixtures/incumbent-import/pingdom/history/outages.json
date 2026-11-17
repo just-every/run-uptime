@@ -1,0 +1,51 @@
+{
+  "summary": {
+    "states": [
+      {
+        "status": "up",
+        "timefrom": 1788307200,
+        "timeto": 1788737407
+      },
+      {
+        "status": "down",
+        "timefrom": 1788737407,
+        "timeto": 1788737468
+      },
+      {
+        "status": "up",
+        "timefrom": 1788737468,
+        "timeto": 1789085100
+      },
+      {
+        "status": "unknown",
+        "timefrom": 1789085100,
+        "timeto": 1789086900
+      },
+      {
+        "status": "up",
+        "timefrom": 1789086900,
+        "timeto": 1790458237
+      },
+      {
+        "status": "down",
+        "timefrom": 1790458237,
+        "timeto": 1790458970
+      },
+      {
+        "status": "up",
+        "timefrom": 1790458970,
+        "timeto": 1792609274
+      },
+      {
+        "status": "down",
+        "timefrom": 1792609274,
+        "timeto": 1792612945
+      },
+      {
+        "status": "up",
+        "timefrom": 1792612945,
+        "timeto": 1793491200
+      }
+    ]
+  }
+}

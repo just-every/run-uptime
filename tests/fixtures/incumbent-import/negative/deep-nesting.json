@@ -1,0 +1,384 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "checks/detail-61000",
+      "kind": "check-detail",
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61000",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "response": {
+        "check": {
+          "created": 1785715200,
+          "custom_message": "Synthetic latency review: café ☕",
+          "hostname": "check-61000.example.test",
+          "id": 61000,
+          "integrationids": [
+            91001,
+            91002
+          ],
+          "ipv6": false,
+          "lastdownend": 1793404861,
+          "lastdownstart": 1793404800,
+          "lasterrortime": 1793404800,
+          "lastresponsetime": 180,
+          "lasttesttime": 1793491140,
+          "name": "Synthetic HTTP café — 東京",
+          "notifyagainevery": 3,
+          "notifywhenbackup": true,
+          "probe_filters": [],
+          "resolution": 1,
+          "sendnotificationwhendown": 2,
+          "status": "up",
+          "syntheticExtension": {
+            "next": {
+              "next": {
+                "next": {
+                  "next": {
+                    "next": {
+                      "next": {
+                        "next": {
+                          "next": {
+                            "next": {
+                              "next": {
+                                "next": {
+                                  "next": {
+                                    "next": {
+                                      "next": {
+                                        "next": {
+                                          "next": {
+                                            "next": {
+                                              "next": {
+                                                "next": {
+                                                  "next": {
+                                                    "next": {
+                                                      "next": {
+                                                        "next": {
+                                                          "next": {
+                                                            "next": {
+                                                              "next": {
+                                                                "next": {
+                                                                  "next": {
+                                                                    "next": {
+                                                                      "next": {
+                                                                        "next": {
+                                                                          "next": {
+                                                                            "next": {
+                                                                              "next": {
+                                                                                "next": {
+                                                                                  "next": {
+                                                                                    "next": {
+                                                                                      "next": {
+                                                                                        "next": {
+                                                                                          "next": {
+                                                                                            "next": {
+                                                                                              "next": {
+                                                                                                "next": {
+                                                                                                  "next": {
+                                                                                                    "next": {
+                                                                                                      "next": {
+                                                                                                        "next": {
+                                                                                                          "next": {
+                                                                                                            "next": {
+                                                                                                              "next": {
+                                                                                                                "next": {
+                                                                                                                  "next": {
+                                                                                                                    "next": {
+                                                                                                                      "next": {
+                                                                                                                        "next": {
+                                                                                                                          "next": {
+                                                                                                                            "next": {
+                                                                                                                              "next": {
+                                                                                                                                "next": {
+                                                                                                                                  "next": {
+                                                                                                                                    "next": {
+                                                                                                                                      "next": {
+                                                                                                                                        "next": {
+                                                                                                                                          "next": {
+                                                                                                                                            "next": {
+                                                                                                                                              "next": {
+                                                                                                                                                "next": {
+                                                                                                                                                  "next": {
+                                                                                                                                                    "next": {
+                                                                                                                                                      "next": {
+                                                                                                                                                        "next": {
+                                                                                                                                                          "next": {
+                                                                                                                                                            "next": {
+                                                                                                                                                              "next": {
+                                                                                                                                                                "next": {
+                                                                                                                                                                  "next": {
+                                                                                                                                                                    "next": {
+                                                                                                                                                                      "next": {
+                                                                                                                                                                        "next": {
+                                                                                                                                                                          "next": {
+                                                                                                                                                                            "next": {
+                                                                                                                                                                              "next": {
+                                                                                                                                                                                "next": {
+                                                                                                                                                                                  "next": {
+                                                                                                                                                                                    "next": {
+                                                                                                                                                                                      "next": {
+                                                                                                                                                                                        "next": {
+                                                                                                                                                                                          "next": {
+                                                                                                                                                                                            "next": {
+                                                                                                                                                                                              "next": {
+                                                                                                                                                                                                "next": {
+                                                                                                                                                                                                  "next": {
+                                                                                                                                                                                                    "next": {
+                                                                                                                                                                                                      "next": {
+                                                                                                                                                                                                        "next": {
+                                                                                                                                                                                                          "next": {
+                                                                                                                                                                                                            "next": {
+                                                                                                                                                                                                              "next": {
+                                                                                                                                                                                                                "next": {
+                                                                                                                                                                                                                  "next": {
+                                                                                                                                                                                                                    "next": {
+                                                                                                                                                                                                                      "next": {
+                                                                                                                                                                                                                        "next": {
+                                                                                                                                                                                                                          "next": {
+                                                                                                                                                                                                                            "next": {
+                                                                                                                                                                                                                              "next": {
+                                                                                                                                                                                                                                "next": {
+                                                                                                                                                                                                                                  "next": {
+                                                                                                                                                                                                                                    "next": {
+                                                                                                                                                                                                                                      "next": {
+                                                                                                                                                                                                                                        "next": {
+                                                                                                                                                                                                                                          "next": {
+                                                                                                                                                                                                                                            "next": {
+                                                                                                                                                                                                                                              "next": {
+                                                                                                                                                                                                                                                "next": {
+                                                                                                                                                                                                                                                  "next": {
+                                                                                                                                                                                                                                                    "next": {
+                                                                                                                                                                                                                                                      "next": {
+                                                                                                                                                                                                                                                        "next": {
+                                                                                                                                                                                                                                                          "next": {
+                                                                                                                                                                                                                                                            "leaf": "synthetic-depth"
+                                                                                                                                                                                                                                                          }
+                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                      }
+                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                  }
+                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                              }
+                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                          }
+                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                      }
+                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                  }
+                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                              }
+                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                          }
+                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                      }
+                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                  }
+                                                                                                                                                                                                                }
+                                                                                                                                                                                                              }
+                                                                                                                                                                                                            }
+                                                                                                                                                                                                          }
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                      }
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                  }
+                                                                                                                                                                                                }
+                                                                                                                                                                                              }
+                                                                                                                                                                                            }
+                                                                                                                                                                                          }
+                                                                                                                                                                                        }
+                                                                                                                                                                                      }
+                                                                                                                                                                                    }
+                                                                                                                                                                                  }
+                                                                                                                                                                                }
+                                                                                                                                                                              }
+                                                                                                                                                                            }
+                                                                                                                                                                          }
+                                                                                                                                                                        }
+                                                                                                                                                                      }
+                                                                                                                                                                    }
+                                                                                                                                                                  }
+                                                                                                                                                                }
+                                                                                                                                                              }
+                                                                                                                                                            }
+                                                                                                                                                          }
+                                                                                                                                                        }
+                                                                                                                                                      }
+                                                                                                                                                    }
+                                                                                                                                                  }
+                                                                                                                                                }
+                                                                                                                                              }
+                                                                                                                                            }
+                                                                                                                                          }
+                                                                                                                                        }
+                                                                                                                                      }
+                                                                                                                                    }
+                                                                                                                                  }
+                                                                                                                                }
+                                                                                                                              }
+                                                                                                                            }
+                                                                                                                          }
+                                                                                                                        }
+                                                                                                                      }
+                                                                                                                    }
+                                                                                                                  }
+                                                                                                                }
+                                                                                                              }
+                                                                                                            }
+                                                                                                          }
+                                                                                                        }
+                                                                                                      }
+                                                                                                    }
+                                                                                                  }
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "tags": [],
+          "teams": [
+            {
+              "id": 81001,
+              "members": [
+                {
+                  "id": 71001,
+                  "name": "Synthetic Owner",
+                  "type": "user"
+                },
+                {
+                  "id": 71002,
+                  "name": "Synthetic Notify",
+                  "type": "contact"
+                }
+              ],
+              "name": "Synthetic Platform"
+            },
+            {
+              "id": 81002,
+              "members": [
+                {
+                  "id": 71003,
+                  "name": "Synthetic SMS",
+                  "type": "contact"
+                },
+                {
+                  "id": 71004,
+                  "name": "Synthetic APNS",
+                  "type": "user"
+                },
+                {
+                  "id": 71005,
+                  "name": "Synthetic AGCM",
+                  "type": "contact"
+                }
+              ],
+              "name": "Synthetic Réponse"
+            }
+          ],
+          "type": {
+            "http": {
+              "encryption": true,
+              "port": 443,
+              "requestheaders": [
+                "Accept: application/json",
+                "X-Synthetic-Context: region: lab: east"
+              ],
+              "shouldcontain": "ready",
+              "ssl_down_days_before": 7,
+              "url": "/health/1",
+              "verify_certificate": true
+            }
+          }
+        }
+      },
+      "sourceId": "61000"
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "The published GET oneOf omits ping although create/list document ping. Positive ping records retain documented list/common fields only. The empty ping settings object appears solely in an explicitly labeled adapter-convention fixture.",
+      "id": "ping-detail-omission",
+      "path": "GET /checks/{checkid}.check.type"
+    },
+    {
+      "description": "The schema describes arrays of target alternatives; its example uses channel-keyed email/sms arrays. Both documented alternatives are separate fixtures, not a fabricated universal provider shape.",
+      "id": "contact-target-alternatives",
+      "path": "GET /alerting/contacts.contacts[].notification_targets"
+    },
+    {
+      "description": "GET declares boolean with integer example 30000; create/modify declare integer milliseconds. This corpus uses documented integer semantics. Pingdom latency down alerts differ from Uptime Slow and require review.",
+      "id": "threshold-schema-defect",
+      "path": "check.responsetime_threshold"
+    },
+    {
+      "description": "Detail has no ID. List IDs and descriptor request/sourceId carry stable identity; native detail objects are unmodified.",
+      "id": "tms-identity-context",
+      "path": "GET /tms/check/{cid}"
+    },
+    {
+      "description": "Source shouldcontain and shouldnotcontain are mutually exclusive. Positive controls set one or neither; the combination is a separate negative case.",
+      "id": "keywords-exclusive",
+      "path": "check.type.http"
+    },
+    {
+      "description": "API 3.1 publishes no Page Speed export schema. Operator transcription is separately labeled, not an API response.",
+      "id": "no-page-speed-export",
+      "path": "Page Speed"
+    },
+    {
+      "description": "Complete public-page and integration-detail APIs are absent from the retrieved schema. Unknown count, not zero; handoff and export still require review.",
+      "id": "unavailable-resources",
+      "path": "public pages/integrations"
+    }
+  ],
+  "scope": {
+    "account": "synthetic-pingdom-account",
+    "timezone": "not-supplied-by-provider"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "pingdom",
+  "synthetic": true
+}

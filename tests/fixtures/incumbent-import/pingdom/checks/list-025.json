@@ -1,0 +1,640 @@
+{
+  "checks": [
+    {
+      "created": 1785715200,
+      "hostname": "check-61025.example.test",
+      "id": 61025,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 205,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 26",
+      "resolution": 1,
+      "status": "up",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61026.example.test",
+      "id": 61026,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 206,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 27",
+      "resolution": 5,
+      "status": "down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61027.example.test",
+      "id": 61027,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 207,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 28",
+      "resolution": 15,
+      "status": "unconfirmed_down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61028.example.test",
+      "id": 61028,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 208,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 29",
+      "resolution": 30,
+      "status": "unknown",
+      "tags": [],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61029.example.test",
+      "id": 61029,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 209,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 30",
+      "resolution": 60,
+      "status": "paused",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61030.example.test",
+      "id": 61030,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 210,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 31",
+      "resolution": 1,
+      "status": "up",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61031.example.test",
+      "id": 61031,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 211,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 32",
+      "resolution": 5,
+      "status": "down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61032.example.test",
+      "id": 61032,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 212,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 33",
+      "resolution": 15,
+      "status": "unconfirmed_down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61033.example.test",
+      "id": 61033,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 213,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 34",
+      "resolution": 30,
+      "status": "unknown",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61034.example.test",
+      "id": 61034,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 214,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic TCP 35",
+      "resolution": 60,
+      "status": "paused",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "tcp",
+          "type": "u"
+        }
+      ],
+      "type": "tcp"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61035.example.test",
+      "id": 61035,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 215,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 36",
+      "resolution": 1,
+      "status": "up",
+      "tags": [],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61036.example.test",
+      "id": 61036,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 216,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 37",
+      "resolution": 5,
+      "status": "down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "ping",
+          "type": "u"
+        }
+      ],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61037.example.test",
+      "id": 61037,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 217,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 38",
+      "resolution": 15,
+      "status": "unconfirmed_down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "ping",
+          "type": "u"
+        }
+      ],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61038.example.test",
+      "id": 61038,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 218,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 39",
+      "resolution": 30,
+      "status": "unknown",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "ping",
+          "type": "u"
+        }
+      ],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61039.example.test",
+      "id": 61039,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 219,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 40",
+      "resolution": 60,
+      "status": "paused",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "ping",
+          "type": "u"
+        }
+      ],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61040.example.test",
+      "id": 61040,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 220,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 41",
+      "resolution": 1,
+      "status": "up",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "ping",
+          "type": "u"
+        }
+      ],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61041.example.test",
+      "id": 61041,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 221,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 42",
+      "resolution": 5,
+      "status": "down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "ping",
+          "type": "u"
+        }
+      ],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61042.example.test",
+      "id": 61042,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 222,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 43",
+      "resolution": 15,
+      "status": "unconfirmed_down",
+      "tags": [],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61043.example.test",
+      "id": 61043,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 223,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 44",
+      "resolution": 30,
+      "status": "unknown",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "ping",
+          "type": "u"
+        }
+      ],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61044.example.test",
+      "id": 61044,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 224,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic PING 45",
+      "resolution": 60,
+      "status": "paused",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "ping",
+          "type": "u"
+        }
+      ],
+      "type": "ping"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61045.example.test",
+      "id": 61045,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 225,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 46",
+      "resolution": 1,
+      "status": "up",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61046.example.test",
+      "id": 61046,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 226,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 47",
+      "resolution": 5,
+      "status": "down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61047.example.test",
+      "id": 61047,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 227,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 48",
+      "resolution": 15,
+      "status": "unconfirmed_down",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61048.example.test",
+      "id": 61048,
+      "ipv6": false,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 228,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 49",
+      "resolution": 30,
+      "status": "unknown",
+      "tags": [
+        {
+          "count": 1,
+          "name": "synthetic",
+          "type": "u"
+        },
+        {
+          "count": 1,
+          "name": "dns",
+          "type": "u"
+        }
+      ],
+      "type": "dns"
+    },
+    {
+      "created": 1785715200,
+      "hostname": "check-61049.example.test",
+      "id": 61049,
+      "ipv6": true,
+      "lastdownend": 1793404861,
+      "lastdownstart": 1793404800,
+      "lasterrortime": 1793404800,
+      "lastresponsetime": 229,
+      "lasttesttime": 1793491140,
+      "name": "Synthetic DNS 50",
+      "resolution": 60,
+      "status": "paused",
+      "tags": [],
+      "type": "dns"
+    }
+  ],
+  "counts": {
+    "filtered": 25,
+    "limited": 65,
+    "total": 65
+  }
+}

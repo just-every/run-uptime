@@ -61,4 +61,39 @@ export async function definitionsJourney(page, origin) {
   for (const name of step.created) await page.locator('.definition-batches > li').first().getByText(`${name} — created; Paused, history kept`, { exact: true }).waitFor();
   await audit(page, 'definitions-undone', evidence, step.width);
  }
+ await incumbentReportJourney(page,origin);
+}
+
+export async function incumbentReportJourney(page,origin){
+ const evidence=process.env.UPTIME_DEFINITIONS_EVIDENCE;
+ if(evidence)await mkdir(evidence,{recursive:true});
+ await page.setViewportSize({width:1440,height:1000});await page.goto(origin+'/app/settings/backup');
+ const input=fileURLToPath(new URL('./fixtures/incumbent-import/edge/unknown-fields.json',import.meta.url));
+ await page.getByLabel(/^A file from\b/).setInputFiles(input);await page.getByRole('button',{name:'Preview',exact:true}).click();
+ const report=page.locator('.definition-field-report');await report.waitFor();await report.locator(':scope > summary').click();
+ assert.match(await report.textContent(),/unsupported/);assert.match(await report.textContent(),/unknown|supplied/i);
+ const download=page.getByRole('button',{name:'Download field report JSON',exact:true});
+ for(const width of [1440,390]){
+  await page.setViewportSize({width,height:1000});
+  await download.focus();assert.equal(await download.evaluate(el=>el===document.activeElement),true);await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');assert.equal(await download.evaluate(el=>el===document.activeElement),true,'report download is reachable by keyboard');
+  const pending=page.waitForEvent('download');await page.keyboard.press('Enter');const file=await pending,stream=await file.createReadStream();let text='';for await(const bytes of stream)text+=bytes;
+  const data=JSON.parse(text);assert.ok(data.fields.length);assert.ok(data.fields.some(field=>field.path.includes('future')||field.path.includes('syntheticExtension')),'unknown supplied keys are named');assert.ok(!text.includes('SYNTHETIC_SOURCE_'));
+  const session=await page.context().newCDPSession(page);const tree=await session.send('Accessibility.getFullAXTree');await session.detach();assert.ok(tree.nodes.some(node=>node.role?.value==='button'&&node.name?.value==='Download field report JSON'));
+  await audit(page,'incumbent-field-report',evidence,width);
+ }
+ await page.getByRole('button',{name:/^Apply: create/}).click();await page.locator('#action-notice').filter({hasText:/^Applied:/}).waitFor();
+ for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.locator('.definition-field-report > summary').click();await audit(page,'incumbent-applied-report',evidence,width);if(width===1440)await page.locator('.definition-field-report > summary').click()}
+ // Recognition errors preserve the reviewed report and are announced without hiding the message on refresh.
+ await page.getByLabel(/^A file from\b/).setInputFiles({name:'malformed.json',mimeType:'application/json',buffer:Buffer.from('{"check":')});
+ await page.getByRole('button',{name:'Preview',exact:true}).click();await page.locator('#action-notice').filter({hasText:/JSON/i}).waitFor();assert.ok(await report.isVisible());await audit(page,'incumbent-input-error',evidence,390);
+ await page.reload();await page.locator('.definition-batches > li').first().getByRole('button',{name:/^Undo/}).click();await page.getByRole('dialog').getByRole('button',{name:'Undo import',exact:true}).click();await page.locator('#action-notice').filter({hasText:/^Batch undone/}).waitFor();
+ for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await audit(page,'incumbent-undone',evidence,width)}
+}
+
+// A focused executable for this import screen; the command journey also calls the same flow.
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+ const {chromium}=await import('playwright'),{migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts}=await import('./notify-acceptance-runtime.mjs'),{browserSignIn}=await import('./auth-test-support.mjs');
+ const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;let worker,browser;
+ try{({worker}=await migratedWorker({port,persist:join(directory,'worker'),bindings:{UPTIME_ORIGIN:origin}}));browser=await chromium.launch({headless:true,args:['--use-mock-keychain','--password-store=basic']});const page=await browser.newPage();await browserSignIn(page,origin);await incumbentReportJourney(page,origin);console.log('Incumbent report owner console passed at 1440/390: keyboard, downloads, focus, accessibility tree, axe, errors, paused apply and undo.');}
+ finally{await browser?.close();await worker?.dispose();await cleanupDirectory(directory)}
 }

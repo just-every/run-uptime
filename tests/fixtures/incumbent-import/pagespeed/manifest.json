@@ -1,0 +1,42 @@
+{
+  "capture": {
+    "bytes": 1849,
+    "path": "capture.json",
+    "sha256": "f0fd4eefd9fcfa8390ec0fe5ae7179e8d111ad0fc5f840f9fa514382a936d844"
+  },
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "counts": {
+    "claimedNativeExports": 0,
+    "pageSpeedTranscriptions": 1
+  },
+  "entries": [
+    {
+      "bytes": 776,
+      "id": "transcription",
+      "kind": "page-speed-transcription",
+      "path": "transcription.json",
+      "recordCount": 1,
+      "request": {
+        "method": "LOCAL",
+        "path": "operator-transcription/pagespeed",
+        "query": {}
+      },
+      "sha256": "cca1989acec39af278785ece17e9cc32693e1a4c3d0ea8eebf7bfd51fb9750ed",
+      "sourceId": "synthetic-pagespeed-1"
+    }
+  ],
+  "format": "uptime.incumbent-capture-manifest.v1",
+  "schemaNotes": [
+    {
+      "description": "These fields are a synthetic operator transcription of documented Page Speed UI. No public native export schema has been established; this is a proposal, not a Pingdom API response.",
+      "id": "not-an-api-export"
+    }
+  ],
+  "scope": {
+    "account": "synthetic-pingdom-account",
+    "origin": "operator-transcription"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "pingdom-pagespeed-transcription",
+  "synthetic": true
+}

@@ -1,0 +1,70 @@
+{
+  "active": true,
+  "contact_ids": [
+    71001,
+    71002
+  ],
+  "created_at": 1785715200,
+  "custom_message": "Synthetic outcome — café",
+  "integration_ids": [
+    91001,
+    91002
+  ],
+  "interval": 5,
+  "last_downtime_end": 1793487600,
+  "last_downtime_start": 1793487500,
+  "modified_at": 1793404800,
+  "name": "Synthetic login",
+  "region": "us-east",
+  "send_notification_when_down": 2,
+  "severity_level": "high",
+  "status": "successful",
+  "steps": [
+    {
+      "args": {
+        "url": "https://flow.example.test/login"
+      },
+      "fn": "go_to"
+    },
+    {
+      "args": {
+        "input": "#email",
+        "value": "synthetic-login@example.test"
+      },
+      "fn": "fill_in"
+    },
+    {
+      "args": {
+        "input": "#password",
+        "value": "SYNTHETIC_LOCAL_PASSWORD_LOGIN"
+      },
+      "fn": "fill_in"
+    },
+    {
+      "args": {
+        "element": "button[type=submit]"
+      },
+      "fn": "click"
+    },
+    {
+      "args": {
+        "element": "[data-synthetic=dashboard]"
+      },
+      "fn": "wait_for_element"
+    },
+    {
+      "args": {
+        "element": "[data-synthetic=dashboard]"
+      },
+      "fn": "assert_element"
+    }
+  ],
+  "tags": [
+    "synthetic",
+    "transaction"
+  ],
+  "team_ids": [
+    81001
+  ],
+  "type": "script"
+}

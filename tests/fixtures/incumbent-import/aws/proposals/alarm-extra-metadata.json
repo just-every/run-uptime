@@ -1,0 +1,143 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "proposal-alarm-extra-metadata",
+      "kind": "alarms-list",
+      "request": {
+        "method": "LOCAL",
+        "path": "proposal/alarm-extra-metadata",
+        "query": {}
+      },
+      "response": {
+        "CompositeAlarms": [
+          {
+            "ActionConfiguration": {
+              "AlarmTagsPropagation": {
+                "Enabled": true,
+                "ExcludedTagKeys": [
+                  "synthetic-private"
+                ],
+                "IncludedTagKeys": [
+                  "environment"
+                ]
+              }
+            },
+            "ActionsEnabled": false,
+            "ActionsSuppressedBy": "WaitPeriod",
+            "ActionsSuppressedReason": "Synthetic suppression",
+            "ActionsSuppressor": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-maintenance",
+            "ActionsSuppressorExtensionPeriod": 120,
+            "ActionsSuppressorWaitPeriod": 60,
+            "AlarmActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-composite-topic"
+            ],
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-composite",
+            "AlarmConfigurationUpdatedTimestamp": 1793404800,
+            "AlarmDescription": "Synthetic composite expression",
+            "AlarmName": "synthetic-composite",
+            "AlarmRule": "ALARM(\"synthetic-availability\") OR ALARM(\"synthetic-duration\")",
+            "InsufficientDataActions": [],
+            "OKActions": [],
+            "StateReason": "Synthetic imported state",
+            "StateReasonData": "{\"synthetic\":true}",
+            "StateTransitionedTimestamp": 1793490300,
+            "StateUpdatedTimestamp": 1793490600,
+            "StateValue": "INSUFFICIENT_DATA"
+          }
+        ],
+        "MetricAlarms": [
+          {
+            "ActionConfiguration": {
+              "AlarmTagsPropagation": {
+                "Enabled": true,
+                "ExcludedTagKeys": [
+                  "synthetic-private"
+                ],
+                "IncludedTagKeys": [
+                  "environment"
+                ]
+              }
+            },
+            "ActionsEnabled": true,
+            "AlarmActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-alarm-topic"
+            ],
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:synthetic-duration",
+            "AlarmConfigurationUpdatedTimestamp": 1793404800,
+            "AlarmDescription": "Synthetic source alarm — review required",
+            "AlarmName": "synthetic-duration",
+            "ComparisonOperator": "GreaterThanThreshold",
+            "DatapointsToAlarm": 1,
+            "Dimensions": [
+              {
+                "Name": "CanaryName",
+                "Value": "synthetic-api"
+              }
+            ],
+            "EvaluateLowSampleCountPercentile": "ignore",
+            "EvaluationCriteria": {
+              "PromQLCriteria": {
+                "PendingPeriod": 300,
+                "Query": "synthetic_success < 1",
+                "RecoveryPeriod": 300
+              }
+            },
+            "EvaluationInterval": 60,
+            "EvaluationPeriods": 1,
+            "EvaluationState": "PARTIAL_DATA",
+            "EvaluationWindow": {
+              "WallClockWindow": {
+                "Timezone": "UTC"
+              }
+            },
+            "ExtendedStatistic": "p95",
+            "InsufficientDataActions": [],
+            "MetricName": "Duration",
+            "Namespace": "CloudWatchSynthetics",
+            "OKActions": [
+              "arn:aws:sns:us-east-1:000000000000:synthetic-recovery-topic"
+            ],
+            "Period": 300,
+            "StateReason": "Synthetic source state, never local evidence",
+            "StateReasonData": "{\"synthetic\":true}",
+            "StateTransitionedTimestamp": 1793490600,
+            "StateUpdatedTimestamp": 1793490900,
+            "StateValue": "OK",
+            "Threshold": 2000,
+            "ThresholdMetricId": "e1",
+            "TreatMissingData": "missing",
+            "Unit": "Milliseconds",
+            "WarmUpConfiguration": {
+              "OnlyStartEvaluatingAfterWarmUpPeriodEnds": true,
+              "WarmUpPeriodDurationInMinutes": 5
+            }
+          }
+        ]
+      },
+      "sourceId": "00000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "request.query contains documented SDK operation parameters, not an assertion about HTTP wire query serialization. DescribeCanaries and DescribeAlarms use POST.",
+      "id": "sdk-operation-parameters"
+    },
+    {
+      "description": "CanaryCodeInput is separately supplied local input, never a field returned inside GetCanary.Code. ZIP packages are deterministic synthetic files. Code references are not fetched.",
+      "id": "code-input-boundary"
+    },
+    {
+      "description": "Dummy account 000000000000 and reserved targets only. IAM/KMS/S3/Lambda/SNS identifiers remain inert source metadata.",
+      "id": "no-aws-authority"
+    }
+  ],
+  "scope": {
+    "accountId": "000000000000",
+    "region": "us-east-1"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "aws-synthetics",
+  "synthetic": true
+}

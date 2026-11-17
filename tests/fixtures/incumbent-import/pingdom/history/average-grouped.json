@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "responsetime": {
+      "avgresponse": [
+        {
+          "avgresponse": 132,
+          "countryiso": "US",
+          "probeid": 85001
+        },
+        {
+          "avgresponse": 134,
+          "countryiso": "DE",
+          "probeid": 85002
+        }
+      ],
+      "from": 1788307200,
+      "to": 1793491200
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "report": {
+    "check_id": 83001,
+    "name": "Synthetic login",
+    "states": [
+      {
+        "error_in_step": 0,
+        "from": 1793404800,
+        "message": "Synthetic successful run",
+        "status": "successful",
+        "to": 1793487500
+      },
+      {
+        "error_in_step": 3,
+        "from": 1793487500,
+        "message": "Synthetic assertion failed",
+        "status": "failing",
+        "to": 1793487600
+      },
+      {
+        "error_in_step": 0,
+        "from": 1793487600,
+        "message": "Synthetic recovery",
+        "status": "successful",
+        "to": 1793491200
+      }
+    ]
+  }
+}

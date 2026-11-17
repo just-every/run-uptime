@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "responsetime": {
+      "avgresponse": 133,
+      "from": 1788307200,
+      "to": 1793491200
+    },
+    "status": {
+      "totaldown": 4465,
+      "totalunknown": 1800,
+      "totalup": 5177735
+    }
+  }
+}

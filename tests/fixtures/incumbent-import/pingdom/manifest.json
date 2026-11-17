@@ -1,0 +1,1551 @@
+{
+  "capture": {
+    "bytes": 461771,
+    "path": "capture.json",
+    "sha256": "70e42a3dbd67e07b21ec8f8112d011a82006d26ea13ccf5aad410fa785ab59eb"
+  },
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "counts": {
+    "byType": {
+      "dns": 10,
+      "http": 25,
+      "ping": 10,
+      "smtp": 10,
+      "tcp": 10
+    },
+    "contacts": 5,
+    "dailyAggregates": 60,
+    "expectedTlsCompanions": 8,
+    "historyDays": 60,
+    "integrationIds": 2,
+    "maintenanceWindows": 2,
+    "outageSeconds": 4465,
+    "outages": 3,
+    "pingSummaryOnly": 10,
+    "resultPages": 7,
+    "resultSamples": 1205,
+    "teams": 2,
+    "tmsChecks": 4,
+    "tmsRecordings": 2,
+    "tmsScripts": 2,
+    "tmsSupportedProposals": 3,
+    "tmsUnsupportedCommands": 1,
+    "unmappedHistoryRows": 1,
+    "uptimeChecks": 65,
+    "uptimeDetails": 55,
+    "uptimeListPages": 3
+  },
+  "entries": [
+    {
+      "bytes": 14665,
+      "id": "checks/list-000",
+      "kind": "checks-list",
+      "pagination": {
+        "limit": 25,
+        "nextOffset": 25,
+        "offset": 0
+      },
+      "path": "checks/list-000.json",
+      "recordCount": 25,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks",
+        "query": {
+          "include_severity": true,
+          "include_tags": true,
+          "limit": 25,
+          "offset": 0
+        }
+      },
+      "sha256": "7c0b5238c7aa308ab67bc730225ea7c287194526b2d6660d994c23065126490b"
+    },
+    {
+      "bytes": 14607,
+      "id": "checks/list-025",
+      "kind": "checks-list",
+      "pagination": {
+        "limit": 25,
+        "nextOffset": 50,
+        "offset": 25
+      },
+      "path": "checks/list-025.json",
+      "recordCount": 25,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks",
+        "query": {
+          "include_severity": true,
+          "include_tags": true,
+          "limit": 25,
+          "offset": 25
+        }
+      },
+      "sha256": "8bb15bf7998b4c7a7563394a54bed37ab6b346642f86d8d87bdfb0a1e03b8ac9"
+    },
+    {
+      "bytes": 8891,
+      "id": "checks/list-050",
+      "kind": "checks-list",
+      "pagination": {
+        "limit": 25,
+        "offset": 50
+      },
+      "path": "checks/list-050.json",
+      "recordCount": 15,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks",
+        "query": {
+          "include_severity": true,
+          "include_tags": true,
+          "limit": 25,
+          "offset": 50
+        }
+      },
+      "sha256": "8f97b108d94911d0d85fdb4eb5d8753edc886c826e01589776ce3cdd25bdfa9f"
+    },
+    {
+      "bytes": 1796,
+      "id": "checks/detail-61000",
+      "kind": "check-detail",
+      "path": "checks/detail-61000.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61000",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "1554e262a648c9cbb8c94c780cf08e5090acefe303c46f35b91beee548d2080a",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 1010,
+      "id": "checks/detail-61001",
+      "kind": "check-detail",
+      "path": "checks/detail-61001.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61001",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "c7530a04027bcffbeb279181561a849f6bda8779e7c23484f754cfa04ca39a5e",
+      "sourceId": "61001"
+    },
+    {
+      "bytes": 991,
+      "id": "checks/detail-61002",
+      "kind": "check-detail",
+      "path": "checks/detail-61002.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61002",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "4a784a03d254eba2c3583b50ef34bdf1a925f8b32286c6b6ab690df846ef3698",
+      "sourceId": "61002"
+    },
+    {
+      "bytes": 1003,
+      "id": "checks/detail-61003",
+      "kind": "check-detail",
+      "path": "checks/detail-61003.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61003",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "719abe4e368ac8bfcdf14bb505e38a397a850a0721ac28a2e99fe619a32d1fd7",
+      "sourceId": "61003"
+    },
+    {
+      "bytes": 977,
+      "id": "checks/detail-61004",
+      "kind": "check-detail",
+      "path": "checks/detail-61004.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61004",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "b20e55017038c40f55107e7ec749f0d4a4214d69c95fad885287017bdca87dee",
+      "sourceId": "61004"
+    },
+    {
+      "bytes": 933,
+      "id": "checks/detail-61005",
+      "kind": "check-detail",
+      "path": "checks/detail-61005.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61005",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "32f05315afb1dc2baa8f72c9b6c0db70ec103e916da94ac03b1d6d0c43e9f08e",
+      "sourceId": "61005"
+    },
+    {
+      "bytes": 999,
+      "id": "checks/detail-61006",
+      "kind": "check-detail",
+      "path": "checks/detail-61006.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61006",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "76a7d4831bc0136b09999805d650a07834aa2751a774c1913fb7b7039ea40dbf",
+      "sourceId": "61006"
+    },
+    {
+      "bytes": 817,
+      "id": "checks/detail-61007",
+      "kind": "check-detail",
+      "path": "checks/detail-61007.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61007",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "fac1f11666f6a0ddbfee043f460c9bad1a99386c3471a11b0c530370f374af92",
+      "sourceId": "61007"
+    },
+    {
+      "bytes": 903,
+      "id": "checks/detail-61008",
+      "kind": "check-detail",
+      "path": "checks/detail-61008.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61008",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "8ab10532cd6701758483f9e46843aeea0e4c055a01a5a48ef7c2b55dcf209f94",
+      "sourceId": "61008"
+    },
+    {
+      "bytes": 967,
+      "id": "checks/detail-61009",
+      "kind": "check-detail",
+      "path": "checks/detail-61009.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61009",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "25218d4017a8883c8629b60976f79910f7804ca28081d4d46bf83298d58913cf",
+      "sourceId": "61009"
+    },
+    {
+      "bytes": 937,
+      "id": "checks/detail-61010",
+      "kind": "check-detail",
+      "path": "checks/detail-61010.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61010",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "10f3dcc73cdf7f75bd5b8cc9a944d668a687a5ba5bb3049e4c96bfc0549a8b17",
+      "sourceId": "61010"
+    },
+    {
+      "bytes": 900,
+      "id": "checks/detail-61011",
+      "kind": "check-detail",
+      "path": "checks/detail-61011.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61011",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "d0fe7cf0eb02f29cb3c4841d5b8b4701532319c24c210321be363b7878763a99",
+      "sourceId": "61011"
+    },
+    {
+      "bytes": 977,
+      "id": "checks/detail-61012",
+      "kind": "check-detail",
+      "path": "checks/detail-61012.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61012",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "7d28dedea22937f46e7a92cba5b16bb891928c4eb48a057fdbd79dadbadb5fed",
+      "sourceId": "61012"
+    },
+    {
+      "bytes": 943,
+      "id": "checks/detail-61013",
+      "kind": "check-detail",
+      "path": "checks/detail-61013.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61013",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "b9f2799c5f5026d08125b416a10f8fcd213ce8fda04d0d82a4fd315487d14b5e",
+      "sourceId": "61013"
+    },
+    {
+      "bytes": 732,
+      "id": "checks/detail-61014",
+      "kind": "check-detail",
+      "path": "checks/detail-61014.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61014",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "fa35ad82567cbffe161a1233dd8305e37ddecd68233d5fdc197e18e6805df45f",
+      "sourceId": "61014"
+    },
+    {
+      "bytes": 962,
+      "id": "checks/detail-61015",
+      "kind": "check-detail",
+      "path": "checks/detail-61015.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61015",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "ea41ab51f203b6093b59b829f00917656e8aa0528c6ec393c9e135fa53af4bc6",
+      "sourceId": "61015"
+    },
+    {
+      "bytes": 939,
+      "id": "checks/detail-61016",
+      "kind": "check-detail",
+      "path": "checks/detail-61016.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61016",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "7f20d96a13ffcdbd9859aecc490437543df2b5aa63421569036a4267641a347b",
+      "sourceId": "61016"
+    },
+    {
+      "bytes": 913,
+      "id": "checks/detail-61017",
+      "kind": "check-detail",
+      "path": "checks/detail-61017.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61017",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "268d1a63089aa26c950686b0da13a98fe65d0369a60a332574bc55d2acd46b3a",
+      "sourceId": "61017"
+    },
+    {
+      "bytes": 968,
+      "id": "checks/detail-61018",
+      "kind": "check-detail",
+      "path": "checks/detail-61018.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61018",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "21a76afa83e7a29b558c859cf0f41197463edc3099f589d85bd61e722d00b737",
+      "sourceId": "61018"
+    },
+    {
+      "bytes": 942,
+      "id": "checks/detail-61019",
+      "kind": "check-detail",
+      "path": "checks/detail-61019.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61019",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "f22c2811b38a71681f44b9da4e0741cb07b551937057cf422258107c46c2dde6",
+      "sourceId": "61019"
+    },
+    {
+      "bytes": 898,
+      "id": "checks/detail-61020",
+      "kind": "check-detail",
+      "path": "checks/detail-61020.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61020",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "b95ec38afdd16e335494c760838408ae8bc9807cecadbaf7210c9548713b1fa7",
+      "sourceId": "61020"
+    },
+    {
+      "bytes": 793,
+      "id": "checks/detail-61021",
+      "kind": "check-detail",
+      "path": "checks/detail-61021.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61021",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "6c8644fc8c52258fbc32290e79f7b4ef5a4da2ed23ef7d3450d8d4c387eaef9c",
+      "sourceId": "61021"
+    },
+    {
+      "bytes": 952,
+      "id": "checks/detail-61022",
+      "kind": "check-detail",
+      "path": "checks/detail-61022.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61022",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "8098cc9a5a0708e4d37dc3fe3689089b8c43864cea0f34f87dfcd2bedc923bd5",
+      "sourceId": "61022"
+    },
+    {
+      "bytes": 904,
+      "id": "checks/detail-61023",
+      "kind": "check-detail",
+      "path": "checks/detail-61023.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61023",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "38f448ea2aefdddbe56c3c5a1719be15983aaab90553760e59c7ce2f075e1ddc",
+      "sourceId": "61023"
+    },
+    {
+      "bytes": 967,
+      "id": "checks/detail-61024",
+      "kind": "check-detail",
+      "path": "checks/detail-61024.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61024",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "e9421af7dc94f414132b5859e5721e78e09895226abb3afb308828c7dcf14cbb",
+      "sourceId": "61024"
+    },
+    {
+      "bytes": 839,
+      "id": "checks/detail-61025",
+      "kind": "check-detail",
+      "path": "checks/detail-61025.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61025",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "ca1ffa79c0871aa88ecdf00382b214e51222f7cac56779a389093e4aa3cee53e",
+      "sourceId": "61025"
+    },
+    {
+      "bytes": 876,
+      "id": "checks/detail-61026",
+      "kind": "check-detail",
+      "path": "checks/detail-61026.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61026",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "e25f56990b899915682b4fa1fb155852bbe745a27dd053e445f941383117a228",
+      "sourceId": "61026"
+    },
+    {
+      "bytes": 884,
+      "id": "checks/detail-61027",
+      "kind": "check-detail",
+      "path": "checks/detail-61027.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61027",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "6a07090340ab2015696842ed9c3287abab512ee2616bfb978dbe91d8306cec2d",
+      "sourceId": "61027"
+    },
+    {
+      "bytes": 710,
+      "id": "checks/detail-61028",
+      "kind": "check-detail",
+      "path": "checks/detail-61028.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61028",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "d9fb021303f6db640267f236754a2f5ea12c159a42711c4359a0720515d3de0f",
+      "sourceId": "61028"
+    },
+    {
+      "bytes": 844,
+      "id": "checks/detail-61029",
+      "kind": "check-detail",
+      "path": "checks/detail-61029.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61029",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "bdaf394e935d51f079f2e77caf1d57516ea77567cc8353ff6d0b5b59f952050c",
+      "sourceId": "61029"
+    },
+    {
+      "bytes": 904,
+      "id": "checks/detail-61030",
+      "kind": "check-detail",
+      "path": "checks/detail-61030.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61030",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "6d3d6ac75039573efe38f05e3ff28cb6bdf03ac643325681241a5e60ba766e79",
+      "sourceId": "61030"
+    },
+    {
+      "bytes": 841,
+      "id": "checks/detail-61031",
+      "kind": "check-detail",
+      "path": "checks/detail-61031.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61031",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "703757bd907056c312b4822965baaa48990eaec78c52c6717508e7c13f8e05b4",
+      "sourceId": "61031"
+    },
+    {
+      "bytes": 889,
+      "id": "checks/detail-61032",
+      "kind": "check-detail",
+      "path": "checks/detail-61032.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61032",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "36cfc12554c33a442876df16039e0349e94a6b21dbc5e43531f1c2c67e53910e",
+      "sourceId": "61032"
+    },
+    {
+      "bytes": 875,
+      "id": "checks/detail-61033",
+      "kind": "check-detail",
+      "path": "checks/detail-61033.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61033",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "3cf14f40a722f48e5de8cc980637febe40c68bc9883f9f90a7fe77d10c541223",
+      "sourceId": "61033"
+    },
+    {
+      "bytes": 879,
+      "id": "checks/detail-61034",
+      "kind": "check-detail",
+      "path": "checks/detail-61034.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61034",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "06006cf446cec1b735f85b589b11b95be9af570a24e76c4ab7678ccb6ec51b2e",
+      "sourceId": "61034"
+    },
+    {
+      "bytes": 899,
+      "id": "checks/detail-61045",
+      "kind": "check-detail",
+      "path": "checks/detail-61045.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61045",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "3e7585a07a45dab6696f39adc2a92cd383c90b7e87ca12dfd575da578ef8d895",
+      "sourceId": "61045"
+    },
+    {
+      "bytes": 869,
+      "id": "checks/detail-61046",
+      "kind": "check-detail",
+      "path": "checks/detail-61046.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61046",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "4dfca0e0ab0067296c561e457f42d2400a5e4cb94aa019c2ae973b98ea654587",
+      "sourceId": "61046"
+    },
+    {
+      "bytes": 884,
+      "id": "checks/detail-61047",
+      "kind": "check-detail",
+      "path": "checks/detail-61047.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61047",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "62aa097c4a2c618253bef02469ab904b3fc3e1e58b58c09db57b5af154ce00c2",
+      "sourceId": "61047"
+    },
+    {
+      "bytes": 903,
+      "id": "checks/detail-61048",
+      "kind": "check-detail",
+      "path": "checks/detail-61048.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61048",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "c10c72e500b434cb59bca544efde0b385d9fb45b65048f268f0b293d74305735",
+      "sourceId": "61048"
+    },
+    {
+      "bytes": 704,
+      "id": "checks/detail-61049",
+      "kind": "check-detail",
+      "path": "checks/detail-61049.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61049",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "f2e1a35e5297a40408d1c580473181d2f04314761df1621c5e89c67198eb8eaf",
+      "sourceId": "61049"
+    },
+    {
+      "bytes": 867,
+      "id": "checks/detail-61050",
+      "kind": "check-detail",
+      "path": "checks/detail-61050.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61050",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "d339fb20550e2307e3098b5b167f604edd1e544ed618636b12c4d8ab1cc0cfe8",
+      "sourceId": "61050"
+    },
+    {
+      "bytes": 901,
+      "id": "checks/detail-61051",
+      "kind": "check-detail",
+      "path": "checks/detail-61051.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61051",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "521ca30643edbf4836be78c5e5ad39649c68c398294523445e1e09c6d7bd3b91",
+      "sourceId": "61051"
+    },
+    {
+      "bytes": 882,
+      "id": "checks/detail-61052",
+      "kind": "check-detail",
+      "path": "checks/detail-61052.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61052",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "cdaa36a33bc9cddefaa58c644d8d7e8666dc62502b83ac57644b3116a5e3ebae",
+      "sourceId": "61052"
+    },
+    {
+      "bytes": 875,
+      "id": "checks/detail-61053",
+      "kind": "check-detail",
+      "path": "checks/detail-61053.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61053",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "74824a9fcae5a2c1442a15609e7ab550f15ec5b31b1c8df95975b3e8867be1fd",
+      "sourceId": "61053"
+    },
+    {
+      "bytes": 902,
+      "id": "checks/detail-61054",
+      "kind": "check-detail",
+      "path": "checks/detail-61054.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61054",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "5cde01a9f04556ca28de844f7fa028d212145a7ef0f875b87c01a5a00189b571",
+      "sourceId": "61054"
+    },
+    {
+      "bytes": 895,
+      "id": "checks/detail-61055",
+      "kind": "check-detail",
+      "path": "checks/detail-61055.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61055",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "9392896b0d2468abe376e99fdfff2db8bcdebd52bad9c372e74534568222244c",
+      "sourceId": "61055"
+    },
+    {
+      "bytes": 726,
+      "id": "checks/detail-61056",
+      "kind": "check-detail",
+      "path": "checks/detail-61056.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61056",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "651657131589b6b468acedb6a17d3e99953126d529a8f825b6bf7cdb4f877303",
+      "sourceId": "61056"
+    },
+    {
+      "bytes": 940,
+      "id": "checks/detail-61057",
+      "kind": "check-detail",
+      "path": "checks/detail-61057.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61057",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "8cc7c0e892bc4267cd0acbcba596ccae817754f070ce8830f4771c7eaea1b938",
+      "sourceId": "61057"
+    },
+    {
+      "bytes": 901,
+      "id": "checks/detail-61058",
+      "kind": "check-detail",
+      "path": "checks/detail-61058.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61058",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "93ea3a51afaa14a0d13b62ac578da845cbad3ee7f5c8d707dea6a5ece1de5629",
+      "sourceId": "61058"
+    },
+    {
+      "bytes": 900,
+      "id": "checks/detail-61059",
+      "kind": "check-detail",
+      "path": "checks/detail-61059.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61059",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "1cc0e8db58a76a9ee7d340d5d342f61b7449387c4c9d63085b426c88373f8179",
+      "sourceId": "61059"
+    },
+    {
+      "bytes": 925,
+      "id": "checks/detail-61060",
+      "kind": "check-detail",
+      "path": "checks/detail-61060.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61060",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "02f2450e9ae4ed46e6572f7fecd18c06102297e4a950a22ea65cf72d9600a50f",
+      "sourceId": "61060"
+    },
+    {
+      "bytes": 897,
+      "id": "checks/detail-61061",
+      "kind": "check-detail",
+      "path": "checks/detail-61061.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61061",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "278129e68801e6bbf602812dfb6101e32366239a02e7e4ade3e63f5dfe9aaf5f",
+      "sourceId": "61061"
+    },
+    {
+      "bytes": 910,
+      "id": "checks/detail-61062",
+      "kind": "check-detail",
+      "path": "checks/detail-61062.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61062",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "360dbfeedf4d9a69d3e4c38db62c21194b12625b294c65e3aa1a3ad399eab7e9",
+      "sourceId": "61062"
+    },
+    {
+      "bytes": 760,
+      "id": "checks/detail-61063",
+      "kind": "check-detail",
+      "path": "checks/detail-61063.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61063",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "faee99bde24a57d4c9f2db88a70b0a4e0d570c51c61a26c92f3d0bfdc7510896",
+      "sourceId": "61063"
+    },
+    {
+      "bytes": 900,
+      "id": "checks/detail-61064",
+      "kind": "check-detail",
+      "path": "checks/detail-61064.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/checks/61064",
+        "query": {
+          "include_teams": true
+        }
+      },
+      "sha256": "723824308781e94918aec3438e4ea4a8776ade6c0e33c5e769973af00654287b",
+      "sourceId": "61064"
+    },
+    {
+      "bytes": 744,
+      "id": "teams",
+      "kind": "teams",
+      "path": "teams.json",
+      "recordCount": 2,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/alerting/teams",
+        "query": {}
+      },
+      "sha256": "2112c8c2edb4626703c9d8ed20d19c4e8a84411c332315e78a6b567d88d7b459"
+    },
+    {
+      "bytes": 2207,
+      "id": "contacts",
+      "kind": "contacts",
+      "path": "contacts.json",
+      "recordCount": 5,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/alerting/contacts",
+        "query": {}
+      },
+      "sha256": "b56cd7ea4c396ffea546479837e0ecd293a8a101e6e3b6c9b96a44ba9e9ee9af"
+    },
+    {
+      "bytes": 755,
+      "id": "maintenance",
+      "kind": "maintenance",
+      "pagination": {
+        "limit": 25,
+        "offset": 0
+      },
+      "path": "maintenance.json",
+      "recordCount": 2,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/maintenance",
+        "query": {
+          "limit": 25,
+          "offset": 0
+        }
+      },
+      "sha256": "0b26f30d32b33e8218d43ae8c68573f8fd97e75392c543b12da38edd6220a514"
+    },
+    {
+      "bytes": 581,
+      "id": "maintenance-occurrences",
+      "kind": "maintenance-occurrences",
+      "path": "maintenance-occurrences.json",
+      "recordCount": 5,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/maintenance.occurrences",
+        "query": {
+          "from": 1793318400,
+          "to": 1793750400
+        }
+      },
+      "sha256": "6bad0d981c789f8d75f52b4e10081b81db06cb263bcf61d5ab4ea6c24bd65c7f"
+    },
+    {
+      "bytes": 853,
+      "id": "probes",
+      "kind": "probes",
+      "pagination": {
+        "limit": 25,
+        "offset": 0
+      },
+      "path": "probes.json",
+      "recordCount": 3,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/probes",
+        "query": {
+          "includedeleted": true,
+          "limit": 25,
+          "offset": 0
+        }
+      },
+      "sha256": "fc4d37b4163dc77eb5d16f2dc52988451f5c909c3f53308fce23234523b67459"
+    },
+    {
+      "bytes": 38500,
+      "id": "history/results-0000",
+      "kind": "results",
+      "pagination": {
+        "limit": 200,
+        "nextOffset": 200,
+        "offset": 0
+      },
+      "path": "history/results-0000.json",
+      "recordCount": 200,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/results/61000",
+        "query": {
+          "from": 1788307200,
+          "limit": 200,
+          "offset": 0,
+          "to": 1793491200
+        }
+      },
+      "sha256": "ed81c4764178158cca28b81d0ce9261584fce113a9e9008c40c730869af68478",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 38468,
+      "id": "history/results-0200",
+      "kind": "results",
+      "pagination": {
+        "limit": 200,
+        "nextOffset": 400,
+        "offset": 200
+      },
+      "path": "history/results-0200.json",
+      "recordCount": 200,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/results/61000",
+        "query": {
+          "from": 1788307200,
+          "limit": 200,
+          "offset": 200,
+          "to": 1793491200
+        }
+      },
+      "sha256": "6a666def90a95980e7c210a269ba8a0973d5049baea590839c154f23c16158e5",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 38495,
+      "id": "history/results-0400",
+      "kind": "results",
+      "pagination": {
+        "limit": 200,
+        "nextOffset": 600,
+        "offset": 400
+      },
+      "path": "history/results-0400.json",
+      "recordCount": 200,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/results/61000",
+        "query": {
+          "from": 1788307200,
+          "limit": 200,
+          "offset": 400,
+          "to": 1793491200
+        }
+      },
+      "sha256": "0ddb77e208682674bc8e47ba003fcdd0c51720668d4a4417a94b7a96798b830d",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 38468,
+      "id": "history/results-0600",
+      "kind": "results",
+      "pagination": {
+        "limit": 200,
+        "nextOffset": 800,
+        "offset": 600
+      },
+      "path": "history/results-0600.json",
+      "recordCount": 200,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/results/61000",
+        "query": {
+          "from": 1788307200,
+          "limit": 200,
+          "offset": 600,
+          "to": 1793491200
+        }
+      },
+      "sha256": "1ae454b5b8358f6d27b29e716b301c0004cb6a0462a3c66ac6cb570cf3b7514d",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 38468,
+      "id": "history/results-0800",
+      "kind": "results",
+      "pagination": {
+        "limit": 200,
+        "nextOffset": 1000,
+        "offset": 800
+      },
+      "path": "history/results-0800.json",
+      "recordCount": 200,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/results/61000",
+        "query": {
+          "from": 1788307200,
+          "limit": 200,
+          "offset": 800,
+          "to": 1793491200
+        }
+      },
+      "sha256": "e5739048d278de4f940244245a5291011fdf087c13896d6fcae3d9b10afdb5cf",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 38495,
+      "id": "history/results-1000",
+      "kind": "results",
+      "pagination": {
+        "limit": 200,
+        "nextOffset": 1200,
+        "offset": 1000
+      },
+      "path": "history/results-1000.json",
+      "recordCount": 200,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/results/61000",
+        "query": {
+          "from": 1788307200,
+          "limit": 200,
+          "offset": 1000,
+          "to": 1793491200
+        }
+      },
+      "sha256": "a0c043b670a53e38a31ca8d72d98cdbd4f31b9320fc8d2cc828f4382ae7a5d26",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 1028,
+      "id": "history/results-1200",
+      "kind": "results",
+      "pagination": {
+        "limit": 200,
+        "offset": 1200
+      },
+      "path": "history/results-1200.json",
+      "recordCount": 5,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/results/61000",
+        "query": {
+          "from": 1788307200,
+          "limit": 200,
+          "offset": 1200,
+          "to": 1793491200
+        }
+      },
+      "sha256": "179a25fa42adb75c18b8cc1273379e49902838306e55b30a511fb20fe4acf92f",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 973,
+      "id": "history/outages",
+      "kind": "summary-outage",
+      "path": "history/outages.json",
+      "recordCount": 9,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/summary.outage/61000",
+        "query": {
+          "from": 1788307200,
+          "to": 1793491200
+        }
+      },
+      "sha256": "c3e584f3c849bb681cd3f81c842c5ff884d76b9480f04dc1151d7b5bcbe51de1",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 227,
+      "id": "history/average",
+      "kind": "summary-average",
+      "path": "history/average.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/summary.average/61000",
+        "query": {
+          "from": 1788307200,
+          "includeuptime": true,
+          "to": 1793491200
+        }
+      },
+      "sha256": "6b2ce1ec42e39d8670b19286feb194c1a8bdadc3f813ca5ad4d3b7e35b6fde70",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 347,
+      "id": "history/average-grouped",
+      "kind": "summary-average",
+      "path": "history/average-grouped.json",
+      "recordCount": 2,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/summary.average/61000",
+        "query": {
+          "byprobe": true,
+          "from": 1788307200,
+          "to": 1793491200
+        }
+      },
+      "sha256": "20eb96ffe3dd1842b54e5ca419c38a675ffadc5e20f92dba49949722d1049c22",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 9111,
+      "id": "history/performance-days",
+      "kind": "summary-performance",
+      "path": "history/performance-days.json",
+      "recordCount": 60,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/summary.performance/61000",
+        "query": {
+          "from": 1788307200,
+          "includeuptime": true,
+          "order": "asc",
+          "resolution": "day",
+          "to": 1793491200
+        }
+      },
+      "sha256": "def7352a1fb6e179b0b7a6928fe54ae20c33b999809a434b49a4f241d68125d6",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 351,
+      "id": "history/performance-weeks-overlap",
+      "kind": "summary-performance",
+      "path": "history/performance-weeks-overlap.json",
+      "recordCount": 2,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/summary.performance/61000",
+        "query": {
+          "from": 1788307200,
+          "includeuptime": true,
+          "order": "asc",
+          "resolution": "week",
+          "to": 1789516800
+        }
+      },
+      "sha256": "62ed7ee1bcab382f0c0f10eaf1b8825a3ca1eb8d0a243c97e9eed64abd41d837",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 343,
+      "id": "history/performance-hours-overlap",
+      "kind": "summary-performance",
+      "path": "history/performance-hours-overlap.json",
+      "recordCount": 2,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/summary.performance/61000",
+        "query": {
+          "from": 1788307200,
+          "includeuptime": true,
+          "order": "asc",
+          "resolution": "hour",
+          "to": 1788314400
+        }
+      },
+      "sha256": "fe2fbeb0f17bb82b6145f6fda9140dd84bfbd42791ded34ee283bb058dede92d",
+      "sourceId": "61000"
+    },
+    {
+      "bytes": 273,
+      "id": "history/unmapped-monitor",
+      "kind": "results",
+      "pagination": {
+        "limit": 200,
+        "offset": 0
+      },
+      "path": "history/unmapped-monitor.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/results/69999",
+        "query": {
+          "from": 1788307200,
+          "limit": 200,
+          "offset": 0,
+          "to": 1793491200
+        }
+      },
+      "sha256": "d392dad0bc18599873888fc99d875a1e0d6fa66a09e3397324b3030d0668962d",
+      "sourceId": "69999"
+    },
+    {
+      "bytes": 851,
+      "id": "tms/list-0",
+      "kind": "tms-list",
+      "pagination": {
+        "limit": 2,
+        "nextOffset": 2,
+        "offset": 0
+      },
+      "path": "tms/list-0.json",
+      "recordCount": 2,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/tms/check",
+        "query": {
+          "limit": 2,
+          "offset": 0
+        }
+      },
+      "sha256": "580c93c0368f3fc96e483e5f1f3227c8dea35153bf60d8dd2f80a60663a219ba"
+    },
+    {
+      "bytes": 870,
+      "id": "tms/list-2",
+      "kind": "tms-list",
+      "pagination": {
+        "limit": 2,
+        "offset": 2
+      },
+      "path": "tms/list-2.json",
+      "recordCount": 2,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/tms/check",
+        "query": {
+          "limit": 2,
+          "offset": 2
+        }
+      },
+      "sha256": "179af6d4a5ab866ca9acfbbffaf0aa9c370f00562471428ba937fe8a9d0a331d"
+    },
+    {
+      "bytes": 1287,
+      "id": "tms/detail-83001",
+      "kind": "tms-detail",
+      "path": "tms/detail-83001.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/tms/check/83001",
+        "query": {}
+      },
+      "sha256": "10c2554f3c05459e3403bd6c8b99420c170839652e175b6157e1e14e3fa3a467",
+      "sourceId": "83001"
+    },
+    {
+      "bytes": 1289,
+      "id": "tms/detail-83002",
+      "kind": "tms-detail",
+      "path": "tms/detail-83002.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/tms/check/83002",
+        "query": {}
+      },
+      "sha256": "b6558d36cfe4b7dd213ff91b42acd3f3c9e436341c686517e8787ff11b3592d0",
+      "sourceId": "83002"
+    },
+    {
+      "bytes": 1198,
+      "id": "tms/detail-83003",
+      "kind": "tms-detail",
+      "path": "tms/detail-83003.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/tms/check/83003",
+        "query": {}
+      },
+      "sha256": "a42ba6150aebb3fe58c28008c5f28a242134b3cd9cfb6ca54b39342172e1833a",
+      "sourceId": "83003"
+    },
+    {
+      "bytes": 915,
+      "id": "tms/detail-83004",
+      "kind": "tms-detail",
+      "path": "tms/detail-83004.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/tms/check/83004",
+        "query": {}
+      },
+      "sha256": "381367e0c265463e5c7b5782626b48c4dc43f51e5936a6fe21d1f2292ff70f51",
+      "sourceId": "83004"
+    },
+    {
+      "bytes": 621,
+      "id": "tms/status-report",
+      "kind": "tms-status-report",
+      "path": "tms/status-report.json",
+      "recordCount": 3,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/tms/check/83001/report/status",
+        "query": {
+          "from": 1793404800,
+          "to": 1793491200
+        }
+      },
+      "sha256": "c4a3a7f1ebbd82c985ec83583b004d746878dcac6af637d339669cf6edab5178",
+      "sourceId": "83001"
+    },
+    {
+      "bytes": 1738,
+      "id": "tms/performance-report",
+      "kind": "tms-performance-report",
+      "path": "tms/performance-report.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/api/3.1/tms/check/83001/report/performance",
+        "query": {
+          "from": 1793404800,
+          "resolution": "day",
+          "to": 1793491200
+        }
+      },
+      "sha256": "6d046806ed360eee7de9f691aaf5eab7fb8a555b3b0bb66ad982f002cdaa2db2",
+      "sourceId": "83001"
+    }
+  ],
+  "format": "uptime.incumbent-capture-manifest.v1",
+  "schemaNotes": [
+    {
+      "description": "The published GET oneOf omits ping although create/list document ping. Positive ping records retain documented list/common fields only. The empty ping settings object appears solely in an explicitly labeled adapter-convention fixture.",
+      "id": "ping-detail-omission",
+      "path": "GET /checks/{checkid}.check.type"
+    },
+    {
+      "description": "The schema describes arrays of target alternatives; its example uses channel-keyed email/sms arrays. Both documented alternatives are separate fixtures, not a fabricated universal provider shape.",
+      "id": "contact-target-alternatives",
+      "path": "GET /alerting/contacts.contacts[].notification_targets"
+    },
+    {
+      "description": "GET declares boolean with integer example 30000; create/modify declare integer milliseconds. This corpus uses documented integer semantics. Pingdom latency down alerts differ from Uptime Slow and require review.",
+      "id": "threshold-schema-defect",
+      "path": "check.responsetime_threshold"
+    },
+    {
+      "description": "Detail has no ID. List IDs and descriptor request/sourceId carry stable identity; native detail objects are unmodified.",
+      "id": "tms-identity-context",
+      "path": "GET /tms/check/{cid}"
+    },
+    {
+      "description": "Source shouldcontain and shouldnotcontain are mutually exclusive. Positive controls set one or neither; the combination is a separate negative case.",
+      "id": "keywords-exclusive",
+      "path": "check.type.http"
+    },
+    {
+      "description": "API 3.1 publishes no Page Speed export schema. Operator transcription is separately labeled, not an API response.",
+      "id": "no-page-speed-export",
+      "path": "Page Speed"
+    },
+    {
+      "description": "Complete public-page and integration-detail APIs are absent from the retrieved schema. Unknown count, not zero; handoff and export still require review.",
+      "id": "unavailable-resources",
+      "path": "public pages/integrations"
+    }
+  ],
+  "scope": {
+    "account": "synthetic-pingdom-account",
+    "timezone": "not-supplied-by-provider"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "pingdom",
+  "synthetic": true
+}

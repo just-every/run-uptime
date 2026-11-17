@@ -1,0 +1,40 @@
+{
+  "maintenance": [
+    {
+      "checks": {
+        "tms": [
+          83001
+        ],
+        "uptime": [
+          61000
+        ]
+      },
+      "description": "Synthetic one-time maintenance — café",
+      "effectiveto": 1793327400,
+      "from": 1793325600,
+      "id": 82001,
+      "recurrencetype": "none",
+      "repeatevery": 0,
+      "to": 1793327400
+    },
+    {
+      "checks": {
+        "tms": [
+          83002,
+          83003
+        ],
+        "uptime": [
+          61001,
+          61025
+        ]
+      },
+      "description": "Synthetic recurring epoch window",
+      "effectiveto": 1793685600,
+      "from": 1793424600,
+      "id": 82002,
+      "recurrencetype": "day",
+      "repeatevery": 1,
+      "to": 1793426400
+    }
+  ]
+}

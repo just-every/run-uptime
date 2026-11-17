@@ -1,0 +1,54 @@
+{
+  "Canary": {
+    "ArtifactConfig": {
+      "S3Encryption": {
+        "EncryptionMode": "SSE_S3"
+      }
+    },
+    "ArtifactS3Location": "s3://synthetic-artifacts-example/synthetic-api/",
+    "Code": {
+      "BlueprintTypes": [
+        "api"
+      ],
+      "Dependencies": [],
+      "Handler": "index.handler",
+      "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic-api-code:1"
+    },
+    "EngineArn": "arn:aws:lambda:us-east-1:000000000000:function:synthetic-api-engine",
+    "ExecutionRoleArn": "arn:aws:iam::000000000000:role/synthetic-canary-execution",
+    "FailureRetentionPeriodInDays": 31,
+    "Id": "00000000-0000-4000-8000-000000000002",
+    "Name": "synthetic-api",
+    "ProvisionedResourceCleanup": "OFF",
+    "RunConfig": {
+      "ActiveTracing": false,
+      "EphemeralStorage": 1024,
+      "MemoryInMB": 960,
+      "TimeoutInSeconds": 30
+    },
+    "RuntimeVersion": "syn-nodejs-puppeteer-10.0",
+    "Schedule": {
+      "DurationInSeconds": 0,
+      "Expression": "rate(5 minutes)",
+      "RetryConfig": {
+        "MaxRetries": 0
+      }
+    },
+    "Status": {
+      "State": "STOPPED",
+      "StateReason": "Synthetic source state, not current local health",
+      "StateReasonCode": "CREATE_COMPLETE"
+    },
+    "SuccessRetentionPeriodInDays": 31,
+    "Tags": {
+      "environment": "synthetic",
+      "service": "api"
+    },
+    "Timeline": {
+      "Created": 1785715200,
+      "LastModified": 1793404800,
+      "LastStarted": 1793484000,
+      "LastStopped": 1793487600
+    }
+  }
+}

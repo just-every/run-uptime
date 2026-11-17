@@ -1,0 +1,194 @@
+{
+  "capture": {
+    "bytes": 20815,
+    "path": "capture.json",
+    "sha256": "6195008f454ff633c4dfc048e07cbc10add4ae62d7ef6d6f3ad3419e91b79156"
+  },
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "counts": {
+    "alarmPages": 2,
+    "canaries": 2,
+    "canaryPages": 3,
+    "codePackages": 2,
+    "compositeAlarms": 1,
+    "metricAlarms": 4
+  },
+  "entries": [
+    {
+      "bytes": 1795,
+      "id": "canaries/list-0",
+      "kind": "canaries-list",
+      "pagination": {
+        "nextToken": "synthetic-page-1"
+      },
+      "path": "canaries/list-0.json",
+      "recordCount": 1,
+      "request": {
+        "method": "POST",
+        "path": "/canaries",
+        "query": {
+          "MaxResults": 1
+        }
+      },
+      "sha256": "1fcdb4391153f4fca832fd69b1f7fb404da18cbf060ba4a60832db201ecce760"
+    },
+    {
+      "bytes": 1636,
+      "id": "canaries/detail-synthetic-browser",
+      "kind": "canary-detail",
+      "path": "canaries/detail-synthetic-browser.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/canary/synthetic-browser",
+        "query": {}
+      },
+      "sha256": "be46d30b9b3dd8539af664f5469b563f80b0e75c73cb9e2b24eb582eb55cac8d",
+      "sourceId": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "bytes": 726,
+      "id": "code/synthetic-browser-input",
+      "kind": "canary-code-input",
+      "path": "code/synthetic-browser-input.json",
+      "recordCount": 1,
+      "request": {
+        "method": "LOCAL",
+        "path": "canary-code-input/synthetic-browser",
+        "query": {}
+      },
+      "sha256": "078528de145f4cc32f31b0353a2680c28b0f2ae9db93e2d1f74f210b7f3a2bbd",
+      "sourceId": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "bytes": 1680,
+      "id": "canaries/list-1",
+      "kind": "canaries-list",
+      "pagination": {
+        "nextToken": "synthetic-page-2",
+        "token": "synthetic-page-1"
+      },
+      "path": "canaries/list-1.json",
+      "recordCount": 1,
+      "request": {
+        "method": "POST",
+        "path": "/canaries",
+        "query": {
+          "MaxResults": 1,
+          "NextToken": "synthetic-page-1"
+        }
+      },
+      "sha256": "b0b57632037f0f06b0335f1b39b4c1136f2014d9b0033272f4d885f2ff8f2e2d"
+    },
+    {
+      "bytes": 1531,
+      "id": "canaries/detail-synthetic-api",
+      "kind": "canary-detail",
+      "path": "canaries/detail-synthetic-api.json",
+      "recordCount": 1,
+      "request": {
+        "method": "GET",
+        "path": "/canary/synthetic-api",
+        "query": {}
+      },
+      "sha256": "e3a22656f634bd2b69098e9f60064393814654b0e8825e52ef190106d8d92573",
+      "sourceId": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "bytes": 730,
+      "id": "code/synthetic-api-input",
+      "kind": "canary-code-input",
+      "path": "code/synthetic-api-input.json",
+      "recordCount": 1,
+      "request": {
+        "method": "LOCAL",
+        "path": "canary-code-input/synthetic-api",
+        "query": {}
+      },
+      "sha256": "b2406fe9e29511237c54adbe4cbea2cee661dbc95b996ba5c0fc8c9a2a173e71",
+      "sourceId": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "bytes": 21,
+      "id": "canaries/list-terminal",
+      "kind": "canaries-list",
+      "pagination": {
+        "token": "synthetic-page-2"
+      },
+      "path": "canaries/list-terminal.json",
+      "recordCount": 0,
+      "request": {
+        "method": "POST",
+        "path": "/canaries",
+        "query": {
+          "MaxResults": 1,
+          "NextToken": "synthetic-page-2"
+        }
+      },
+      "sha256": "064e1655c4a1a0a009024b62b849bae63e5e7654d3317036e0f7ada04fd9e6b9"
+    },
+    {
+      "bytes": 2540,
+      "id": "alarms/list-0",
+      "kind": "alarms-list",
+      "pagination": {
+        "nextToken": "synthetic-alarm-page-1"
+      },
+      "path": "alarms/list-0.json",
+      "recordCount": 2,
+      "request": {
+        "method": "POST",
+        "path": "/",
+        "query": {
+          "Action": "DescribeAlarms",
+          "MaxRecords": 2,
+          "Version": "2010-08-01"
+        }
+      },
+      "sha256": "df1ab15fe0e9a35215b3b84e9f411a73948366081b166184ce422b8610f8bdca"
+    },
+    {
+      "bytes": 4048,
+      "id": "alarms/list-1",
+      "kind": "alarms-list",
+      "pagination": {
+        "token": "synthetic-alarm-page-1"
+      },
+      "path": "alarms/list-1.json",
+      "recordCount": 3,
+      "request": {
+        "method": "POST",
+        "path": "/",
+        "query": {
+          "Action": "DescribeAlarms",
+          "MaxRecords": 100,
+          "NextToken": "synthetic-alarm-page-1",
+          "Version": "2010-08-01"
+        }
+      },
+      "sha256": "53634985274eee4be1ad70fc465d23c46ad5f6c95df85c74201b494d61a27477"
+    }
+  ],
+  "format": "uptime.incumbent-capture-manifest.v1",
+  "schemaNotes": [
+    {
+      "description": "request.query contains documented SDK operation parameters, not an assertion about HTTP wire query serialization. DescribeCanaries and DescribeAlarms use POST.",
+      "id": "sdk-operation-parameters"
+    },
+    {
+      "description": "CanaryCodeInput is separately supplied local input, never a field returned inside GetCanary.Code. ZIP packages are deterministic synthetic files. Code references are not fetched.",
+      "id": "code-input-boundary"
+    },
+    {
+      "description": "Dummy account 000000000000 and reserved targets only. IAM/KMS/S3/Lambda/SNS identifiers remain inert source metadata.",
+      "id": "no-aws-authority"
+    }
+  ],
+  "scope": {
+    "accountId": "000000000000",
+    "region": "us-east-1"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "aws-synthetics",
+  "synthetic": true
+}

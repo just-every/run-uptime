@@ -1,0 +1,37 @@
+{
+  "probes": [
+    {
+      "active": true,
+      "city": "Synthetic East",
+      "country": "United States",
+      "countryiso": "US",
+      "hostname": "probe-east.example.test",
+      "id": 85001,
+      "ip": "192.0.2.11",
+      "ipv6": "2001:db8::11",
+      "name": "Synthetic East"
+    },
+    {
+      "active": true,
+      "city": "Synthetic Europe",
+      "country": "Germany",
+      "countryiso": "DE",
+      "hostname": "probe-eu.example.test",
+      "id": 85002,
+      "ip": "198.51.100.12",
+      "ipv6": "2001:db8::12",
+      "name": "Synthetic Europe"
+    },
+    {
+      "active": false,
+      "city": "Synthetic APAC",
+      "country": "Australia",
+      "countryiso": "AU",
+      "hostname": "probe-apac.example.test",
+      "id": 85003,
+      "ip": "203.0.113.13",
+      "ipv6": "2001:db8::13",
+      "name": "Synthetic APAC"
+    }
+  ]
+}

@@ -1,0 +1,1178 @@
+{
+  "author": "Codex",
+  "authoredAt": "2026-11-17",
+  "basis": "Public Pingdom API 3.1 and AWS API references; planner FIELD-MAP.csv at 99eeacb8f36b6c97ead141fd1703fbbdec89f0b2. No production importer is used to derive expectations.",
+  "cases": [
+    {
+      "category": "malformed",
+      "path": "negative/truncated.json",
+      "reason": "Truncated JSON; refuse without effects."
+    },
+    {
+      "category": "malformed",
+      "path": "negative/invalid-utf8.json",
+      "reason": "Invalid UTF-8 bytes; refuse without replacement-character normalization."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/wrong-envelope.json",
+      "reason": "check-detail needs a check object."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/wrong-type.json",
+      "reason": "Protocol booleans may not be string-coerced."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/malformed-number.json",
+      "reason": "Cadence must be an integer, not text."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/malformed-date.json",
+      "reason": "Malformed source epochs must be named, never converted to current time."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/duplicate-id-conflict.json",
+      "reason": "Same kind/source ID with different content conflicts."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/missing-detail.json",
+      "reason": "A summary with a missing detail cannot silently become a full check."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/offset-gap.json",
+      "reason": "Missing middle offset page is visible in capture reconciliation."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/offset-wrong-number.json",
+      "reason": "Negative page offset must be refused."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/repeated-token.json",
+      "reason": "Repeated continuation token must not loop or silently omit resources."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/unmatched-tms-id.json",
+      "reason": "Descriptor identity must match request/list context."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/exclusive-keywords.json",
+      "reason": "Pingdom explicitly prohibits combining include and exclude keywords."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/invalid-unicode-tag.json",
+      "reason": "Invalid Unicode tag belongs only in a negative corpus."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/deep-nesting.json",
+      "reason": "Excessive JSON depth must be bounded."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/prototype-keys.json",
+      "reason": "Prototype-related keys must be refused without pollution."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/credential-url.json",
+      "reason": "Credential-bearing URL source cannot retain URL credentials."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/forbidden-loopback.json",
+      "reason": "Forbidden target must not be contacted or acquire installation authority."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/forbidden-ipv6-loopback.json",
+      "reason": "Forbidden target must not be contacted or acquire installation authority."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/forbidden-link-local.json",
+      "reason": "Forbidden target must not be contacted or acquire installation authority."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/forbidden-metadata.json",
+      "reason": "Forbidden target must not be contacted or acquire installation authority."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/forbidden-metadata-host.json",
+      "reason": "Forbidden target must not be contacted or acquire installation authority."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/source-secrets.json",
+      "reason": "All source request secret values must be withheld before durable custody, reports or logs."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/tms-secrets-and-unsafe-command.json",
+      "reason": "Preserve command/locator inventory, withhold values, never relax browser security or execute uploaded instructions."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/xss.json",
+      "reason": "Escape source text in report DOM and downloads."
+    },
+    {
+      "category": "bounds",
+      "path": "negative/oversized-text.json",
+      "reason": "More than 2 MiB; refuse before retention."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/501-monitors.json",
+      "reason": "Bound source monitor count at 500 independently of resource ledger rows."
+    },
+    {
+      "category": "refusal",
+      "path": "negative/expanded-companion-bound.json",
+      "reason": "251 source checks expand to 502 native entries; source count and companion count are distinct bounds."
+    },
+    {
+      "category": "reimport",
+      "path": "reimport/reordered-pages.json",
+      "reason": "Same source identities/content retain IDs and revisions regardless of capture ordering."
+    },
+    {
+      "category": "reimport",
+      "path": "reimport/identical.json",
+      "reason": "Identical re-import adds no monitor or revision."
+    },
+    {
+      "category": "reimport",
+      "path": "reimport/overlapping-pages.json",
+      "reason": "Legitimate overlapping rows deduplicate by stable source identity and unchanged content."
+    },
+    {
+      "category": "reimport",
+      "path": "reimport/changed-source.json",
+      "reason": "Changed source creates a reviewed revision while operational state is preserved."
+    },
+    {
+      "category": "edge",
+      "path": "edge/unknown-fields.json",
+      "reason": "Every unknown nested field and empty container gets a named disposition."
+    },
+    {
+      "category": "adapter-convention",
+      "path": "edge/ping-adapter-convention.json",
+      "reason": "Uptime adapter-only empty ping detail convention; not a documented Pingdom GET alternative."
+    },
+    {
+      "category": "proposal",
+      "path": "edge/protocol-httpcustom.json",
+      "reason": "Documented httpcustom requires an explicit reviewed conversion/refusal."
+    },
+    {
+      "category": "proposal",
+      "path": "edge/protocol-udp.json",
+      "reason": "Documented udp requires an explicit reviewed conversion/refusal."
+    },
+    {
+      "category": "proposal",
+      "path": "edge/protocol-pop3.json",
+      "reason": "Documented pop3 requires an explicit reviewed conversion/refusal."
+    },
+    {
+      "category": "proposal",
+      "path": "edge/protocol-imap.json",
+      "reason": "Documented imap requires an explicit reviewed conversion/refusal."
+    },
+    {
+      "category": "proposal",
+      "path": "edge/tms-interval-720.json",
+      "reason": "Additional documented TMS cadence; never silently clamp."
+    },
+    {
+      "category": "proposal",
+      "path": "edge/tms-interval-1440.json",
+      "reason": "Additional documented TMS cadence; never silently clamp."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/one-minute.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/cron.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/run-once.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/finite-duration.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/vpc.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/firefox.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/unknown-runtime.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/visual-baselines.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/full-metadata.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/alarm-extra-metadata.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/code-input-s3-alternative.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "proposal",
+      "path": "aws/proposals/run-config-input-alternative.json",
+      "reason": "Exact source semantics/metadata require conversion, re-entry or named refusal; no authority transfer."
+    },
+    {
+      "category": "empty",
+      "path": "empty/pingdom-capture.json",
+      "reason": "Empty native collections reconcile to zero; unavailable resources remain unknown."
+    },
+    {
+      "category": "empty",
+      "path": "empty/no-records.json",
+      "reason": "Empty capture envelope is valid and creates nothing."
+    },
+    {
+      "category": "empty",
+      "path": "empty/aws-capture.json",
+      "reason": "Empty AWS native collections; no provider/account operation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-traversal.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-traversal-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-absolute.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-absolute-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-backslash-traversal.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-backslash-traversal-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-symlink.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-symlink-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-bomb.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-bomb-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-duplicates.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-duplicates-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-oversized.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-unsafe-code.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-unsafe-code-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-remote-import.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-remote-import-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-metadata-fetch.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-metadata-fetch-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-truncated.zip",
+      "reason": "Inert hostile archive; never extract or execute without bounded path/type/code validation."
+    },
+    {
+      "category": "zip",
+      "path": "negative/zip-truncated-capture.json",
+      "reason": "Same hostile bytes through the capture upload door; no external reference fetching."
+    }
+  ],
+  "checks": [
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": false,
+      "sourceId": "61000",
+      "sourceStatus": "up",
+      "sourceType": "http",
+      "tlsCompanion": {
+        "expiryDays": 7,
+        "sourceId": "61000:tls"
+      }
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": true,
+      "sourceId": "61001",
+      "sourceStatus": "down",
+      "sourceType": "http",
+      "tlsCompanion": {
+        "expiryDays": 8,
+        "sourceId": "61001:tls"
+      }
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": false,
+      "sourceId": "61002",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "http",
+      "tlsCompanion": {
+        "expiryDays": 9,
+        "sourceId": "61002:tls"
+      }
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": true,
+      "sourceId": "61003",
+      "sourceStatus": "unknown",
+      "sourceType": "http",
+      "tlsCompanion": {
+        "expiryDays": 10,
+        "sourceId": "61003:tls"
+      }
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": false,
+      "sourceId": "61004",
+      "sourceStatus": "paused",
+      "sourceType": "http",
+      "tlsCompanion": {
+        "expiryDays": 11,
+        "sourceId": "61004:tls"
+      }
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": true,
+      "sourceId": "61005",
+      "sourceStatus": "up",
+      "sourceType": "http",
+      "tlsCompanion": {
+        "expiryDays": 12,
+        "sourceId": "61005:tls"
+      }
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": false,
+      "sourceId": "61006",
+      "sourceStatus": "down",
+      "sourceType": "http",
+      "tlsCompanion": {
+        "expiryDays": 13,
+        "sourceId": "61006:tls"
+      }
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": true,
+      "sourceId": "61007",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "http",
+      "tlsCompanion": {
+        "expiryDays": 14,
+        "sourceId": "61007:tls"
+      }
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": false,
+      "sourceId": "61008",
+      "sourceStatus": "unknown",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": true,
+      "sourceId": "61009",
+      "sourceStatus": "paused",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": false,
+      "sourceId": "61010",
+      "sourceStatus": "up",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": true,
+      "sourceId": "61011",
+      "sourceStatus": "down",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": false,
+      "sourceId": "61012",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": true,
+      "sourceId": "61013",
+      "sourceStatus": "unknown",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": false,
+      "sourceId": "61014",
+      "sourceStatus": "paused",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": true,
+      "sourceId": "61015",
+      "sourceStatus": "up",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": false,
+      "sourceId": "61016",
+      "sourceStatus": "down",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": true,
+      "sourceId": "61017",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": false,
+      "sourceId": "61018",
+      "sourceStatus": "unknown",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": true,
+      "sourceId": "61019",
+      "sourceStatus": "paused",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": false,
+      "sourceId": "61020",
+      "sourceStatus": "up",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": true,
+      "sourceId": "61021",
+      "sourceStatus": "down",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": false,
+      "sourceId": "61022",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": true,
+      "sourceId": "61023",
+      "sourceStatus": "unknown",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": false,
+      "sourceId": "61024",
+      "sourceStatus": "paused",
+      "sourceType": "http"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": true,
+      "sourceId": "61025",
+      "sourceStatus": "up",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": false,
+      "sourceId": "61026",
+      "sourceStatus": "down",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": true,
+      "sourceId": "61027",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": false,
+      "sourceId": "61028",
+      "sourceStatus": "unknown",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": true,
+      "sourceId": "61029",
+      "sourceStatus": "paused",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": false,
+      "sourceId": "61030",
+      "sourceStatus": "up",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": true,
+      "sourceId": "61031",
+      "sourceStatus": "down",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": false,
+      "sourceId": "61032",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": true,
+      "sourceId": "61033",
+      "sourceStatus": "unknown",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": false,
+      "sourceId": "61034",
+      "sourceStatus": "paused",
+      "sourceType": "tcp"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": true,
+      "sourceId": "61035",
+      "sourceStatus": "up",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": false,
+      "sourceId": "61036",
+      "sourceStatus": "down",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": true,
+      "sourceId": "61037",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": false,
+      "sourceId": "61038",
+      "sourceStatus": "unknown",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": true,
+      "sourceId": "61039",
+      "sourceStatus": "paused",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": false,
+      "sourceId": "61040",
+      "sourceStatus": "up",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": true,
+      "sourceId": "61041",
+      "sourceStatus": "down",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": false,
+      "sourceId": "61042",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": true,
+      "sourceId": "61043",
+      "sourceStatus": "unknown",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": false,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": false,
+      "sourceId": "61044",
+      "sourceStatus": "paused",
+      "sourceType": "ping"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": true,
+      "sourceId": "61045",
+      "sourceStatus": "up",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": false,
+      "sourceId": "61046",
+      "sourceStatus": "down",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": true,
+      "sourceId": "61047",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": false,
+      "sourceId": "61048",
+      "sourceStatus": "unknown",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": true,
+      "sourceId": "61049",
+      "sourceStatus": "paused",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": false,
+      "sourceId": "61050",
+      "sourceStatus": "up",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": true,
+      "sourceId": "61051",
+      "sourceStatus": "down",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": false,
+      "sourceId": "61052",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": true,
+      "sourceId": "61053",
+      "sourceStatus": "unknown",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": false,
+      "sourceId": "61054",
+      "sourceStatus": "paused",
+      "sourceType": "dns"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": true,
+      "sourceId": "61055",
+      "sourceStatus": "up",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": false,
+      "sourceId": "61056",
+      "sourceStatus": "down",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": true,
+      "sourceId": "61057",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": false,
+      "sourceId": "61058",
+      "sourceStatus": "unknown",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": true,
+      "sourceId": "61059",
+      "sourceStatus": "paused",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 60000,
+      "ipv6": false,
+      "sourceId": "61060",
+      "sourceStatus": "up",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 300000,
+      "ipv6": true,
+      "sourceId": "61061",
+      "sourceStatus": "down",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 900000,
+      "ipv6": false,
+      "sourceId": "61062",
+      "sourceStatus": "unconfirmed_down",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 1800000,
+      "ipv6": true,
+      "sourceId": "61063",
+      "sourceStatus": "unknown",
+      "sourceType": "smtp"
+    },
+    {
+      "detailAvailable": true,
+      "initialLocalEnabled": false,
+      "intervalMs": 3600000,
+      "ipv6": false,
+      "sourceId": "61064",
+      "sourceStatus": "paused",
+      "sourceType": "smtp"
+    }
+  ],
+  "counts": {
+    "aws": {
+      "alarmPages": 2,
+      "canaries": 2,
+      "canaryPages": 3,
+      "codePackages": 2,
+      "compositeAlarms": 1,
+      "metricAlarms": 4
+    },
+    "pingdom": {
+      "byType": {
+        "dns": 10,
+        "http": 25,
+        "ping": 10,
+        "smtp": 10,
+        "tcp": 10
+      },
+      "contacts": 5,
+      "dailyAggregates": 60,
+      "expectedTlsCompanions": 8,
+      "historyDays": 60,
+      "integrationIds": 2,
+      "maintenanceWindows": 2,
+      "outageSeconds": 4465,
+      "outages": 3,
+      "pingSummaryOnly": 10,
+      "resultPages": 7,
+      "resultSamples": 1205,
+      "teams": 2,
+      "tmsChecks": 4,
+      "tmsRecordings": 2,
+      "tmsScripts": 2,
+      "tmsSupportedProposals": 3,
+      "tmsUnsupportedCommands": 1,
+      "unmappedHistoryRows": 1,
+      "uptimeChecks": 65,
+      "uptimeDetails": 55,
+      "uptimeListPages": 3
+    }
+  },
+  "format": "uptime.incumbent-fixture-expectations.v1",
+  "history": {
+    "aggregationRule": "Do not sum overlapping daily/weekly/hourly or raw/aggregate denominators.",
+    "from": 1788307200,
+    "outages": [
+      {
+        "durationSeconds": 61,
+        "from": 1788737407,
+        "to": 1788737468
+      },
+      {
+        "durationSeconds": 733,
+        "from": 1790458237,
+        "to": 1790458970
+      },
+      {
+        "durationSeconds": 3671,
+        "from": 1792609274,
+        "to": 1792612945
+      }
+    ],
+    "reportWindow": {
+      "cutover": 1793491200,
+      "days": 90,
+      "from": 1788307200,
+      "to": 1796083200
+    },
+    "resultSamples": 1205,
+    "sourceCheckId": "61000",
+    "to": 1793491200,
+    "totaldown": 4465,
+    "totalunknown": 1800,
+    "totalup": 5177735,
+    "unmappedCheckId": "69999"
+  },
+  "identity": {
+    "contactIds": [
+      "71001",
+      "71002",
+      "71003",
+      "71004",
+      "71005"
+    ],
+    "integrationIds": [
+      "91001",
+      "91002"
+    ],
+    "integrationIdsAreContactIds": false,
+    "tms": [
+      {
+        "name": "Synthetic login",
+        "path": "/api/3.1/tms/check/83001",
+        "sourceId": "83001",
+        "type": "script"
+      },
+      {
+        "name": "Synthetic signup",
+        "path": "/api/3.1/tms/check/83002",
+        "sourceId": "83002",
+        "type": "script"
+      },
+      {
+        "name": "Synthetic sandbox checkout",
+        "path": "/api/3.1/tms/check/83003",
+        "sourceId": "83003",
+        "type": "recording"
+      },
+      {
+        "name": "Synthetic unsupported command",
+        "path": "/api/3.1/tms/check/83004",
+        "sourceId": "83004",
+        "type": "recording"
+      }
+    ]
+  },
+  "leafCoverage": {
+    "documentedInventory": "documented-field-map.csv",
+    "documentedPaths": 363,
+    "unknownFields": "Every supplied leaf, empty list and empty object requires an exact-path disposition. Unavailable resources are unknown, never counted as extracted zero."
+  },
+  "maintenance": {
+    "dstBoundaryUtc": "2026-11-01T06:00:00Z",
+    "occurrences": 5,
+    "recurrenceMustNotInventTimezone": true,
+    "sourceEpochsRemainUnchanged": true,
+    "sourceTimezoneSupplied": false,
+    "windows": 2
+  },
+  "noEffects": [
+    "outbound provider/target connection",
+    "code execution",
+    "enabled monitor",
+    "runner or credential grant",
+    "destination activation",
+    "notification replay",
+    "native incident",
+    "scheduled slot or observation"
+  ],
+  "sourceOnly": [
+    "source status and last-result snapshots",
+    "geographic probes",
+    "IAM/KMS/S3/Lambda/SNS references",
+    "device authority",
+    "source alarm state"
+  ],
+  "transactionProposals": [
+    {
+      "disposition": "reviewed conversion required",
+      "expectedElement": "[data-synthetic=dashboard]",
+      "outcome": "login",
+      "sourceId": "83001"
+    },
+    {
+      "disposition": "reviewed conversion required",
+      "expectedElement": "[data-synthetic=welcome]",
+      "outcome": "signup",
+      "sourceId": "83002"
+    },
+    {
+      "disposition": "reviewed conversion required",
+      "expectedElement": "[data-synthetic=sandbox-receipt]",
+      "outcome": "sandbox checkout",
+      "sourceId": "83003"
+    },
+    {
+      "command": "execute_javascript",
+      "disposition": "refused",
+      "outcome": "unsupported command",
+      "sourceId": "83004",
+      "sourcePath": "steps[1].fn"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "report": {
+    "check_id": 83001,
+    "intervals": [
+      {
+        "average_response": 850,
+        "downtime": 100,
+        "from": 1793404800,
+        "steps": [
+          {
+            "average_response": 100,
+            "step": {
+              "args": {
+                "url": "https://flow.example.test/login"
+              },
+              "fn": "go_to"
+            }
+          },
+          {
+            "average_response": 100,
+            "step": {
+              "args": {
+                "input": "#email",
+                "value": "synthetic-login@example.test"
+              },
+              "fn": "fill_in"
+            }
+          },
+          {
+            "average_response": 100,
+            "step": {
+              "args": {
+                "input": "#password",
+                "value": "SYNTHETIC_LOCAL_PASSWORD_LOGIN"
+              },
+              "fn": "fill_in"
+            }
+          },
+          {
+            "average_response": 100,
+            "step": {
+              "args": {
+                "element": "button[type=submit]"
+              },
+              "fn": "click"
+            }
+          },
+          {
+            "average_response": 100,
+            "step": {
+              "args": {
+                "element": "[data-synthetic=dashboard]"
+              },
+              "fn": "wait_for_element"
+            }
+          },
+          {
+            "average_response": 100,
+            "step": {
+              "args": {
+                "element": "[data-synthetic=dashboard]"
+              },
+              "fn": "assert_element"
+            }
+          }
+        ],
+        "unmonitored": 0,
+        "uptime": 86300
+      }
+    ],
+    "name": "Synthetic login",
+    "resolution": "day"
+  }
+}

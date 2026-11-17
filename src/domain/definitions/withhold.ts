@@ -19,6 +19,8 @@ function text(value:string){
  const match=USERINFO.exec(value)
  return match&&match[2]!=='withheld'?match[1]+'withheld@'+value.slice(match[0].length):value
 }
+// Keep object/array topology so every withheld leaf still has a field disposition.
+function withheldShape(value:any):any{if(Array.isArray(value))return value.map(withheldShape);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,withheldShape(v)]));return present(value)?WITHHELD:value}
 /** One source value with its request secrets withheld; anything else is unchanged. */
 export function withholdValue(value:unknown):any{
  if(Array.isArray(value))return value.map(withholdValue)
@@ -26,11 +28,12 @@ export function withholdValue(value:unknown):any{
  if(!value||typeof value!=='object')return value
  // Unsupported Pingdom TMS steps may contain typed passwords or arbitrary form values.
  // Keep their presence for recognition, never their script payload in import custody.
- const record=['script','recording'].includes((value as any).type)&&Array.isArray((value as any).steps)?{...value,steps:WITHHELD}:value
+ const record=value
  return Object.fromEntries(Object.entries(record).map(([key,child])=>{
-  if((FIELDS.has(key)||CREDENTIAL.test(key))&&present(child))return [key,WITHHELD]
+  if((FIELDS.has(key)||CREDENTIAL.test(key)||['steps','ZipFile','EnvironmentVariables','script','code','SourceLocationArn'].includes(key))&&present(child))return [key,withheldShape(child)]
   // Pingdom request headers keep their names; their values are the secrets.
   if(key==='requestheaders'&&child&&typeof child==='object'&&!Array.isArray(child))return [key,Object.fromEntries(Object.keys(child).map(name=>[name,present((child as any)[name])?WITHHELD:(child as any)[name]]))]
+  if(key==='requestheaders'&&Array.isArray(child))return [key,child.map(header=>typeof header==='string'&&header.includes(':')?header.slice(0,header.indexOf(':'))+': '+WITHHELD:WITHHELD)]
   if(key==='requestheaders'&&present(child))return [key,WITHHELD]
   return [key,withholdValue(child)]
  }))

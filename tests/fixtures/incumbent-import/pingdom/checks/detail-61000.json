@@ -1,0 +1,79 @@
+{
+  "check": {
+    "created": 1785715200,
+    "custom_message": "Synthetic latency review: café ☕",
+    "hostname": "check-61000.example.test",
+    "id": 61000,
+    "integrationids": [
+      91001,
+      91002
+    ],
+    "ipv6": false,
+    "lastdownend": 1793404861,
+    "lastdownstart": 1793404800,
+    "lasterrortime": 1793404800,
+    "lastresponsetime": 180,
+    "lasttesttime": 1793491140,
+    "name": "Synthetic HTTP café — 東京",
+    "notifyagainevery": 3,
+    "notifywhenbackup": true,
+    "probe_filters": [],
+    "resolution": 1,
+    "sendnotificationwhendown": 2,
+    "status": "up",
+    "tags": [],
+    "teams": [
+      {
+        "id": 81001,
+        "members": [
+          {
+            "id": 71001,
+            "name": "Synthetic Owner",
+            "type": "user"
+          },
+          {
+            "id": 71002,
+            "name": "Synthetic Notify",
+            "type": "contact"
+          }
+        ],
+        "name": "Synthetic Platform"
+      },
+      {
+        "id": 81002,
+        "members": [
+          {
+            "id": 71003,
+            "name": "Synthetic SMS",
+            "type": "contact"
+          },
+          {
+            "id": 71004,
+            "name": "Synthetic APNS",
+            "type": "user"
+          },
+          {
+            "id": 71005,
+            "name": "Synthetic AGCM",
+            "type": "contact"
+          }
+        ],
+        "name": "Synthetic Réponse"
+      }
+    ],
+    "type": {
+      "http": {
+        "encryption": true,
+        "port": 443,
+        "requestheaders": [
+          "Accept: application/json",
+          "X-Synthetic-Context: region: lab: east"
+        ],
+        "shouldcontain": "ready",
+        "ssl_down_days_before": 7,
+        "url": "/health/1",
+        "verify_certificate": true
+      }
+    }
+  }
+}

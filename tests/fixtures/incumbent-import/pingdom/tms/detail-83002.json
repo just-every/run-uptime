@@ -1,0 +1,69 @@
+{
+  "active": true,
+  "contact_ids": [],
+  "created_at": 1785715200,
+  "custom_message": "Synthetic transaction",
+  "integration_ids": [],
+  "interval": 10,
+  "last_downtime_end": 1793487600,
+  "last_downtime_start": 1793487500,
+  "modified_at": 1793404800,
+  "name": "Synthetic signup",
+  "region": "us-west",
+  "send_notification_when_down": 2,
+  "severity_level": "low",
+  "status": "failing",
+  "steps": [
+    {
+      "args": {
+        "url": "https://flow.example.test/signup"
+      },
+      "fn": "go_to"
+    },
+    {
+      "args": {
+        "input": "#email",
+        "value": "synthetic-signup@example.test"
+      },
+      "fn": "fill_in"
+    },
+    {
+      "args": {
+        "input": "#password",
+        "value": "SYNTHETIC_LOCAL_PASSWORD_SIGNUP"
+      },
+      "fn": "fill_in"
+    },
+    {
+      "args": {
+        "checkbox": "#terms"
+      },
+      "fn": "check"
+    },
+    {
+      "args": {
+        "option": "sandbox",
+        "select": "#plan"
+      },
+      "fn": "select"
+    },
+    {
+      "args": {
+        "form": "#signup"
+      },
+      "fn": "submit"
+    },
+    {
+      "args": {
+        "element": "[data-synthetic=welcome]"
+      },
+      "fn": "assert_element"
+    }
+  ],
+  "tags": [
+    "synthetic",
+    "transaction"
+  ],
+  "team_ids": [],
+  "type": "script"
+}

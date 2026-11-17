@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-11-01T00:00:00Z",
+  "format": "uptime.incumbent-capture.v1",
+  "records": [
+    {
+      "id": "zip-symlink",
+      "kind": "canary-code-input",
+      "request": {
+        "method": "LOCAL",
+        "path": "canary-code-input/symlink",
+        "query": {}
+      },
+      "response": {
+        "Handler": "index.handler",
+        "ZipFile": "UEsDBBQAAAgAAAAAYV1ASv+xDQAAAA0AAAAYAAAAbm9kZWpzL25vZGVfbW9kdWxlcy9saW5rLi4vLi4vb3V0c2lkZVBLAQIUAxQAAAgAAAAAYV1ASv+xDQAAAA0AAAAYAAAAAAAAAAAAAAD/oQAAAABub2RlanMvbm9kZV9tb2R1bGVzL2xpbmtQSwUGAAAAAAEAAQBGAAAAQwAAAAAA"
+      },
+      "sourceId": "00000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "schemaNotes": [
+    {
+      "description": "request.query contains documented SDK operation parameters, not an assertion about HTTP wire query serialization. DescribeCanaries and DescribeAlarms use POST.",
+      "id": "sdk-operation-parameters"
+    },
+    {
+      "description": "CanaryCodeInput is separately supplied local input, never a field returned inside GetCanary.Code. ZIP packages are deterministic synthetic files. Code references are not fetched.",
+      "id": "code-input-boundary"
+    },
+    {
+      "description": "Dummy account 000000000000 and reserved targets only. IAM/KMS/S3/Lambda/SNS identifiers remain inert source metadata.",
+      "id": "no-aws-authority"
+    }
+  ],
+  "scope": {
+    "accountId": "000000000000",
+    "region": "us-east-1"
+  },
+  "seed": "ct-import-plan-uptime-1",
+  "source": "aws-synthetics",
+  "synthetic": true
+}

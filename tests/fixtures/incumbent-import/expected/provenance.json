@@ -1,0 +1,47 @@
+{
+  "author": "Codex",
+  "clock": "2026-11-01T00:00:00Z",
+  "date": "2026-11-17",
+  "limitations": [
+    "Synthetic documented shapes, not authentic account extraction or cutover.",
+    "Expected inventory describes migration obligations and current gaps; no mapper is called.",
+    "No source package or provider reference is fetched; no fixture code is run."
+  ],
+  "plannerCommit": "99eeacb8f36b6c97ead141fd1703fbbdec89f0b2",
+  "seed": "ct-import-plan-uptime-1",
+  "sources": [
+    {
+      "scope": "Checks, TMS, relationships, maintenance and history",
+      "url": "https://docs.pingdom.com/API_3.1.yaml"
+    },
+    {
+      "scope": "Page Speed UI transcription only; no API export invented",
+      "url": "https://documentation.solarwinds.com/en/success_center/pingdom/content/topics/page-speed-check.htm"
+    },
+    {
+      "scope": "Synthetics canary metadata",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_Canary.html"
+    },
+    {
+      "scope": "Synthetics pagination",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_DescribeCanaries.html"
+    },
+    {
+      "scope": "Separately supplied code input",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_CanaryCodeInput.html"
+    },
+    {
+      "scope": "Separate metric/composite alarms",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_DescribeAlarms.html"
+    },
+    {
+      "scope": "Metric alarm settings",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricAlarm.html"
+    },
+    {
+      "scope": "Composite expression/suppression settings",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_CompositeAlarm.html"
+    }
+  ],
+  "synthetic": true
+}

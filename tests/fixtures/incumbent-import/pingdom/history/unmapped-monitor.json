@@ -1,0 +1,15 @@
+{
+  "activeprobes": [
+    85001
+  ],
+  "results": [
+    {
+      "probeid": 85001,
+      "responsetime": 100,
+      "status": "up",
+      "statusdesc": "Unmapped synthetic monitor",
+      "statusdesclong": "Synthetic response accepted",
+      "time": 1788307200
+    }
+  ]
+}

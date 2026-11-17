@@ -104,7 +104,7 @@ node scripts/definitions.mjs undo --batch BATCH_ID
 
 Moving from UptimeRobot uses the same preview and apply. See [Moving from UptimeRobot](/docs/moving-from-uptimerobot).
 
-## Saved incumbent HTTP definitions
+## Saved incumbent definitions
 
 The same bounded preview/apply/undo engine also accepts the saved source formats below. File size remains 2 MiB and at most 500 entries; the installation's {{monitorLimit}}-monitor limit still applies. New entries stay paused, and importing never authorizes credentials, enables traffic, sends alerts or rewrites current monitoring evidence.
 
@@ -120,24 +120,39 @@ A third-party service monitor in a saved incumbent file maps onto its [service c
 
 For supported saved UptimeRobot v3 monitor pages, an HTTPS monitor with `checkSSLErrors: false` maps to `tlsTrust: {"mode":"ignore","acknowledged":true}`. The preview names the source exception, its restriction to the initial HTTPS origin and the private-runner requirement. It grants no local credential authority. Authentication, request headers and body still need the previewed local credential reference to be filled by the receiving owner. A changed or copied monitor ID cannot inherit another monitor's credential file.
 
-### Pingdom HTTP check details
+### Pingdom saved check details
 
-Supply saved `GET /api/3.1/checks/{id}` response objects, each containing a `check` object. One object, an array of response objects or several complete JSON responses written in sequence are accepted. The source is detected automatically; API callers may select `source: "pingdom"`, and CLI preview/apply accept `--source pingdom`. Summary-list responses are refused because they lack complete HTTP settings. Uptime does not fetch the Pingdom account or its pages for you.
+_Import documentation updated by sd, 2026-11-17 (UTC)._
 
-The mapped check needs `name`, `hostname`, an integer `resolution` from 1 to 1,440 minutes, and HTTP detail at `check.type.http`. The HTTP detail must explicitly contain boolean `encryption` and `verify_certificate`; trust is never guessed. Optional `port` must be 1–65,535, and `url` is a path beginning with `/`, not `//` or a separate origin. Missing paths use `/` and missing ports use the selected protocol's default.
+Supply saved `GET /api/3.1/checks/{id}` response objects, each containing a `check` object. One object, an array of response objects or several complete JSON responses written in sequence are accepted. The source is detected automatically; API callers may select `source: "pingdom"`, and CLI preview/apply accept `--source pingdom`. A bare summary list lacks complete protocol settings and cannot replace check details. Uptime does not fetch an account or follow source page URLs. See [Moving from Pingdom](/docs/migrating-pingdom) for the documented capture package, source-schema defects and resource limitations.
 
-| Source setting | Reviewed Uptime definition |
+Supported detail kinds are HTTP, TCP, SMTP, DNS and the adapter's explicitly labelled ping convention. Each needs `name`, `hostname` and integer `resolution` from 1 to 1,440 minutes. Nonempty `probe_filters` refuse the check and name every requested filter; they never select an equivalent location automatically. Tag names become monitor labels; source tag type and usage count confer no routing authority.
+
+HTTP detail lives at `check.type.http` and must explicitly contain boolean `encryption` and `verify_certificate`. Optional `port` must be 1–65,535, and `url` is a path beginning with `/`, not `//` or a separate origin. Missing paths use `/` and missing ports use the protocol's default.
+
+| Source setting | Reviewed Uptime definition or limitation |
 | --- | --- |
-| `encryption`, `hostname`, `port`, `url` | Public HTTP or HTTPS URL. Unsafe targets still fail the editor's destination validation. |
-| `resolution` | Interval in minutes converted to milliseconds. |
-| `shouldcontain`, `shouldnotcontain` | Required/forbidden literal body text; either makes a keyword monitor. `useRegularExpression` is unsupported and is not silently converted to literal text. |
-| `verify_certificate: false` on HTTPS | Labelled initial-origin `ignore` trust policy, requiring a private runner and a separate local credential grant when credentials are used. On plain HTTP the preview explains that no TLS connection exists to exempt. |
-| `username`, `password`, nonempty `requestheaders` or `postdata` | A `pingdom-<source ID>` local credential reference; values are not imported. Re-enter them privately on the runner. `postdata` selects POST; otherwise the mapped method is GET. |
-| `sendnotificationwhendown` | Scheduled confirmation-slot count, subject to Uptime's normal validation. It defaults to two when absent. |
+| `encryption`, `hostname`, `port`, `url` | Public HTTP or HTTPS URL, subject to the editor's destination validation. |
+| `resolution` | Minutes converted to milliseconds. |
+| `shouldcontain`, `shouldnotcontain` | Required or forbidden literal body text. The published source descriptions prohibit combining them; valid captures keep them separate. The undocumented `useRegularExpression` extension is unsupported. |
+| `verify_certificate: false` on HTTPS | Initial-origin `ignore` trust policy, requiring a private runner and a separate local credential grant when credentials are used. Plain HTTP has no TLS connection to exempt. |
+| `username`, `password`, nonempty `requestheaders` or `postdata` | Values are withheld; a `pingdom-<source ID>` credential reference requires local re-entry. `postdata` selects POST; otherwise GET. Published HTTP headers are colon-separated strings in an array; the current withholding path does not preserve their names for re-entry. |
+| `sendnotificationwhendown` | Scheduled confirmation-slot count, default two, subject to native validation. This is separate from the contact-timing preview; review both to avoid adding the same delay twice. |
+| `responsetime_threshold` | Positive integer milliseconds below 60,000 become a one-slot Slow policy. Zero disables it. Pingdom describes a down alert, while native Slow is a non-outage state: downtime semantics differ. |
+| `ssl_down_days_before` | Expands into a separate TLS monitor with a stable source suffix, host/port and expiry failure window. Review its trust, quota and pause/resume separately. Current expansion also occurs when source certificate verification is disabled, although Pingdom says expiry is then ignored. |
 
-Mapped definitions accept HTTP 2xx/3xx responses, use a ten-second timeout, no in-slot retries, two recovery slots and one initial `local-a` probe. Review these settings and independent-vantage/canary coverage before activation. A source certificate-expiry downtime setting is named separately in the preview; add a reviewed TLS certificate monitor. Source response-time thresholds are named as not imported; choose an explicit latency failure or supported slow-response policy before enabling.
+HTTP definitions accept 2xx/3xx responses, use no in-slot retries, two recovery slots and one initial `local-a` probe. Their timeout is at least ten seconds and grows to twice a configured response threshold, capped at 60 seconds. Review placement, trust and credential requirements before activation.
 
-This is a saved HTTP-definition conversion, not complete Pingdom or UptimeRobot migration. Probe regions, contacts, teams, maintenance, scheduled reports and history are not transferred by the Pingdom adapter. Other Pingdom protocol checks and transaction/page-speed checks need reviewed conversion. Live extraction, account reconciliation, historical reports, provider reauthorization and side-by-side cutover remain broader migration work; the import does not establish that those journeys have been completed.
+| Other detail kind | Current conversion and remaining differences |
+| --- | --- |
+| TCP | Port and expected banner text map. A nonempty `stringtosend` is unsupported; it is never reduced to connect-only. |
+| SMTP | Port and encryption map to a no-send mail check; encrypted port 465 uses implicit TLS, other encrypted ports use STARTTLS. Credentials make the check unsupported. Source `stringtoexpect` is not carried into an exact greeting assertion. |
+| DNS | Named server and expected A/AAAA value map to an includes assertion over DNS/TCP port 53. Review the transport and matching difference. |
+| Ping | Host maps to ICMP requiring a Linux/macOS private runner with native ping permission. The current mapper does not carry `ipv6` and uses native IPv4 defaults. Ping's GET-detail shape is absent from the published schema; an empty `type.ping` object is an adapter convention. |
+
+Count original source checks separately from generated TLS companions. A source check with an expiry setting contributes one source check and can propose two native monitors; companion rows are never additional source checks. Refused/unsupported source records remain in reconciliation, and expanded native rows still count against file and installation bounds.
+
+TMS `script` and `recording` details are recognized but unsupported; script values are withheld before upload. Contacts, teams, integrations, maintenance, results, summaries, reports and source snapshots do not become native routes, windows, history or current health through this definition adapter. Page Speed and AWS canary/code/alarm captures receive an explicit report of fields not carried; their presence does not establish a converter. Live extraction, geographic equivalence, reauthorization, Lamp handoff and side-by-side cutover remain unproved.
 
 ### ICMP definitions
 
