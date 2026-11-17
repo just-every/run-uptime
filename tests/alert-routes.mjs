@@ -9,6 +9,7 @@ import {fixture} from './resilience/support.mjs';
 import {proveRoutingFilters} from './alert-routing-filters-support.mjs';
 import {proveRoutingTeams} from './alert-routing-teams-support.mjs';
 import {proveRoutingConsole} from './alert-routing-console-support.mjs';
+import {proveMemberSettings} from './member-settings-browser-support.mjs';
 import {mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {dispatchNotifications} from '../runners/src/notification-dispatch.mjs';
@@ -104,6 +105,7 @@ test('owner configures two teams and production and staging routes in the consol
  try{
   const ok=async(path,body,options={})=>{const r=await f.request(path,{...options,...(body===undefined?{}:{body})});assert.ok(r.status>=200&&r.status<300,`${path}: ${r.status} ${JSON.stringify(r.data)}`);return r.data};
   const screens=process.env.UPTIME_SCREENSHOTS??join(f.directory,'screens');await mkdir(screens,{recursive:true});
+  await proveMemberSettings(f,ok,screens);
   await proveRoutingConsole(f,ok,screens);
  }finally{await f.close()}
 });
