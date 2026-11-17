@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "tag": "ct-import-plan-uptime-1",
+  "role": "planner",
+  "repository": "just-every/run-uptime",
+  "read_at_utc": "2026-11-17T11:02:41.218284+00:00",
+  "product_branch": "main",
+  "product_head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "origin_main": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "product_git_status_porcelain": "",
+  "product_unpublished_commit_count": 0,
+  "product_worktree_changes": false,
+  "product_commits_created": 0,
+  "product_pushes": 0,
+  "prs_created": 0,
+  "ci_dispatches": 0,
+  "apps_launched": 0,
+  "provider_account_calls": 0,
+  "setup_of_product_keys": false,
+  "verification": [
+    {
+      "kind": "source inspection",
+      "result": "complete at recorded main head; repository assertions inspected, not rerun"
+    },
+    {
+      "command": "node analysis/static-probes.mjs",
+      "runtime": "v24.19.0",
+      "result": "8 pure importer/sanitizer observations retained in STATIC-PROBES.json; no server, database, browser or network target execution",
+      "not_release_verification": true
+    },
+    {
+      "kind": "public documentation shape inventory",
+      "result": "363 explicit path rows in FIELD-MAP.csv; fetched schema contradictions recorded, no invented API export"
+    }
+  ],
+  "publication_scope": "Only refs/heads/evidence/ct-import-plan-uptime-1; no acceptance, READY or landing signal",
+  "limitations": [
+    "Owner DIRECTION.md and AGENTS.md source repository unavailable (404/not found).",
+    "No product test suite, browser screenshots, hosted proof, real incumbent account or release performed.",
+    "Launcher infrastructure refresh and mandated Git helper installed solely for read-only clones and report-only evidence transport; no product key setup."
+  ],
+  "evidence_transport_prior_attempt": {
+    "result": "failed before outbound push",
+    "cause": "prepush identity guard could not fetch baseline through the local partial clone because promisor blobs were absent",
+    "resolution": "guard fetches public main directly into isolated evidence storage, then repeats the full all-parent identity/trailer range check before any push",
+    "product_changes": false
+  }
+}

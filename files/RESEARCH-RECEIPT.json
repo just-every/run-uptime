@@ -1,0 +1,177 @@
+{
+  "retrieved_at": "2026-11-17T11:02:41.218003+00:00",
+  "sources": [
+    {
+      "file": "pingdom-api.yaml",
+      "url": "https://docs.pingdom.com/API_3.1.yaml",
+      "bytes": 646299,
+      "sha256": "e78042fccf24554984a6f625c3802c6977e135c2aa1bd6ee8b054e212e5511ca",
+      "status": "retrieved"
+    },
+    {
+      "file": "pingdom-api.html",
+      "url": "https://docs.pingdom.com/api/",
+      "bytes": 741,
+      "sha256": "6e45eb152ca5c032c2e98887b6dd9d243276fb12f80880554b713c77c5b443d3",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-getcanary.html",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_GetCanary.html",
+      "bytes": 29942,
+      "sha256": "dc97c4a126dce19870089ff642d4d43c3d2292c84559390734be6196b4248157",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-describecanaries.html",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_DescribeCanaries.html",
+      "bytes": 34133,
+      "sha256": "ba02ac58987d66fde84136c7a9a21ddbf1eac3c539044f73d4d124199d0e55a8",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-canary.html",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_Canary.html",
+      "bytes": 28741,
+      "sha256": "6c2902856d92ce52ca914a8605b5422e94cd9e8d3c8f71b58adc72c59020b261",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-codeoutput.html",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_CanaryCodeOutput.html",
+      "bytes": 16677,
+      "sha256": "07088b8ac809eb49e07c65122d2c6e877daf7f649b38e214b64ce4ca01f20ee1",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-codeinput.html",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_CanaryCodeInput.html",
+      "bytes": 21292,
+      "sha256": "251c82ee0bc60a4ccb3e93d7204da76df28791774597f9b39c4a5c9ce38459b5",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-schedule.html",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_CanaryScheduleOutput.html",
+      "bytes": 16458,
+      "sha256": "f71609089ba0c1ac45c58bbeb9fcf1b68321cb5c8df3fe19ca6e1e4740c309c1",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-alarms.html",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_DescribeAlarms.html",
+      "bytes": 46108,
+      "sha256": "0a71aaf791c0857161325cdb43007b921b687f479d89908da7d9a325c87e0599",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-sdk-synthetics.json",
+      "url": "https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/synthetics/2017-10-11/service-2.json",
+      "bytes": 125488,
+      "sha256": "66fc7b425baf265e3c3d08948557131e7bfa472f8f03b8373e0b3a55341ebb67",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-sdk-monitoring.json",
+      "url": "https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/cloudwatch/2010-08-01/service-2.json",
+      "bytes": 360484,
+      "sha256": "4f5324c3d0b8527089c6e8d30a9bc347f8217b56e2c6e45047bc734c790155c9",
+      "status": "retrieved"
+    },
+    {
+      "file": "aws-runtime.html",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Synthetics_Canaries_Library.html",
+      "bytes": 14518,
+      "sha256": "119e28b6be478e341277e2d691d711a1f161878861f45609e83cf50728a2857d",
+      "status": "retrieved"
+    },
+    {
+      "file": "pingdom-pagespeed.html",
+      "url": "https://documentation.solarwinds.com/en/success_center/pingdom/content/topics/psm/page-speed-monitoring.htm",
+      "status": "failed",
+      "reason": "HTTP Error 404: Not Found"
+    },
+    {
+      "file": "pingdom-psm-sitemap.xml",
+      "url": "https://documentation.solarwinds.com/sitemap.xml",
+      "bytes": 1218658,
+      "status": "retrieved",
+      "sha256": "460ed1dd525851863de0f03c42b17ecad0b5dd6fa5b2128c1daaaf6e376e26f5"
+    },
+    {
+      "file": "pingdom-psm.html",
+      "url": "https://www.pingdom.com/product/page-speed-monitoring/",
+      "status": "failed",
+      "reason": "HTTP Error 403: Forbidden"
+    },
+    {
+      "file": "aws-metric-alarm.html",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricAlarm.html",
+      "bytes": 33228,
+      "status": "retrieved",
+      "sha256": "266e55f57ce83e9eb095319f13026acdab974f85ca7b97c06b309473f690a8b0"
+    },
+    {
+      "file": "aws-composite-alarm.html",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_CompositeAlarm.html",
+      "bytes": 24839,
+      "status": "retrieved",
+      "sha256": "753de97555860605c5cccfce1f80ba8bb9472544a0027b7d594afd6d0ba07e67"
+    },
+    {
+      "file": "aws-getlambda.html",
+      "url": "https://docs.aws.amazon.com/lambda/latest/api/API_GetFunction.html",
+      "bytes": 36950,
+      "status": "retrieved",
+      "sha256": "94665bc3d533d7b94efeef4503667c06639a66fd75e40bac9e3719c970349588"
+    },
+    {
+      "file": "aws-gets3.html",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html",
+      "bytes": 105927,
+      "status": "retrieved",
+      "sha256": "0593aebb3c78a3555f56ee80f9b651b77623d67766006c487baa12c0d5b98a06"
+    },
+    {
+      "file": "aws-scheduleinput.html",
+      "url": "https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_CanaryScheduleInput.html",
+      "bytes": 16530,
+      "status": "retrieved",
+      "sha256": "c02606695f1d93212c810d06678b79c72e0f11d64d11461fd4be36a921888786"
+    },
+    {
+      "url": "https://documentation.solarwinds.com/en/success_center/pingdom/content/topics/page-speed-check.htm",
+      "file": "page-speed-check.htm",
+      "sha256": "db9005d97c058527e8a0c3d8849b05e5a2dcae8d3e92a77a40d8af1509bc2840",
+      "bytes": 370484,
+      "status": "retrieved"
+    },
+    {
+      "url": "https://documentation.solarwinds.com/en/success_center/pingdom/content/gsg/set-up-page-monitoring.htm",
+      "file": "set-up-page-monitoring.htm",
+      "sha256": "c833c3742f21947bb5ebe9fe021b769ab5f0f6dbee256f4ddf87a26fbbf1aba9",
+      "bytes": 367212,
+      "status": "retrieved"
+    },
+    {
+      "url": "https://documentation.solarwinds.com/en/success_center/pingdom/content/topics/difference-between-response-time-and-page-load-time.htm",
+      "file": "difference-between-response-time-and-page-load-time.htm",
+      "sha256": "4d6cc78c7de7398f6847bd1a65fca39338d379b00f7c57502d8b50431ea28afa",
+      "bytes": 366610,
+      "status": "retrieved"
+    }
+  ],
+  "owner_context": [
+    {
+      "repository": "just-every/run-runeditrun",
+      "paths": [
+        "DIRECTION.md",
+        "AGENTS.md"
+      ],
+      "public_raw_http": 404,
+      "gh_api_http": 404,
+      "designated_git_helper_clone_exit": 128,
+      "result": "repository not found; no owner direction available; no substitute inferred"
+    }
+  ]
+}

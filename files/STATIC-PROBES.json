@@ -1,0 +1,344 @@
+{
+  "kind": "pure-mapper-observation",
+  "repository": "just-every/run-uptime",
+  "head": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "runtime": "v24.19.0",
+  "notEndToEnd": true,
+  "rows": [
+    {
+      "name": "http-documented-array-headers",
+      "detected": true,
+      "withheld": {
+        "check": {
+          "id": 77001,
+          "name": "Synthetic Café 東京",
+          "hostname": "edge.example.test",
+          "resolution": 5,
+          "status": "up",
+          "sendnotificationwhendown": 6,
+          "notifyagainevery": 2,
+          "notifywhenbackup": true,
+          "ipv6": true,
+          "type": {
+            "http": {
+              "url": "/health",
+              "encryption": true,
+              "verify_certificate": true,
+              "requestheaders": "[withheld]",
+              "shouldcontain": "ready"
+            }
+          },
+          "responsetime_threshold": 30000
+        }
+      },
+      "results": [
+        {
+          "definition": {
+            "name": "Synthetic Café 東京",
+            "type": "keyword",
+            "url": "https://edge.example.test/health",
+            "method": "GET",
+            "intervalMs": 300000,
+            "freshnessMs": 900000,
+            "timeoutMs": 60000,
+            "retries": 0,
+            "confirmSlots": 6,
+            "recoverSlots": 2,
+            "probes": [
+              "local-a"
+            ],
+            "enabled": true,
+            "assertions": {
+              "status": [
+                "2xx",
+                "3xx"
+              ],
+              "bodyIncludes": "ready"
+            },
+            "slow": {
+              "thresholdMs": 30000,
+              "mode": "consecutive",
+              "slots": 1,
+              "percentile": 95,
+              "locations": "all",
+              "destinationIds": null,
+              "contactSettings": {}
+            },
+            "request": {
+              "credentialRef": "pingdom-77001"
+            }
+          },
+          "differences": [
+            "Source check is active. New imports arrive paused; existing monitors keep their local pause state.",
+            "Pingdom probe regions, contacts, teams, maintenance, reports and history are not transferred. Review and reconnect them before cutover.",
+            "Authentication, headers and request body are not imported. Re-enter them in the monitor-bound local credential file pingdom-77001.",
+            "Pingdom repeat and disabled recovery-notice settings are not carried into contact routing. Review the notification policy before enabling."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "smtp-expectation",
+      "detected": true,
+      "withheld": {
+        "check": {
+          "id": 77001,
+          "name": "Synthetic Café 東京",
+          "hostname": "edge.example.test",
+          "resolution": 5,
+          "status": "up",
+          "sendnotificationwhendown": 6,
+          "notifyagainevery": 2,
+          "notifywhenbackup": true,
+          "ipv6": true,
+          "type": {
+            "smtp": {
+              "port": 587,
+              "encryption": true,
+              "stringtoexpect": "SYNTHETIC MAIL SERVICE"
+            }
+          }
+        }
+      },
+      "results": [
+        {
+          "definition": {
+            "name": "Synthetic Café 東京",
+            "intervalMs": 300000,
+            "freshnessMs": 900000,
+            "retries": 0,
+            "confirmSlots": 6,
+            "recoverSlots": 2,
+            "probes": [
+              "local-a"
+            ],
+            "enabled": true,
+            "type": "mail",
+            "mail": {
+              "protocol": "smtp",
+              "host": "edge.example.test",
+              "port": 587,
+              "security": "starttls"
+            },
+            "timeoutMs": 30000,
+            "assertions": {}
+          },
+          "differences": [
+            "Source check is active. New imports arrive paused; existing monitors keep their local pause state.",
+            "Pingdom probe regions, contacts, teams, maintenance, reports and history are not transferred. Review and reconnect them before cutover.",
+            "SMTP encryption uses STARTTLS on submission ports and implicit TLS on port 465; the native runner verifies the TLS identity and greeting, without sending mail."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ping-ipv6",
+      "detected": true,
+      "withheld": {
+        "check": {
+          "id": 77001,
+          "name": "Synthetic Café 東京",
+          "hostname": "edge.example.test",
+          "resolution": 5,
+          "status": "up",
+          "sendnotificationwhendown": 6,
+          "notifyagainevery": 2,
+          "notifywhenbackup": true,
+          "ipv6": true,
+          "type": {
+            "ping": {}
+          }
+        }
+      },
+      "results": [
+        {
+          "definition": {
+            "name": "Synthetic Café 東京",
+            "intervalMs": 300000,
+            "freshnessMs": 900000,
+            "retries": 0,
+            "confirmSlots": 6,
+            "recoverSlots": 2,
+            "probes": [
+              "local-a"
+            ],
+            "enabled": true,
+            "type": "ping",
+            "ping": {
+              "host": "edge.example.test"
+            },
+            "timeoutMs": 10000,
+            "assertions": {}
+          },
+          "differences": [
+            "Source check is active. New imports arrive paused; existing monitors keep their local pause state.",
+            "Pingdom probe regions, contacts, teams, maintenance, reports and history are not transferred. Review and reconnect them before cutover.",
+            "Actual ICMP requires a Linux/macOS Node runner with the native ping executable and permission. Workers cannot perform ICMP; missing capacity stays Unknown, with no TCP substitute."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dns-named-server",
+      "detected": true,
+      "withheld": {
+        "check": {
+          "id": 77001,
+          "name": "Synthetic Café 東京",
+          "hostname": "edge.example.test",
+          "resolution": 5,
+          "status": "up",
+          "sendnotificationwhendown": 6,
+          "notifyagainevery": 2,
+          "notifywhenbackup": true,
+          "ipv6": true,
+          "type": {
+            "dns": {
+              "nameserver": "ns.example.test",
+              "expectedip": "2001:db8::5"
+            }
+          }
+        }
+      },
+      "results": [
+        {
+          "definition": {
+            "name": "Synthetic Café 東京",
+            "intervalMs": 300000,
+            "freshnessMs": 900000,
+            "retries": 0,
+            "confirmSlots": 6,
+            "recoverSlots": 2,
+            "probes": [
+              "local-a"
+            ],
+            "enabled": true,
+            "type": "dns",
+            "dns": {
+              "name": "edge.example.test",
+              "recordType": "AAAA",
+              "nameserver": "ns.example.test",
+              "resolvers": [
+                "nameserver"
+              ],
+              "expect": {
+                "values": [
+                  "2001:db8::5"
+                ],
+                "match": "includes"
+              }
+            },
+            "timeoutMs": 3000,
+            "assertions": {}
+          },
+          "differences": [
+            "Source check is active. New imports arrive paused; existing monitors keep their local pause state.",
+            "Pingdom probe regions, contacts, teams, maintenance, reports and history are not transferred. Review and reconnect them before cutover.",
+            "The exact named server is queried over bounded DNS/TCP port 53. A server that only accepts UDP needs TCP enabled; no other resolver substitutes for it."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tcp-send",
+      "detected": true,
+      "withheld": {
+        "check": {
+          "id": 77001,
+          "name": "Synthetic Café 東京",
+          "hostname": "edge.example.test",
+          "resolution": 5,
+          "status": "up",
+          "sendnotificationwhendown": 6,
+          "notifyagainevery": 2,
+          "notifywhenbackup": true,
+          "ipv6": true,
+          "type": {
+            "tcp": {
+              "port": 2323,
+              "stringtosend": "HELLO",
+              "stringtoexpect": "READY"
+            }
+          }
+        }
+      },
+      "results": [
+        {
+          "unsupported": "Pingdom TCP stringtosend requires a request/response protocol check; it is not reduced to a connection-only TCP port monitor."
+        }
+      ]
+    },
+    {
+      "name": "http-region-refusal",
+      "detected": true,
+      "withheld": {
+        "check": {
+          "id": 77001,
+          "name": "Synthetic Café 東京",
+          "hostname": "edge.example.test",
+          "resolution": 5,
+          "status": "up",
+          "sendnotificationwhendown": 6,
+          "notifyagainevery": 2,
+          "notifywhenbackup": true,
+          "ipv6": true,
+          "probe_filters": [
+            "region: EU"
+          ],
+          "type": {
+            "http": {
+              "url": "/",
+              "encryption": true,
+              "verify_certificate": true
+            }
+          }
+        }
+      },
+      "results": [
+        {
+          "refused": "Pingdom probe filters “region: EU” have no matching installed geographic location. Choose the locations to check from yourself; these filters are not silently replaced by your first location."
+        }
+      ]
+    },
+    {
+      "name": "list-is-not-details",
+      "detected": false,
+      "withheld": {
+        "checks": [
+          {
+            "id": 77001,
+            "name": "Synthetic Café 東京",
+            "hostname": "edge.example.test",
+            "resolution": 5,
+            "status": "up",
+            "sendnotificationwhendown": 6,
+            "notifyagainevery": 2,
+            "notifywhenbackup": true,
+            "ipv6": true,
+            "type": "ping"
+          }
+        ]
+      },
+      "error": "Use saved Pingdom check details with a check object, or a documented TMS detail object with type, name, interval and steps. Summary lists do not contain complete settings."
+    },
+    {
+      "name": "aws-getcanary-not-recognized",
+      "detected": false,
+      "withheld": {
+        "Canary": {
+          "Id": "00000000-0000-4000-8000-000000000001",
+          "Name": "synthetic-canary",
+          "Code": {
+            "Handler": "index.handler",
+            "SourceLocationArn": "arn:aws:lambda:us-east-1:000000000000:layer:synthetic:1"
+          },
+          "Schedule": {
+            "Expression": "rate(5 minutes)",
+            "DurationInSeconds": 0
+          }
+        }
+      },
+      "error": "Use saved Pingdom check details with a check object, or a documented TMS detail object with type, name, interval and steps. Summary lists do not contain complete settings."
+    }
+  ]
+}
