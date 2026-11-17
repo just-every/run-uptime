@@ -1,0 +1,31 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+(node:3148) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ACCESS-001 read-only actions PASS: list and monitor write controls absent; owner retains all controls; stale-screen 403 names read-only role without queuing a check.
+ACCESS-001 Settings PASS: Base email-link invitations for all four roles, live service/team scope narrowing, no-op save and removal at 1440 with axe/reflow.
+*** Fatal uncaught kj::Exception: rust/cxx/kj-rs-io/ffi.rs:197: failed: bind(): Address already in use (os error 98)
+stack: <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@2296d7b <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@21a280b <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@5a5000e <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@5a4fdee <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@21a0ca6 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@59bf18d <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@2144d90 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@2147d18 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@212e0f2 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@212e108 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@5a96d76 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@212e154 /lib/x86_64-linux-gnu/libc.so.6@29ca7 /lib/x86_64-linux-gnu/libc.so.6@29d64 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@212e024
+<checkout>/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:107157
+      throw new MiniflareCoreError(
+            ^
+
+MiniflareCoreError [ERR_RUNTIME_FAILURE]: The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
+Runtime stderr:
+*** Fatal uncaught kj::Exception: rust/cxx/kj-rs-io/ffi.rs:197: failed: bind(): Address already in use (os error 98)
+stack: <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@2296d7b <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@21a280b <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@5a5000e <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@5a4fdee <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@21a0ca6 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@59bf18d <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@2144d90 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@2147d18 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@212e0f2 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@212e108 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@5a96d76 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@212e154 /lib/x86_64-linux-gnu/libc.so.6@29ca7 /lib/x86_64-linux-gnu/libc.so.6@29d64 <checkout>/node_modules/.pnpm/@cloudflare+workerd-linux-64@1.20260926.1/node_modules/@cloudflare/workerd-linux-64/bin/workerd@212e024
+    at StartupLogBuffer.handleStartupFailure (<checkout>/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:107157:13)
+    at Runtime.updateConfig (<checkout>/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:107237:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async #assembleAndUpdateConfig (<checkout>/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:124481:30)
+    at async <checkout>/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:123232:7
+    at async Mutex.runWith (<checkout>/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:70190:16)
+    at async #waitForReady (<checkout>/node_modules/.pnpm/miniflare@5.20260926.1-alpha_@types+node@26.6.4/node_modules/miniflare/dist/src/index.js:124606:5)
+    at async hostedRuntime (file://<checkout>/tests/hosted-auth-runtime.mjs:19:6)
+    at async file://<checkout>/tests/access-matrix.mjs:34:11 {
+  code: 'ERR_RUNTIME_FAILURE',
+  cause: undefined
+}
+
+Node.js v22.20.0

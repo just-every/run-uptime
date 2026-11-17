@@ -1,0 +1,328 @@
+{
+  "files": [
+    {
+      "blob": "aea396a72ae9ae874a18cb37892e50f6ce9e4e8a",
+      "bytes": 1863,
+      "path": "DIFF-EXPLANATION.md",
+      "sha256": "943fec1abe7dee9109585374de28fff3540680530898a1e243966ca04eba7ee2"
+    },
+    {
+      "blob": "ee07279282502c2f614cd6bba87453259ff565a2",
+      "bytes": 8375,
+      "path": "REPORT.md",
+      "sha256": "994dc99d0c1b672bedfdf53cacbbb623eadf39e86f79405151fc7190bd3ef1d3"
+    },
+    {
+      "blob": "2e416c4e931cf32b077a204e84da0337b1c635cf",
+      "bytes": 4090,
+      "path": "browser-proof.mjs",
+      "sha256": "87e961843928e32095216540ab1834964445116bae1f3ef0310d46b67c328e31"
+    },
+    {
+      "blob": "3aac660595ddead221ef6a2d0f26fa4de7c5885e",
+      "bytes": 144107,
+      "path": "browser/alerts-1440.png",
+      "sha256": "0c5637912d65f32c53a64c9021f7332970e8125ddc3cfd6d5c471db5cc880902"
+    },
+    {
+      "blob": "8b7af568824a65ed17a290783c5e6dbde3f1e3f2",
+      "bytes": 152714,
+      "path": "browser/alerts-390.png",
+      "sha256": "7758ceb5854088a17c0e5eff7c405ed0a7cb0d2ffca1299d5aa7897a651177b9"
+    },
+    {
+      "blob": "489aeebd717ba76de28c992b944beef7e33e1cbc",
+      "bytes": 1294,
+      "path": "browser/browser-receipt.json",
+      "sha256": "ffba4afa7cd9eb3406b65d8a4110c12534bb4c13be6738f721da6a502406c3e3"
+    },
+    {
+      "blob": "24ff01e959218f975390e75c97dfc9d2257df233",
+      "bytes": 1898494,
+      "path": "browser/front-page-1440.png",
+      "sha256": "3396ff4f0e250f12a14be2d23940378a93d81ddbe5b43232626574eb697c3816"
+    },
+    {
+      "blob": "c41d25e94ca32d05024dc9a2ce2235aa05b0f788",
+      "bytes": 850248,
+      "path": "browser/front-page-390.png",
+      "sha256": "49b65346ef00cf39f3195f20b1d2d04ee2c55e5c938c876fd3f9b73306a6258a"
+    },
+    {
+      "blob": "e29cdf1e4da606d87d61a8f5abf953bc5183370f",
+      "bytes": 68756,
+      "path": "browser/installation-name-1440.png",
+      "sha256": "7e820acbccc4d29d39712cb9afec562435492b14df298c8b1d1a04f4c4bf2ce1"
+    },
+    {
+      "blob": "f60e33d4ebb4160d7acf72196e184e0ec49688c5",
+      "bytes": 76101,
+      "path": "browser/installation-name-390.png",
+      "sha256": "0c9ab5106fdf7da1f3f664b7d6cbb5ef3aa7c46f6bf76478369fd409bad9b871"
+    },
+    {
+      "blob": "f2ba2c2885a8c3a842c85ee19b9f891cfb90b284",
+      "bytes": 161608,
+      "path": "browser/lobby-1440.png",
+      "sha256": "40509e08a981afde65f228455167449210c06135fe626c5ac36ca33fcbc4be72"
+    },
+    {
+      "blob": "228ea9c382fa2fef1adc5a0fea0a96bec654b5a8",
+      "bytes": 64634,
+      "path": "browser/lobby-390.png",
+      "sha256": "b43cda10761892d21e42b8232a98d5a674096cf959390d7cac290a10b5669ce5"
+    },
+    {
+      "blob": "3f61478248919153737cd1e3ea33c267138bf445",
+      "bytes": 44133,
+      "path": "browser/login-1440.png",
+      "sha256": "a805ab424e82131e801003b87fd551c13745d034f05dfa492c8f53f355dc0ad8"
+    },
+    {
+      "blob": "d2c0d91ee9d3991a4dd7bf1b1d13b76d7d8946fa",
+      "bytes": 39907,
+      "path": "browser/login-390.png",
+      "sha256": "dbc9d44418b50b744f149bb4144a2a9a6816f0696455111e90b5c31c7862e4fd"
+    },
+    {
+      "blob": "c3c972bfc86874a2bbe2c92b946f654e386150ef",
+      "bytes": 66932,
+      "path": "browser/monitors-1440.png",
+      "sha256": "2f6bac74c6eca8f1a64540f0c11539e2fc30c463693ec4a28ba23a47497fa449"
+    },
+    {
+      "blob": "bfdd2734df0f273dc8880cc343269a620e601ffa",
+      "bytes": 68586,
+      "path": "browser/monitors-390.png",
+      "sha256": "ba880201cedfd2f54b3111c3f1f59e4f2ab19807f8365c082ecfad37dacdf4c3"
+    },
+    {
+      "blob": "128e1b7ebdcc5784e472590a56948056fdb260a9",
+      "bytes": 119434,
+      "path": "browser/owner-profile-1440.png",
+      "sha256": "86a5aafd38e0572a0043361db5b807baa61dd9e7f8c44ef2fa8179cbb8966a4f"
+    },
+    {
+      "blob": "62b8984ddb80e45ad05a8eb6b4ace40b12aea5c0",
+      "bytes": 130325,
+      "path": "browser/owner-profile-390.png",
+      "sha256": "7fa6a817a8f7abbe2db36d13be09bec4ca0f82a2fe0c16b2b44935d8ec64e5af"
+    },
+    {
+      "blob": "9d0565a7b4d53d1baedf2ed6889fe865b8b39d33",
+      "bytes": 131233,
+      "path": "browser/setup-1440.png",
+      "sha256": "863e59e7a81ea38c152110fdf21feea47484d485b387c700042729fd659406e8"
+    },
+    {
+      "blob": "13ef4ae09d6b24f9559c56ad490734c7ca56ebf1",
+      "bytes": 64368,
+      "path": "browser/setup-390.png",
+      "sha256": "9678076383b17e6f85d487feb4a7b845660326313f2de3a18f5fde32a1110d8c"
+    },
+    {
+      "blob": "169ad3d7a15e0c116a466d1bf32cc701e997d4ee",
+      "bytes": 26756,
+      "path": "browser/test-signins-1440.png",
+      "sha256": "18dde86ec326d5108a5565b393e69eb12092eb9908f895809a5859eeaa7ccf0a"
+    },
+    {
+      "blob": "00bfe59aa4f92f02fc8809be530abf64537a36b2",
+      "bytes": 21108,
+      "path": "browser/test-signins-390.png",
+      "sha256": "f0e76b5a88a6c11b558e26e7fb855f5ed551aa12ee06c6fb4b42a29e0b4dfc39"
+    },
+    {
+      "blob": "55bfeff023c4ae17dc59e12f86f446b1960e6b53",
+      "bytes": 85,
+      "path": "candidate-identities.txt",
+      "sha256": "148bad84b5b174568017df50d58e073566703d43c6c9fe7fa6f1af04420adf55"
+    },
+    {
+      "blob": "abaa1e4bb9344ec1455697280e9ba76eb3cca0ed",
+      "bytes": 1528,
+      "path": "checks/uptime-access-matrix-recheck.log",
+      "sha256": "88cad0371f56306038ff4f30ad9588242b42f3eedaf1bf01bb7a95838ec6ce63"
+    },
+    {
+      "blob": "ddddfa414f5d40a25578f028bf6f880c404ade37",
+      "bytes": 27291,
+      "path": "checks/uptime-agent-door-recheck.log",
+      "sha256": "4b76e49a201a2cb54fb840aaabc1a545e8ff36dfe7070470bdc3b6d69e64aa57"
+    },
+    {
+      "blob": "4d72bfacb03f921a5a353eb8d0bbb34a6a4fa905",
+      "bytes": 25825,
+      "path": "checks/uptime-base-check.log",
+      "sha256": "d678abe4091f01b3ac82ec8c5f60814699637938ce04f614bfc4df8ead519dc6"
+    },
+    {
+      "blob": "57cd004436179e86e6b2ea7bab47674b0c4e984e",
+      "bytes": 10164,
+      "path": "checks/uptime-build-final.log",
+      "sha256": "cfcf6981ff6dfcc7fa09970ff1d7aedb5f4b9a4cfb0b303a1b986710df2e91f3"
+    },
+    {
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "path": "checks/uptime-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "blob": "2b5749ba8bbe181e762b4b1801c4ebe40e9f0f2c",
+      "bytes": 978,
+      "path": "checks/uptime-command-recheck.log",
+      "sha256": "f093735e4491127b6903a2512a60ddb19cdcfb1e7498154eaa3f0e418d67fbcb"
+    },
+    {
+      "blob": "b59d39532e8a030ff74f6339019ab7870ef51548",
+      "bytes": 70,
+      "path": "checks/uptime-contract-check-final.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422"
+    },
+    {
+      "blob": "58dd21c218846e90dd798f1845377f7422e45cac",
+      "bytes": 28,
+      "path": "checks/uptime-contract-write-final.log",
+      "sha256": "14cee29b7bd19487e15f4013d4fb85016e022ef21d230676971a6490c88436d2"
+    },
+    {
+      "blob": "54a0d4e2b401a3a60f8c5cc859c536da92b7fbae",
+      "bytes": 1940,
+      "path": "checks/uptime-definitions-import.log",
+      "sha256": "ac9fa310215e8d39cbd219f4303a6a9d09d523e0c5754caff44ec95e62cf1382"
+    },
+    {
+      "blob": "855613768a0cd412e653fe4feefd17a6a05c8a15",
+      "bytes": 464103,
+      "path": "checks/uptime-final-lock.log",
+      "sha256": "89797c0e8e595fd6b9c581c882df33f225cdd7c03a62297eb04249c31d1b6bd3"
+    },
+    {
+      "blob": "17598ac94f1ebfcf562e247ad8eaae4f0e034259",
+      "bytes": 464117,
+      "path": "checks/uptime-final-source-check.log",
+      "sha256": "ca03fe36fd092386cb12de69265dad5184adf7b707f532d949be70b00c9982e7"
+    },
+    {
+      "blob": "520a913bb5f5cc1a326ef03e89d8b16ba2b179e7",
+      "bytes": 799,
+      "path": "checks/uptime-hosted-auth-final.log",
+      "sha256": "f33837ab2dba205a3b40e106d938a6077c0f7cbbf304753bc33b9e77c7b84303"
+    },
+    {
+      "blob": "31f01fd994b628e83ef889d79b51d223e56e7be4",
+      "bytes": 8287,
+      "path": "checks/uptime-setup-final.log",
+      "sha256": "5d3ec41b2702393e9753f8f0855d35678ab5036001f8d80d8cae794e725d4cef"
+    },
+    {
+      "blob": "5762808423f33bafca1bb4731e671a301dfb1fd2",
+      "bytes": 241,
+      "path": "checks/uptime-site-build-final.log",
+      "sha256": "412546f7b84ae8a818d20ee8d5f63fd647cf792cafff3707bf8c860216336949"
+    },
+    {
+      "blob": "a2959ae143a445cc7e4e66912a808d8c67e14cb5",
+      "bytes": 167,
+      "path": "checks/uptime-spec-check-final.log",
+      "sha256": "9ecada50e0ae6f595fc5e486bca5167c86a921e5b0a2673d3d8af61abb0ab624"
+    },
+    {
+      "blob": "e74bc9f77d3181006daebd77e2457186fe34c54e",
+      "bytes": 173,
+      "path": "checks/uptime-spec-generate-final.log",
+      "sha256": "efb5b735d3a9f93af6a79e3db96460ed1f9a1efb8248fc81559d64882a1abdcf"
+    },
+    {
+      "blob": "31344860891ae4538531651c282503081fae2dbc",
+      "bytes": 490143,
+      "path": "checks/uptime-test-base-final.log",
+      "sha256": "c697038b54c2727be19920cbaa7476ef7065fe19fb7b65e7d4ffa77da8ab8fda"
+    },
+    {
+      "blob": "442f40e8f99ef64df1cebafcb4d1938f5f7ea66b",
+      "bytes": 127,
+      "path": "checks/uptime-typecheck-final.log",
+      "sha256": "78e7418d7e5d96818e6fae01a6790539a929d6723f3b313f29dff2db0cc45e93"
+    },
+    {
+      "blob": "cd4e3dc97f1cbdcb0ff79699bfb706448299e710",
+      "bytes": 130,
+      "path": "checks/uptime-validate-release.log",
+      "sha256": "0d493dfe348793e4bd6c67f46cd55f9877a821c25e1f8b4a1f680dfa773ebb8d"
+    },
+    {
+      "blob": "dce4e87c5e4e2730b1f4e324e192453e0f3cabea",
+      "bytes": 327,
+      "path": "ci-discovery.json",
+      "sha256": "9c668ae6244e523f6f9901ba8556c4818d30350283e423ffd7dcbe04ad37095f"
+    },
+    {
+      "blob": "c2bfb1e881aa1f4608a5f980eff19bd5247a55b8",
+      "bytes": 1710,
+      "path": "ci-receipt.json",
+      "sha256": "314d01b1447ebae40d130016a7a7a1f3835c0ed17b40235dc80de86d84ad72bc"
+    },
+    {
+      "blob": "d3510fa71e691bc5a12778abbb7850165366faf3",
+      "bytes": 6073,
+      "path": "diagnostics/uptime-access-matrix.log",
+      "sha256": "04919fb9ba23618a1802116dd324227860d6adf34277f128ef5c6a943e4e4df3"
+    },
+    {
+      "blob": "c1713b66b5c0a63aba3908d780e407e1c46703d5",
+      "bytes": 17705,
+      "path": "diagnostics/uptime-agent-door.log",
+      "sha256": "c09b9b1eb1088185467fb422c89a890c26ee7d9bb2bd486356f712940b9a0d5c"
+    },
+    {
+      "blob": "8ac69b4a17d72de5c10407fb56b9897ad7bb8538",
+      "bytes": 1326,
+      "path": "diagnostics/uptime-command-journey.log",
+      "sha256": "d37f6c2b35b1ec5de0d248d3f073d5b2fa754dd360678f0ad900e2e20b235724"
+    },
+    {
+      "blob": "7c4284993dc817d60a35e2de0a7dff1c7c4f748c",
+      "bytes": 1326,
+      "path": "diagnostics/uptime-hosted-auth.log",
+      "sha256": "62f602aa63ad2f71095f98eccde81477355c5493daec38a00a404dd6dfb5a4d4"
+    },
+    {
+      "blob": "d67084406702cbdd3097f20ef77b8313b2eddfd1",
+      "bytes": 891,
+      "path": "mail-off-receipt.json",
+      "sha256": "3439372061f7e08e1ae789aca30b2363e2ffd46b7d03bed67c45efd35a1f4a25"
+    },
+    {
+      "blob": "a8e23bfe8008a7dac71f7aa8bed8e8df82b5f2bb",
+      "bytes": 946,
+      "path": "push-receipt.txt",
+      "sha256": "c771d8981789258683e06a6e67ba3a33b2f33c587cccb654228c3bf848e28eab"
+    },
+    {
+      "blob": "9d2d3c3aa357144694a3cada7d378e68e771952c",
+      "bytes": 341,
+      "path": "release-metadata.json",
+      "sha256": "4081e924676feb7af839016618decdaa4626a73a5f335db34bad4966f572c55f"
+    },
+    {
+      "blob": "cb0b4ed10daf4425221f6dc1b4f6a5005fcfbcaf",
+      "bytes": 35562,
+      "path": "replay-provenance.json",
+      "sha256": "45ca153c3a31adf0bbef54be5a2421b4292095b0183546bf77a4c917196a64d4"
+    },
+    {
+      "blob": "e068adebcc16666ad6c67e1c046faf2bee4ca16a",
+      "bytes": 8597,
+      "path": "validation-receipt.json",
+      "sha256": "2f126cc53ba7677a982a60731ab36d1030b915f7d43f585c6761f78238008928"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-design-setup-3",
+  "product_head": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+  "ref": "refs/heads/evidence/sd-uptime-design-setup-3",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-design-setup-3"
+}

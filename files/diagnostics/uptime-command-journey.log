@@ -1,0 +1,29 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+(node:2768) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.
+COMMAND-JOURNEY PDF PASS: the freshly installed [private] app downloads a readable period report.
+LOCAL-SIGNIN-TRUTH PASS: both local invitation doors disclose non-delivery, pending accounts and private handoff; fresh Lobby/login agree; printed CLI handoffs admit the invited accounts.
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: scratch command failed: The import door refused apply: import_door_conflict.
+
+
+1 !== 0
+
+    at Object.run (file://<checkout>/tests/scratch-installation.mjs:64:30)
+    at async definitionsCommand (file://<checkout>/tests/command-journey.mjs:213:65)
+    at async file://<checkout>/tests/command-journey.mjs:218:57 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

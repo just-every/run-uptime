@@ -1,0 +1,75 @@
+{
+  "head": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "nativeSetup": true,
+  "ownerProfileAndInstallationPersistence": true,
+  "realSignInChoices": true,
+  "destinationRecipientRefresh": true,
+  "localOnlyNote": true,
+  "records": [
+    {
+      "name": "setup",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "name": "alerts",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "alerts",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "name": "monitors",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "monitors",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "name": "lobby",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "lobby",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "name": "login",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "login",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "name": "front-page",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "front-page",
+      "width": 390,
+      "overflow": false
+    }
+  ]
+}

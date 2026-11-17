@@ -1,0 +1,10 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+CODE-001 bounded CI: actual workflow preview/semantic test/apply with least-scope token, typed JSON parity, paused deployment, replay/drift and environment/tag refusals, token revocation after an attributed 20-record batch, exact durable-table refusal on the next operation, owner export/undo. Durable revoked-job stop presentation, runtime probe execution and hosted Actions remain gaps.
+IMPORT-001 / MIGRATE-001 passed through the import door: refusals leave every table byte-identical; request secrets are withheld before upload and stored nowhere; UptimeRobot preview, paused apply, export round-trip, change, undo that keeps and reports edits, with history intact, and earlier batches keep read and undo. DEPENDENCY-002 passed: UptimeRobot, Better Stack and Site24x7 third-party service monitors map onto catalog entries as paused followed services, a Better Stack third-party status page row is refused citing its public API, and a part already followed is refused.
+MANAGE-001 native management: direct create, edit and pause retain immutable public revisions; foreign-site and malformed monitor and contact writes preserve every durable table.
+MIGRATE-004 saved list: read 12 = converted 5 + refused 2 + unsupported 5; paused apply, unchanged re-import and retained-history undo.
+MIGRATE-003 saved monitors: read 12 = converted 7 + refused 1 + unsupported 4; groups/regions labelled, paused apply, unchanged re-import and retained-history undo.
+MIGRATE-002 saved checks: read 7 = converted 2 + refused 3 + unsupported 2; tags retained, every probe filter named, TMS refused, paused apply and undo.
+Documented synthetic captures: deterministic manifests; exhaustive leaf/resource dispositions; production owner/CLI preview, paused apply, exact read-back, stable reordered re-import, stale/malformed refusal and secret-free custody passed.

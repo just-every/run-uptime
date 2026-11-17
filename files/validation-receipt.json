@@ -1,0 +1,219 @@
+{
+  "tag": "sd-uptime-design-setup-3",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-design-setup-3",
+  "head": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+  "tree": "c9bde82359bab73e9808103a1092230ad4498ad7",
+  "base": "6c223b6fd8982b8ffa70fe9e2b129e898637a4c8",
+  "prior": "b41d62102f8f12cfc9724305267b67a080cccae7",
+  "recordedAt": "2026-11-17T22:37:49.598553+00:00",
+  "checks": [
+    {
+      "name": "setup",
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-setup-final.log",
+      "sha256": "5d3ec41b2702393e9753f8f0855d35678ab5036001f8d80d8cae794e725d4cef",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "typecheck",
+      "command": "pnpm run typecheck",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-typecheck-final.log",
+      "sha256": "78e7418d7e5d96818e6fae01a6790539a929d6723f3b313f29dff2db0cc45e93",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "build",
+      "command": "npx -y @runeditrun/rer build",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-build-final.log",
+      "sha256": "cfcf6981ff6dfcc7fa09970ff1d7aedb5f4b9a4cfb0b303a1b986710df2e91f3",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "spec-generate",
+      "command": "pnpm spec:generate",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-spec-generate-final.log",
+      "sha256": "efb5b735d3a9f93af6a79e3db96460ed1f9a1efb8248fc81559d64882a1abdcf",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "spec-check",
+      "command": "pnpm spec:check",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-spec-check-final.log",
+      "sha256": "9ecada50e0ae6f595fc5e486bca5167c86a921e5b0a2673d3d8af61abb0ab624",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "contract-write",
+      "command": "node src/base/contract-docs.mjs write",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-contract-write-final.log",
+      "sha256": "14cee29b7bd19487e15f4013d4fb85016e022ef21d230676971a6490c88436d2",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "contract-check",
+      "command": "node src/base/contract-docs.mjs check",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-contract-check-final.log",
+      "sha256": "b04031901cfff3e9bc42a429b52cbc14c2442ffb68817fd62a245ac52847b422",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "site-build",
+      "command": "npx -y @runeditrun/rer build --site",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-site-build-final.log",
+      "sha256": "412546f7b84ae8a818d20ee8d5f63fd647cf792cafff3707bf8c860216336949",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "structural-check",
+      "command": "npx -y @runeditrun/rer check --profile first-party",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "base-copy-integrity",
+      "command": "node scripts/edition-authoring/cli.mjs verify-base --offline",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-base-check.log",
+      "sha256": "d678abe4091f01b3ac82ec8c5f60814699637938ce04f614bfc4df8ead519dc6",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "test-base",
+      "command": "pnpm run test:base",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-test-base-final.log",
+      "sha256": "c697038b54c2727be19920cbaa7476ef7065fe19fb7b65e7d4ffa77da8ab8fda",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "source-lock",
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-final-lock.log",
+      "sha256": "89797c0e8e595fd6b9c581c882df33f225cdd7c03a62297eb04249c31d1b6bd3",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "source-check",
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-final-source-check.log",
+      "sha256": "ca03fe36fd092386cb12de69265dad5184adf7b707f532d949be70b00c9982e7",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    },
+    {
+      "name": "hosted-auth",
+      "command": "node tests/hosted-auth-browser.mjs",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-hosted-auth-final.log",
+      "sha256": "f33837ab2dba205a3b40e106d938a6077c0f7cbbf304753bc33b9e77c7b84303",
+      "sourceBaseline": "9ab0bb5f30aa4a6c2a40cf0fb83d7dda151e09e2; final Hono patch is inherited from 6c223b6 and covered by exact-SHA CI"
+    },
+    {
+      "name": "access-matrix",
+      "command": "node tests/access-matrix.mjs",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-access-matrix-recheck.log",
+      "sha256": "88cad0371f56306038ff4f30ad9588242b42f3eedaf1bf01bb7a95838ec6ce63",
+      "sourceBaseline": "9ab0bb5f30aa4a6c2a40cf0fb83d7dda151e09e2; final Hono patch is inherited from 6c223b6 and covered by exact-SHA CI"
+    },
+    {
+      "name": "definitions-import",
+      "command": "node tests/definitions-import.mjs",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-definitions-import.log",
+      "sha256": "ac9fa310215e8d39cbd219f4303a6a9d09d523e0c5754caff44ec95e62cf1382",
+      "sourceBaseline": "9ab0bb5f30aa4a6c2a40cf0fb83d7dda151e09e2; final Hono patch is inherited from 6c223b6 and covered by exact-SHA CI"
+    },
+    {
+      "name": "command-journey",
+      "command": "node tests/command-journey.mjs",
+      "exitCode": 0,
+      "status": "passed",
+      "log": "checks/uptime-command-recheck.log",
+      "sha256": "f093735e4491127b6903a2512a60ddb19cdcfb1e7498154eaa3f0e418d67fbcb",
+      "sourceBaseline": "9ab0bb5f30aa4a6c2a40cf0fb83d7dda151e09e2; final Hono patch is inherited from 6c223b6 and covered by exact-SHA CI"
+    },
+    {
+      "name": "agent-door",
+      "command": "node tests/agent-door.mjs",
+      "exitCode": null,
+      "status": "interrupted-environment-reconnect-before-aggregate",
+      "log": "checks/uptime-agent-door-recheck.log",
+      "sha256": "4b76e49a201a2cb54fb840aaabc1a545e8ff36dfe7070470bdc3b6d69e64aa57",
+      "sourceBaseline": "9ab0bb5f30aa4a6c2a40cf0fb83d7dda151e09e2; final Hono patch is inherited from 6c223b6 and covered by exact-SHA CI"
+    },
+    {
+      "name": "validate-release",
+      "command": "pnpm run validate:release",
+      "exitCode": 1,
+      "status": "unavailable-current-main-script",
+      "log": "checks/uptime-validate-release.log",
+      "sha256": "0d493dfe348793e4bd6c67f46cd55f9877a821c25e1f8b4a1f680dfa773ebb8d",
+      "sourceBaseline": "f55a67bca324c5835dda16544a8fd0ff4fb32362"
+    }
+  ],
+  "countsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "countsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20
+  },
+  "clauseChanges": [],
+  "designD5": "partial",
+  "lampLink": "omitted",
+  "browser": "/usr/bin/chromium",
+  "browserProofWidths": [
+    1440,
+    390
+  ],
+  "assertionWidth": 1440,
+  "contractAndViewsEqualMain": true,
+  "mergeCommits": [],
+  "productPush": "successful first attempt; push-receipt.txt",
+  "exactShaVerify": {
+    "runId": 44189056322,
+    "head": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/just-every/run-uptime/actions/runs/44189056322"
+  },
+  "localJourneyBaseline": "9ab0bb5f30aa4a6c2a40cf0fb83d7dda151e09e2; final Hono patch is inherited from 6c223b6 and covered by exact-SHA CI",
+  "publicationScan": "fleet Mac custody; not available in this cloud",
+  "releaseTarget": "validate:release is absent on current main; no clause meaning changed",
+  "finalBrowserReceipt": "browser/browser-receipt.json",
+  "releaseMetadata": "release-metadata.json",
+  "apiCallsUsed": 4,
+  "productReady": true
+}

@@ -1,0 +1,48 @@
+{
+  "conclusion": "success",
+  "created_at": "2026-11-17T22:20:20Z",
+  "event": "push",
+  "head_branch": "cloud/sd-uptime-design-setup-3",
+  "head_sha": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/44189056322",
+  "id": 44189056322,
+  "name": "Verify",
+  "status": "completed",
+  "observedAt": "2026-11-17T22:37:01.181682+00:00",
+  "apiCalls": 4,
+  "observations": [
+    {
+      "conclusion": null,
+      "created_at": "2026-11-17T22:20:20Z",
+      "event": "push",
+      "head_branch": "cloud/sd-uptime-design-setup-3",
+      "head_sha": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44189056322",
+      "id": 44189056322,
+      "name": "Verify",
+      "status": "in_progress",
+      "observedAt": "2026-11-17T22:20:51.684986+00:00"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44189056322",
+      "status": "in_progress",
+      "observedAt": "2026-11-17T22:26:14.267131+00:00"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44189056322",
+      "status": "in_progress",
+      "observedAt": "2026-11-17T22:31:36.953643+00:00"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "f55a67bca324c5835dda16544a8fd0ff4fb32362",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44189056322",
+      "status": "completed",
+      "observedAt": "2026-11-17T22:37:01.181682+00:00"
+    }
+  ]
+}
