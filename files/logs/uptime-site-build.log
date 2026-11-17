@@ -1,0 +1,7 @@
+Heavy job admitted: Uptime build:workflow [36df30e06fdf]
+Checking pinned pnpm
+10.12.4
+Building the run site
+{"pages":29,"assets":4,"styles":1}
+Run site written to dist/site (29 pages, 44 files): [REDACTED]/dist/site
+build: complete (exit 0)

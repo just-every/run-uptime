@@ -1,0 +1,10 @@
+{
+  "check": "pinned rer release source/metadata/catalogue validation",
+  "status": "PASS",
+  "head": "b41d62102f8f12cfc9724305267b67a080cccae7",
+  "version": "0.5.16",
+  "publishedClauses": 21,
+  "artifacts": 10,
+  "scope": "read-only metadata validation; no release, tag, publication scan or acceptance claimed",
+  "missingLegacyCommand": "pnpm run validate:release is not defined by current main"
+}

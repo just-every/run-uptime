@@ -1,0 +1,261 @@
+{
+  "updatedAt": "2026-11-17T18:00:40.912191+00:00",
+  "checks": [
+    {
+      "name": "fleet-install",
+      "command": "npx -y @runeditrun/rer install",
+      "status": "PASS",
+      "log": "logs/uptime-install.log"
+    },
+    {
+      "name": "fleet-setup",
+      "command": "npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --owner-name Run Edit Run fleet --non-interactive",
+      "status": "PASS",
+      "log": "logs/uptime-setup.log"
+    },
+    {
+      "name": "hosted-auth",
+      "command": "node tests/hosted-auth-browser.mjs",
+      "status": "PASS",
+      "log": "logs/uptime-hosted-auth-browser.log"
+    },
+    {
+      "name": "access-matrix",
+      "command": "node tests/access-matrix.mjs",
+      "status": "PASS",
+      "log": "logs/uptime-access-matrix-retry.log"
+    },
+    {
+      "name": "contract-write",
+      "command": "node src/base/contract-docs.mjs write",
+      "status": "PASS",
+      "log": "logs/uptime-contract-write.log"
+    },
+    {
+      "name": "contract-check",
+      "command": "node src/base/contract-docs.mjs check",
+      "status": "PASS",
+      "log": "logs/uptime-contract-check.log"
+    },
+    {
+      "name": "build",
+      "command": "npx -y @runeditrun/rer build",
+      "status": "PASS",
+      "log": "logs/uptime-build.log"
+    },
+    {
+      "name": "spec-generate",
+      "command": "pnpm spec:generate",
+      "status": "PASS",
+      "log": "logs/uptime-spec-generate-final.log"
+    },
+    {
+      "name": "spec-check",
+      "command": "pnpm spec:check",
+      "status": "PASS",
+      "log": "logs/uptime-spec-check-final.log"
+    },
+    {
+      "name": "typecheck",
+      "command": "pnpm typecheck",
+      "status": "PASS",
+      "log": "logs/uptime-typecheck-final.log"
+    },
+    {
+      "name": "base-check",
+      "command": "pnpm test:base",
+      "status": "PASS",
+      "log": "logs/uptime-base-check-final.log"
+    },
+    {
+      "name": "source-lock",
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "status": "PASS",
+      "log": "logs/uptime-source-lock-final.log"
+    },
+    {
+      "name": "source-check",
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "status": "PASS",
+      "log": "logs/uptime-source-check-final.log"
+    },
+    {
+      "name": "first-party-check",
+      "command": "pnpm exec rer check --profile first-party",
+      "status": "PASS",
+      "log": "logs/uptime-first-party-check.log"
+    },
+    {
+      "name": "site-build",
+      "command": "npx -y @runeditrun/rer build --site",
+      "status": "PASS",
+      "log": "logs/uptime-site-build.log"
+    },
+    {
+      "name": "site-proof",
+      "command": "node /tmp/uptime-site-proof.mjs",
+      "status": "PASS",
+      "log": "logs/uptime-site-proof.log"
+    },
+    {
+      "name": "legacy-release-validation",
+      "command": "pnpm run validate:release",
+      "status": "UNAVAILABLE",
+      "log": "logs/uptime-validate-release.log"
+    },
+    {
+      "name": "local-signin-truth",
+      "command": "node tests/command-journey.mjs (proveLocalSignInTruth)",
+      "status": "PASS",
+      "log": "logs/uptime-command-journey-final.log"
+    },
+    {
+      "name": "command-journey",
+      "command": "node tests/command-journey.mjs",
+      "status": "PASS",
+      "log": "logs/uptime-command-journey-final.log"
+    },
+    {
+      "name": "agent-door",
+      "command": "node tests/agent-door.mjs",
+      "status": "PASS",
+      "log": "logs/uptime-agent-door-retry.log"
+    },
+    {
+      "name": "release-metadata",
+      "command": "pinned rer inspectSource/releaseMessage/catalogue exports (read-only)",
+      "status": "PASS",
+      "log": "logs/uptime-release-metadata-check.log"
+    }
+  ],
+  "earlierAttempts": [
+    {
+      "check": "access-matrix",
+      "reason": "port 15504 collision with concurrently running hosted-auth test",
+      "subsequentResult": "PASS in isolated retry"
+    },
+    {
+      "check": "agent-door",
+      "reason": "browser launcher uses PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH rather than UPTIME_BROWSER_EXECUTABLE",
+      "subsequentResult": "PASS with both browser executable variables set"
+    },
+    {
+      "check": "command-journey",
+      "reason": "missing brace in optional screenshot helper corrected before journey execution; then invited handoff read factor status before exchange completed",
+      "subsequentResult": "PASS: full command-journey and local-signin proof after waiting for authenticated redirect"
+    }
+  ],
+  "productTreePendingCommit": false,
+  "proofFiles": [
+    {
+      "path": "browser/RESULTS.json",
+      "bytes": 222
+    },
+    {
+      "path": "browser/after-lobby-1440.png",
+      "bytes": 161608
+    },
+    {
+      "path": "browser/after-lobby-390.png",
+      "bytes": 64634
+    },
+    {
+      "path": "browser/after-login-1440.png",
+      "bytes": 44133
+    },
+    {
+      "path": "browser/after-login-390.png",
+      "bytes": 39907
+    },
+    {
+      "path": "browser/after-people-1440.png",
+      "bytes": 58509
+    },
+    {
+      "path": "browser/after-people-390.png",
+      "bytes": 59862
+    },
+    {
+      "path": "browser/after-readonly-checks-1440.png",
+      "bytes": 256078
+    },
+    {
+      "path": "browser/after-readonly-checks-390.png",
+      "bytes": 233549
+    },
+    {
+      "path": "browser/after-readonly-list-1440.png",
+      "bytes": 124972
+    },
+    {
+      "path": "browser/after-readonly-list-390.png",
+      "bytes": 114812
+    },
+    {
+      "path": "browser/after-readonly-report-1440.png",
+      "bytes": 254109
+    },
+    {
+      "path": "browser/after-readonly-report-390.png",
+      "bytes": 265083
+    },
+    {
+      "path": "browser/browser-receipt.json",
+      "bytes": 1778
+    },
+    {
+      "path": "browser/front-page-1440.png",
+      "bytes": 1852769
+    },
+    {
+      "path": "browser/front-page-390.png",
+      "bytes": 806476
+    },
+    {
+      "path": "browser/installation-name-1440.png",
+      "bytes": 64959
+    },
+    {
+      "path": "browser/installation-name-390.png",
+      "bytes": 72821
+    },
+    {
+      "path": "browser/owner-profile-1440.png",
+      "bytes": 115280
+    },
+    {
+      "path": "browser/owner-profile-390.png",
+      "bytes": 126540
+    },
+    {
+      "path": "browser/readonly-console-receipt.json",
+      "bytes": 355
+    },
+    {
+      "path": "browser/setup-1440.png",
+      "bytes": 121656
+    },
+    {
+      "path": "browser/setup-390.png",
+      "bytes": 56229
+    },
+    {
+      "path": "browser/site-proof.json",
+      "bytes": 196
+    },
+    {
+      "path": "browser/test-signins-1440.png",
+      "bytes": 26756
+    },
+    {
+      "path": "browser/test-signins-390.png",
+      "bytes": 21108
+    }
+  ],
+  "head": "b41d62102f8f12cfc9724305267b67a080cccae7",
+  "limitations": [
+    "Legacy validate:release script absent from current main; actual result retained. Pinned rer release metadata/source/catalogue validation passes; full fleet publication scan remains the lander gate.",
+    "Evidence is local/synthetic runtime proof, not hosted operation or human recipient acceptance.",
+    "D5 partial: describe lists commands, practice-target helper prints its URL. Optional Lamp link omitted."
+  ]
+}

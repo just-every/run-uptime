@@ -1,0 +1,1567 @@
+diff --git a/README.md b/README.md
+index bc10d4b..7650351 100644
+--- a/README.md
++++ b/README.md
+@@ -3,11 +3,13 @@
+     <picture>
+       <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.webp">
+       <source media="(prefers-color-scheme: light)" srcset=".github/assets/banner-light.webp">
+-      <img src=".github/assets/banner-light.webp" width="100%" alt="Uptime: Sleep through the night. 100% free, open source alternative to Pingdom, UptimeRobot and Better Stack.">
++      <img src=".github/assets/banner-light.webp" width="100%" alt="Uptime: Sleep through the night.">
+     </picture>
+   </a>
+ </p>
+ 
++Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.
++
+ <p align="center"><a href="https://run-uptime.com">run-uptime.com</a> · <a href="https://justevery.com">Part of Just Every</a> · <a href="LICENSE">MIT licensed</a></p>
+ 
+ <p align="center">
+@@ -31,6 +33,7 @@
+ 
+ # Uptime
+ 
++
+ ## Run it on your computer
+ 
+ Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime): candidate work on branches, accepted work on `main`, and each release is a version tag on `main`. Public v0.1.1 is the security predecessor that closed the local development file-exposure issue in v0.1.0. The previous published version is v0.5.11. This release record is v0.5.12. See [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
+@@ -39,48 +42,51 @@ Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pin
+ curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime
+ ```
+ 
+-That one line installs `rer`, clones Uptime and starts it; Node does not need to be installed first. The same in two steps: run `curl -fsSL https://runeditrun.com/install.sh | sh`, then `rer dev just-every/run-uptime` (`$HOME/.local/bin/rer dev just-every/run-uptime` until the PATH line the installer prints has taken effect).
++That one line installs `rer`, clones Uptime and starts it; Node does not need to be installed first. The same in two steps: run `curl -fsSL https://runeditrun.com/install.sh | sh`, then `~/.local/bin/rer dev just-every/run-uptime`.
+ 
+ Already have Node 22 or later? This alternative does the same:
+ 
+ ```sh
+-npx -y @runeditrun/rer dev just-every/run-uptime
++npx -y @runeditrun/rer cli install
++~/.local/bin/rer dev just-every/run-uptime
+ ```
+-To start it again later, run `cd run-uptime && rer dev`. To choose the owner yourself, install `rer` with `curl -fsSL https://runeditrun.com/install.sh | sh`, then run `rer install just-every/run-uptime`, then these from the checkout instead:
++If you see `rer: command not found`, run `~/.local/bin/rer cli path` and paste the line it prints.
++
++To start it again later, run `cd run-uptime && ~/.local/bin/rer dev`. To choose the owner yourself, install `rer` with `curl -fsSL https://runeditrun.com/install.sh | sh`, then run `~/.local/bin/rer install just-every/run-uptime`, then these from the checkout instead:
+ 
+ ```sh
+-rer setup
++~/.local/bin/rer setup
+ ```
+ 
+ ```sh
+-rer dev
++~/.local/bin/rer dev
+ ```
+ 
+-`rer` runs each verb with the `@runeditrun/rer` version this checkout pins in [`package.json`](package.json). The installer keeps Node private to `rer`, so `node` may not be on your PATH: wherever this README or the docs show `node scripts/NAME.mjs ARGS`, run `rer run --script scripts/NAME.mjs ARGS` instead.
++`rer` runs each verb with the `@runeditrun/rer` version this checkout pins in [`package.json`](package.json). The installer keeps Node private to `rer`, so `node` may not be on your PATH: wherever this README or the docs show `node scripts/NAME.mjs ARGS`, run `~/.local/bin/rer run --script scripts/NAME.mjs ARGS` instead.
+ 
+-`rer install` installs the frozen dependencies. `rer setup` creates the first owner and private local settings; follow its prompts. A checkout already set up keeps its existing owner and data. `rer dev` starts the app, private runner and practice target. In an interactive terminal it stays in the foreground; Control-C stops it. From a non-interactive shell it returns once ready and leaves the app running. Use `rer dev --detach` for an explicit background run. A first start can take several minutes; repeating `rer dev` resumes an interrupted setup.
++`~/.local/bin/rer install` installs the frozen dependencies. `~/.local/bin/rer setup` creates the first owner and private local settings; follow its prompts. A checkout already set up keeps its existing owner and data. `~/.local/bin/rer dev` starts the app, private runner and practice target. In an interactive terminal it stays in the foreground; Control-C stops it. From a non-interactive shell it returns once ready and leaves the app running. Use `~/.local/bin/rer dev --detach` for an explicit background run. A first start can take several minutes; repeating `~/.local/bin/rer dev` resumes an interrupted setup.
+ 
+-Open the address printed as `RER_READY` and complete the browser sign-in handoff from `rer dev`. Keep any local access credential private. First-run setup opens at `/setup`; choose **Continue** (or **Skip**) to enter the console at `/app`. Until then, app routes return the owner to `/setup`. Hosted email-link sign-in and notifications use your configured mail sender. Development and demo runs report successful sends without sending email. See [Install](docs/getting-started.md) for setup details.
++Open the address printed as `RER_READY` and complete the browser sign-in handoff from `~/.local/bin/rer dev`. Keep any local access credential private. First-run setup opens at `/setup`; enter **Your name** and **Your email**, give the installation a name under **What should we call this?**, then choose **Continue** to enter the console at `/app`. You can change the installation name later in **Settings › General** and your own name or email under **Settings › People › Change**. Until then, app routes return the owner to `/setup`. Hosted email-link sign-in and notifications use your configured mail sender. Development and demo runs report successful sends without sending email. See [Install](docs/getting-started.md) for setup details.
+ 
+-The app origin serves its Lobby at `/` and documentation at `/docs`. The separate marketing site is `https://run-uptime.com/`, with a `/run` page: `rer build --site` writes it to `dist/site`, and `rer dev` serves it at `RER_SITE`. Vite provides assets and HMR. Stop the app and its owned runner and practice target with `rer dev --stop`, including before deployment, export, import or reset.
++The app origin serves its Lobby at `/` and documentation at `/docs`. The separate marketing site is `https://run-uptime.com/`, with a `/run` page: `~/.local/bin/rer build --site` writes it to `dist/site`, and `~/.local/bin/rer dev` serves it at `RER_SITE`. Vite provides assets and HMR. Stop the app and its owned runner and practice target with `~/.local/bin/rer dev --stop`, including before deployment, export, import or reset.
+ 
+-Use `rer describe` for commands and flags, `rer check --profile first-party` for the read-only contract check, and `rer doctor` to compare your Node and pnpm with the pinned versions (run it under Node 22.20.0) and check that local state is safe. Doctor also lists the inputs a deployment needs (Cloudflare, the selected mail provider and the like) as “Optional for local use; needed to deploy”. These deployment inputs are optional for local use. If doctor reports “Local checks need attention” and exits 3, read the named local checks and correct them before continuing. The structural check works before dependency installation. Private settings are `data/local-secrets.json` (0600); durable data is `.wrangler/state`. There is no automatic credential rotation. See [OPERATIONS.md](OPERATIONS.md) for state custody and recovery.
++Use `~/.local/bin/rer describe` for commands and flags, `~/.local/bin/rer check --profile first-party` for the read-only contract check, and `~/.local/bin/rer doctor` to compare your Node and pnpm with the pinned versions (run it under Node 22.20.0) and check that local state is safe. Doctor also lists the inputs a deployment needs (Cloudflare, the selected mail provider and the like) as “Optional for local use; needed to deploy”. These deployment inputs are optional for local use. If doctor reports “Local checks need attention” and exits 3, read the named local checks and correct them before continuing. The structural check works before dependency installation. Private settings are `data/local-secrets.json` (0600); durable data is `.wrangler/state`. There is no automatic credential rotation. See [OPERATIONS.md](OPERATIONS.md) for state custody and recovery.
+ 
+ ## Supply owner setup answers
+ 
+ For a non-interactive setup, supply the owner explicitly. A checkout already set up preserves its existing owner.
+ 
+-After installing `rer` and cloning with `rer install just-every/run-uptime` (or using `npx -y @runeditrun/rer install just-every/run-uptime` with Node 22 or later), use, from the checkout:
++After installing `rer` and cloning with `~/.local/bin/rer install just-every/run-uptime`, use, from the checkout:
+ 
+ ```sh
+-rer setup --owner-email owner@example.test --owner-name "Local Owner" --non-interactive
++~/.local/bin/rer setup --owner-email owner@example.test --owner-name "Local Owner" --non-interactive
+ ```
+ 
+-Replace the example address with the owner's address. To start with monitors already proposed, also give setup the website to monitor in a private, mode-0600 JSON file, `answers.json` containing `{"UPTIME_START_URL":"https://example.com"}`, and add `--answers answers.json` to the command. The address must be a public HTTP(S) address. It is optional: without it, `/setup` offers the same field, and leaving it empty changes nothing. When the owner opens `/setup`, Uptime asks the owner's runner to look at that site, and finishing setup opens the console on the monitors it proposes. Nothing is created until the owner chooses it. Setup builds, migrates, prepares private settings and creates the first owner, then prints `RER_SETUP_READY` and stops its temporary processes. Repeating setup preserves the owner, data and exact private settings; conflicting owner or origin answers refuse. Setup checks its generated or saved settings before opening its temporary runtime. The Worker validates configuration before handling requests or scheduled work; app, preview, deployment and runner entry points check their own configuration before serving or starting operational work. A missing or malformed required value is named without printing its value; the Worker returns 503, including at `/health`, until configuration is complete. `SETUP_TOKEN` is required until permanent owner admission is recorded; after admission, retiring it does not interrupt sign-in, routes or scheduled work, even before `/setup` is finished. Then start the app with `rer dev`.
++Replace the example address with the owner's address. To start with monitors already proposed, also give setup the website to monitor in a private, mode-0600 JSON file, `answers.json` containing `{"UPTIME_START_URL":"https://example.com"}`, and add `--answers answers.json` to the command. The address must be a public HTTP(S) address. It is optional: without it, `/setup` offers the same field, and leaving it empty changes nothing. When the owner opens `/setup`, Uptime asks the owner's runner to look at that site, and finishing setup opens the console on the monitors it proposes. Nothing is created until the owner chooses it. Setup builds, migrates, prepares private settings and creates the first owner, then prints `RER_SETUP_READY` and stops its temporary processes. Repeating setup preserves the owner, data and exact private settings; conflicting owner or origin answers refuse. Setup checks its generated or saved settings before opening its temporary runtime. The Worker validates configuration before handling requests or scheduled work; app, preview, deployment and runner entry points check their own configuration before serving or starting operational work. A missing or malformed required value is named without printing its value; the Worker returns 503, including at `/health`, until configuration is complete. `SETUP_TOKEN` is required until permanent owner admission is recorded; after admission, retiring it does not interrupt sign-in, routes or scheduled work, even before `/setup` is finished. Then start the app with `~/.local/bin/rer dev`.
+ 
+ ## Verify
+ 
+-Run `rer verify` for the complete product checks. Push and pull-request CI run parallel shards; installer and README clone journeys run nightly and on version tags. The aggregate Verify job requires every selected shard. Browser prerequisites are in [OPERATIONS.md](OPERATIONS.md). Sessionless public routes and assets are declared in `seed.json` and limited by client and path class; excess requests receive 429 with `Retry-After`, and unavailable counter storage returns 503. These source limits are marked estimated and not load-tested. A local passing result establishes neither hosted operation nor recipient acceptance.
++Run `~/.local/bin/rer verify` for the complete product checks. Push and pull-request CI run parallel shards; installer and README clone journeys run nightly and on version tags. The aggregate Verify job requires every selected shard. Browser prerequisites are in [OPERATIONS.md](OPERATIONS.md). Sessionless public routes and assets are declared in `seed.json` and limited by client and path class; excess requests receive 429 with `Retry-After`, and unavailable counter storage returns 503. These source limits are marked estimated and not load-tested. A local passing result establishes neither hosted operation nor recipient acceptance.
+ 
+ Native setup uses email-link sign-in. The optional `IDENTITY_PROVIDER` declaration does not enable linked sign-in: the completed local probe read provider metadata, then selected-provider setup failed at an unmounted dependency-approval route (404) before creating the owner. Public check, omitted-provider setup, native sign-in/session revocation and exact repeat preservation passed. Linked-provider lifecycle adoption is a separate round.
+ 
+@@ -88,14 +94,22 @@ The standalone native product has no operational marketplace or author dependenc
+ 
+ ## Try the bundled local monitor
+ 
+-Keep `rer dev` running. From the repository root in a second terminal, read the practice target's address and print its health URL:
++Keep `~/.local/bin/rer dev` running. From the repository root in a second terminal, first check the CLI path and available commands, then read the practice target's address and print its health URL:
+ 
+ ```sh
+-target_url="$(rer run practice-target)"
+-printf '%s/health\n' "$target_url"
++~/.local/bin/rer cli path
++~/.local/bin/rer describe
++if target_output="$(~/.local/bin/rer run practice-target)" &&
++   target_url="$(printf '%s\n' "$target_output" |
++     awk '/^http:\/\/127[.]0[.]0[.]1:[0-9]+$/ { url=$0; count++ } END { if (count == 1) print url; else exit 1 }')"; then
++  printf '%s/health\n' "$target_url"
++else
++  unset target_url
++  printf '%s\n' 'Practice target unavailable. Keep Uptime running and repeat this step.' >&2
++fi
+ ```
+ 
+-`rer` uses its managed runtime, so you do not need `node` on your PATH. Copy the printed health URL, including its selected port; it can change when you start a new installation. Before saving the monitor, set **External check URL** in **Settings › General** to a public site you do not run. **New monitor** first asks for a website address so it can suggest checks; choose **Fill in the form yourself** to open the full form. There, name the monitor **Local practice**, enter the copied health URL as the **Target URL**, leave **Request method** (under **Advanced**) at `GET` and **Status** at `200` under **Up when**, and keep only the local location ticked under **Check from**. It is named after a city (or the name you gave it); check **Locations** if you need to identify it, and leave the hosted location unticked. Enter `0.1` for **Check every (minutes)**; that is a six-second interval. Set **Failed checks in a row** and **Back up after passing checks** to `1`, then choose **Save monitor**.
++`describe` lists the available commands; the practice-target helper reads the running target’s address. The block prints a health URL only after that helper succeeds and returns one complete local address. `rer` uses its managed runtime, so you do not need `node` on your PATH. Copy the printed health URL, including its selected port; it can change when you start a new installation. Before saving the monitor, set **External check URL** in **Settings › General** to a public site you do not run. **New monitor** first asks for a website address so it can suggest checks; choose **Fill in the form yourself** to open the full form. There, name the monitor **Local practice**, enter the copied health URL as the **Target URL**, leave **Request method** (under **Advanced**) at `GET` and **Status** at `200` under **Up when**, and keep only the local location ticked under **Check from**. It is named after a city (or the name you gave it); check **Locations** if you need to identify it, and leave the hosted location unticked. Enter `0.1` for **Check every (minutes)**; that is a six-second interval. Set **Failed checks in a row** and **Back up after passing checks** to `1`, then choose **Save monitor**.
+ 
+ The new scheduled check is due when you save. The private runner polls about once a second and the console refreshes every five seconds, so leave the monitor open until its first result appears. After changing the target mode below, wait for the next scheduled result; the six-second interval is followed by runner polling and the page refresh. **RUN NOW** creates a manual check and does not change scheduled health or incident thresholds.
+ 
+@@ -121,25 +135,25 @@ curl --fail --silent --show-error --request POST "${target_url}/control" --heade
+ 
+ The synthetic target binds only to `127.0.0.1`. Its owner-only grant at `.wrangler/state/synthetic-grant.json` records the current process, port, allowed paths and expiry; each probe must match that grant, and the runner checks the fixture's process and response identity. `/health` is an allowed monitor path. `POST /control` is a local fixture control, not a probe target. This walkthrough demonstrates the bundled fixture only; it does not establish the health of an external service or another network vantage.
+ 
+-Local archive export and import require `UPTIME_ACCESS_COOKIE` holding a live native Base session cookie with second-factor verification from the previous five minutes. Obtain a native session with `rer run --script scripts/mfa.mjs local-session --origin APP_ORIGIN` and verify before stopping dev, keep the cookie in your private terminal environment, and then run the transfer. A receiving installation needs its own freshly verified owner. Enroll a second factor under **Settings › People**; each later sign-in asks for it before the console opens. See the repository's `docs/mfa.md` for the console steps and the API/CLI alternative.
++Local archive export and import require `UPTIME_ACCESS_COOKIE` holding a live native Base session cookie with second-factor verification from the previous five minutes. Obtain a native session with `~/.local/bin/rer run --script scripts/mfa.mjs local-session --origin APP_ORIGIN` and verify before stopping dev, keep the cookie in your private terminal environment, and then run the transfer. A receiving installation needs its own freshly verified owner. Enroll a second factor under **Settings › People**; each later sign-in asks for it before the console opens. See the repository's `docs/mfa.md` for the console steps and the API/CLI alternative.
+ 
+ ## Reset the local installation
+ 
+ Reset removes your monitors and history, so back them up first. The simplest backup is in the console while dev is running: open **Settings › Backup and files** and choose **Download backup** (it asks for a second factor first; enrol one under **Settings › People › Manage second factors** if you have none). Check that the downloaded backup exists and opens as JSON containing your monitors before continuing. Then stop dev and reset:
+ 
+ ```sh
+-rer dev --stop
+-rer reset --yes --non-interactive
+-rer setup --owner-email owner@example.test --non-interactive
++~/.local/bin/rer dev --stop
++~/.local/bin/rer reset --yes --non-interactive
++~/.local/bin/rer setup --owner-email owner@example.test --non-interactive
+ ```
+ 
+-To back up from the command line instead, follow the `UPTIME_ACCESS_COOKIE` steps above and join the commands with `&&`, so a refused export stops before anything is removed. A bare `rer export` with no cookie is always refused (`session_required`), and in a pasted block the lines after it would still run:
++To back up from the command line instead, follow the `UPTIME_ACCESS_COOKIE` steps above and join the commands with `&&`, so a refused export stops before anything is removed. A bare `~/.local/bin/rer export` with no cookie is always refused (`session_required`), and in a pasted block the lines after it would still run:
+ 
+ ```sh
+-rer dev --stop && rer export --output exports/uptime.rer && test -s exports/uptime.rer
++~/.local/bin/rer dev --stop && ~/.local/bin/rer export --output exports/uptime.rer && test -s exports/uptime.rer
+ ```
+ 
+-Check that export succeeded and the new backup contains your monitors before running `rer reset --yes --non-interactive`, then `rer setup --owner-email owner@example.test --non-interactive`.
++Check that export succeeded and the new backup contains your monitors before running `~/.local/bin/rer reset --yes --non-interactive`, then `~/.local/bin/rer setup --owner-email owner@example.test --non-interactive`.
+ 
+ Reset lists and removes only local data, generated settings, command captures and CLI bookkeeping. It retains source, dependencies, external archives and deployment receipts. A second reset succeeds with an empty inventory. Reset refuses while dev or transfer owns the installation.
+ 
+@@ -147,9 +161,9 @@ Reset lists and removes only local data, generated settings, command captures an
+ 
+ In the owner console, erase a monitor, notification destination, or operator while at least one active owner remains. Monitor erasure requires typing the current monitor name. The action returns a receipt showing the entity kind, per-table counts and completion time; the receipt is retained in later product archives. Destination erasure removes the destination, its credentials, dependent notification jobs and delivery records, replay entries, and matching archive-history copies. Operator erasure revokes that operator's sessions and sign-in material. Erasing the original owner also anonymises its bootstrap reference while keeping setup permanently claimed; the receipt counts that row as anonymised. The durable audit records destructive actions, notification send attempts (including test sends), and authentication-mail sends and legacy development capture history. Audit entries remain with opaque subject references; when an operator is erased, its earlier actor references are anonymised. The audit is included in later product archives.
+ 
+-Erasing an operator does not change `OWNER_EMAIL` in saved settings or the hosted Worker binding. If it named the erased operator, a surviving owner can still sign in with their own email and export from the console. Before using local `rer` commands again, stop dev and change only `OWNER_EMAIL` in `data/local-secrets.json` to an existing surviving active owner. Preserve every generated key and all other settings, then run `rer setup --owner-email EMAIL --non-interactive` with that same email. Supplying the new email to setup without first updating the saved setting is refused. This selects an existing owner; it does not create or transfer an identity. On hosted installations, the deployment owner must update the `OWNER_EMAIL` binding separately; D1 erasure does not change provider configuration.
++Erasing an operator does not change `OWNER_EMAIL` in saved settings or the hosted Worker binding. If it named the erased operator, a surviving owner can still sign in with their own email and export from the console. Before using local `rer` commands again, stop dev and change only `OWNER_EMAIL` in `data/local-secrets.json` to an existing surviving active owner. Preserve every generated key and all other settings, then run `~/.local/bin/rer setup --owner-email EMAIL --non-interactive` with that same email. Supplying the new email to setup without first updating the saved setting is refused. This selects an existing owner; it does not create or transfer an identity. On hosted installations, the deployment owner must update the `OWNER_EMAIL` binding separately; D1 erasure does not change provider configuration.
+ 
+-The last active owner cannot be erased. Use `rer reset --yes` to replace the owner of a local installation. Replace a hosted installation by redeploying and establishing a new owner. Uptime has no R2 storage or uploads, so there are no uploaded attachments to erase. Erasure cannot change archives already downloaded, recall messages already sent to external email, webhook or Slack services, or stop a request already in progress from reaching its provider. If restoring an older offline archive after erasure, first choose **Export erasure journal** in **Archive**, then supply it with the archive. Local import uses the absolute journal path: `UPTIME_LATER_JOURNAL=/absolute/path/to/uptime-erasure-journal.json rer import --input exports/older-uptime.rer --yes`. The old archive alone cannot identify erasures in a brand-new installation that has never received that journal; this is a limit of Base's offline transfer model.
++The last active owner cannot be erased. Use `~/.local/bin/rer reset --yes` to replace the owner of a local installation. Replace a hosted installation by redeploying and establishing a new owner. Uptime has no R2 storage or uploads, so there are no uploaded attachments to erase. Erasure cannot change archives already downloaded, recall messages already sent to external email, webhook or Slack services, or stop a request already in progress from reaching its provider. If restoring an older offline archive after erasure, first choose **Export erasure journal** in **Archive**, then supply it with the archive. Local import uses the absolute journal path: `UPTIME_LATER_JOURNAL=/absolute/path/to/uptime-erasure-journal.json ~/.local/bin/rer import --input exports/older-uptime.rer --yes`. The old archive alone cannot identify erasures in a brand-new installation that has never received that journal; this is a limit of Base's offline transfer model.
+ 
+ ## Managed hosting mail
+ 
+@@ -157,21 +171,21 @@ Managed hosting sends sign-in links and email notifications through the RER mail
+ 
+ ## Put it on your own Cloudflare account
+ 
+-Stop dev with `rer dev --stop` or preview with `rer preview --stop` before deployment, including a dry run. Supply the owner deployment inputs for `rer deploy`. Ordinary email-link sign-in and email notifications need a selected Base mail adapter (Resend, SendGrid or Cloudflare), a verified sender, and the selected provider's credentials. Enabled email requires these inputs. To deliberately run without outbound email, select `MAIL_PROVIDER=none`, omit the sender and sending credentials, and use guarded `rer signin` from the deploying checkout with its deployment receipt and deploying account credentials (Run Edit Run fleet, 2026-11-15). The review names Worker `uptime-monitor-production` and database `uptime-monitor-production-db`; Cloudflare assigns the hosted origin after deployment. It needs `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `OWNER_EMAIL`, `MAIL_FROM`, and the selected mail credentials: `MAIL_PROVIDER=sendgrid` (the existing-install default when unset) with `SENDGRID_API_KEY`, `MAIL_PROVIDER=resend` with `MAIL_PROVIDER_API_KEY`, or `MAIL_PROVIDER=cloudflare` with `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`. There is no automatic fallback between providers. The independent `SESSION_SECRET`, `SETUP_TOKEN`, and `UPTIME_RUNNER_KEY` are generated for a new installation; later deployments reuse saved session and runner keys, while the one-use setup token is retired after owner claim. Each environment's sole kept settings file is the owner-only `.rer/deploy/<environment>.secrets.env` (production: `.rer/deploy/production.secrets.env`), with mode 0600. Keep it private and back it up separately from D1.
++Stop dev with `~/.local/bin/rer dev --stop` or preview with `~/.local/bin/rer preview --stop` before deployment, including a dry run. Supply the owner deployment inputs for `~/.local/bin/rer deploy`. Ordinary email-link sign-in and email notifications need a selected Base mail adapter (Resend, SendGrid or Cloudflare), a verified sender, and the selected provider's credentials. Enabled email requires these inputs. To deliberately run without outbound email, select `MAIL_PROVIDER=none`, omit the sender and sending credentials, and use guarded `~/.local/bin/rer signin` from the deploying checkout with its deployment receipt and deploying account credentials (Run Edit Run fleet, 2026-11-15). The review names Worker `uptime-monitor-production` and database `uptime-monitor-production-db`; Cloudflare assigns the hosted origin after deployment. It needs `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `OWNER_EMAIL`, `MAIL_FROM`, and the selected mail credentials: `MAIL_PROVIDER=sendgrid` (the existing-install default when unset) with `SENDGRID_API_KEY`, `MAIL_PROVIDER=resend` with `MAIL_PROVIDER_API_KEY`, or `MAIL_PROVIDER=cloudflare` with `CLOUDFLARE_MAIL_API_KEY` and `MAIL_ACCOUNT_ID`. There is no automatic fallback between providers. The independent `SESSION_SECRET`, `SETUP_TOKEN`, and `UPTIME_RUNNER_KEY` are generated for a new installation; later deployments reuse saved session and runner keys, while the one-use setup token is retired after owner claim. Each environment's sole kept settings file is the owner-only `.rer/deploy/<environment>.secrets.env` (production: `.rer/deploy/production.secrets.env`), with mode 0600. Keep it private and back it up separately from D1.
+ 
+ The next deploy automatically migrates legacy `.rer/deploy/production-secrets.json` and `.rer/deploy/environments/<environment>/secrets.json` settings, preserving saved owner and mail inputs and every environment's keys without regenerating production keys. The installation's own `SESSION_SECRET`, `SETUP_TOKEN` and `UPTIME_RUNNER_KEY` from the legacy files replace any unused copies rer generated beside them, because those are the keys the installation was deployed with; the deploy names the keys it kept, never their values. Any other differing value already kept by rer stops deployment with the key name and file paths, never values. Legacy files remain until the move is verified, then are removed and never read or recreated; fresh installs use only the environment settings files. No manual conversion or rotation is needed. See [the upgrade guidance](docs/deploy.md#update-an-existing-deployment).
+ 
+-Run `rer deploy` to build and provision the Worker, D1 database, migrations, and Cron in your account. With rer's custom-deployment lifecycle, `rer deploy` wraps Uptime's deployment hook, claims the owner automatically, and retires the one-use hosted `SETUP_TOKEN` after admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the reported hosted origin at `/login` for ordinary email-link sign-in and finish `/setup`; the owner then works in `/app`. The pinned CLI includes automatic owner claim, token retirement and hosted owner sign-in recovery.
++Run `~/.local/bin/rer deploy` to build and provision the Worker, D1 database, migrations, and Cron in your account. With rer's custom-deployment lifecycle, `~/.local/bin/rer deploy` wraps Uptime's deployment hook, claims the owner automatically, and retires the one-use hosted `SETUP_TOKEN` after admission. Inspect the command's `claimed` or `kept` owner outcome and token-retirement result, then open the reported hosted origin at `/login` for ordinary email-link sign-in and finish `/setup`; the owner then works in `/app`. The pinned CLI includes automatic owner claim, token retirement and hosted owner sign-in recovery.
+ 
+-If automatic claim or retirement is incomplete, keep the ownership record, rerun the same `rer deploy` command with the same environment, and inspect the reported outcome. Never use a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in) for the lifecycle boundary and recovery steps. The Cloudflare account deployment path was exercised end to end once on version 0.1.1; that historical run does not prove the newer lifecycle. `--environment NAME` selects a separate installation, checked with `node scripts/deployment/owner-cli.mjs health --environment NAME` from this checkout under Node 22.20.0. The deploy command does not run the private probe runner for you. `rer deploy --dry-run` builds and prints its resource plan without provider requests; Cloudflare assigns the hosted origin during a real deploy.
++If automatic claim or retirement is incomplete, keep the ownership record, rerun the same `~/.local/bin/rer deploy` command with the same environment, and inspect the reported outcome. Never use a retired token at `/claim`. See the [deployment guide](docs/deploy.md#owner-claim-and-sign-in) for the lifecycle boundary and recovery steps. The Cloudflare account deployment path was exercised end to end once on version 0.1.1; that historical run does not prove the newer lifecycle. `--environment NAME` selects a separate installation, checked with `node scripts/deployment/owner-cli.mjs health --environment NAME` from this checkout under Node 22.20.0. The deploy command does not run the private probe runner for you. `~/.local/bin/rer deploy --dry-run` builds and prints its resource plan without provider requests; Cloudflare assigns the hosted origin during a real deploy.
+ 
+ ### Hosted sign-in
+ 
+-Open `/login` on your hosted app, request a link for an allowed operator email, open the email and choose **Confirm**. With explicit mail off, use guarded `rer signin` from the deploying checkout; email links and invitations are unavailable. If an enabled provider is unavailable, restore its configured sender and check the owner's address before requesting a new link. Preserve the existing deployment records and settings when repairing mail configuration; see [Deploy to Cloudflare](docs/deploy.md).
++Open `/login` on your hosted app, request a link for an allowed operator email, open the email and choose **Confirm**. With explicit mail off, use guarded `~/.local/bin/rer signin` from the deploying checkout; email links and invitations are unavailable. If an enabled provider is unavailable, restore its configured sender and check the owner's address before requesting a new link. Preserve the existing deployment records and settings when repairing mail configuration; see [Deploy to Cloudflare](docs/deploy.md).
+ 
+ ### Public checks and private runners
+ 
+-Public website checks and notifications run automatically in the hosted Cloudflare Worker; you do not need a private runner for them. While the owner console is open, its requests prompt due checks and sends. The one-minute Cron schedule continues background work after activation; Cloudflare can take up to about two hours to activate it on a new deployment. Use a private runner for heartbeats, website discovery, private targets and checks that need runner-local credentials or a browser. Open **Locations** and choose **Add location**. Copy the command it shows and run it on a machine on that network with Node 22.13 or later; it needs no Uptime checkout, and its one-time join key works once (on the computer running `rer dev`, the panel shows the command with `rer run --script`, which needs no Node install). A location that has not joined yet shows **Show join command** for a new key. Wait for the location to join, then choose **Done**; it is named after where it runs, and **Rename** changes that. For the original deployment runner, set `UPTIME_CONTROL_ORIGIN` to the exact hosted HTTPS origin and run `node scripts/runner-start.mjs --environment production`; replace `production` with your environment.
++Public website checks and notifications run automatically in the hosted Cloudflare Worker; you do not need a private runner for them. While the owner console is open, its requests prompt due checks and sends. The one-minute Cron schedule continues background work after activation; Cloudflare can take up to about two hours to activate it on a new deployment. Use a private runner for heartbeats, website discovery, private targets and checks that need runner-local credentials or a browser. Open **Locations** and choose **Add location**. Copy the command it shows and run it on a machine on that network with Node 22.13 or later; it needs no Uptime checkout, and its one-time join key works once (on the computer running `~/.local/bin/rer dev`, the panel shows the command with `~/.local/bin/rer run --script`, which needs no Node install). A location that has not joined yet shows **Show join command** for a new key. Wait for the location to join, then choose **Done**; it is named after where it runs, and **Rename** changes that. For the original deployment runner, set `UPTIME_CONTROL_ORIGIN` to the exact hosted HTTPS origin and run `node scripts/runner-start.mjs --environment production`; replace `production` with your environment.
+ 
+ To monitor this Uptime installation's own address, assign a private runner. Cloudflare does not route the Worker's fetch of its own origin back to the app, so saving an active self-monitor with a Worker assignment is refused. An internal handler call would not test public routing, TLS or network reachability. Existing self-monitor assignments and redirects back to the app produce runner errors and Unknown coverage; their earlier history stays intact. The same restriction applies to a Worker's external check URL.
+ 
+@@ -179,17 +193,17 @@ Keep a private runner under a supervisor. A healthy Worker does not establish th
+ 
+ ### Update or remove a hosted installation
+ 
+-Keep the existing deployment checkout clean, preserve `.rer/deploy` ownership records and private settings, and obtain newer public source with `git pull --ff-only origin main` while on `main`, or check out a reviewed commit from the public repository. Run `rer install` if the new source changes dependencies, then `rer deploy --environment NAME` again for the same environment. Inspect the recorded Worker and D1 IDs before and after: an update must retain the same resources, owner, monitors, history, destinations and saved private settings. Check health and its deployed-source identity against the reviewed public commit, ordinary `/login` sign-in, and `/setup` if unfinished or `/app` with existing data if completed. Check the separately supervised runner and its contact/results independently. See [the hosted update procedure](docs/deploy.md#update-an-existing-deployment).
++Keep the existing deployment checkout clean, preserve `.rer/deploy` ownership records and private settings, and obtain newer public source with `git pull --ff-only origin main` while on `main`, or check out a reviewed commit from the public repository. Run `~/.local/bin/rer install` if the new source changes dependencies, then `~/.local/bin/rer deploy --environment NAME` again for the same environment. Inspect the recorded Worker and D1 IDs before and after: an update must retain the same resources, owner, monitors, history, destinations and saved private settings. Check health and its deployed-source identity against the reviewed public commit, ordinary `/login` sign-in, and `/setup` if unfinished or `/app` with existing data if completed. Check the separately supervised runner and its contact/results independently. See [the hosted update procedure](docs/deploy.md#update-an-existing-deployment).
+ 
+-To remove an installation, first export the hosted product archive from the owner console and a D1 backup, and keep private settings separately. Then run `rer deploy --environment NAME --remove --yes`. D1 removal permanently destroys that installation's data. The command checks recorded ownership before deletion and reads back resource absence; inspect its result. If ownership cannot be established or removal is incomplete, keep the records and use manual provider inspection for recovery. See [removal](docs/deploy.md#remove-a-deployment).
++To remove an installation, first export the hosted product archive from the owner console and a D1 backup, and keep private settings separately. Then run `~/.local/bin/rer deploy --environment NAME --remove --yes`. D1 removal permanently destroys that installation's data. The command checks recorded ownership before deletion and reads back resource absence; inspect its result. If ownership cannot be established or removal is incomplete, keep the records and use manual provider inspection for recovery. See [removal](docs/deploy.md#remove-a-deployment).
+ 
+ ## Move your data
+ 
+-The easiest way to take your data with you is **Settings › Backup and files › Download backup** in the console, which asks for a fresh second factor first. From the command line, use `rer export --output exports/uptime.rer` after stopping dev, with the `UPTIME_ACCESS_COOKIE` set as described above (without it, export is refused and writes nothing). The new 0600 file is a Base integrity archive containing Uptime's product payload: definitions, observations, events, destination definitions, delivery and preserved archive history, erasure receipts, the permanent action audit and source erasure journal. On a new receiving checkout, first run `rer setup --owner-email owner@example.test --non-interactive` to establish its owner and private settings, then run `rer import --input exports/uptime.rer --yes` while its product data is empty. Monitors remain paused, destinations disabled and imported notifications quarantined. Installation settings, sessions, grants, runner authority, webhook and Slack URLs, and signing keys are excluded; available email addresses travel with destination definitions. Hosted CLI transfer is unsupported; the authenticated console retains its existing archive format and actions. Private settings remain a separate backup. The owner accepted this installation-authority and webhook/Slack-credential archive policy on 2026-10-13.
++The easiest way to take your data with you is **Settings › Backup and files › Download backup** in the console, which asks for a fresh second factor first. From the command line, use `~/.local/bin/rer export --output exports/uptime.rer` after stopping dev, with the `UPTIME_ACCESS_COOKIE` set as described above (without it, export is refused and writes nothing). The new 0600 file is a Base integrity archive containing Uptime's product payload: definitions, observations, events, destination definitions, delivery and preserved archive history, erasure receipts, the permanent action audit and source erasure journal. On a new receiving checkout, first run `~/.local/bin/rer setup --owner-email owner@example.test --non-interactive` to establish its owner and private settings, then run `~/.local/bin/rer import --input exports/uptime.rer --yes` while its product data is empty. Monitors remain paused, destinations disabled and imported notifications quarantined. Installation settings, sessions, grants, runner authority, webhook and Slack URLs, and signing keys are excluded; available email addresses travel with destination definitions. Hosted CLI transfer is unsupported; the authenticated console retains its existing archive format and actions. Private settings remain a separate backup. The owner accepted this installation-authority and webhook/Slack-credential archive policy on 2026-10-13.
+ 
+ ## Keep monitors as a reviewed file, or move from UptimeRobot
+ 
+-Open **Settings › Backup and files** in the console to preview an `uptime.monitors.json` definition file, or saved UptimeRobot v3 `GET /monitors` pages, before anything changes. The preview lists each entry as create, unchanged, change, refused or unsupported, with every difference from the source spelled out, and ends with a plan digest. Every import runs through the owner's import door, the same pipeline Business uses, and apply writes exactly that reviewed plan: new monitors arrive paused, changes become new revisions that keep each monitor's on/off and maintenance state, and nothing enables a monitor, issues a heartbeat token, sends a notification or touches a destination. Each apply is a batch you can undo; undo leaves a monitor edited or enabled since alone and says so, and never removes history. Request headers, bodies and passwords in a file are withheld before it uploads and are never stored. **Export monitors** writes the same file back. With dev stopped, `rer run --script scripts/definitions.mjs preview|apply|export|batches|undo` runs the same engine locally. An UptimeRobot log export is only counted as history. See [Definition files](docs/definitions.md) and [Moving from UptimeRobot](docs/moving-from-uptimerobot.md); no real UptimeRobot export has been tested.
++Open **Settings › Backup and files** in the console to preview an `uptime.monitors.json` definition file, or saved UptimeRobot v3 `GET /monitors` pages, before anything changes. The preview lists each entry as create, unchanged, change, refused or unsupported, with every difference from the source spelled out, and ends with a plan digest. Every import runs through the owner's import door, the same pipeline Business uses, and apply writes exactly that reviewed plan: new monitors arrive paused, changes become new revisions that keep each monitor's on/off and maintenance state, and nothing enables a monitor, issues a heartbeat token, sends a notification or touches a destination. Each apply is a batch you can undo; undo leaves a monitor edited or enabled since alone and says so, and never removes history. Request headers, bodies and passwords in a file are withheld before it uploads and are never stored. **Export monitors** writes the same file back. With dev stopped, `~/.local/bin/rer run --script scripts/definitions.mjs preview|apply|export|batches|undo` runs the same engine locally. An UptimeRobot log export is only counted as history. See [Definition files](docs/definitions.md) and [Moving from UptimeRobot](docs/moving-from-uptimerobot.md); no real UptimeRobot export has been tested.
+ 
+ ## Get told when a check fails
+ 
+@@ -217,13 +231,13 @@ Restores require empty product data. In the console, **Restore a backup** and a
+ 
+ Observation metadata has no automatic age or count deletion. Expired sessions and rate-limit/auth-attempt counters are cleaned up; expired discovery work is marked expired and retained. Drill history remains after its one-time link material is cleared, retired destination credentials are scrubbed after owner rotation or deletion once sends finish, and a proven-unsent delivery attempt reservation may be removed while its delivery history stays. Entity erasure is a separate, explicit operator action. Target response bodies and probe-request secrets are not retained in observations; notification destination credentials remain installation-local and are omitted from portable archives. View, monitor, and archive bounds are not a storage retention policy or measured capacity claim. Network isolation, independent runner placement, operator acceptance, accessibility, hosted operation, and notification recipient acceptance each need their own evidence.
+ 
+-Before browser verification, install the browser matching the checkout’s pinned Playwright with `rer run --script node_modules/playwright/cli.js install --only-shell chromium`. This uses the installer’s private Node runtime. See [OPERATIONS.md](OPERATIONS.md) for Linux CI and shared-cache prerequisites.
++Before browser verification, install the browser matching the checkout’s pinned Playwright with `~/.local/bin/rer run --script node_modules/playwright/cli.js install --only-shell chromium`. This uses the installer’s private Node runtime. See [OPERATIONS.md](OPERATIONS.md) for Linux CI and shared-cache prerequisites.
+ 
+-See [CONTRACT.md](CONTRACT.md) for guarantees, [BASELINE.md](BASELINE.md) for shared baseline evidence, [ACCEPTANCE.md](ACCEPTANCE.md) for validation requirements, [OPERATIONS.md](OPERATIONS.md) for setup and delivery operations. `rer verify` runs local build, type, and runtime checks; those checks alone do not establish hosted operation or recipient acceptance.
++See [CONTRACT.md](CONTRACT.md) for guarantees, [BASELINE.md](BASELINE.md) for shared baseline evidence, [ACCEPTANCE.md](ACCEPTANCE.md) for validation requirements, [OPERATIONS.md](OPERATIONS.md) for setup and delivery operations. `~/.local/bin/rer verify` runs local build, type, and runtime checks; those checks alone do not establish hosted operation or recipient acceptance.
+ 
+ ## Upgrading
+ 
+-On the same checkout, `rer setup` applies additive migrations without rewriting earlier tables and preserves the owner and existing private values; 0.2.0 adds one additive migration, `0037_owner_signin`, and no new required settings; an upgrade from v0.1.3 keeps monitors, history, incidents, destinations and private settings. A hosted deploy now also takes `MAIL_PROVIDER` and `MAIL_API_KEY` (see [Deploy](docs/deploy.md#set-the-inputs)). If setup is rerun after an interruption, it continues past migrations whose tracked ledger state and hash confirm completion. Changed or uncertain tracked history stops setup for inspection and is never replayed automatically. Setup starts a temporary ordinary runner that can process active work, so pause or disable monitors before upgrading if quiet operation is needed. Local browser sessions from 0.1.2 sign in again once after the upgrade, because local session cookies are now named per port. Archives from 0.1.2 or earlier must be re-exported from the upgraded installation first: `rer import` refuses them with a plain message and exit code 4, and writes nothing.
++On the same checkout, `~/.local/bin/rer setup` applies additive migrations without rewriting earlier tables and preserves the owner and existing private values; 0.2.0 adds one additive migration, `0037_owner_signin`, and no new required settings; an upgrade from v0.1.3 keeps monitors, history, incidents, destinations and private settings. A hosted deploy now also takes `MAIL_PROVIDER` and `MAIL_API_KEY` (see [Deploy](docs/deploy.md#set-the-inputs)). If setup is rerun after an interruption, it continues past migrations whose tracked ledger state and hash confirm completion. Changed or uncertain tracked history stops setup for inspection and is never replayed automatically. Setup starts a temporary ordinary runner that can process active work, so pause or disable monitors before upgrading if quiet operation is needed. Local browser sessions from 0.1.2 sign in again once after the upgrade, because local session cookies are now named per port. Archives from 0.1.2 or earlier must be re-exported from the upgraded installation first: `~/.local/bin/rer import` refuses them with a plain message and exit code 4, and writes nothing.
+ 
+ ## Source and licence
+ 
+diff --git a/docs/getting-started.md b/docs/getting-started.md
+index b91a568..df2a534 100644
+--- a/docs/getting-started.md
++++ b/docs/getting-started.md
+@@ -35,7 +35,7 @@ When you open `/setup`, Uptime asks your runner to visit that site and look arou
+ ## Sign in and finish setup
+ 
+ 1. Open the address printed as `RER_READY` and complete the browser sign-in handoff from `rer dev`. Keep local access credentials private.
+-2. First-run setup opens at `/setup`. Setup asks only for your website, and it is optional. Choose **Continue** (or **Skip**). If you gave a website and the runner is working, you land on its proposed monitors; otherwise on the form for your first monitor. The External check URL (https://example.org/ by default) is set in **Settings**.
++2. First-run setup at `/setup` asks for your name, email and installation name. Your website is optional. Choose **Continue** to enter the console. This copy runs only on this computer: checks run only while it is on and Uptime is running. To keep public checks running independently, [put it online](/docs/deploy). — sd, 2026-11-17T14:52:05Z.
+ 
+ The console is then at `/app`. Hosted email-link sign-in and notifications use a configured mail sender. Development and demo runs report successful sends without sending email. Setup can defer mail configuration; dev identity provides local owner access while you configure it.
+ 
+diff --git a/public/app.js b/public/app.js
+index 584481c..bec5104 100644
+--- a/public/app.js
++++ b/public/app.js
+@@ -9,6 +9,7 @@ import {AREAS,renderSettings} from './settings-view.js';
+ import {savesSettled,savePending,holdRefused,refusalPending} from './settings-save.js';
+ import {alertCount} from './alert-health.js';
+ import {rememberZone} from './installation-zone.js';
++import {updateInstalledName} from './assets/installation-name.js';
+ import {patch} from './dom-patch.js';
+ // Each console screen has a stable path: a section (/app/monitors, /app/locations) or a Settings area (/app/settings/<area>;
+ // /app/settings itself opens Alerts, first in its menu). On a section a link to another section or area switches the view in
+@@ -85,9 +86,8 @@ function markCurrent(){
+   else if(link.dataset.view==='monitors'&&view==='monitor')link.setAttribute('aria-current','true');else link.removeAttribute('aria-current');
+  }
+ }
+-// The heading and the tab title name the section or Settings area being shown, an area under the eyebrow Settings; a
+-// monitor's page names itself once it has read the monitor.
+-function setHeading(){if(view==='monitor')return;const name=view==='settings'?AREAS[settingsArea]:TITLES[view];$('.top h1').textContent=name;$('.top .eyebrow').hidden=view!=='settings';document.title=name+(view==='settings'?' · Settings':'')+' · Uptime'}
++// The heading names the section or Settings area; the tab identifies the installation.
++function setHeading(){if(view==='monitor')return;const name=view==='settings'?AREAS[settingsArea]:TITLES[view];$('.top h1').textContent=name;$('.top .eyebrow').hidden=view!=='settings';if(data)updateInstalledName(data)}
+ // An outcome notice belongs to the section where the action ran.
+ function leaveSection(){notice('');feedback?.clearAction()}
+ markCurrent();
+@@ -112,6 +112,7 @@ window.addEventListener('popstate',followHistory);
+ function showSection(next){if(next.view==='monitors')catalog.read();view=next.view;settingsArea=next.area??null;leaveSection();setHeading();markCurrent();render()}
+ const header=$('.top > div'),actions=$('.actions');
+ const n=document.createElement('div');n.id='notice';n.className='ui-notice';n.hidden=true;n.innerHTML='<p id="action-notice" role="status" hidden></p><p id="read-notice" role="status" hidden></p><p id="background-notice" role="status" hidden></p>';$('.top').after(n);
++const installationNote=document.createElement('p');installationNote.className='ui-helper';installationNote.hidden=true;n.after(installationNote);
+ const area=$('.table-scroll');area.id='content-area';const right=$('.right');right.id='side-panel';
+ // Only a location being added uses the side column; every other view has the full width.
+ const sideHidden=()=>!(view==='locations'&&addingLocation());
+@@ -155,11 +156,14 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
+  const screen=view==='settings'?'settings/'+settingsArea:view;
+  if(screen!==shown){area.replaceChildren();right.replaceChildren();shown=screen}right.hidden=sideHidden();
+  markCurrent();showAlertCount();let drawn;
++ installationNote.hidden=!['monitors','locations'].includes(view);
++ patch(installationNote,`${data.runner.hosted===false?'This copy runs only on this computer. Checks run only while this computer is on and Uptime is running. <a href="/docs/deploy">Put it online</a>. ':''}Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.`);
+  if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable,lockControls});
+  else{const buttons=view==='monitors'&&data.access?.monitoringOnly?'':viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons;summary.hidden=view!=='monitors';
+   setHeading();
+   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');
+   if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')drawn=renderSettings(settingsArea,{area,right,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,showing:requested=>!closed&&shown==='settings/'+requested,readUnavailable})}
++ updateInstalledName(data);
+  if(feedback.busy)lockControls(true);
+  return drawn}
+ {const flash=sessionStorage.getItem('uptime-notice');if(flash){sessionStorage.removeItem('uptime-notice');notice(flash)}}
+diff --git a/public/assets/access-member-controls.js b/public/assets/access-member-controls.js
+index 81d745f..e714dda 100644
+--- a/public/assets/access-member-controls.js
++++ b/public/assets/access-member-controls.js
+@@ -1,3 +1,4 @@
++import {personProfile} from './person-profile.js';
+ import {securityControls,securityRequest} from './security-controls.js';
+ import {confirmErasure,showErasureReceipt} from '../notification-dialogs.js';
+ // Settings › People's two cards (public/settings-people.js). Accounts lists everyone who can sign in, each once: the name,
+@@ -32,9 +33,9 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
+  function row(person,{self,owners}){
+   const item=document.createElement('details'),summary=document.createElement('summary'),who=document.createElement('span'),name=document.createElement('strong'),line=document.createElement('small'),form=document.createElement('form'),buttons=document.createElement('div');
+   item.className='operator-row';item.dataset.memberId=person.id;who.className='who';form.className='member-access';buttons.className='btn-row';
+-  name.textContent=person.displayName;
+-  line.textContent=[person.email,roleName(person),person.id===self.id?'You':'',person.status==='invited'?'Invited':person.status==='inactive'?'Removed':''].filter(Boolean).join(' · ');
+-  who.append(name,line);summary.append(who);item.append(summary,form);fields(form,person);
++  const identity=()=>{name.textContent=person.displayName;
++  line.textContent=[person.email,roleName(person),person.id===self.id?'You':'',person.status==='invited'?'Invited':person.status==='inactive'?'Removed':''].filter(Boolean).join(' · ')};identity();
++  who.append(name,line);summary.append(who);item.append(summary,form);if(person.id===self.id)item.append(personProfile(person,{request,updated:identity}));fields(form,person);
+   const save=document.createElement('button'),remove=document.createElement('button');save.textContent='Save assignment';remove.type='button';remove.textContent='Remove member';buttons.append(save,remove);form.append(buttons);
+   form.onsubmit=async event=>{event.preventDefault();save.disabled=true;try{const result=await request(`/api/access/members/${encodeURIComponent(person.id)}`,'POST',{role:form.elements.role.value,scopes:scopes(form)});await load(result.unchanged?'Assignment unchanged.':'Assignment saved.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'})}finally{save.disabled=false}};
+   remove.onclick=async()=>{remove.disabled=true;try{await request(`/api/access/members/${encodeURIComponent(person.id)}`,'DELETE');await load('Member removed.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'});remove.disabled=false}};
+diff --git a/public/assets/alert-teams.js b/public/assets/alert-teams.js
+index f3f6833..40b7227 100644
+--- a/public/assets/alert-teams.js
++++ b/public/assets/alert-teams.js
+@@ -1,3 +1,4 @@
++import {patch} from '../dom-patch.js';
+ import {escape} from '/console-format.js';
+ // Settings › Alerts › Alert teams (ROUTING-001): named teams of active members that a route can tell, and the signed-in
+ // person's own opt-in to be told at their verified email contact. Team and member names only: no address or credential is
+@@ -15,9 +16,12 @@ export function mountAlertTeams(card,{api}){
+   const chosen=new Set(team.members.map(m=>m.operatorId));
+   return `<form id="alert-team-form" class="alert-team-form"><label for="alert-team-name">Team name<input id="alert-team-name" name="name" required maxlength="100" value="${escape(team.name)}"></label><label class="route-target-check" for="alert-team-enabled"><input id="alert-team-enabled" type="checkbox" name="enabled" ${team.enabled?'checked':''}>Team is active</label><fieldset><legend>Members</legend>${people.filter(p=>p.status==='active'&&p.productRole).map((p,i)=>`<label class="route-target-check" for="alert-team-member-${i}"><input id="alert-team-member-${i}" type="checkbox" name="member" value="${escape(p.id)}" ${chosen.has(p.id)?'checked':''}>${escape(p.displayName||p.name||'Member')} · ${escape(p.productRole)}</label>`).join('')||'<p>No active members yet.</p>'}</fieldset><div class="btn-row"><button type="submit" class="primary ui-compact">Save team</button><button type="button" class="ui-link" id="alert-team-cancel">Cancel</button></div></form>`;
+  }
+- function draw(){
++ function recipientMarkup(){
+   const consents=self?.destinations??[];
+-  body.innerHTML=`<p>A route can tell a team. Each member is told only at their own verified email contact, after they opt in below.</p><ul class="route-recipients" id="alert-team-list">${teams.map(t=>`<li data-team="${escape(t.id)}"><div><strong>${escape(t.name)}</strong> <span>${t.enabled?'Active':'Paused'}</span><p>${t.members.length?escape(t.members.map(m=>`${personName(m.operatorId)}${m.status==='active'?'':' (inactive)'}`).join(', ')):'No members'}</p></div><button type="button" class="ui-link" data-edit-team="${escape(t.id)}" aria-label="Edit team ${escape(t.name)}">Edit team</button></li>`).join('')||'<li>No teams yet.</li>'}</ul>${editing?form():'<button type="button" id="alert-team-add">Add team</button>'}<h3>Your alert email</h3>${consents.length?`<ul class="route-recipients" id="alert-consents">${consents.map((d,i)=>`<li><label class="route-target-check" for="alert-consent-${i}"><input id="alert-consent-${i}" type="checkbox" data-consent="${escape(d.id)}" ${d.optedIn?'checked':''}><span>Tell me at <strong>${escape(d.name)}</strong> when a team I belong to is routed an alert${d.enabled?'':' (contact is disabled)'}</span></label></li>`).join('')}</ul><p>${self.teams.length?`You are in ${escape(self.teams.map(t=>t.name).join(', '))}.`:'You are not in a team yet.'}</p>`:'<p>No email contact matches your verified account email. An owner can add one under Destinations.</p>'}`;
++  return `<h3>Your alert email</h3>${consents.length?`<ul class="route-recipients" id="alert-consents">${consents.map((d,i)=>`<li><label class="route-target-check" for="alert-consent-${i}"><input id="alert-consent-${i}" type="checkbox" data-consent="${escape(d.id)}" ${d.optedIn?'checked':''}><span>Tell me at <strong>${escape(d.name)}</strong> when a team I belong to is routed an alert${d.enabled?'':' (contact is disabled)'}</span></label></li>`).join('')}</ul><p>${self.teams.length?`You are in ${escape(self.teams.map(t=>t.name).join(', '))}.`:'You are not in a team yet.'}</p>`:`<p>No email destination matches your sign-in email, <strong>${escape(self.accountEmail)}</strong>. Add that address under Destinations, or change your email in <a href="/app/settings/people">Settings › People</a>.</p>`}`;
++ }
++ function draw(){
++  body.innerHTML=`<p>A route can tell a team. Each member is told only at their own verified email contact, after they opt in below.</p><ul class="route-recipients" id="alert-team-list">${teams.map(t=>`<li data-team="${escape(t.id)}"><div><strong>${escape(t.name)}</strong> <span>${t.enabled?'Active':'Paused'}</span><p>${t.members.length?escape(t.members.map(m=>`${personName(m.operatorId)}${m.status==='active'?'':' (inactive)'}`).join(', ')):'No members'}</p></div><button type="button" class="ui-link" data-edit-team="${escape(t.id)}" aria-label="Edit team ${escape(t.name)}">Edit team</button></li>`).join('')||'<li>No teams yet.</li>'}</ul>${editing?form():'<button type="button" id="alert-team-add">Add team</button>'}<div id="alert-self-recipient">${recipientMarkup()}</div>`;
+  }
+  async function load(){
+   try{
+@@ -25,6 +29,9 @@ export function mountAlertTeams(card,{api}){
+    draw();
+   }catch(problem){body.textContent=`Teams unavailable: ${problem.message}`}
+  }
++ card.addEventListener('uptime:destinations-changed',async()=>{
++  try{self=await api('/api/routing/recipient');const host=card.querySelector('#alert-self-recipient');if(host)patch(host,recipientMarkup())}catch(problem){say(problem.message)}
++ });
+  card.addEventListener('click',event=>{
+   const edit=event.target.closest('[data-edit-team]');
+   if(edit){editing=edit.dataset.editTeam;draw();card.querySelector('#alert-team-name').focus();return}
+diff --git a/public/assets/installation-name.js b/public/assets/installation-name.js
+new file mode 100644
+index 0000000..14c4492
+--- /dev/null
++++ b/public/assets/installation-name.js
+@@ -0,0 +1,25 @@
++import {savedLine,failureLine,saveAsYouGo} from '../settings-save.js';
++
++export function updateInstalledName(data){
++ const name=data.installationName;
++ if(typeof name!=='string'||!name)return;
++ const source=document.querySelector('script[data-uptime-brand-script]');if(source)source.dataset.name=name;
++ for(const label of document.querySelectorAll('[data-rer-name]'))if(label.textContent!==name)label.textContent=name;
++ document.title=name==='Uptime'?name:`${name} · Uptime`;
++}
++
++export function mountInstallationName(card,{data,api,refresh}){
++ card.innerHTML=`<div class="card-head"><h2 id="installation-name-heading">Installation name</h2>${savedLine('installation-name-saved')}</div><input id="installation-name" name="installationName" required maxlength="120" autocomplete="off" aria-labelledby="installation-name-heading" aria-describedby="installation-name-failure">${failureLine('installation-name-failure')}`;
++ const input=card.querySelector('input');input.value=data.installationName;input.disabled=data.access?.role!=='owner';
++ const save=saveAsYouGo({saved:card.querySelector('#installation-name-saved'),failure:card.querySelector('#installation-name-failure'),send:async installationName=>{
++  const result=await api('/api/installation-name','PATCH',{installationName});
++  data.installationName=result.installationName;updateInstalledName(data);await refresh();
++ }});
++ input.onchange=()=>{void save(input.value)};
++}
++
++export function showInstallationName(card,name){
++ const input=card.querySelector('input');
++ if(!input||input.value===name||document.activeElement===input||['saving','refused'].includes(card.querySelector('.saved').dataset.state))return;
++ input.value=name;
++}
+diff --git a/public/assets/person-profile.js b/public/assets/person-profile.js
+new file mode 100644
+index 0000000..45fa650
+--- /dev/null
++++ b/public/assets/person-profile.js
+@@ -0,0 +1,20 @@
++import {savedLine,failureLine,saveAsYouGo} from '../settings-save.js';
++
++// Base changes only the current account. Other People's roles remain separate.
++export function personProfile(person,{request,updated}){
++ const host=document.createElement('details');host.className='member-profile';
++ host.innerHTML=`<summary>Change</summary><div class="member-access"><div><label>Your name<input name="displayName" required maxlength="120" autocomplete="name"></label>${savedLine('profile-name-saved')}${failureLine('profile-name-failure')}</div><div><label>Your email<input name="email" type="email" required maxlength="254" autocomplete="email"></label>${savedLine('profile-email-saved')}${failureLine('profile-email-failure')}</div></div><button type="button" data-confirm-email hidden>Email me a confirmation link</button><p role="status" data-profile-status></p>`;
++ const name=host.querySelector('[name=displayName]'),email=host.querySelector('[name=email]'),confirm=host.querySelector('[data-confirm-email]'),status=host.querySelector('[data-profile-status]');
++ name.value=person.displayName;email.value=person.email;
++ for(const [input,key] of [[name,'displayName'],[email,'email']]){
++  const kind=key==='email'?'email':'name';
++  const save=saveAsYouGo({saved:host.querySelector(`#profile-${kind}-saved`),failure:host.querySelector(`#profile-${kind}-failure`),send:async value=>{
++   if(!input.reportValidity())throw Error('Check this field before continuing.');
++   try{const account=await request('/api/profile','POST',{[key]:value});Object.assign(person,{displayName:account.displayName,email:account.email});updated()}
++   catch(error){if(error.code==='step_up_required')confirm.hidden=false;throw error}
++  }});
++  input.onchange=()=>{void save(input.value)};
++ }
++ confirm.onclick=async()=>{confirm.disabled=true;try{await request('/api/profile','POST',{confirm:true});status.textContent='Open the confirmation link sent to your current sign-in email, then change your email here.'}catch(error){status.textContent=error.message}finally{confirm.disabled=false}};
++ return host;
++}
+diff --git a/public/assets/security-controls.js b/public/assets/security-controls.js
+index 24d626f..887cd3c 100644
+--- a/public/assets/security-controls.js
++++ b/public/assets/security-controls.js
+@@ -25,6 +25,10 @@ const reasons={
+  not_found:'This item is no longer available.'
+ };
+ const keyReasons={
++ invalid_email:'Enter a valid email address.',
++ invalid_display_name:'Enter your name.',
++ email_in_use:'This email already belongs to another account.',
++ step_up_required:'Confirm your current sign-in email before changing it.',
+  mail_unavailable:'Email is off for this installation. Invitations need email.',
+  'Another administrator must change your product assignment':'Another administrator must change your product assignment',
+  'Choose a product role':'Choose a role for this member.',
+@@ -48,7 +52,7 @@ const keyReasons={
+ function securityReason(result,status){return reasons[result.code]??keyReasons[result.error]??(status===401?'Sign in again to continue.':status===403?'Only the owner manages keys and factor policy.':status===429?'Too many requests. Wait and try again.':'This action could not finish. Check the values and try again.')}
+ export async function securityRequest(path,method='GET',body){
+  const response=await fetch(path,{method,headers:{'content-type':'application/json'},cache:'no-store',...(body===undefined?{}:{body:JSON.stringify(body)})});
+- const result=await response.json();if(!response.ok)throw Object.assign(Error(securityReason(result,response.status)),{status:response.status,code:result.code,stepUp:result.stepUp,readable:true});return result;
++ const result=await response.json();if(!response.ok)throw Object.assign(Error(securityReason(result,response.status)),{status:response.status,code:result.code??result.error,stepUp:result.stepUp,readable:true});return result;
+ }
+ import {firstMount} from '../dom-patch.js';
+ const prefix='/api/access/mfa';
+diff --git a/public/notifications.js b/public/notifications.js
+index 52f9530..61c5710 100644
+--- a/public/notifications.js
++++ b/public/notifications.js
+@@ -24,7 +24,7 @@ export function destinationDialog(destination,{notes,api,action}){
+  if(!destination)form.elements.kind.onchange=()=>{const email=form.elements.kind.value==='email';dialog.querySelector('#destination-address-label').hidden=!email;dialog.querySelector('#destination-url-label').hidden=email;dialog.querySelector('#destination-privacy').hidden=email;form.elements.address.disabled=!email;form.elements.address.required=email;form.elements.url.disabled=email;form.elements.url.required=!email;webhook.update()};
+  // Rotate and Delete each confirm on top of this dialog; confirming closes it before the action runs.
+  dialog.querySelector('[data-rotate-secret]')?.addEventListener('click',()=>confirmDestination({title:`Rotate the secret for ${destination.name}?`,explanation:'The old secret stops working immediately. Queued sends using it are cancelled. Save the new secret and update your receiver before future notifications can verify.',button:'Rotate signing secret',onConfirm:async()=>{close();const r=await action(()=>api(path(destination.id)+'/rotate','POST',{}),{pending:'Rotating signing secret…',success:'Signing secret rotated. Update your receiver with the new secret.'});if(r.ok)showSecret(r.result.signingSecret,destination.name)}}));
+- dialog.querySelector('[data-delete-destination]')?.addEventListener('click',()=>confirmDestination({title:`Delete ${destination.name}?`,explanation:'Its name, address, credentials and delivery history will be permanently erased. The anonymous audit remains.',button:'Delete destination',tone:'danger',onConfirm:async()=>{close();const result=await action(()=>api(path(destination.id),'DELETE'),{pending:'Erasing destination…',success:'Destination and dependent delivery records erased.'});if(result.ok)showErasureReceipt(result.result.receipt)}}));
++ dialog.querySelector('[data-delete-destination]')?.addEventListener('click',()=>confirmDestination({title:`Delete ${destination.name}?`,explanation:'Its name, address, credentials and delivery history will be permanently erased. The anonymous audit remains.',button:'Delete destination',tone:'danger',onConfirm:async()=>{close();const result=await action(()=>api(path(destination.id),'DELETE'),{pending:'Erasing destination…',success:'Destination and dependent delivery records erased.'});if(result.ok){document.getElementById('alert-teams')?.dispatchEvent(new Event('uptime:destinations-changed'));showErasureReceipt(result.result.receipt)}}}));
+  form.onsubmit=async event=>{
+   event.preventDefault();const values={name:form.elements.name.value,enabled:form.elements.enabled.checked};
+   if(destination){if(email)values.address=form.elements.address.value;else if(form.elements.url.value.trim())values.url=form.elements.url.value.trim()}
+@@ -34,7 +34,7 @@ export function destinationDialog(destination,{notes,api,action}){
+   values.name=values.name.trim()||(kind==='email'?`Email ${values.address}`:kind==='slack'?'Slack':values.webhookTemplate?.mode==='oncall'?'Oncall':'Webhook').slice(0,100);
+   let result,failure;
+   const response=await action(async()=>{try{result=await api(destination?path(destination.id):'/api/notifications/destinations',destination?'PATCH':'POST',values)}catch(error){failure=error.message;throw error}close()},{pending:'Saving destination…',success:kind==='email'&&notes.mailOff?'Destination saved. Email is off for this installation, so it cannot send.':kind==='email'&&!notes.mailConfigured?'Destination saved. Email is not set up, so it cannot send yet: Set up email is above Destinations.':'Destination saved.'});
+-  if(response.ok)returnFocus();
++  if(response.ok){document.getElementById('alert-teams')?.dispatchEvent(new Event('uptime:destinations-changed'));returnFocus()}
+   if(response.ok&&result.signingSecret)showSecret(result.signingSecret,values.name);
+   else if(!response.ok&&dialog.isConnected)dialog.querySelector('form > .form-error').textContent=failure||'Destination could not be saved. Check the entered details.';
+  };
+diff --git a/public/settings-general.js b/public/settings-general.js
+index 57f1fa7..8ce0bbb 100644
+--- a/public/settings-general.js
++++ b/public/settings-general.js
+@@ -2,10 +2,13 @@ import {firstMount,patch} from './dom-patch.js';
+ import {escape} from './console-format.js';
+ import {externalCheckSection} from './external-check.js';
+ import {saveAsYouGo,savedLine,failureLine} from './settings-save.js';
+-// Settings › General: the installation's one time zone, which alerts, reports, maintenance and job schedules use (it saves
++import {mountInstallationName,showInstallationName} from './assets/installation-name.js';
++// Settings › General: the installation's name and one time zone, which alerts, reports, maintenance and job schedules use (it saves
+ // as it changes), and the External check URL (public/external-check.js), which keeps its one-step Save.
+ export function renderGeneral({area,data,api,refresh}){
+- patch(area,'<div class="settings-area"><section class="ui-card set-card" id="settings-time-zone" data-owned="time-zone" aria-labelledby="time-zone-heading"></section><section class="ui-card set-card external-check" id="external-check" data-owned="external-check"></section></div>');
++ patch(area,'<div class="settings-area"><section class="ui-card set-card" id="settings-installation-name" data-owned="installation-name" aria-labelledby="installation-name-heading"></section><section class="ui-card set-card" id="settings-time-zone" data-owned="time-zone" aria-labelledby="time-zone-heading"></section><section class="ui-card set-card external-check" id="external-check" data-owned="external-check"></section></div>');
++ const name=area.querySelector('#settings-installation-name');
++ if(firstMount(name))mountInstallationName(name,{data,api,refresh});else showInstallationName(name,data.installationName);
+  const zone=area.querySelector('#settings-time-zone'),external=area.querySelector('#external-check');
+  if(firstMount(zone))mountZone(zone,{data,api,refresh});else showZone(zone,data.timeZone);
+  if(firstMount(external))externalCheckSection(external,{url:data.runner.externalCheckUrl,api,refresh});
+diff --git a/sources.lock.json b/sources.lock.json
+index cf337fc..ef74a45 100644
+--- a/sources.lock.json
++++ b/sources.lock.json
+@@ -2060,7 +2060,7 @@
+       "executable": true
+     },
+     "docs/getting-started.md": {
+-      "sha256": "7332653e136cb3ad2ac0abb876ddc3e10df70034ce86a673df682a2bd90dd281",
++      "sha256": "b56b12bf257339b1a5dc9409dcbb601c23272e8d6abbd33c81ef14f1b20b8b79",
+       "executable": false
+     },
+     "docs/grafana/uptime-dashboard.json": {
+@@ -2616,7 +2616,7 @@
+       "executable": false
+     },
+     "public/app.js": {
+-      "sha256": "5709a69d7f2397efa8a666919adddcf237eec3b1313cc728e09008c3e232d2a9",
++      "sha256": "4f3c01aeb05c47e8b6576b7752775a66481bb34e83b81f0421e7380efff5de22",
+       "executable": false
+     },
+     "public/archive-view.js": {
+@@ -2624,7 +2624,7 @@
+       "executable": false
+     },
+     "public/assets/access-member-controls.js": {
+-      "sha256": "29a12808b4d621e8ecfee70bc03ba18292507dc98b232f5184b950d2651c60cd",
++      "sha256": "b278b38fd33f65e07afd066290f141306aad4af87e4b539993d58d7e59ee695a",
+       "executable": false
+     },
+     "public/assets/alert-route-check.js": {
+@@ -2660,7 +2660,7 @@
+       "executable": false
+     },
+     "public/assets/alert-teams.js": {
+-      "sha256": "9c555615356507d9700dd3efb3f36489cd9f76c619a0c77bb2b672fda2b6b35e",
++      "sha256": "9f6ec564cb8d4ec70cc58d7bc39b41bac4342130a7f6ae54ab91998669efefa1",
+       "executable": false
+     },
+     "public/assets/authenticator-enrollment.js": {
+@@ -2675,10 +2675,18 @@
+       "sha256": "07bddc95b269a1ee4ffcb66192870b3fc11ffd72704ecfa40d4520ec070373e1",
+       "executable": false
+     },
++    "public/assets/installation-name.js": {
++      "sha256": "5acfcef7888947ddc1d05c80b8b33019b494058e740c7fc04cbd549db1a8b43e",
++      "executable": false
++    },
+     "public/assets/key-usage.js": {
+       "sha256": "563ed714584f2251211bc1fd802451c0a2ba65a46409c80c5fab99205545f9a1",
+       "executable": false
+     },
++    "public/assets/person-profile.js": {
++      "sha256": "d7bf98bec32a204a3745713e32f82060140ae09ac74bce45b8fa1ecfb3a2ede6",
++      "executable": false
++    },
+     "public/assets/report-schedule-controls.js": {
+       "sha256": "d9898770226fa84dc06dab3451fa16718b7db742865415caea2e731916fbe11e",
+       "executable": false
+@@ -2692,7 +2700,7 @@
+       "executable": false
+     },
+     "public/assets/security-controls.js": {
+-      "sha256": "2561809338c57c785a81117c6f136fa9507aff063a122ec021eebe80161ace04",
++      "sha256": "0bbb30f81b14dcb33960238a3b2e2191dd57b3aea141622b289b37332cce6147",
+       "executable": false
+     },
+     "public/assets/setup.js": {
+@@ -2992,7 +3000,7 @@
+       "executable": false
+     },
+     "public/notifications.js": {
+-      "sha256": "c8f6162c73a6a78abbe11fc58172703f1726d78d3b0d96af113e5a3d135df99a",
++      "sha256": "750ea551fa071b1bfc303724f3f8d366d8d2ab8db426f8743055ae87c85bc7ed",
+       "executable": false
+     },
+     "public/pagespeed-panel.js": {
+@@ -3052,7 +3060,7 @@
+       "executable": false
+     },
+     "public/settings-general.js": {
+-      "sha256": "7a8de5cecace529d48088d4c20a7bb109ba2878391630fb80d529852b337ff04",
++      "sha256": "1e5f7fb0084775fbc9e18f7caf203be9cb4c698a882586510b474c582d7a7c31",
+       "executable": false
+     },
+     "public/settings-integrations.js": {
+@@ -3092,7 +3100,7 @@
+       "executable": false
+     },
+     "README.md": {
+-      "sha256": "e7ffa12f1203490efd0365303baccc09cf163e665021d47d0b10f29e85e3c2a1",
++      "sha256": "7a2a44311f07e869dc041999ee55462a9f4b6e157c71aafea6d0bf623528e605",
+       "executable": false
+     },
+     "RELEASE.json": {
+@@ -7064,7 +7072,7 @@
+       "executable": false
+     },
+     "src/domain/alert-teams.server.ts": {
+-      "sha256": "bd51b17048d3afcab123feb65b3c8d05f6140edac99d203013ed3dcc4c6a5c7b",
++      "sha256": "8befe8ab51f8c960ef8774df1f01c58c86ab284bacbe71f7e62150bb07ee2271",
+       "executable": false
+     },
+     "src/domain/api-effects.mjs": {
+@@ -7200,7 +7208,7 @@
+       "executable": false
+     },
+     "src/domain/business-import/context.server.ts": {
+-      "sha256": "8a07948079e5de176e082e7d5b3065b4f84a9c15708cb3f23df6ac8fec835dc2",
++      "sha256": "52072c54a863f011edca1fc373e04a0ecf05d04a0275fd506c0589e8b372b42f",
+       "executable": false
+     },
+     "src/domain/business-import/credential-shapes.ts": {
+@@ -7324,7 +7332,7 @@
+       "executable": false
+     },
+     "src/domain/control.server.ts": {
+-      "sha256": "0481b0e182fdedd04f47f44b6a2cc119b279c009ba2de2382508d7e8fc0ff6a5",
++      "sha256": "e14a72422f0b10f641b849ebe1d774262cbabdb44f02b439e2e7ebe76333d296",
+       "executable": false
+     },
+     "src/domain/credential-binding.mjs": {
+@@ -7451,10 +7459,6 @@
+       "sha256": "51d49ae4002562648185ea62f47590146d3fab4f48f646c38f8bdafadd6fcf42",
+       "executable": false
+     },
+-    "src/domain/dev-personas.ts": {
+-      "sha256": "a706bae5778b30a77746bdef3e64ef44e48e3b9dff772d07c595016542635ea7",
+-      "executable": false
+-    },
+     "src/domain/development-timing.ts": {
+       "sha256": "5d77feb5d759928d6554252fffd307c80a313638ac533990daf89589d9120280",
+       "executable": false
+@@ -7560,7 +7564,7 @@
+       "executable": false
+     },
+     "src/domain/first-run.server.ts": {
+-      "sha256": "870064149acc20fd2c753f0f3896592d9d9c3f6f7348090ee7a7d08084764743",
++      "sha256": "50d6a134f2e8dd3ce08580266a5d7e7528fa2753126e6d5b90c3391922ede0d0",
+       "executable": false
+     },
+     "src/domain/flow-artifacts.d.mts": {
+@@ -7711,6 +7715,18 @@
+       "sha256": "61321786a4fe22bf29e29967e5ad225be998438495d33982cfb9ba3e3537893d",
+       "executable": false
+     },
++    "src/domain/installation-document.server.ts": {
++      "sha256": "c525ac98526c401bae569cf87df2b00289fcefbb4fdf50723088f04a416d324c",
++      "executable": false
++    },
++    "src/domain/installation-name.server.ts": {
++      "sha256": "eef00e12aa20fe830ef9183fdde816a4dd3380cae734dcffad19285aeda27f7b",
++      "executable": false
++    },
++    "src/domain/installed-lobby.server.ts": {
++      "sha256": "371feffcbeac8129680c476dbed3d58e0419d08b47c9cdeaac1d956d3c15ac1e",
++      "executable": false
++    },
+     "src/domain/legacy-monitoring.server.ts": {
+       "sha256": "cc79d47385f9a0b400dd14b297b5f9eae495881ae0d365653af2711a7185ab91",
+       "executable": false
+@@ -7812,7 +7828,7 @@
+       "executable": false
+     },
+     "src/domain/monitoring-watch.server.ts": {
+-      "sha256": "9737eb2bbd477cb52de306193156bf0f9b0cf478175f5c1bcd38ff1c93fbaa8c",
++      "sha256": "513b5cf2c254aee47a59c02525a9c1daf566f0e135c6abc57967bd8164929e26",
+       "executable": false
+     },
+     "src/domain/network-diagnostic-peers.server.ts": {
+@@ -7892,7 +7908,7 @@
+       "executable": false
+     },
+     "src/domain/notifications.server.ts": {
+-      "sha256": "9f53954025999a513d8efb42bac5a3ec2c3f9de94a92af3534c6d2c7d5db264c",
++      "sha256": "c183b987c0bd686ac405a7470b9b6e668050982e203d9c1510478f18915c2f03",
+       "executable": false
+     },
+     "src/domain/operator-auth.server.ts": {
+@@ -7907,6 +7923,10 @@
+       "sha256": "3d81f851494f4ef00acd5cf8ba48f92b5c0f5c902c5751690d951594565d0d1f",
+       "executable": false
+     },
++    "src/domain/owner-account.server.ts": {
++      "sha256": "7780e25de58de33aca3169f6f4647dbf18604797287e8081fdcf6837656b2903",
++      "executable": false
++    },
+     "src/domain/owner-claim.server.ts": {
+       "sha256": "5a5dd95544d9683c8b02b474f252d46faf0cff9a50ee20554be5e318bb7eba1a",
+       "executable": false
+@@ -7955,6 +7975,10 @@
+       "sha256": "28664766149b5686f002ed614ccfae5b36c12b35b6e64aac7465ecd176670aa9",
+       "executable": false
+     },
++    "src/domain/profile.server.ts": {
++      "sha256": "352828d6e185ab84cece82476a5c3ac8b6cccc0a9b0858df2d19c9e14d1a4f8f",
++      "executable": false
++    },
+     "src/domain/protocol/cloudflare-ranges.mjs": {
+       "sha256": "3006059e2a04793301c2268235446d511f52cb8033a977bf769d1a29e9d0dd02",
+       "executable": false
+@@ -8096,7 +8120,7 @@
+       "executable": false
+     },
+     "src/domain/request-boundary.ts": {
+-      "sha256": "e0601fe455f54a6294cb962769d3286a51366aaa62228ccf39d5bd5dc813c318",
++      "sha256": "2926e7afeee87c5a85ec8ec32c1e5623aa426c42fe89084e44cc45252c70b55b",
+       "executable": false
+     },
+     "src/domain/rer-cutover-status.server.ts": {
+@@ -8112,7 +8136,7 @@
+       "executable": false
+     },
+     "src/domain/role-permissions.mjs": {
+-      "sha256": "e12cd04293e995468e342d7bc1124956819379d206d26f8f86de0d7ba7a1c4be",
++      "sha256": "84b941e81c3b1a48ef1de89e9b99f7a6507373cb4bf3b28890bb323fe7a73476",
+       "executable": false
+     },
+     "src/domain/rum/beacon-script.ts": {
+@@ -8212,7 +8236,7 @@
+       "executable": false
+     },
+     "src/domain/setup-document.server.ts": {
+-      "sha256": "d7794d41dfcaff8307c10067cb5451c13a36375d4b32bc9eb07b8a7c5200f0e0",
++      "sha256": "c92df8ad498002f4aca1ba08335294e133082e3e0d8b9c7d6e26e560cf418251",
+       "executable": false
+     },
+     "src/domain/slow-ack.server.ts": {
+@@ -8564,11 +8588,11 @@
+       "executable": false
+     },
+     "src/server.dev.ts": {
+-      "sha256": "8b7ce0bf027547665c2bbb06aad53597cea1cb67a18e48dec57eab9ee6cc27fb",
++      "sha256": "a13404211f64c4c497581cd479bd2dff25a52eb0f85527b9224ad9e87f91b83b",
+       "executable": false
+     },
+     "src/server.ts": {
+-      "sha256": "38e2098b74b3b7dcef944b86cc89b41e0d073f74bd34c50b81c3c084fe914f6b",
++      "sha256": "42f3249e8f397f2366be0f4fa66602c3c551d557109d6508edf275b6586e9f54",
+       "executable": false
+     },
+     "src/site/docs/build/manifest.ts": {
+@@ -8688,7 +8712,7 @@
+       "executable": false
+     },
+     "src/site/landing/copy.ts": {
+-      "sha256": "286888ab0e0ba9b7c2daac8573f28afdb0f2c9ef03e9515b6c87c16640714834",
++      "sha256": "1be2f3250b5710d11bc17eeecc1ce5f39fbe407de91ea7a86f5fd3dbb3f1e8c5",
+       "executable": false
+     },
+     "src/site/landing/hero/art/frame.ts": {
+@@ -8756,7 +8780,7 @@
+       "executable": false
+     },
+     "src/site/landing/sections/Hero.tsx": {
+-      "sha256": "d9ae312636c55ee03a0f15e10ad00a79fa5e2fcf5714b527a91a4737acc817bc",
++      "sha256": "070c4c48b094a4670818943a51d41b48ef9eaa6b77a49646f291453915fba4d3",
+       "executable": false
+     },
+     "src/site/landing/sections/Included.tsx": {
+@@ -8864,7 +8888,7 @@
+       "executable": false
+     },
+     "src/ui/console-document.tsx": {
+-      "sha256": "5f9a77a19ada1d1e6eec1dc81d5a4bd71ab9dfd6f3ff7370172e01005f75579d",
++      "sha256": "43b4b1e37859aceec454df3eeab578030bb42e5d0f095870a25de8b2165d1d46",
+       "executable": false
+     },
+     "src/ui/console-paths.ts": {
+@@ -8883,8 +8907,12 @@
+       "sha256": "69da3e7eba4e9453042bd9b3dce8b8e32694336dc649586577861c6b6c37449f",
+       "executable": false
+     },
++    "src/ui/installation-label.js": {
++      "sha256": "de3816e255e9f76250bdc87c81f0654bdd55831802493975228723bfe72355dc",
++      "executable": false
++    },
+     "src/ui/monitor-editor-document.tsx": {
+-      "sha256": "fd0a93426126ccdf4f6b1f4071b1004b13a9397fb64e654ec0bae6bd05e1dff8",
++      "sha256": "c8a67d8c8c143a3d5eabc08fcba76079a862bb6035adb4a8c8857f06404953dd",
+       "executable": false
+     },
+     "src/ui/monitor-editor-path.mjs": {
+@@ -8920,7 +8948,7 @@
+       "executable": false
+     },
+     "tests/access-member-controls-browser-support.mjs": {
+-      "sha256": "0de43f51cc74071855f1e898ea88f94f3a608ff3e2c19436a7a329999da991f9",
++      "sha256": "a509e1220b895e9a206aea80602d0c5fc4aaa79800449ad627958ffdc29f305e",
+       "executable": false
+     },
+     "tests/access-scope-support.mjs": {
+@@ -9004,7 +9032,7 @@
+       "executable": false
+     },
+     "tests/agent-destination-name-support.mjs": {
+-      "sha256": "74b9f984a2c43d999e14a946ab9dec94cd3f2c7066600fe6765470d742c757ab",
++      "sha256": "2ea7e8dad5a974faa5afd16669f85dcff36ffa54ec904a4c511f2f5155de5cf5",
+       "executable": false
+     },
+     "tests/agent-door-browser.mjs": {
+@@ -9180,7 +9208,7 @@
+       "executable": false
+     },
+     "tests/command-journey.mjs": {
+-      "sha256": "1bc1ebcb0e5f5c19cc5c16c321d5aca11063e74bb0a4aba266b277370f7c7a9a",
++      "sha256": "14b45fdd69c556516a48de451e6dde65ecfc7bb7536bcbc5f0d13450bb26d58e",
+       "executable": false
+     },
+     "tests/connection-diagnostics-protocols.mjs": {
+@@ -9364,7 +9392,7 @@
+       "executable": false
+     },
+     "tests/hosted-auth-browser.mjs": {
+-      "sha256": "822ee98e3213ad9c7dce0676ac54e6b09d979bfe270e8cf51f20b058b03d7573",
++      "sha256": "502b1b02c0a1cc16a439c44de45b519efbac96184665d7af29fca52b5e404ea0",
+       "executable": false
+     },
+     "tests/hosted-auth-runtime.mjs": {
+@@ -9416,7 +9444,7 @@
+       "executable": false
+     },
+     "tests/local-signin-truth-support.mjs": {
+-      "sha256": "5329aa050838669e0391dc36104bfa103b83d88728912ea51c06ef0e32c4c497",
++      "sha256": "a547ed2838cb7c1e6c844e9c23320c2bf194a98fd04af784efb7d929f6fddf7a",
+       "executable": false
+     },
+     "tests/location-enrollment-support.mjs": {
+@@ -9607,6 +9635,10 @@
+       "sha256": "c30cd00372a45298d28fc5398bb6401f9e60710dfea0f68a4cadb03dd18b973f",
+       "executable": false
+     },
++    "tests/owner-profile-browser-support.mjs": {
++      "sha256": "34585b1d04a984d4cace1b402d3b678fc9b374e57860797a44ee285a737097cd",
++      "executable": false
++    },
+     "tests/pagespeed-network-fixture.mjs": {
+       "sha256": "a2b7267e4f753cfafc286fa0c462b513534105f149aa723fbed925646aaf596e",
+       "executable": false
+diff --git a/src/domain/alert-teams.server.ts b/src/domain/alert-teams.server.ts
+index c9eee1b..5b51bdb 100644
+--- a/src/domain/alert-teams.server.ts
++++ b/src/domain/alert-teams.server.ts
+@@ -32,7 +32,7 @@ export async function readRecipient(env:Bindings,access:Access){
+  const consents=(await env.DB.prepare('SELECT destination_id,credential_id,enabled,base_version,role_revision FROM alert_recipient_consents WHERE operator_id=?').bind(id).all<any>()).results
+  const teams=(await env.DB.prepare('SELECT t.id,t.name,t.enabled FROM alert_teams t JOIN alert_team_members m ON m.team_id=t.id WHERE m.operator_id=? ORDER BY t.name,t.id').bind(id).all<any>()).results
+  const versions=(await env.DB.prepare("SELECT id,credential_id FROM notification_destinations WHERE kind='email' AND deleted_at IS NULL").all<any>()).results
+- return {teams:teams.map(t=>({...t,enabled:!!t.enabled})),destinations:contacts.filter(d=>d.kind==='email'&&d.address?.toLowerCase()===access.session.operator.email.toLowerCase()).map(d=>{const consent=consents.find(c=>c.destination_id===d.id),current=!!consent&&consent.base_version===access.session.operator.version&&consent.role_revision===access.revision&&consent.credential_id===versions.find(v=>v.id===d.id)?.credential_id;return {id:d.id,name:d.name,enabled:d.enabled,credentialsAvailable:d.credentialsAvailable,optedIn:!!consent?.enabled&&current,consentCurrent:current}})}
++ return {accountEmail:access.session.operator.email,teams:teams.map(t=>({...t,enabled:!!t.enabled})),destinations:contacts.filter(d=>d.kind==='email'&&d.address?.toLowerCase()===access.session.operator.email.toLowerCase()).map(d=>{const consent=consents.find(c=>c.destination_id===d.id),current=!!consent&&consent.base_version===access.session.operator.version&&consent.role_revision===access.revision&&consent.credential_id===versions.find(v=>v.id===d.id)?.credential_id;return {id:d.id,name:d.name,enabled:d.enabled,credentialsAvailable:d.credentialsAvailable,optedIn:!!consent?.enabled&&current,consentCurrent:current}})}
+ }
+ export async function consentRecipient(env:Bindings,input:any,access:Access){
+  if(!input||Object.keys(input).some(k=>!['destinationId','enabled'].includes(k))||typeof input.destinationId!=='string'||typeof input.enabled!=='boolean')throw fail('Choose your email destination and enabled preference')
+diff --git a/src/domain/business-import/context.server.ts b/src/domain/business-import/context.server.ts
+index 18b15ef..600cba9 100644
+--- a/src/domain/business-import/context.server.ts
++++ b/src/domain/business-import/context.server.ts
+@@ -1,3 +1,4 @@
++import {ownerAccount} from '../owner-account.server.ts'
+ import type {Bindings} from '../control.server.ts'
+ import {permission,accessResponse,accessFence} from '../access.server.ts'
+ import {configureClaim} from '../../base/modules/owner-claim/verify.mjs'
+@@ -15,7 +16,7 @@ export function businessClaim(env:Bindings){
+   appOrigin:env.RER_OWNER_CLAIM_APP_ORIGIN??'',expectedEmail:env.OWNER_EMAIL??'',publicKeys:JSON.parse(env.RER_OWNER_CLAIM_PUBLIC_KEYS??'null')})
+ }
+ export async function businessOwner(env:Bindings){
+- const owner=await env.DB.prepare("SELECT id FROM oa_operators WHERE email=? AND role='owner' AND status='active'").bind(env.OWNER_EMAIL??'').first<{id:string}>()
++ const owner=await ownerAccount(env)
+  if(!owner)throw Object.assign(Error('The installation owner is unavailable'),{status:403})
+  return owner.id
+ }
+diff --git a/src/domain/control.server.ts b/src/domain/control.server.ts
+index 7f1cf57..91477e9 100644
+--- a/src/domain/control.server.ts
++++ b/src/domain/control.server.ts
+@@ -10,6 +10,7 @@ import {hostedInstallation} from './hosted-runner.ts'
+ import {cronStarted} from './cron-run.server.ts'
+ import {notificationOverview} from './notifications.server.ts'
+ import {notificationPreferences} from './notification-preferences.server.ts'
++import {installationName} from './installation-name.server.ts'
+ import {mutationGuard,auditStatement,type AuditActor} from './audit.server.ts'
+ import {availabilityOverview} from './availability.server.ts'
+ import {operatorSession,type AuthBindings} from './operator-auth.server.ts'
+@@ -60,16 +61,16 @@ export async function overview(env:Bindings,{monitorId,readOnly=false}:{monitorI
+  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
+  // The first runner rows exist after the first overview; only an installation still missing one writes them, then reads again.
+  const present=async()=>{const [runners,legacy]=await Promise.all([listRunners(env),runnerIdentity(env)]);return legacy&&(!hostedInstallation(env)||runners.some((r:any)=>r.hosted))?{runners,legacy}:null};
+- const [found,rows,alerts,started,contact,external,notifications,preferences]=await Promise.all([present(),
++ const [found,rows,alerts,started,contact,external,notifications,preferences,name]=await Promise.all([present(),
+   (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
+   (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
+-  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env)]);
++  cronStarted(env),readContact(env.DB),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env),installationName(env)]);
+  const {runners,legacy}=found??(readOnly?{runners:await listRunners(env),legacy:await runnerIdentity(env)}:(await ensureFirstRunner(env),(await present())!));
+  const basics=rows.results.map(monitorRow);
+  const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs,readOnly))),availabilityOverview(env.DB,basics,now)]);
+  return {monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
+   runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,...(readOnly?{}:{grants:grants(env),contact,externalCheckUrl:external.url})},
+-  timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
++  installationName:name,timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
+ }
+ export {MONITOR_LIMIT} from './monitor-cap.ts'
+ // The revision guard runs in the write transaction. A racing create returns the same useful capacity error as preflight.
+diff --git a/src/domain/dev-personas.ts b/src/domain/dev-personas.ts
+deleted file mode 100644
+index 0b6d5fe..0000000
+--- a/src/domain/dev-personas.ts
++++ /dev/null
+@@ -1,5 +0,0 @@
+-import type {DevPersona} from '../base/modules/operator-auth/dev/index.mjs'
+-// Local dev personas: real operators at <as>@dev.localhost, created only by local dev sign-in and suspended in exports.
+-// Uptime's console belongs to its owner, so the persona that matters is a signed-in operator who is not the owner:
+-// the console, the API and every document stay closed to it.
+-export function devPersonas():DevPersona[]{return [{as:'member',role:'member',displayName:'Dev member'}]}
+diff --git a/src/domain/first-run.server.ts b/src/domain/first-run.server.ts
+index c64d6e0..bd3b881 100644
+--- a/src/domain/first-run.server.ts
++++ b/src/domain/first-run.server.ts
+@@ -1,3 +1,8 @@
++import {installationName,saveInstallationName,validateInstallationName} from './installation-name.server.ts'
++import {operatorAuth} from './operator-auth.server.ts'
++import {normalizeEmail} from '../base/modules/operator-auth/policy.mjs'
++// @ts-ignore Base's shared display-name validation is JavaScript.
++import {displayName as validateDisplayName} from '../base/modules/operator-auth/accounts/admin.mjs'
+ import {runnerRuntime} from './private-runner.ts'
+ import {ensureFirstRunner,listRunners} from './runner-registration.server.ts'
+ import {authenticatedSession,authFailure} from './operator-auth.server.ts'
+@@ -19,12 +24,12 @@ const BAD_SITE='Use a public website address, such as example.com or https://exa
+ // The external check URL is not asked here; it is set in Settings. An installation that has none takes this one, so a
+ // monitor on one location can still confirm an outage.
+ const DEFAULT_EXTERNAL='https://example.org/'
+-// The optional field of the native first-run form: empty when the request carries no form or the owner chose Skip, null
+-// when the form is too large to be one.
++// Read the native identity and optional website fields once, retaining the
++// existing form-size limit and support for setup completion without a form.
+ async function typedSite(request:Request){
+- if(!(request.headers.get('content-type')??'').toLowerCase().startsWith('application/x-www-form-urlencoded'))return ''
++ if(!(request.headers.get('content-type')??'').toLowerCase().startsWith('application/x-www-form-urlencoded'))return new URLSearchParams()
+  const text=await request.text(),form=new URLSearchParams(text);
+- return text.length>FORM_LIMIT?null:form.get('skip')?'':(form.get('start_url')??'').trim()
++ return text.length>FORM_LIMIT?null:form
+ }
+ const withScheme=(value:string)=>value.includes('://')?value:`https://${value}`
+ const redirect=(location:string)=>new Response(null,{status:303,headers:{location,'cache-control':'no-store'}})
+@@ -42,12 +47,27 @@ export async function firstRun(env:Bindings,request:Request){
+   // The first location's name shows once its runner has reached Uptime: the place it runs from, or its generated name.
+   const place=first.last_contact_at!==null?first.network_label:null;
+   const configured=env.UPTIME_START_URL;
++  let profile={displayName:owner.operator.displayName,email:owner.operator.email,installationName:await installationName(env)},profileProblem='';
+   let site:StartSite=configured&&canDiscover?{checking:configured}:{},status=200
+   if(request.method==='POST'){
+-   const typed=await typedSite(request),address=canDiscover?configured??(typed?withScheme(typed):undefined):undefined;
+-   let valid=typed!==null;
++   const form=await typedSite(request),typed=form?.get('skip')?'':(form?.get('start_url')??'').trim(),address=canDiscover?configured??(typed?withScheme(typed):undefined):undefined;
++   let valid=form!==null;
++   if(form){
++    profile={displayName:form.get('displayName')??profile.displayName,email:form.get('email')??profile.email,installationName:form.get('installationName')??profile.installationName};
++    try{validateDisplayName(profile.displayName);normalizeEmail(profile.email);validateInstallationName(profile.installationName)}catch{valid=false;profileProblem='Enter your name, a valid email address and an installation name.'}
++   }
+    if(valid&&address)try{publicTarget(address)}catch{valid=false}
+    if(valid){
++    try{
++     const auth=operatorAuth(env);
++     if(profile.email.trim().toLowerCase()!==owner.operator.email)await auth.changeEmail!(request,{email:profile.email});
++     if(profile.displayName.trim()!==owner.operator.displayName)await auth.changeDisplayName!(request,{displayName:profile.displayName});
++     await saveInstallationName(env,request,profile.installationName);
++    }catch(error){
++     const code=(error as {code?:string}).code;
++     profileProblem=code==='email_in_use'?'That email already belongs to another account.':code==='step_up_required'?'Confirm your sign-in before changing your email. You can also continue with your current email and change it in Settings › People.':'Your details could not be saved. Check them and try again.';
++     const response=setupDocument(profile.displayName,site,400,{place,askSite:canDiscover,profile,profileProblem});return response;
++    }
+     const saved=(await externalCheck(env)).url;
+     if(!saved||saved==='https://example.com/')await saveExternalCheck(env,JSON.stringify({url:DEFAULT_EXTERNAL}));
+     const job=address?await ensureDiscovery(env,address):undefined
+@@ -56,9 +76,9 @@ export async function firstRun(env:Bindings,request:Request){
+     const empty=!(await env.DB.prepare('SELECT 1 FROM monitors LIMIT 1').first())
+     return redirect(completed.meta.changes&&job?`/app/monitors/new/discovery/${encodeURIComponent(job)}`:empty?'/app/monitors/new':'/app/monitors')
+    }
+-   site={entered:typed??'',problem:BAD_SITE};status=400
++   site={entered:typed??'',...(profileProblem?{}:{problem:BAD_SITE})};status=400
+   }else if(configured&&canDiscover&&request.method==='GET')await ensureDiscovery(env,configured)
+-  const response=setupDocument(owner.operator.displayName,site,status,{place,askSite:canDiscover})
++  const response=setupDocument(owner.operator.displayName,site,status,{place,askSite:canDiscover,profile,profileProblem})
+   return request.method==='HEAD'?new Response(null,{headers:response.headers}):response
+  }catch(error){
+   // A full job queue is the one plain refusal the owner can act on; everything else keeps the authentication failure shape.
+diff --git a/src/domain/installation-document.server.ts b/src/domain/installation-document.server.ts
+new file mode 100644
+index 0000000..fb12534
+--- /dev/null
++++ b/src/domain/installation-document.server.ts
+@@ -0,0 +1,31 @@
++// @ts-ignore Vite raw source for the exact hashed presentation script.
++import labelScript from '../ui/installation-label.js?raw'
++// @ts-ignore Base's shared CSP helpers are JavaScript.
++import {allow,sha256} from '../base/modules/operator-auth/csp.mjs'
++import {installationName} from './installation-name.server.ts'
++import {escapeHtml} from './document-shell.server.ts'
++import type {Bindings} from './control.server.ts'
++
++type Options={testSignIns?:boolean;localLabel?:boolean;reactDocument?:boolean}
++// Native documents render their saved name directly. React documents keep
++// identical server/client markup and apply it after the owning view hydrates.
++export async function installationDocument(env:Bindings,response:Response,{testSignIns=false,localLabel=false,reactDocument=false}:Options={}){
++ if(!response.body||!response.headers.get('content-type')?.startsWith('text/html'))return response
++ const name=await installationName(env),headers=new Headers(response.headers)
++ let html=await response.text()
++ const terminalHelp=localLabel&&html.includes('<code>rer dev')
++ if(terminalHelp)html=html.replaceAll('<code>rer dev','<code>~/.local/bin/rer dev')
++ // Remove the shared local visual suffix together with its title observer.
++ if(localLabel)html=html.replace(/<style data-rer-label="Dev"[^>]*>[\s\S]*?<\/style><script>[\s\S]*?<\/script>/g,'').replace(/(<title\b[^>]*>[^<]*) Dev(<\/title>)/g,'$1$2')
++ headers.delete('content-length');headers.delete('etag')
++ const addLabel=reactDocument&&env.RER_DEMO!=='1'&&!html.includes('data-uptime-brand-script')
++ if(addLabel){const policy=headers.get('content-security-policy');if(policy)headers.set('content-security-policy',allow(policy,'script-src',await sha256(labelScript)))}
++ const named=new HTMLRewriter()
++ if(!reactDocument)named.on('title',{element(element){element.setInnerContent(escapeHtml(name==='Uptime'?name:`${name} · Uptime`),{html:true})}})
++  .on('[data-rer-name]',{element(element){element.setInnerContent(name)}})
++  .on('.brand',{text(text){if(text.text.trim()==='Uptime')text.replace(name)}})
++ if(addLabel)named.on('head',{element(element){element.append(`<script data-uptime-brand-script data-name="${escapeHtml(name)}">${labelScript}</script>`,{html:true})}})
++ if(terminalHelp)named.on('main',{element(element){element.append('<details><summary>Details</summary><p>If you see “command not found”, run <code>~/.local/bin/rer cli path</code> and paste the line it prints.</p></details>',{html:true})}})
++ if(testSignIns)named.on('h1',{element(element){element.after('<p>Test sign-ins for this computer</p>',{html:true})}})
++ return named.transform(new Response(html,{status:response.status,statusText:response.statusText,headers}))
++}
+diff --git a/src/domain/installation-name.server.ts b/src/domain/installation-name.server.ts
+new file mode 100644
+index 0000000..eeb9e53
+--- /dev/null
++++ b/src/domain/installation-name.server.ts
+@@ -0,0 +1,38 @@
++import branding from '../branding.json' with {type:'json'}
++import {businessSettings} from '../agent-door/people.server.ts'
++import {permission,AccessError} from './access.server.ts'
++import {authorizedDatabase} from './access-database.server.ts'
++import {InputError} from './request-boundary.ts'
++import type {Bindings} from './control.server.ts'
++
++// The local override wins over a provisioned name; identifiers and deployment
++// settings stay independent of the name the owner gives this installation.
++export async function installationName(env:Bindings):Promise<string>{
++ return await businessSettings(env).resolve('display_name',branding.name) as string
++}
++
++export function validateInstallationName(value:unknown):string{
++ if(typeof value!=='string'||!value.trim()||value.trim().length>120||/[\x00-\x1f\x7f-\x9f]/.test(value))throw new InputError('Enter an installation name of 1–120 characters.')
++ return value.trim()
++}
++
++// Setup and Settings share the same owner-only, transaction-fenced write.
++export async function saveInstallationName(env:Bindings,request:Request,value:unknown):Promise<string>{
++ if(!['POST','PATCH'].includes(request.method))throw new InputError('Use POST or PATCH to change the installation name.')
++ if(request.headers.get('origin')!==env.UPTIME_ORIGIN||request.headers.get('sec-fetch-site')==='cross-site')throw new AccessError(403,'Same origin required')
++ const access=await permission(env,request,undefined,{action:'owner',workspace:true}),name=validateInstallationName(value)
++ const settings=businessSettings({...env,DB:authorizedDatabase(env,access)})
++ await settings.setOverride('display_name',name,access.session.operator.id)
++ return name
++}
++
++export async function installationNameResponse(env:Bindings,request:Request,input?:unknown):Promise<Response>{
++ const headers={'cache-control':'no-store, private'}
++ if(request.method==='GET'){
++  await permission(env,request,undefined,{action:'owner',workspace:true})
++  return Response.json({installationName:await installationName(env)},{headers})
++ }
++ if(request.method!=='PATCH')return new Response(null,{status:405,headers:{...headers,allow:'GET, PATCH'}})
++ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length!==1||!Object.hasOwn(input,'installationName'))throw new InputError('Provide only the installation name.')
++ return Response.json({installationName:await saveInstallationName(env,request,(input as {installationName:unknown}).installationName)},{headers})
++}
+diff --git a/src/domain/installed-lobby.server.ts b/src/domain/installed-lobby.server.ts
+new file mode 100644
+index 0000000..a24a0f7
+--- /dev/null
++++ b/src/domain/installed-lobby.server.ts
+@@ -0,0 +1,13 @@
++import {lobbyResponse} from '../base/lobby.ts'
++import {identity} from '../identity.ts'
++import {authenticatedSession} from './operator-auth.server.ts'
++import type {Bindings} from './control.server.ts'
++import type {ClaimRead} from '../base/setup-state.ts'
++
++export async function installedLobby(env:Bindings,request:Request,claimed:ClaimRead){
++ const response=await lobbyResponse(request,{DB:env.DB,AUTH_ORIGIN:env.UPTIME_ORIGIN!},identity,claimed,r=>authenticatedSession(env,r))
++ if(!response?.body)return response
++ const html=(await response.text()).replace(/<p class="credit">On this computer,[\s\S]*?<\/p>/,'<p class="credit">Open Uptime: <a href="/login">Open</a></p>')
++ const headers=new Headers(response.headers);headers.delete('content-length')
++ return new HTMLRewriter().on('.line',{element(element){element.setInnerContent("Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.")}}).transform(new Response(html,{status:response.status,headers}))
++}
+diff --git a/src/domain/monitoring-watch.server.ts b/src/domain/monitoring-watch.server.ts
+index bd5f174..7ef1a41 100644
+--- a/src/domain/monitoring-watch.server.ts
++++ b/src/domain/monitoring-watch.server.ts
+@@ -1,3 +1,4 @@
++import {ownerAccount} from './owner-account.server.ts'
+ import {demoEffect} from '@runeditrun/rer/modules/demo'
+ import type {Bindings} from './control.server.ts'
+ import {claimAuxiliary,submitAuxiliary,finishAuxiliary,reconcileAuxiliary} from './auxiliary-execution.server.ts'
+@@ -9,14 +10,15 @@ import {legacyMonitoringWarning} from './legacy-monitoring.server.ts'
+ import {publicTarget} from './public-target.mjs'
+ export function watchDuration(value:string|undefined,fallback:number){const number=value===undefined?fallback:Number(value);if(!Number.isSafeInteger(number)||number<=0)throw Error('Invalid monitoring watch interval');return number}
+ async function ownerNotice(env:Bindings,id:string,subject:string,text:string,now:number,retryMs:number){
+- if(!mailSender(env)||!env.OWNER_EMAIL)return;
++ if(!mailSender(env))return;
++ const owner=await ownerAccount(env);if(!owner)return;
+  const attempt=await claimAuxiliary(env,'watch',id,now,{retryMs});if(!attempt)return;
+  let submitted=false,outcome='expired',code='submission_not_started';
+  try{
+   const sender=mailSender(env,{fetch:async(url:RequestInfo|URL,init?:RequestInit)=>{await submitAuxiliary(env,attempt);submitted=true;return fetch(url,init)}})!;
+   // Development delivery has no network transport boundary.
+   if(env.MAIL_PROVIDER==='development'){await submitAuxiliary(env,attempt);submitted=true}
+-  const result=await sender.send({deliveryId:id,from:env.MAIL_FROM,to:[env.OWNER_EMAIL],subject,text});
++  const result=await sender.send({deliveryId:id,from:env.MAIL_FROM,to:[owner.email],subject,text});
+   if(submitted){outcome=result.status;code=result.code??`mail_${result.status}`}
+  }catch{if(submitted){outcome='uncertain';code='mail_result_unknown'}}
+  await finishAuxiliary(env,attempt,outcome,code);
+diff --git a/src/domain/notifications.server.ts b/src/domain/notifications.server.ts
+index a1acaf8..ae791df 100644
+--- a/src/domain/notifications.server.ts
++++ b/src/domain/notifications.server.ts
+@@ -1,3 +1,4 @@
++import {ownerAccount} from './owner-account.server.ts'
+ import {handoffFacts} from './incident-work/handoff.server.ts'
+ import {contactReady,contactQuietReady,refreshContactQuiet} from './contact-scheduler.server.ts'
+ import {notificationPreferences} from './notification-preferences.server.ts'
+@@ -44,5 +45,6 @@ export async function notificationOverview(env:Bindings){
+  const attempts=new Map<string,any[]>();for(const a of history)attempts.set(a.delivery_id,[...(attempts.get(a.delivery_id)??[]),a]);
+  const handoffs=await handoffFacts(env,rows.results.map(r=>r.id));
+  const drills=await drillOverview(env),chain=await fallbackOverview(env,rows.results);
+- return {ownerEmail:env.OWNER_EMAIL,mailSuppressed:env.MAIL_PROVIDER==='development',...(env.MAIL_PROVIDER==='none'?{mailOff:true}:{}),preferences:await notificationPreferences(env),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,...(handoffs.has(r.id)?{handoff:handoffs.get(r.id)}:{}),eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.state==='queued'&&r.code==='waiting_for_contact_quiet'?r.code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,...(r.quiet_until!==null&&r.state==='queued'?{quietUntil:r.quiet_until}:{}),attempts:r.attempts,attemptHistory:attempts.get(r.id)??[],...((view=>view?{chain:view}:{})(chain(r))),...(r.outcome&&JSON.parse(r.outcome).status!=null?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!=null?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
++ const owner=await ownerAccount(env);
++ return {ownerEmail:owner?.email,mailSuppressed:env.MAIL_PROVIDER==='development',...(env.MAIL_PROVIDER==='none'?{mailOff:true}:{}),preferences:await notificationPreferences(env),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,...(handoffs.has(r.id)?{handoff:handoffs.get(r.id)}:{}),eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.state==='queued'&&r.code==='waiting_for_contact_quiet'?r.code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,...(r.quiet_until!==null&&r.state==='queued'?{quietUntil:r.quiet_until}:{}),attempts:r.attempts,attemptHistory:attempts.get(r.id)??[],...((view=>view?{chain:view}:{})(chain(r))),...(r.outcome&&JSON.parse(r.outcome).status!=null?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!=null?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
+ }
+diff --git a/src/domain/owner-account.server.ts b/src/domain/owner-account.server.ts
+new file mode 100644
+index 0000000..59cb95c
+--- /dev/null
++++ b/src/domain/owner-account.server.ts
+@@ -0,0 +1,7 @@
++import type {AuthBindings} from './operator-auth.server.ts'
++
++// Match Base's installation owner selection by stable account identity. The
++// configured bootstrap email stays the authority for an unclaimed install.
++export function ownerAccount(env:Pick<AuthBindings,'DB'>){
++ return env.DB.prepare("SELECT o.id,o.email FROM oa_operators o LEFT JOIN oa_bootstrap b ON b.claim_id=o.id WHERE o.role='owner' AND o.status='active' ORDER BY b.claim_id IS NULL,o.created_at,o.id LIMIT 1").first<{id:string;email:string}>()
++}
+diff --git a/src/domain/profile.server.ts b/src/domain/profile.server.ts
+new file mode 100644
+index 0000000..87836d3
+--- /dev/null
++++ b/src/domain/profile.server.ts
+@@ -0,0 +1,17 @@
++import {operatorAuth,type AuthBindings} from './operator-auth.server.ts'
++import {permission} from './access.server.ts'
++import {authorizedDatabase} from './access-database.server.ts'
++import {InputError} from './request-boundary.ts'
++
++// A private edition door to Base's self-service account methods. The body
++// cannot select another account; Base rechecks this session and fresh proof.
++export async function changeProfile(env:AuthBindings,request:Request,input:unknown){
++ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length!==1)throw new InputError('Change one account detail at a time.')
++ const access=await permission(env,request,undefined,{action:'read',workspace:false})
++ const auth=operatorAuth({...env,DB:authorizedDatabase(env,access)})
++ const value=input as Record<string,unknown>
++ if(Object.hasOwn(value,'displayName'))return auth.changeDisplayName!(request,{displayName:value.displayName as string})
++ if(Object.hasOwn(value,'email'))return auth.changeEmail!(request,{email:value.email as string})
++ if(value.confirm===true)return auth.requestStepUp(request,{action:'email:change',returnTo:'/app/settings/people'})
++ throw new InputError('Choose your name or email to change.')
++}
+diff --git a/src/domain/request-boundary.ts b/src/domain/request-boundary.ts
+index d992733..e3e9fc4 100644
+--- a/src/domain/request-boundary.ts
++++ b/src/domain/request-boundary.ts
+@@ -13,6 +13,8 @@ const id={id:identity},source=(value:string)=>SOURCES.includes(value)
+ const reportQuery={source:identity,...Object.fromEntries(['period','from','to','timeZone','zone','sla','slaTarget','bucket','location','rootCause'].map(name=>[name,(value:string)=>identity(value)&&value.length<=150])),format:(value:string)=>['csv','json','pdf'].includes(value)}
+ const incidentQuery=Object.fromEntries(['source','monitor','tag','from','to','state','rootCause','cursor','limit'].map(name=>[name,identity]))
+ export const apiRoutes:readonly Route[]=[
++ {method:'GET',path:'/api/installation-name',body:'none'},
++ {method:'PATCH',path:'/api/installation-name',body:'object'},
+  {method:'GET',path:'/api/drill-reminders',body:'none'},
+  {method:'GET',path:'/api/routing/named-routes',body:'none'},
+  {method:'POST',path:'/api/routing/named-routes',body:'object'},
+@@ -22,6 +24,7 @@ export const apiRoutes:readonly Route[]=[
+  {method:'POST',path:'/api/credentials',body:'object'},
+  {method:'DELETE',path:'/api/credentials/:id',params:id,body:'none'},
+  ...['teams','recipient'].flatMap(part=>[{method:'GET',path:'/api/routing/'+part,body:'none' as const},{method:'POST',path:'/api/routing/'+part,body:'object' as const}]),
++ {method:'POST',path:'/api/profile',body:'object'},
+  {method:'GET',path:'/api/access/self',body:'none'},
+  {method:'GET',path:'/api/access/members',body:'none'},
+  {method:'POST',path:'/api/access/invitations',body:'object'},
+diff --git a/src/domain/role-permissions.mjs b/src/domain/role-permissions.mjs
+index afd0060..d70d5b2 100644
+--- a/src/domain/role-permissions.mjs
++++ b/src/domain/role-permissions.mjs
+@@ -18,6 +18,7 @@ export function requestPermission(request,input){
+  const url=new URL(request.url),path=url.pathname,method=request.method==='HEAD'?'GET':request.method,read=method==='GET';
+  const monitor=/^\/api\/(?:v1\/)?monitors\/([^/]+)(?:\/(.*))?$/.exec(path);
+  const decode=value=>{try{return decodeURIComponent(value)}catch{return ''}};
++ if(path==='/api/installation-name')return {action:'owner',workspace:true};
+  if(path==='/api/routing/named-routes'||path.startsWith('/api/catalog/routes/'))return {action:'owner',workspace:true};
+  if(path.startsWith('/api/definitions/history/'))return {action:'import',workspace:true};
+  if(path.startsWith('/api/credentials'))return {action:'owner',workspace:true};
+@@ -27,6 +28,7 @@ export function requestPermission(request,input){
+  // Console monitoring reads share the documented read role; configuration and
+  // every mutating method retain their existing classifications.
+  if(path==='/api/overview'&&read)return {action:'read',workspace:true};
++ if(path==='/api/profile')return {action:'read',workspace:false};
+  if(path==='/api/access/self')return {action:'read',workspace:false};
+  if(path.startsWith('/api/access/'))return {action:'members',workspace:true};
+  if(path==='/api/auth/sign-out'||path==='/auth/signout')return {action:'read',workspace:false};
+diff --git a/src/domain/setup-document.server.ts b/src/domain/setup-document.server.ts
+index 8b6565e..5ed6bec 100644
+--- a/src/domain/setup-document.server.ts
++++ b/src/domain/setup-document.server.ts
+@@ -21,10 +21,10 @@ button.skip:hover{background:none;text-decoration:underline;text-underline-offse
+ // otherwise the page offers the field, keeping what the owner typed and saying why it was refused. `place` names the first
+ // location once its runner has reached Uptime; `askSite` is false where no runner could check a website yet.
+ export type StartSite={checking:string}|{entered?:string;problem?:string}
+-export function setupDocument(displayName:string,site:StartSite={},status=200,{place=null,askSite=true}:{place?:string|null;askSite?:boolean}={}){
++export function setupDocument(displayName:string,site:StartSite={},status=200,{place=null,askSite=true,profile,profileProblem=''}:{place?:string|null;askSite?:boolean;profile?:{displayName:string;email:string;installationName:string};profileProblem?:string}={}){
+  const checking='checking' in site;
+  const where=place?`<p class="place">${escapeHtml(checking?`Checking ${site.checking} from ${place}`:`Checking from ${place}`)}</p>`:'';
+  const field=checking||!askSite?'':`<label for="start_url">Website to watch (optional)</label><input id="start_url" name="start_url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" maxlength="2048" value="${escapeHtml(site.entered??'')}"${site.problem?' aria-invalid="true" aria-describedby="start_url_note"':''}>${site.problem?`<p class="problem" id="start_url_note" role="alert">${escapeHtml(site.problem)}</p>`:''}`;
+  const skip=checking||!askSite?'':'<button class="skip" type="submit" name="skip" value="1">Skip</button>';
+- return new Response(shellDocument({title:`Set up ${productName}`,style,card:`<h1>Welcome, ${escapeHtml(displayName)}</h1><form method="post" action="/setup" data-website="${escapeHtml(checking?site.checking:'')}" data-place="${escapeHtml(place??'')}">${field}${where}<button type="submit">Continue</button>${skip}<p id="setup-progress" class="setup-progress" role="status" hidden></p></form><script src="/assets/setup.js" defer></script>`}),{status,headers:{...documentHeaders,'content-security-policy':documentHeaders['content-security-policy']+"; script-src 'self'",'x-content-type-options':'nosniff'}});
++ return new Response(shellDocument({title:`Set up ${productName}`,style,card:`<h1>Set up Uptime</h1><form method="post" action="/setup" data-website="${escapeHtml(checking?site.checking:'')}" data-place="${escapeHtml(place??'')}">${profile?`<label for="owner-name">Your name</label><input id="owner-name" name="displayName" autocomplete="name" required maxlength="120" value="${escapeHtml(profile.displayName)}"><label for="owner-email">Your email</label><input id="owner-email" name="email" type="email" autocomplete="email" required maxlength="254" value="${escapeHtml(profile.email)}"><label for="installation-name">What should we call this?</label><input id="installation-name" name="installationName" required maxlength="120" placeholder="Brightwell Support" value="${escapeHtml(profile.installationName)}">${profileProblem?`<p class="problem" role="alert">${escapeHtml(profileProblem)}</p>`:''}`:''}${field}${where}<button type="submit">Continue</button>${skip}<p id="setup-progress" class="setup-progress" role="status" hidden></p></form><script src="/assets/setup.js" defer></script>`}),{status,headers:{...documentHeaders,'content-security-policy':documentHeaders['content-security-policy']+"; script-src 'self'",'x-content-type-options':'nosniff'}});
+ }
+diff --git a/src/server.dev.ts b/src/server.dev.ts
+index d6afa35..594173d 100644
+--- a/src/server.dev.ts
++++ b/src/server.dev.ts
+@@ -1,6 +1,6 @@
+ import {developmentTiming} from './domain/development-timing.ts'
+ // Local-only Worker entry. vite.config.ts loads it only for `vite dev`; the deployed main stays server.ts, and
+-// `rer build` refuses any output that contains the dev layer. It adds dev sign-in, personas and the Dev product name.
++// `rer build` refuses any output that contains the dev layer. It adds gated test sign-ins for this computer.
+ import worker from './server'
+ import {withDevIdentity} from './base/modules/operator-auth/dev/index.mjs'
+ import {authConfig,type AuthBindings} from './domain/operator-auth.server.ts'
+@@ -8,19 +8,19 @@ import {publicPath} from './domain/public-paths.ts'
+ import type {Bindings} from './domain/control.server'
+ import {limitPublicRequest} from './domain/public-rate-limits.server.ts'
+ import {configurationResponse} from './domain/startup-config.mjs'
+-import {devPersonas} from './domain/dev-personas.ts'
++import {installationDocument} from './domain/installation-document.server.ts'
+ 
+ // Uptime names its origin UPTIME_ORIGIN and marks a local runtime by UPTIME_LOCAL_REVIEW; the dev layer reads the common names.
+ const local=(env:AuthBindings)=>({...env,AUTH_ORIGIN:env.UPTIME_ORIGIN,AUTH_LOCAL:env.UPTIME_LOCAL_REVIEW})
+ 
+-const developmentWorker=withDevIdentity<AuthBindings,typeof worker>(worker,{bindings:local as (env:AuthBindings)=>AuthBindings,config:authConfig,personas:devPersonas})
++const developmentWorker=withDevIdentity<AuthBindings,typeof worker>(worker,{bindings:local as (env:AuthBindings)=>AuthBindings,config:authConfig})
+ const fetchDevelopment=async(request:Request<unknown,IncomingRequestCfProperties>,env:Bindings,execution:ExecutionContext)=>{
+  const invalid=await configurationResponse(env);if(invalid)return invalid;
+  const path=new URL(request.url).pathname;
+  if(env.UPTIME_LOCAL_REVIEW==='true'&&path==='/login')return new Response(null,{status:303,headers:{location:'/signin?returnTo=%2Fapp','cache-control':'no-store'}});
+  if(env.UPTIME_LOCAL_REVIEW==='true'&&publicPath(path,true)?.kind==='development-asset'){const limited=await limitPublicRequest(env,request);if(limited)return limited;return env.ASSETS?env.ASSETS.fetch(request):new Response('Not found',{status:404})}
+  if(env.UPTIME_LOCAL_REVIEW==='true'&&['/__dev/personas','/auth/dev/enter'].includes(path)){const limited=await limitPublicRequest(env,request);if(limited)return limited}
+- return developmentWorker.fetch(request,env,execution)
++ return installationDocument(env,await developmentWorker.fetch(request,env,execution),{testSignIns:path==='/signin',localLabel:true,reactDocument:path.startsWith('/app')||path.startsWith('/docs')})
+ }
+ export default {...developmentWorker,fetch(request,env,execution){
+  const path=new URL(request.url).pathname;
+diff --git a/src/server.ts b/src/server.ts
+index 0549fba..77199b9 100644
+--- a/src/server.ts
++++ b/src/server.ts
+@@ -109,9 +109,11 @@ import {issueHeartbeatKey,receiveHeartbeat} from './domain/heartbeat.server'
+ import start from '@tanstack/react-start/server-entry'
+ import {Hono} from 'hono'
+ import {dispatch} from './base/dispatch'
+-import {lobbyResponse} from './base/lobby'
++import {installedLobby} from './domain/installed-lobby.server.ts'
++import {installationDocument} from './domain/installation-document.server.ts'
++import {changeProfile} from './domain/profile.server.ts'
++import {installationNameResponse} from './domain/installation-name.server.ts'
+ import {claimedWhen,setupStateResponse} from './base/setup-state'
+-import {identity} from './identity'
+ import {recordContact} from './domain/runner-contact.server.ts'
+ import {session,overview,save,get,claim,complete,history,revisions,archive,restore,type Bindings} from './domain/control.server'
+ import {checkInput,InputError} from './domain/request-boundary.ts'
+@@ -170,6 +172,9 @@ api.get('/api/routing/recipient',async c=>c.json(await readRecipient(c.env,c.get
+ api.post('/api/routing/recipient',async c=>c.json(await consentRecipient(c.env,c.get('input'),c.get('access'))))
+ api.post('/api/monitors/:id/alert-route/sample',async c=>c.json(await sampleAlertRoute(c.env,c.req.param('id'),c.get('input'))))
+ api.post('/api/monitors/:id/alert-route/drill',async c=>c.json(await drillAlertRoute(c.env,c.req.param('id'),c.get('input'),(await operator(c)).ref),202))
++api.get('/api/installation-name',c=>installationNameResponse(c.get('systemBindings'),c.req.raw))
++api.patch('/api/installation-name',c=>installationNameResponse(c.get('systemBindings'),c.req.raw,c.get('input')))
++api.post('/api/profile',async c=>c.json(await changeProfile(c.get('systemBindings'),c.req.raw,c.get('input'))))
+ api.get('/api/access/self',c=>accessMembers(c.env,c.req.raw))
+ api.get('/api/access/members',c=>accessMembers(c.env,c.req.raw))
+ api.post('/api/access/invitations',c=>accessMembers(c.env,c.req.raw,c.get('input')))
+@@ -414,7 +419,7 @@ const handler={async fetch(request,env,execution){
+  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
+  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
+  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
+- const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
++ const lobby=await installedLobby(bindings,request,claimed);if(lobby)return lobby;
+  if(path==='/monitor'||path==='/monitor/')return consoleRedirect(canonicalConsolePath(url)!);
+  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!isEvidencePage&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
+  if(isEvidencePage){if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405});try{const id=decodeURIComponent(path.split('/').pop()!);if(!await evidencePrincipal(bindings,request,id)){if(!await authenticatedSession(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});return failureEvidenceDenied()}const response=failureEvidenceDocument(id);return request.method==='HEAD'?new Response(null,response):response}catch(error){return authFailure(error)}}
+@@ -441,5 +446,5 @@ const handler={async fetch(request,env,execution){
+  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
+ },async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);await scheduledDrills(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
+ export default withDemo({...handler,fetch(request,env,execution){
+- return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
++ return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution).then(response=>installationDocument(env as Bindings,response,{reactDocument:new URL(request.url).pathname.startsWith('/app')||new URL(request.url).pathname.startsWith('/docs')}))
+ }} satisfies ExportedHandler,{seed:seedDemo})
+diff --git a/src/site/landing/copy.ts b/src/site/landing/copy.ts
+index 18ed02b..fe140e6 100644
+--- a/src/site/landing/copy.ts
++++ b/src/site/landing/copy.ts
+@@ -4,8 +4,7 @@
+ export const hero = {
+   title: 'Sleep through the night.',
+   sub: 'Uptime checks your sites and APIs on schedule, tells you only when a failure is confirmed, and never calls a missing check healthy.',
+-  alt: 'Open source alternative to',
+-  altNames: ['Pingdom', 'UptimeRobot', 'Better Stack'],
++  boundary: 'Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.',
+   primary: 'Run Uptime',
+   demo: 'Try the demo',
+   secondary: 'Read the docs',
+diff --git a/src/site/landing/sections/Hero.tsx b/src/site/landing/sections/Hero.tsx
+index 86190b9..dfacb83 100644
+--- a/src/site/landing/sections/Hero.tsx
++++ b/src/site/landing/sections/Hero.tsx
+@@ -4,20 +4,6 @@ import { hero as c } from '../copy';
+ import { DawnScene } from '../hero/DawnScene';
+ import { Headline } from '../parts/Headline';
+ 
+-/** The companies the product replaces, each in a strong element, joined as "A, B and C" so the commas and the "and" stay regular weight. */
+-function AltNames({ names }: { names: readonly string[] }) {
+-  return (
+-    <>
+-      {names.map((name, i) => (
+-        <span key={name}>
+-          {i === 0 ? '' : i === names.length - 1 ? ' and ' : ', '}
+-          <strong>{name}</strong>
+-        </span>
+-      ))}
+-    </>
+-  );
+-}
+-
+ /**
+  * The first view: the one headline, centred over the dawn scene, whose watched night runs along the horizon below it. The
+  * section reaches up under the header, so the sky runs behind the header too.
+@@ -29,7 +15,7 @@ export function Hero() {
+       <div className="ut-wrap ut-hero-copy">
+         <h1 id="hero-title"><Headline text={c.title} /></h1>
+         <p className="ut-hero-sub">{c.sub}</p>
+-        <p className="ut-fine ut-hero-alt">{c.alt} <AltNames names={c.altNames} /></p>
++        <p className="ut-hero-alt">{c.boundary}</p>
+         <div className="ut-actions">
+           <a className="ut-pill ut-pill--large" href={links.run}>{c.primary}<Icon name="arrow" /></a>
+           <a className="ut-link ut-link--large" href={links.demo}>{c.demo}</a>
+diff --git a/src/ui/console-document.tsx b/src/ui/console-document.tsx
+index 128bb59..b14485e 100644
+--- a/src/ui/console-document.tsx
++++ b/src/ui/console-document.tsx
+@@ -20,6 +20,7 @@ export function ConsoleDocument({monitor=false}:{monitor?:boolean}){
+  // The console mutates this markup. Start it after React hydrates the document,
+  // just as the monitor form does, so it cannot race hydration on the save return.
+  useEffect(()=>{
++  window.dispatchEvent(new Event('uptime:brand-ready'))
+   let mounted=true
+   const openMonitor=()=>{void router.navigate({to:'/app/monitors/new'})}
+   window.addEventListener('uptime:new-monitor',openMonitor)
+diff --git a/src/ui/installation-label.js b/src/ui/installation-label.js
+new file mode 100644
+index 0000000..6501736
+--- /dev/null
++++ b/src/ui/installation-label.js
+@@ -0,0 +1,16 @@
++// The view signals after hydration, before installation branding touches the
++// static markup. Later editor/header mounts and router titles use the same name.
++(()=>{
++ let observer;
++ const update=()=>{
++  const name=document.querySelector('script[data-uptime-brand-script]')?.dataset.name;
++  if(!name)return;
++  const title=name==='Uptime'?name:`${name} · Uptime`;
++  if(document.title!==title)document.title=title;
++  for(const label of document.querySelectorAll('[data-rer-name]'))if(label.textContent!==name)label.textContent=name;
++ };
++ document.addEventListener('uptime:brand-ready',()=>{
++  if(!observer){observer=new MutationObserver(update);observer.observe(document,{childList:true,subtree:true,characterData:true})}
++  update();
++ });
++})();
+diff --git a/src/ui/monitor-editor-document.tsx b/src/ui/monitor-editor-document.tsx
+index b52f5e8..b676b9a 100644
+--- a/src/ui/monitor-editor-document.tsx
++++ b/src/ui/monitor-editor-document.tsx
+@@ -21,6 +21,7 @@ function Editor({path}:{path:string}){
+  const [content]=useState(()=>({__html:initialMarkup(markup,path)}))
+  useEditorLeafReady(path)
+  useEffect(()=>{
++  window.dispatchEvent(new Event('uptime:brand-ready'))
+   const controller=new AbortController()
+   void mountMonitorEditor(controller.signal)
+   return()=>{controller.abort();document.documentElement.classList.remove('editor-ready','editor-context-ready')}
+diff --git a/tests/access-member-controls-browser-support.mjs b/tests/access-member-controls-browser-support.mjs
+index ae77fba..90492fa 100644
+--- a/tests/access-member-controls-browser-support.mjs
++++ b/tests/access-member-controls-browser-support.mjs
+@@ -19,10 +19,10 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
+    const security=panel.locator('#security-controls');await security.locator('[data-factor-state]').getByText(/Second factors/).waitFor();await security.getByText('Manage second factors',{exact:true}).click();await security.getByRole('button',{name:'Replace recovery codes',exact:true}).click();const shown=security.locator('[data-secret-once] pre');await shown.waitFor();factor.recoveryCodes=(await shown.textContent()).trim().split('\n');await security.getByRole('button',{name:'I saved this',exact:true}).click();assert.equal(await security.locator('[data-security-status]').count(),1);assert.equal(await security.locator('[data-security-status]').evaluate(e=>e.isConnected),true);
+    const invite=panel.locator('[data-member-invite]');
+    const self=await(await call('/api/access/self',undefined,{cookie})).json(),own=panel.locator(`[data-member-id="${self.id}"]`);
+-   await own.locator('summary').click();await own.getByLabel('Role',{exact:true}).selectOption('admin');
++   await own.locator(':scope > summary').click();await own.getByLabel('Role',{exact:true}).selectOption('admin');
+    const denied=page.waitForResponse(r=>r.url().endsWith(`/api/access/members/${self.id}`)&&r.request().method()==='POST');await own.getByRole('button',{name:'Save assignment',exact:true}).click();assert.equal((await denied).status(),409);
+    await panel.getByRole('status').filter({hasText:'Another administrator'}).waitFor();assert.equal((await call(`/api/access/members/${self.id}`,{role:'admin',scopes:[]},{cookie})).status,409,'same self-assignment refused at direct route');
+-   await own.locator('summary').click();
++   await own.locator(':scope > summary').click();
+    let reader,fixtureNumber=width===1440?100:200;
+    for(const role of ['admin','editor','responder','read-only']){
+     const fixtureName=`synthetic-uptime-${++fixtureNumber}`,email=fixtureName+'@example.test';
+diff --git a/tests/agent-destination-name-support.mjs b/tests/agent-destination-name-support.mjs
+index 9b6a866..9e5603e 100644
+--- a/tests/agent-destination-name-support.mjs
++++ b/tests/agent-destination-name-support.mjs
+@@ -100,6 +100,7 @@ export async function proveDestinationNameEffects({c,native,db,origin,cookie,pro
+  // remain unchanged: this deterministically exercises the stale-read window.
+  const {updateDestination}=await import('../src/domain/notification-destinations.server.ts');
+  for(const race of ['enabled','credential']){
++  await completeSecondFactor(origin,cookie);
+   const racing=await native('/api/notifications/destinations',{name:'synthetic-uptime-race',kind:'email',enabled:true,address:['synthetic-uptime-3','recipient.example.test'].join(String.fromCharCode(64))});
+   const old=await db.prepare('SELECT * FROM notification_destinations WHERE id=?').bind(racing.id).first();
+   const traffic=structuredClone(providerRequests),mailCount=allDeliveredMessages().length;
+diff --git a/tests/command-journey.mjs b/tests/command-journey.mjs
+index d4c7277..cbbb7c7 100644
+--- a/tests/command-journey.mjs
++++ b/tests/command-journey.mjs
+@@ -1,3 +1,4 @@
++import {ownerProfileJourney,ownerAlertEmailJourney} from './owner-profile-browser-support.mjs';
+ import {completeSecondFactor,completeBrowserSecondFactor,factorRequest} from './mfa-auth-support.mjs';
+ import {emailSignIn} from './auth-test-support.mjs';
+ import {proveLocalSignInTruth} from './local-signin-truth-support.mjs';
+@@ -108,6 +109,7 @@ try {
+    assert.equal(denied.status(), 303);
+    assert.equal(denied.headers().location, '/login?returnTo=%2Fsetup');
+   }
++  assert.equal((await unsigned.request.post(origin+'/api/profile',{headers:{origin},data:{email:'synthetic-uptime-denied@example.test'}})).status(),401,'signed-out profile changes are refused');
+   await unsigned.newPage().then(async p => { await p.goto(origin + '/setup'); assert.equal(new URL(p.url()).pathname, '/__dev/key'); });
+  } finally { await unsigned.close(); }
+  for (const headers of [{ origin: 'https://attacker.example.test' }, { origin, 'sec-fetch-site': 'cross-site' }, {}]) {
+@@ -127,10 +129,19 @@ try {
+   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'setup fits the viewport');
+   if (setupEvidence) await page.screenshot({ path: join(setupEvidence, `setup-${width}.png`), fullPage: true });
+  }
++ if (setupEvidence) {
++  await page.setViewportSize({width:390,height:900});
++  await page.screenshot({path:join(setupEvidence,'setup-390.png'),fullPage:true});
++  await page.setViewportSize({width:1440,height:900});
++ }
+  // The actual first-run form works without JavaScript or hydration.
++ const setupInstallation='Synthetic workspace';
+  const nativeSetup = await browser.newContext({viewport:{width:1440,height:1000}, javaScriptEnabled: false, storageState: await page.context().storageState() });
+  try {
+   const p = await nativeSetup.newPage(); await p.goto(origin + '/setup');
++  await p.getByLabel('Your name',{exact:true}).fill('Synthetic setup owner');
++  await p.getByLabel('Your email',{exact:true}).fill('synthetic-uptime-setup@example.test');
++  await p.getByLabel('What should we call this?',{exact:true}).fill(setupInstallation);
+   await p.getByRole('button', { name: 'Continue', exact: true }).click(); await p.waitForURL(url => url.origin === origin && /^\/app\/monitors\/new\/discovery\/[^/]+$/.test(url.pathname));
+   const job = await page.request.get(origin + '/api/discoveries/' + decodeURIComponent(new URL(p.url()).pathname.split('/').at(-1)));
+   assert.equal(job.status(), 200); assert.equal((await job.json()).url, startSite, 'finishing setup lands on the discovery of the owner\'s website');
+@@ -138,6 +149,10 @@ try {
+  const finished = await page.request.get(origin + '/setup', { maxRedirects: 0 });
+  assert.equal(finished.status(), 303); assert.equal(finished.headers().location, '/app/monitors');
+  await page.goto(origin + '/app');
++ const account=(await (await page.request.get(origin+'/auth/session')).json()).operator;
++ assert.equal((await (await page.request.get(origin+'/api/overview')).json()).installationName,setupInstallation);
++ assert.equal(account.displayName,'Synthetic setup owner');assert.equal(account.email,'synthetic-uptime-setup@example.test');
++ await ownerProfileJourney(page,origin,setupEvidence);
+  if (setupEvidence) await writeFile(join(setupEvidence, 'RESULTS.json'), JSON.stringify({ widths: [1440], freshRerSetup: true, devReturn: '/setup', unfinishedRoutes: true, unsignedReturn: true, csrfRefused: true, nativeCompletion: true, finishedReturn: '/app/monitors' }, null, 2));
+  // Base's existing local CLI door issues a native session. A dev-persona
+  // session deliberately stops authenticating outside the dev key gate.
+@@ -181,7 +196,8 @@ try {
+  }
+  await definitionsJourney(page, origin);
+  await completeBrowserSecondFactor(page,origin);
+- await proveLocalSignInTruth({browser,page,origin,key:devKey,runRer:invoke});
++ await ownerAlertEmailJourney(page,origin);
++ await proveLocalSignInTruth({browser,page,origin,key:devKey,runRer:invoke,output:setupEvidence});
+  const before = await page.request.get(origin + '/api/archive'); assert.equal(before.status(), 200);
+  let expected = await before.json();
+  for (const group of await descendantGroups(dev.pid)) groups.add(group);
+diff --git a/tests/hosted-auth-browser.mjs b/tests/hosted-auth-browser.mjs
+index 80a6330..d94b6e6 100644
+--- a/tests/hosted-auth-browser.mjs
++++ b/tests/hosted-auth-browser.mjs
+@@ -98,7 +98,9 @@ try {
+   await setup.waitForURL(runtime.origin + '/setup');
+   for (const width of [1440]) {
+     await setup.setViewportSize({width, height: 900});
+-    await setup.getByRole('heading', {name: 'Welcome, Native browser owner', exact: true}).waitFor();
++    const profile = (await (await bootstrap.request.get(runtime.origin + '/auth/session')).json()).operator;
++    assert.equal(await setup.getByLabel('Your name', {exact: true}).inputValue(), profile.displayName);
++    assert.equal(await setup.getByLabel('Your email', {exact: true}).inputValue(), profile.email);
+     assert.equal(await setup.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+     if (process.env.UPTIME_AUTH_SHOTS) {
+       await mkdir(process.env.UPTIME_AUTH_SHOTS, {recursive: true});
+diff --git a/tests/local-signin-truth-support.mjs b/tests/local-signin-truth-support.mjs
+index ff52e3b..8d5338a 100644
+--- a/tests/local-signin-truth-support.mjs
++++ b/tests/local-signin-truth-support.mjs
+@@ -15,10 +15,9 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
+   await visitor.goto(origin+'/');
+   const lobby=await visitor.locator('main').innerText();
+   assert.doesNotMatch(lobby,/persona|choose (?:a |an |your )?(?:local )?account/i,'fresh Lobby does not promise an unavailable account picker');
+-  assert.match(lobby,/RER_OPEN/,'Lobby explains the private terminal handoff');
+   await visitor.getByRole('link',{name:'Sign in',exact:true}).click();
+   // Follow the gate's displayed CLI guidance instead of pinning its wording.
+-  const command=(await visitor.locator('code').allTextContents()).map(text=>text.trim().split(/\s+/)).filter(([program,verb])=>program==='rer'&&verb==='dev').at(-1);
++  const command=(await visitor.locator('code').allTextContents()).map(text=>text.trim().split(/\s+/)).filter(([program,verb,...args])=>(program==='rer'||program.endsWith('/rer'))&&verb==='dev'&&(!args.includes('--as')||args.indexOf('--as')+1<args.length)).at(-1);
+   assert.ok(command,'the sign-in gate supplies an executable local launch command');
+   assert.equal(await visitor.locator('input[type=email]').count(),0,'the gated page does not promise an email form');
+   assert.equal((await unsigned.request.get(origin+'/api/overview')).status(),401);
+@@ -80,7 +79,15 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
+   const invited=await browser.newContext({viewport:{width:1440,height:1000}});
+   try{
+    const p=await invited.newPage();
+-   const signIn=async role=>{const launched=await runRer(invitationCommands.get(role)),link=launched.match(/^RER_OPEN (http:\/\/\S+)$/m)?.[1];assert.ok(link,'the invitation command returns a private handoff');assert.equal(new URL(link).origin,origin);await p.goto(link);await completeBrowserSecondFactor(p,origin)};
++   const signIn=async role=>{
++    const launched=await runRer(invitationCommands.get(role)),link=launched.match(/^RER_OPEN (http:\/\/\S+)$/m)?.[1];
++    assert.ok(link,'the invitation command returns a private handoff');assert.equal(new URL(link).origin,origin);
++    await p.goto(link);
++    // The fragment handoff exchanges authority in the browser before redirecting.
++    // Wait for that exchange before reading cookies for the real factor endpoints.
++    await p.waitForURL(url=>url.origin===origin&&!['/__dev/key','/signin','/login'].includes(url.pathname));
++    await completeBrowserSecondFactor(p,origin);
++   };;
+    await signIn('responder');
+    await p.waitForURL(url=>url.pathname.startsWith('/app'));
+    const session=await invited.request.get(origin+'/auth/session');assert.equal(session.status(),200);
+diff --git a/tests/owner-profile-browser-support.mjs b/tests/owner-profile-browser-support.mjs
+new file mode 100644
+index 0000000..b3e5215
+--- /dev/null
++++ b/tests/owner-profile-browser-support.mjs
+@@ -0,0 +1,60 @@
++import {mkdir} from 'node:fs/promises';
++import {join} from 'node:path';
++import assert from 'node:assert/strict';
++
++// Continue the fresh-install journey through the account and installation
++// controls, checking persisted state at the public session and overview doors.
++export async function ownerProfileJourney(page,origin,output){
++ const shot=async screen=>{
++  if(!output)return;
++  await mkdir(output,{recursive:true});
++  for(const width of [1440,390]){
++   await page.setViewportSize({width,height:1000});
++   await page.screenshot({path:join(output,screen+'-'+width+'.png'),fullPage:true});
++  }
++  await page.setViewportSize({width:1440,height:1000});
++ };
++ const initial=(await (await page.request.get(origin+'/auth/session')).json()).operator;
++ const profile={name:'Synthetic owner',email:'synthetic-uptime-owner@example.test',installation:'Brightwell Support'};
++ await page.goto(origin+'/app/settings/people');
++ let row=page.locator(`[data-member-id="${initial.id}"]`);
++ await row.locator('summary').first().click();await row.locator('.member-profile summary').click();
++ await row.getByLabel('Your name',{exact:true}).fill(profile.name);await row.getByLabel('Your name',{exact:true}).press('Tab');
++ await page.waitForFunction(async name=>(await (await fetch('/auth/session')).json()).operator.displayName===name,profile.name);
++ assert.ok(await row.getByLabel('Your email',{exact:true}).evaluate(input=>input===document.activeElement),'saving your name keeps keyboard focus on the next field');
++ await row.getByLabel('Your email',{exact:true}).fill(profile.email);await row.getByLabel('Your email',{exact:true}).press('Tab');
++ await page.waitForFunction(async email=>(await (await fetch('/auth/session')).json()).operator.email===email,profile.email);
++ await shot('owner-profile');
++ await page.goto(origin+'/app/settings/general');
++ await page.getByRole('textbox',{name:'Installation name',exact:true}).fill(profile.installation);await page.getByRole('textbox',{name:'Installation name',exact:true}).press('Tab');
++ await page.waitForFunction(async name=>(await (await fetch('/api/overview')).json()).installationName===name,profile.installation);
++ await page.reload();assert.equal(await page.getByRole('textbox',{name:'Installation name',exact:true}).inputValue(),profile.installation);
++ assert.ok((await page.locator('[data-rer-name]').first().innerText()).includes(profile.installation));
++ await shot('installation-name');
++ const overview=await (await page.request.get(origin+'/api/overview')).json();assert.equal(overview.notifications.ownerEmail,profile.email);
++ const people=await (await page.request.get(origin+'/api/access/members')).json();
++ await page.goto(origin+'/signin');
++ const links=await page.locator('a[href^="/auth/dev/enter"]').evaluateAll(links=>links.map(link=>link.getAttribute('href')));
++ assert.equal(links.length,people.filter(person=>['active','invited'].includes(person.status)).length,'test choices are the real admitted People');
++ for(const link of links){await page.goto(origin+link);const session=(await (await page.request.get(origin+'/auth/session')).json()).operator;assert.ok(people.some(person=>person.id===session.id),'each local choice signs in a recorded person')}
++ await page.goto(origin+'/signin');await shot('test-signins');
++ // Restore the account address so the rest of this whole-install journey uses
++ // the same native provider address it supplied to setup.
++ const restored=await page.request.post(origin+'/api/profile',{headers:{origin},data:{email:initial.email}});assert.equal(restored.status(),200);
++ const restoredName=await page.request.post(origin+'/api/profile',{headers:{origin},data:{displayName:initial.displayName}});assert.equal(restoredName.status(),200);
++}
++
++// A destination saved in the dialog updates the current account's choices on
++// the same screen, while the owner keeps any open team form.
++export async function ownerAlertEmailJourney(page,origin){
++ const {operator}=await (await page.request.get(origin+'/auth/session')).json();
++ await page.goto(origin+'/app/settings/alerts');
++ await page.locator('#alert-self-recipient').waitFor();
++ await page.getByRole('button',{name:'Add destination',exact:true}).click();
++ const dialog=page.getByRole('dialog',{name:'Add destination',exact:true});
++ assert.equal(await dialog.getByLabel('Email address',{exact:true}).inputValue(),operator.email);
++ const name='Synthetic owner email';await dialog.getByLabel('Name (optional)',{exact:true}).fill(name);
++ await dialog.getByRole('button',{name:'Create destination',exact:true}).click();
++ await dialog.waitFor({state:'detached'});
++ await page.locator('#alert-self-recipient').getByRole('checkbox',{name:new RegExp(name)}).waitFor();
++}

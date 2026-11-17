@@ -1,0 +1,4 @@
+[
+  { screen: 'front-page', width: 1440, overflow: false },
+  { screen: 'front-page', width: 390, overflow: false }
+]

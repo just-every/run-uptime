@@ -1,0 +1,49 @@
+{
+  "tag": "sd-uptime-design-setup-2",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-design-setup-2",
+  "head": "b41d62102f8f12cfc9724305267b67a080cccae7",
+  "base": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "sourceRoundHead": "291ea27192e786eb1830525774062ebf892ae20e",
+  "at": "2026-11-17T18:03:00.816360+00:00",
+  "push": "PASS",
+  "pushAttempts": 1,
+  "commits": 1,
+  "merges": 0,
+  "pr": null,
+  "changedFiles": 39,
+  "insertions": 477,
+  "deletions": 141,
+  "author": {
+    "name": "Run Edit Run fleet",
+    "email": "fleet@runeditrun.com"
+  },
+  "committer": {
+    "name": "Run Edit Run fleet",
+    "email": "fleet@runeditrun.com"
+  },
+  "trailers": [],
+  "sourceLockSha256": "81c31f21042902ade552440e1b57d775ba9819b2ab65fd26ea5d61c416b04982",
+  "clauseCountsBefore": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clauseCountsAfter": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clauseStatusChanges": [],
+  "productCheckoutClean": true,
+  "publicationScan": "fleet landing machine; not runnable in this cloud",
+  "legacyValidateRelease": "absent in main; actual missing-script result retained; pinned release metadata validators passed",
+  "recoveryBundle": {
+    "path": "/home/agent/rer-consolidation/work/sd-uptime-design-setup-2/product.bundle",
+    "sha256": "2bff553d254a0a8968a3d4b6914474487cb25e0e5f5db247c4e80cb4bfea07d6",
+    "verified": true,
+    "requires": "395b92f1c37ab3ff166a18112643b18a31b5339e"
+  }
+}

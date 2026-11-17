@@ -1,0 +1,12 @@
+{
+  "widths": [
+    1440
+  ],
+  "freshRerSetup": true,
+  "devReturn": "/setup",
+  "unfinishedRoutes": true,
+  "unsignedReturn": true,
+  "csrfRefused": true,
+  "nativeCompletion": true,
+  "finishedReturn": "/app/monitors"
+}

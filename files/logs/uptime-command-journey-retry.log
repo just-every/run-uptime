@@ -1,0 +1,28 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+(node:3444) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.
+COMMAND-JOURNEY PDF PASS: the freshly installed development app downloads a readable period report.
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: live Base session reaches factor status
+
+401 !== 200
+
+    at completeSecondFactor (file:///workspace/run-uptime/tests/mfa-auth-support.mjs:15:94)
+    at async signIn (file:///workspace/run-uptime/tests/local-signin-truth-support.mjs:82:271)
+    at async proveLocalSignInTruth (file:///workspace/run-uptime/tests/local-signin-truth-support.mjs:83:4)
+    at async file:///workspace/run-uptime/tests/command-journey.mjs:200:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 401,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

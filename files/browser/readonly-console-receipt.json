@@ -1,0 +1,16 @@
+{
+  "screen": "read-only-console",
+  "role": "read-only",
+  "scopes": [],
+  "revision": 1,
+  "monitorVisible": true,
+  "reloadVisible": true,
+  "checkHistoryReadable": true,
+  "checkRows": 2,
+  "observations": 2,
+  "reportReadable": true,
+  "writeControls": 0,
+  "refusal": "You have read-only access.",
+  "apiWrites": 403,
+  "revisionsUnchanged": true
+}
