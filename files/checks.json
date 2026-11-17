@@ -1,0 +1,121 @@
+{
+  "author": "Run Edit Run fleet",
+  "date": "2026-11-17",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-dep-2",
+  "head": "e6dcb01c30c40241c6f63911fb56a9724848e209",
+  "base": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "runtime": {
+    "node": "22.20.0",
+    "pnpm": "10.12.4"
+  },
+  "dependency_versions": {
+    "hono": {
+      "before": "4.13.7",
+      "after": "4.13.11"
+    },
+    "vite": {
+      "before": "8.2.4",
+      "after": "8.2.4"
+    }
+  },
+  "listed_advisory_affected_packages": {
+    "before": 1,
+    "after": 0
+  },
+  "listed_manifest_and_lock_exposures": {
+    "before": 2,
+    "after": 0
+  },
+  "vite_already_patched_on_main": true,
+  "contract_status_before": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "contract_status_after": {
+    "done": 37,
+    "partial": 58,
+    "missing": 20,
+    "total": 115
+  },
+  "clause_status_changes": [],
+  "tests_added": 0,
+  "tests_removed": 0,
+  "tests_weakened": 0,
+  "checks": [
+    {
+      "command": "pnpm update hono@4.13.11 --save-exact --lockfile-only",
+      "exit": 0,
+      "result": "Only Hono updated; no unrelated resolution changes."
+    },
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exit": 0,
+      "result": "Installed exact lock with pnpm 10.12.4."
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer setup --owner-email fleet@runeditrun.com --non-interactive",
+      "exit": 0,
+      "result": "Owner setup and temporary runtime completed; no live setup process remains. Private generated data omitted from packet."
+    },
+    {
+      "command": "cloud_run npx -y @runeditrun/rer build",
+      "exit": 0,
+      "result": "Built production application, generated deployment descriptors and checked them; existing ineffective dynamic import warning only."
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0,
+      "result": "Both application and runner TypeScript checks passed."
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/public-paths.mjs",
+      "exit": 0,
+      "result": "Public resources, private compiler refusals, rate limits, safe configuration failures and public marketing surfaces passed."
+    },
+    {
+      "command": "UPTIME_BROWSER_EXECUTABLE=/usr/bin/chromium cloud_run node tests/access-matrix.mjs",
+      "exit": 0,
+      "result": "Native local and emitted hosted sessions, every owner route, denial without mutation, role actions and browser controls passed."
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0,
+      "result": "Regenerated last: only package.json and pnpm-lock.yaml identities changed."
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0,
+      "result": "Source integrity matches."
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0,
+      "result": "Contract documents current: 0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0,
+      "result": "No whitespace errors."
+    }
+  ],
+  "ci": {
+    "repository": "just-every/run-uptime",
+    "branch": "cloud/gr-mt-uptime-dep-2",
+    "head": "e6dcb01c30c40241c6f63911fb56a9724848e209",
+    "custody": "PUSHED",
+    "product_push": "succeeded_first_attempt",
+    "publication_scan": "COMPLETE/PASS",
+    "publication_findings": 0,
+    "verify_run_id": 44120484569,
+    "verify_url": "https://github.com/just-every/run-uptime/actions/runs/44120484569",
+    "verify_status": "in_progress",
+    "verify_conclusion": null,
+    "ready": false,
+    "remaining_gate": "exact-SHA Verify completion/success",
+    "pr_url": null,
+    "clause_status_changes": []
+  }
+}

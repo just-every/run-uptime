@@ -1,0 +1,10 @@
+{
+  "cliVersion": "0.2.121-dev.g513669ac",
+  "sourceCommit": "513669ac81ac15506740ca9d2089a1c753e03455",
+  "source": "GitHub source archive, unmodified scanner files",
+  "archive_sha256": "525501530cb25baddeeaaadbf1897d253bcc4c90b0e6bdaace86ba3faa7e217f",
+  "transport": "gh api repos/runeditrun/base/tarball/main",
+  "gitleaks_version": "8.30.1",
+  "gitleaks_archive_sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
+  "version_metadata": "Archive has no Git directory; inventory.json records the archive PAX commit and source package version for the official version loader."
+}

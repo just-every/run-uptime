@@ -1,0 +1,17 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-dep-2",
+  "head": "e6dcb01c30c40241c6f63911fb56a9724848e209",
+  "custody": "PUSHED",
+  "product_push": "succeeded_first_attempt",
+  "publication_scan": "COMPLETE/PASS",
+  "publication_findings": 0,
+  "verify_run_id": 44120484569,
+  "verify_url": "https://github.com/just-every/run-uptime/actions/runs/44120484569",
+  "verify_status": "in_progress",
+  "verify_conclusion": null,
+  "ready": false,
+  "remaining_gate": "exact-SHA Verify completion/success",
+  "pr_url": null,
+  "clause_status_changes": []
+}

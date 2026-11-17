@@ -1,0 +1,8 @@
+{
+  "command": "git ls-remote --heads origin refs/heads/cloud/gr-mt-uptime-dep-2",
+  "repository": "just-every/run-uptime",
+  "observed_at_utc": "2026-11-17T16:12:49.302484+00:00",
+  "sha": "e6dcb01c30c40241c6f63911fb56a9724848e209",
+  "ref": "refs/heads/cloud/gr-mt-uptime-dep-2",
+  "matches_product_head": true
+}

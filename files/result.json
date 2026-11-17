@@ -1,0 +1,7 @@
+{
+  "status": "done",
+  "sha": "e6dcb01c30c40241c6f63911fb56a9724848e209",
+  "summary": "Upgrade Hono 4.13.7 to first-patched 4.13.11 in package.json and pnpm-lock.yaml; Vite already resolves to patched 8.2.4; regenerate the source lock without unrelated upgrades.",
+  "tests": "PASS: frozen pnpm install, non-interactive rer setup, rer build, application/runner typecheck, public-paths and access-matrix journeys, edition lock check, contract documents check and complete publication scan with zero findings. Exact-SHA Verify 44120484569 remains in progress after three 300-second REST polls, last observed 2026-11-17T16:14:06Z; product custody is PUSHED, not READY.",
+  "security": true
+}
