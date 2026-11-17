@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-17T12:51:26.420Z",
+  "target": "http://127.0.0.1:37463/health",
+  "rows": [
+    {
+      "width": 1440,
+      "result": "That is a private, loopback or link-local address, so it was not contacted. Use a private-network monitor to check it.\n\nCheck a private address",
+      "network": "private",
+      "blockedByRequiredGrant": true,
+      "saved": false
+    },
+    {
+      "width": 390,
+      "result": "That is a private, loopback or link-local address, so it was not contacted. Use a private-network monitor to check it.\n\nCheck a private address",
+      "network": "private",
+      "blockedByRequiredGrant": true,
+      "saved": false
+    }
+  ]
+}

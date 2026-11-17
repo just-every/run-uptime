@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-17T12:59:00.399188+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-practice-1",
+  "head": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "push": {
+    "guard": "cloud-push.py",
+    "attempt": 1,
+    "result": "success"
+  },
+  "candidateIdentity": "all authors and committers Run Edit Run fleet <fleet@runeditrun.com>",
+  "trailers": [],
+  "verifyRunId": 44088103828,
+  "publicationScan": "deferred to fleet under cloud adaptation",
+  "pr": null
+}

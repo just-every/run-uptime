@@ -1,0 +1,9 @@
+{
+  "api_call": 3,
+  "run_id": 44088103828,
+  "head_sha": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "statusRead": "failed",
+  "exit": 1,
+  "httpStatus": "unknown, not retained by watcher",
+  "diagnostic": "Watcher captured but did not persist stderr; no conclusion obtained. Authorized launcher bundle refreshed before the next bounded retry."
+}

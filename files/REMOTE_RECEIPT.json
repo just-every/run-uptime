@@ -1,0 +1,7 @@
+{
+  "repository": "just-every/run-uptime",
+  "ref": "refs/heads/cloud/sd-uptime-practice-1",
+  "head": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "observedAt": "2026-11-17T13:03:20.485865+00:00",
+  "transport": "git ls-remote"
+}

@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "label": "editor-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 53,
+      "textInspected": true
+    },
+    {
+      "label": "healthy-1440",
+      "violations": 0,
+      "documentWidth": 1440,
+      "accessibilityNodes": 294,
+      "state": "Healthy",
+      "textInspected": true
+    },
+    {
+      "label": "practice-target-1440",
+      "saved": true,
+      "network": "synthetic",
+      "privateGrantRequired": false,
+      "scheduledState": "Healthy",
+      "unrelatedLoopbackUsesPrivateForm": true,
+      "forbiddenTargetRefused": true
+    }
+  ],
+  "externalNetwork": false,
+  "scope": "Focused practice-target entry, save and real scheduled monitoring from the existing operator browser journey"
+}

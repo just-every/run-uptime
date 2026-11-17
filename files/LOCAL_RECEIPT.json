@@ -1,0 +1,36 @@
+{
+  "author": "sd (Run Edit Run fleet)",
+  "at": "2026-11-17T12:58:23.054160+00:00",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-practice-1",
+  "head": "395b92f1c37ab3ff166a18112643b18a31b5339e",
+  "base": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "checks": {
+    "build": "passed",
+    "typecheck": "passed",
+    "sourceLock": "passed, regenerated last",
+    "contractDocs": "passed, unchanged",
+    "beforeBrowser": {
+      "1440": "blocked on required private grant",
+      "390": "blocked on required private grant"
+    },
+    "afterBrowser": {
+      "1440": "saved HTTP 201 without private grant",
+      "390": "saved HTTP 201 without private grant"
+    },
+    "focusedOperator": "passed: actual scheduled Healthy after entry through Check, unrelated port uses private path, forbidden target refuses save",
+    "broadOperator": "failed outside touched flow: tests/plain-monitor-text-support.mjs:65 timed out waiting for #report-results .report-snapshot"
+  },
+  "contractCountsBeforeAfter": {
+    "full": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115
+    },
+    "changes": 0
+  },
+  "testRegistrationDelta": 0,
+  "publicationScan": "fleet-only full-history scan pending; injected-credential diff scan passed",
+  "claims": []
+}

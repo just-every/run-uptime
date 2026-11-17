@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-17T12:54:46.337Z",
+  "target": "http://127.0.0.1:37463/health",
+  "rows": [
+    {
+      "width": 1440,
+      "result": "Website suggestions cannot check the practice target on this computer. Open its monitor form, give it a name, then save it to start checking. Set up the practice monitor",
+      "network": "synthetic",
+      "saved": true,
+      "monitorId": "d6baefeb-9a77-432f-a0e0-ad62d0dccf3c"
+    },
+    {
+      "width": 390,
+      "result": "Website suggestions cannot check the practice target on this computer. Open its monitor form, give it a name, then save it to start checking. Set up the practice monitor",
+      "network": "synthetic",
+      "saved": true,
+      "monitorId": "d3f05b9c-da62-4559-88bc-23a8d53748ae"
+    }
+  ]
+}

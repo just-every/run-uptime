@@ -1,0 +1,281 @@
+import {assertPlainMonitorText,provePlainMonitorEvidence} from './plain-monitor-text-support.mjs';
+import {provePasteImport} from './import-paste-browser-support.mjs';
+import {proveReadableMaintenanceAndErasure} from './readable-maintenance-erasure-support.mjs';
+import {browserSignIn,testAuthBindings} from './auth-test-support.mjs';
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {readFile} from 'node:fs/promises';
+import {createRequire} from 'node:module';
+import {chromium} from 'playwright';
+
+const require=createRequire(import.meta.url),origin='http://127.0.0.1:15482';
+const out=resolve(process.env.UPTIME_UI_EVIDENCE??'data/operator-evidence'),checks=[];
+await mkdir(out,{recursive:true});
+const browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--disable-gpu','--use-mock-keychain','--password-store=basic'],...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{})});
+const overviewRead=url=>url.origin===origin&&url.pathname==='/api/overview';
+const failedReads=new WeakMap();
+const ready=async page=>{try{await page.locator('.signed-in').waitFor({timeout:15000})}catch(error){
+ console.error('Console readiness failure '+JSON.stringify({path:new URL(page.url()).pathname,failedReads:failedReads.get(page),state:await page.evaluate(()=>({booted:window.uptimeBooted===true,classes:document.documentElement.className,notice:document.querySelector('#read-notice')?.textContent,loading:document.querySelector('.loading-note')?.textContent}))}));
+ throw error;
+}};
+// A rule waits in the form's Add rule menu until the owner adds it.
+const addRule=async(page,name)=>{await page.locator('.add-rule summary:visible').click();await page.locator('.add-rule-menu:visible').getByRole('button',{name,exact:true}).click()};
+const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);return {promise,resolve}};
+async function audit(page,label,{state,reason}={}){
+ await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
+ const result=await page.evaluate(()=>axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}));
+ const session=await page.context().newCDPSession(page);
+ let tree;try{tree=await session.send('Accessibility.getFullAXTree')}finally{await session.detach()}
+ const accessible=tree.nodes.filter(node=>!node.ignored),text=accessible.map(node=>node.name?.value??'').join('\n');
+ assert.ok(accessible.some(node=>node.role?.value==='main'),label+' exposes a main landmark');
+ assert.ok(accessible.some(node=>node.role?.value==='heading'&&node.name?.value),label+' exposes named headings');
+ if(state){assert.ok(accessible.some(node=>node.role?.value==='StaticText'&&node.name?.value===state),label+' exposes textual state');assert.match(await page.locator('.status-explanation').textContent(),reason)}
+ const extent=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));
+ await Promise.all([writeFile(resolve(out,`${label}-axe.json`),JSON.stringify(result,null,2)),writeFile(resolve(out,`${label}-accessibility.json`),JSON.stringify(tree,null,2)),page.screenshot({path:resolve(out,`${label}.png`),fullPage:true})]);
+ assert.deepEqual(result.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)})),[],label+' accessibility');
+ assert.ok(extent.scroll<=extent.width+1,label+' document overflow '+JSON.stringify(extent));
+ checks.push({label,violations:0,documentWidth:extent.width,accessibilityNodes:accessible.length,...(state?{state}:{}),textInspected:Boolean(text)});
+}
+async function tabTo(page,locator){
+ for(let i=0;i<100;i++){await page.keyboard.press('Tab');if(await locator.evaluate(element=>document.activeElement===element))return}
+ assert.fail('Keyboard could not reach '+await locator.textContent());
+}
+// Bulk add's one home: the "Paste many URLs or a CSV" button under New monitor's Other ways to add. Tab from the page's heading
+// reaches it, its panel previews pasted URLs, and pressing it again closes the panel.
+async function bulkAddDoor(page){
+ const door=page.getByRole('button',{name:'Paste many URLs or a CSV',exact:true});
+ await page.locator('main h1').click();await tabTo(page,door);await page.keyboard.press('Enter');
+ assert.equal(await door.getAttribute('aria-pressed'),'true','the pressed button is the open panel');
+ const panel=page.locator('.way-panel[data-way=paste]');await panel.waitFor();
+ await panel.getByLabel('URLs or CSV',{exact:true}).fill('https://93.184.216.34/operator-batch\nhttps://93.184.216.34/operator-batch-two');
+ await panel.getByRole('button',{name:'Preview',exact:true}).click();await panel.getByRole('heading',{name:'Review the plan',exact:true}).waitFor();
+ assert.match(await panel.locator('.catalog-preview > p').first().textContent(),/^2 create\b/,'Bulk add previews the pasted URL');
+ if(page.viewportSize().width===1440){
+  await assertPlainMonitorText(panel.locator('.catalog-preview'));
+  const overview=await (await page.request.get(origin+'/api/overview')).json();
+  for(const location of overview.runner.runners.filter(r=>!r.revokedAt&&r.lastContactAt!==null).slice(0,3))assert.ok((await panel.locator('.catalog-preview').innerText()).includes(location.networkLabel),'preview names the selected place');
+  await provePasteImport(page,origin);
+ }
+ await door.click();await panel.waitFor({state:'hidden'});
+ assert.equal(await door.getAttribute('aria-pressed'),'false','pressing the open button closes its panel');
+}
+async function nextPoll(page){
+ await page.waitForResponse(response=>overviewRead(new URL(response.url()))&&response.request().method()==='GET'&&response.ok(),{timeout:12000});
+ // The next keyboard action must see the completed redraw, not just headers.
+ await page.waitForFunction(()=>document.querySelector('#content-area')?.getAttribute('aria-busy')!=='true');
+}
+async function unavailableJourney(page,width){
+ await page.route(overviewRead,route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Synthetic read unavailable'})}));
+ try{
+  await page.locator('#read-notice[data-state=unavailable]').waitFor({timeout:12000});
+  assert.equal(await page.locator('#monitor-state').textContent(),'Unknown');
+  assert.match(await page.locator('#read-notice').textContent(),/Last successful refresh/);
+  // The status line says the last result is shown, and the recorded checks stay listed with their times.
+  assert.match(await page.locator('#monitor-status').textContent(),/Showing the last result/);assert.ok(await page.locator('#recent-rows time').count(),'the last recorded checks stay listed');
+  await audit(page,`unavailable-${width}`,{state:'Unknown',reason:/couldn.t refresh/i});
+ }finally{await page.unroute(overviewRead)}
+ await page.locator('#read-notice[data-state=recovered]').waitFor({timeout:12000});
+ await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor();
+}
+// A cold document must explain a refused read, then resume only after the
+// server's Retry-After. The route fake is at the browser/network edge; assets,
+// auth and the recovered read still use the real installation.
+async function rateLimitedJourney(page,width){
+ const requests=[],seconds=8;let notBefore=0;
+ const refuse=async route=>{
+  requests.push(Date.now());
+  if(requests.length===1){
+   const value=width===1440?new Date(Date.now()+seconds*1000).toUTCString():String(seconds);
+   notBefore=width===1440?Date.parse(value):Date.now()+seconds*1000;
+   await route.fulfill({status:429,headers:{'retry-after':value,'cache-control':'no-store'},contentType:'application/json',body:JSON.stringify({error:'Synthetic rate overrun'})});
+  }else await route.continue();
+ };
+ await page.route(overviewRead,refuse);
+ try{
+  await page.goto(origin+'/app/locations');
+  await page.locator('#read-notice[data-state=rate-limited]').waitFor();
+  if(width===1440){
+   assert.ok(await page.locator('#read-notice').isVisible(),'rate-limited reads have a visible explanation');
+   assert.ok(await page.locator('.loading-list.read-failed').count(),'a refused first read replaces the loading skeleton');
+  }
+  await audit(page,`rate-limited-${width}`);
+  await ready(page);
+  if(width===1440){assert.ok(requests.length>=2,'the read retries automatically');assert.ok(requests[1]>=notBefore,'no retry before Retry-After');}
+  checks.push({label:`rate-limited-recovery-${width}`,attempts:requests.length,retryWaitMs:requests[1]-requests[0],retryAfterHonored:requests[1]>=notBefore});
+ }finally{await page.unroute(overviewRead,refuse)}
+}
+// Routing disables Chromium's HTTP cache in this journey. Repeated full page
+// loads must still work when every static resource revalidates at the Worker.
+async function repeatConsoleLoads(page){
+ const paths=['/app/locations','/app/settings/alerts','/app/locations','/app/settings/general','/app/locations','/app/settings/alerts'],failed=[];
+ const observe=response=>{if(response.status()>=400&&response.request().resourceType()!=='fetch')failed.push({path:new URL(response.url()).pathname,status:response.status()})};
+ page.on('response',observe);
+ const started=Date.now();
+ try{for(const path of paths){await page.goto(origin+path);await ready(page);assert.equal(new URL(page.url()).pathname,path);}}
+ finally{page.off('response',observe)}
+ assert.ok(Date.now()-started<60000,'six full console loads finish within one minute');
+ assert.deepEqual(failed,[],'all document/script/style loads succeed');
+ checks.push({label:'repeated-console-loads-1440',loads:paths.length,elapsedMs:Date.now()-started,failedResources:failed.length});
+ // API admission is independent of the larger static resource allowance.
+ const seed=JSON.parse(await readFile('seed.json','utf8')),declaration=seed.deploy.publicPaths.find(item=>item.path==='/api/v1/openapi.json'),limit=seed.limits.publicRequestsPerMinutePerIp[declaration.class];
+ const remaining=60000-Date.now()%60000;if(remaining<15000)await page.waitForTimeout(remaining+25);
+ const window=Math.floor(Date.now()/60000),statuses=[];let refusal;
+ for(let sent=0;sent<=limit&&!refusal;sent+=12){
+  const responses=await Promise.all(Array.from({length:Math.min(12,limit+1-sent)},()=>page.request.get(origin+declaration.path)));
+  for(const response of responses){statuses.push(response.status());if(response.status()===429)refusal=response;else assert.equal(response.status(),200,'requests within the API budget succeed');}
+ }
+ assert.equal(Math.floor(Date.now()/60000),window,'API burst stays in one limit window');
+ assert.ok(refusal,'API requests over the configured budget receive 429');
+ assert.ok(Number(refusal.headers()['retry-after'])>0,'API refusal carries Retry-After');
+ assert.equal(refusal.headers()['cache-control'],'no-store');
+ assert.equal((await page.request.get(origin+'/api/overview')).status(),200,'independent private console API still works');
+ checks.push({label:'api-over-limit-1440',requests:statuses.length,limited:statuses.filter(status=>status===429).length});
+}
+async function actionErrorJourney(page,monitor,width,status=503){
+ let attempts=0;
+ const actionGate=deferred(),actionStarted=deferred(),readGate=deferred(),readStarted=deferred();
+ const runURL=origin+`/api/monitors/${monitor.id}/run`;
+ const failAction=async route=>{attempts++;actionStarted.resolve();await actionGate.promise;await route.fulfill({status,...(status===429?{headers:{'retry-after':'8'}}:{}),contentType:'application/json',body:JSON.stringify({error:'Manual check could not be queued'})})};
+ const holdRead=async route=>{readStarted.resolve();await readGate.promise;await route.continue()};
+ await page.route(runURL,failAction);
+ try{
+  await tabTo(page,page.getByRole('button',{name:'Run now',exact:true}));
+  await page.keyboard.press('Enter');await actionStarted.promise;
+  await page.route(overviewRead,holdRead);
+  async function locked(){
+   assert.equal(await page.locator('#content-area').getAttribute('aria-busy'),'true');
+   assert.equal(await page.locator('button:enabled,input:enabled,select:enabled,textarea:enabled').count(),0,'busy form controls are excluded');
+   assert.equal(await page.locator('a[href]:not([aria-disabled=true])').count(),0,'busy navigation is excluded');
+  }
+  await locked();const url=page.url();
+  await tabTo(page,page.getByRole('link',{name:'Monitors',exact:true}));await page.keyboard.press('Enter');assert.equal(page.url(),url,'keyboard navigation is blocked during the action');
+  actionGate.resolve();await readStarted.promise;await locked();
+  readGate.resolve();await page.locator('#action-notice[data-state=error]').waitFor();
+  await page.waitForFunction(()=>document.querySelector('#content-area')?.getAttribute('aria-busy')==='false');
+  assert.equal(await page.locator('#run-monitor').isEnabled(),true);
+  const message=await page.locator('#action-notice').textContent();
+  await nextPoll(page);assert.equal(await page.locator('#action-notice').textContent(),message,'successful polling preserves the failed action');
+  assert.equal(await page.evaluate(()=>document.activeElement?.id),'run-monitor','action restores its initiating keyboard control');
+  assert.equal(attempts,1,'a refused action is never replayed automatically');
+  if(status===503)await audit(page,`action-error-${width}`,{state:'Healthy',reason:/^Up/});
+ }finally{actionGate.resolve();readGate.resolve();await page.unroute(runURL,failAction);await page.unroute(overviewRead,holdRead)}
+ assert.equal((await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json()).some(slot=>slot.manual),false,'failed action created no manual evidence');
+}
+async function editJourney(page,monitor,width){
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-ready').waitFor();
+ const fields={status:'200',body:'healthy',bodyExcludes:'unhealthy',regexPattern:'"ok":true',regexFlags:'i',headerName:'x-synthetic',headerValue:'local-review',jsonPath:'$.ok',jsonEquals:'true'};
+ for(const [name,value] of Object.entries(fields))assert.equal(await page.locator(`[name=${name}]:visible`).inputValue(),value,'editing preserves '+name);
+ // A JSON rule with no value to equal is refused in the form and makes no revision.
+ await page.locator('[name=jsonEquals]:visible').fill('');
+ await page.getByRole('button',{name:'Save monitor',exact:true}).click();
+ await page.locator('#editor-feedback[data-error]').waitFor();
+ assert.match(await page.locator('#editor-feedback').textContent(),/JSON value: enter both/);
+ const before=await (await page.request.get(origin+'/api/overview')).json();
+ assert.equal(before.monitors.find(m=>m.id===monitor.id).revision,monitor.revision,'a refused rule made no revision');
+ await audit(page,`assertion-refusal-${width}`);
+ await page.locator('[name=jsonEquals]:visible').fill('true');
+ await addRule(page,'Responds within');await page.locator('[name=latencyMs]:visible').fill('10');
+ // A real scheduled pass will age out before the next one; no clocks or stored observations are fabricated.
+ await page.locator('[name=intervalMinutes]:visible').fill('1');
+ await page.locator('[name=confirmSlots]:visible').fill('1');await page.locator('[name=recoverSlots]:visible').fill('1');
+ await page.getByRole('button',{name:'Save monitor',exact:true}).click();await ready(page);
+ await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});
+ const after=await (await page.request.get(origin+'/api/overview')).json(),saved=after.monitors.find(m=>m.id===monitor.id);
+ assert.equal(saved.revision,monitor.revision+1);assert.deepEqual(saved.definition.assertions,{...monitor.definition.assertions,latencyMs:10000});
+ await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-ready').waitFor();
+ assert.equal(await page.locator('[name=jsonEquals]:visible').inputValue(),'true');assert.equal(await page.locator('[name=latencyMs]:visible').inputValue(),'10');
+ await page.locator('.editor-cancel:visible').click();await ready(page);
+ await page.locator('#monitor-state').filter({hasText:'Unknown'}).waitFor({timeout:22000});
+ await audit(page,`stale-${width}`,{state:'Unknown',reason:/recent result|waiting/i});
+ assert.ok(await page.locator('#recent-rows time').count(),'stale state retains the last real check time');
+ const history=await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json();
+ assert.ok(history.some(slot=>slot.revision===monitor.revision),'old assertion revision evidence remains');
+ assert.ok(history.some(slot=>slot.revision===saved.revision&&slot.status==='complete'),'changed assertion revision has its own evidence');
+}
+// A rule changed in place on its monitor's page (U15), on a monitor of its own: Responds within changes by its chip and Enter;
+// the row shows the new rule, the save is one new revision changing only that rule, and the next scheduled check (read from
+// the history API, not from the page's ages) is judged by it. A value the server refuses keeps what was typed and the server's
+// reason in its row and makes no revision; Esc then puts the saved value back.
+async function ruleEditJourney(page,width){
+ const created=await page.request.post(origin+'/api/monitors',{headers:{origin},data:{name:`Rules in place ${width}`,url:'http://127.0.0.1:15481/health',intervalMs:5000,timeoutMs:2000,retries:0,confirmSlots:1,recoverSlots:1,freshnessMs:10000,assertions:{status:200,latencyMs:2000},enabled:true}});
+ assert.equal(created.status(),201);const monitor=await created.json();
+ const current=async()=>(await (await page.request.get(origin+'/api/overview')).json()).monitors.find(m=>m.id===monitor.id);
+ await page.goto(origin+`/app/monitors/${monitor.id}`);await ready(page);
+ const row=page.locator('#rule-grid tr[data-key="rule-latencyMs"]');
+ await row.locator('td .ui-result.passed').first().waitFor({timeout:30000});
+ await row.locator('#edit-latencyMs > summary').click();
+ const seconds=row.locator('input[name=seconds]');assert.equal(await seconds.inputValue(),'2');
+ await seconds.fill('3');await seconds.press('Enter');
+ await page.locator('#action-notice').filter({hasText:`Saved as revision ${monitor.revision+1}`}).waitFor({timeout:15000});
+ const saved=await current();
+ assert.equal(saved.revision,monitor.revision+1,'one save is one new revision');
+ assert.deepEqual(saved.definition.assertions,{status:200,latencyMs:3000},'only the changed rule changed');
+ assert.equal(await page.locator('#edit-latencyMs').evaluate(details=>details.open),false,'Save closes the editor');
+ assert.equal((await row.locator('.value-chip').textContent()).trim(),'3 s','the row shows the new rule');
+ let slot;
+ for(const end=Date.now()+30000;!slot&&Date.now()<end;await page.waitForTimeout(1000))slot=(await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json()).find(s=>!s.manual&&s.status==='complete'&&s.revision===saved.revision);
+ assert.ok(slot,'a scheduled check of the new revision completed');
+ assert.equal(slot.definition.assertions.latencyMs,3000,'the check ran with the new rule');
+ assert.ok(slot.observations.every(o=>o.checks.some(c=>c.assertion==='latency'&&c.pass)),'every location passed the new rule');
+ // The page shows only a check of the current revision, so once every location's age is back its row says what it measured.
+ await page.waitForFunction(()=>{const ages=[...document.querySelectorAll('#rule-grid thead .col-age')],cells=[...document.querySelectorAll('#rule-grid tr[data-key="rule-latencyMs"] td .ui-result')];return ages.length>0&&ages.every(age=>/ago$/.test(age.textContent))&&cells.length>0&&cells.every(cell=>cell.classList.contains('passed')&&/^\d+ ms$/.test(cell.textContent.trim()))},null,{timeout:20000});
+ const status=page.locator('#edit-status');await status.locator('summary').click();
+ await status.locator('input[name=status]').fill('ok');await status.locator('input[name=status]').press('Enter');
+ await page.locator('#edit-error-status').filter({hasText:/status/i}).waitFor({timeout:15000});
+ assert.equal(await status.locator('input[name=status]').inputValue(),'ok','the typed value stays');
+ assert.equal((await current()).revision,saved.revision,'a refused value makes no revision');
+ await audit(page,`rule-edit-${width}`);
+ // Focus stays in the field after the refusal, so Esc pressed on the page cancels: the editor closes and the saved value
+ // comes back.
+ await page.keyboard.press('Escape');
+ assert.equal(await status.evaluate(details=>details.open),false);assert.equal(await status.locator('input[name=status]').inputValue(),'200');
+ assert.equal((await page.request.patch(origin+`/api/monitors/${monitor.id}`,{headers:{origin},data:{...saved.definition,enabled:false}})).status(),200);
+ checks.push({label:`rule-edit-${width}`,revision:saved.revision,judgedBy:slot.definition.assertions.latencyMs});
+}
+try{
+ for(const width of [1440]){
+  const context=await browser.newContext({viewport:{width,height:900}});
+  await context.route('**/*',route=>{const u=new URL(route.request().url());return u.origin===origin?route.continue():route.abort()});
+  try{
+   const page=await context.newPage(),errors=[],failed=[];failedReads.set(page,failed);page.on('pageerror',error=>errors.push(error.message));
+   page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
+   await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
+   // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
+   if(width===1440){await page.waitForURL(url=>url.pathname==='/app/monitors/new');await page.locator('.editor-context-ready').waitFor();assert.equal(await page.locator('h1').textContent(),'Add your first monitor');await audit(page,`editor-${width}`);await bulkAddDoor(page);
+    // A different loopback port still follows the private-address path, without receiving the practice allowance.
+    await page.getByLabel('Website URL',{exact:true}).fill('http://127.0.0.1:15480/health');
+    await page.getByRole('button',{name:'Check',exact:true}).click();await page.locator('#discovery-problem').waitFor();
+    assert.ok(new URL(await page.locator('#discovery-problem a').getAttribute('href'),origin).pathname.startsWith('/app/monitors/new/manual/private/'));
+    // The bundled local target goes through the website check's result to the ordinary saveable form.
+    await page.getByLabel('Website URL',{exact:true}).fill('http://127.0.0.1:15481/health');
+    await page.getByRole('button',{name:'Check again',exact:true}).click();await page.locator('#discovery-problem').waitFor();
+    await page.locator('#discovery-problem a').click();await page.locator('.editor-context-ready').waitFor();
+    assert.equal(await page.locator('[name=url]').inputValue(),'http://127.0.0.1:15481/health','the checked target travels to the form');
+    assert.equal(await page.locator('[name=networkScope]').inputValue(),'public','practice does not ask for a private-network grant');
+    assert.equal(await page.locator('[name=privateGrantRef]').isEnabled(),false);
+   }
+   else{await ready(page);await audit(page,`console-${width}`);
+    await tabTo(page,page.getByRole('button',{name:'New monitor',exact:true}));await page.keyboard.press('Enter');
+    await page.locator('.editor-ready').waitFor();await audit(page,`editor-${width}`);await bulkAddDoor(page);await page.getByRole('button',{name:'Fill in the form yourself',exact:true}).click()}
+   const name=`Operator ${width} ${Date.now()}`;
+   await page.locator('input[name=name]:visible').fill(name);await page.locator('input[name=url]:visible').fill('http://169.254.169.254/latest/meta-data/');
+   await page.getByRole('button',{name:'Save monitor'}).click();await page.locator('#editor-feedback').filter({hasText:/grant|literal|target|URL|host|port|loopback/i}).waitFor();assert.ok(new URL(page.url()).pathname.startsWith('/app/monitors/new/manual'));
+   // Wait for a response, Extra attempts and Unknown after sit in Advanced.
+   await page.locator('#editor-advanced > summary').click();
+   const values={url:'http://127.0.0.1:15481/health',intervalMinutes:String(5000/60000),freshnessMinutes:String(10000/60000),retries:'0',confirmSlots:'1',recoverSlots:'1'};
+   for(const [field,value] of Object.entries(values))await page.locator(`[name=${field}]:visible`).fill(value);
+   const rules={'Page contains':{body:'healthy'},'Page must not contain':{bodyExcludes:'unhealthy'},Pattern:{regexPattern:'"ok":true',regexFlags:'i'},'Header equals':{headerName:'x-synthetic',headerValue:'local-review'},'JSON value':{jsonPath:'$.ok',jsonEquals:'true'}};
+   for(const [rule,fields] of Object.entries(rules)){await addRule(page,rule);for(const [field,value] of Object.entries(fields))await page.locator(`[name=${field}]:visible`).fill(value)}
+   await page.getByRole('button',{name:'Save monitor'}).click();await ready(page);
+   const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
+   assert.ok(monitor);assert.equal(monitor.definition.network,'synthetic');assert.equal(monitor.definition.privateGrantRef,undefined);assert.deepEqual(Object.values(monitor.definition.assignments).map(a=>a.runnerId),overview.runner.runners.filter(r=>!r.revokedAt).map(r=>r.runnerId),'a new monitor checks from every location');
+   await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);await page.locator('#all-checks > summary').click();
+   await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
+   await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});
+   checks.push({label:`practice-target-${width}`,saved:true,network:monitor.definition.network,privateGrantRequired:false,scheduledState:'Healthy',unrelatedLoopbackUsesPrivateForm:true,forbiddenTargetRefused:true});
+  }finally{await context.close()}
+ }
+ await writeFile(resolve(out,'RESULTS.json'),JSON.stringify({checks,externalNetwork:false,scope:'Focused practice-target entry, save and real scheduled monitoring from the existing operator browser journey'},null,2));
+ console.log('Focused practice-target journey passed.');
+}finally{await browser.close()}
