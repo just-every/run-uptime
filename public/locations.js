@@ -13,7 +13,7 @@ const monitorsUsing=(data,runnerId)=>data.monitors.filter(m=>Object.values(m.def
 export const activeLocations=data=>(data.runner.runners??[]).filter(r=>!r.revokedAt);
 function lastSeen(runner,now){
  if(runner.hosted)return '<span class="ui-pill fresh">Hosted</span>';
- if(runner.lastContactAt===null)return runner.builtIn?`<span class="ui-pill never">Not checking</span><p>${escape(checkerRestart([{thisComputer:true}]))}</p>`:'<span class="ui-pill never">Waiting to join</span>';
+ if(runner.lastContactAt===null)return '<span class="ui-pill never">Waiting to join</span>';
  const fresh=Number.isFinite(runner.lastContactAt)&&runner.lastContactAt<=now&&now-runner.lastContactAt<=FRESH_MS;
  return `<span class="ui-pill ${fresh?'fresh':'stale'}">${fresh?escape(ago(runner.lastContactAt)):'Stopped checking'}</span>${fresh?'':`<p>${escape(checkerRestart([{thisComputer:runner.builtIn}]))} Last seen ${escape(ago(runner.lastContactAt))}.</p>`}`;
 }
