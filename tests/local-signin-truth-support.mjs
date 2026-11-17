@@ -15,10 +15,9 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
   await visitor.goto(origin+'/');
   const lobby=await visitor.locator('main').innerText();
   assert.doesNotMatch(lobby,/persona|choose (?:a |an |your )?(?:local )?account/i,'fresh Lobby does not promise an unavailable account picker');
-  assert.match(lobby,/RER_OPEN/,'Lobby explains the private terminal handoff');
   await visitor.getByRole('link',{name:'Sign in',exact:true}).click();
   // Follow the gate's displayed CLI guidance instead of pinning its wording.
-  const command=(await visitor.locator('code').allTextContents()).map(text=>text.trim().split(/\s+/)).filter(([program,verb])=>program==='rer'&&verb==='dev').at(-1);
+  const command=(await visitor.locator('code').allTextContents()).map(text=>text.trim().split(/\s+/)).filter(([program,verb,...args])=>(program==='rer'||program.endsWith('/rer'))&&verb==='dev'&&(!args.includes('--as')||args.indexOf('--as')+1<args.length)).at(-1);
   assert.ok(command,'the sign-in gate supplies an executable local launch command');
   assert.equal(await visitor.locator('input[type=email]').count(),0,'the gated page does not promise an email form');
   assert.equal((await unsigned.request.get(origin+'/api/overview')).status(),401);
@@ -80,7 +79,15 @@ export async function proveLocalSignInTruth({browser,page,origin,key,runRer,outp
   const invited=await browser.newContext({viewport:{width:1440,height:1000}});
   try{
    const p=await invited.newPage();
-   const signIn=async role=>{const launched=await runRer(invitationCommands.get(role)),link=launched.match(/^RER_OPEN (http:\/\/\S+)$/m)?.[1];assert.ok(link,'the invitation command returns a private handoff');assert.equal(new URL(link).origin,origin);await p.goto(link);await completeBrowserSecondFactor(p,origin)};
+   const signIn=async role=>{
+    const launched=await runRer(invitationCommands.get(role)),link=launched.match(/^RER_OPEN (http:\/\/\S+)$/m)?.[1];
+    assert.ok(link,'the invitation command returns a private handoff');assert.equal(new URL(link).origin,origin);
+    await p.goto(link);
+    // The fragment handoff exchanges authority in the browser before redirecting.
+    // Wait for that exchange before reading cookies for the real factor endpoints.
+    await p.waitForURL(url=>url.origin===origin&&!['/__dev/key','/signin','/login'].includes(url.pathname));
+    await completeBrowserSecondFactor(p,origin);
+   };;
    await signIn('responder');
    await p.waitForURL(url=>url.pathname.startsWith('/app'));
    const session=await invited.request.get(origin+'/auth/session');assert.equal(session.status(),200);

@@ -19,10 +19,10 @@ export async function proveMemberControls({origin,cookie,accept,call,DB}){
    const security=panel.locator('#security-controls');await security.locator('[data-factor-state]').getByText(/Second factors/).waitFor();await security.getByText('Manage second factors',{exact:true}).click();await security.getByRole('button',{name:'Replace recovery codes',exact:true}).click();const shown=security.locator('[data-secret-once] pre');await shown.waitFor();factor.recoveryCodes=(await shown.textContent()).trim().split('\n');await security.getByRole('button',{name:'I saved this',exact:true}).click();assert.equal(await security.locator('[data-security-status]').count(),1);assert.equal(await security.locator('[data-security-status]').evaluate(e=>e.isConnected),true);
    const invite=panel.locator('[data-member-invite]');
    const self=await(await call('/api/access/self',undefined,{cookie})).json(),own=panel.locator(`[data-member-id="${self.id}"]`);
-   await own.locator('summary').click();await own.getByLabel('Role',{exact:true}).selectOption('admin');
+   await own.locator(':scope > summary').click();await own.getByLabel('Role',{exact:true}).selectOption('admin');
    const denied=page.waitForResponse(r=>r.url().endsWith(`/api/access/members/${self.id}`)&&r.request().method()==='POST');await own.getByRole('button',{name:'Save assignment',exact:true}).click();assert.equal((await denied).status(),409);
    await panel.getByRole('status').filter({hasText:'Another administrator'}).waitFor();assert.equal((await call(`/api/access/members/${self.id}`,{role:'admin',scopes:[]},{cookie})).status,409,'same self-assignment refused at direct route');
-   await own.locator('summary').click();
+   await own.locator(':scope > summary').click();
    let reader,fixtureNumber=width===1440?100:200;
    for(const role of ['admin','editor','responder','read-only']){
     const fixtureName=`synthetic-uptime-${++fixtureNumber}`,email=fixtureName+'@example.test';
