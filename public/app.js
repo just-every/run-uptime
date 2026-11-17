@@ -121,7 +121,7 @@ const summary=$('.list-summary');
 if(view==='monitor'){area.setAttribute('aria-label','Monitor details');area.querySelector('.loading-note').textContent='Loading monitor…';$('.top h1').textContent='Monitor';$('.subtitle').textContent='Loading…';$('.subtitle').hidden=false}
 else{setHeading();$('.subtitle').hidden=true;actions.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;if(button.id==='new-monitor')window.dispatchEvent(new Event('uptime:new-monitor'));else if(button.id==='add-location-button')startAdding({api,action,render})})}
 // Each view's buttons beside its heading.
-const viewActions={monitors:()=>`<button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`,locations:()=>`<button class="primary" id="add-location-button"${addingLocation()?' disabled':''}>${icon('plus')}Add location</button>`,settings:()=>settingsArea==='alerts'?`<button class="primary" id="add-destination">${icon('plus')}Add destination</button>`:''};
+const viewActions={monitors:()=>`<button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`,locations:()=>`<button class="primary" id="add-location-button"${addingLocation()?' disabled':''}>${icon('plus')}Add location</button>`,settings:()=>settingsArea==='alerts'&&data.notifications?`<button class="primary" id="add-destination">${icon('plus')}Add destination</button>`:''};
 const lockedControls=new Map(),lockedLinks=new Map();
 // Async tasks and dialogs can insert controls without rendering the whole view.
 // Observe those insertions before the browser can offer a click on a busy console.
@@ -150,6 +150,8 @@ function renderLocations(){patch(area,locationsMarkup(data));patch(right,addPane
 // disclosures, focus, typed values and scroll stay. Switching views starts the new view from empty hosts. Returns the
 // pending draw of a Settings area whose module is still loading.
 function render(){if(!data||document.querySelector('dialog[open]'))return;
+ const identity=$('.console-identity'),roles={owner:'Owner',admin:'Admin',editor:'Editor',responder:'Responder','read-only':'Read-only'};
+ identity.textContent=data.operator?.displayName?`Signed in as ${data.operator.displayName} (${roles[data.access?.role]??'Member'})`:'';identity.hidden=!identity.textContent;
  // With no monitors yet, the list opens the new-monitor form instead of an empty table.
  if(view==='monitors'&&!data.access?.monitoringOnly&&!readUnavailable&&!data.monitors.length){if(!redirecting){redirecting=true;location.replace('/app/monitors/new')}return}
  const screen=view==='settings'?'settings/'+settingsArea:view;

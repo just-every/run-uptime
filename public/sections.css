@@ -3,6 +3,7 @@
    business-import-settings.js, archive-view.js and definitions.js). Tokens and components come from app-theme.css. */
 
 /* ---------------------------------------------------------------- Settings areas */
+.console-identity { margin: 0 0 16px; color: var(--muted); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
 /* An area lays its cards out on the ground, so the console's content card is a bare container there. */
 .monitors:has(.settings-area) { border: 0; border-radius: 0; background: none; box-shadow: none; }
 .settings-area { display: grid; gap: 18px; min-width: 0; }
