@@ -109,9 +109,11 @@ import {issueHeartbeatKey,receiveHeartbeat} from './domain/heartbeat.server'
 import start from '@tanstack/react-start/server-entry'
 import {Hono} from 'hono'
 import {dispatch} from './base/dispatch'
-import {lobbyResponse} from './base/lobby'
+import {installedLobby} from './domain/installed-lobby.server.ts'
+import {installationDocument} from './domain/installation-document.server.ts'
+import {changeProfile} from './domain/profile.server.ts'
+import {installationNameResponse} from './domain/installation-name.server.ts'
 import {claimedWhen,setupStateResponse} from './base/setup-state'
-import {identity} from './identity'
 import {recordContact} from './domain/runner-contact.server.ts'
 import {session,overview,save,get,claim,complete,history,revisions,archive,restore,type Bindings} from './domain/control.server'
 import {checkInput,InputError} from './domain/request-boundary.ts'
@@ -170,6 +172,9 @@ api.get('/api/routing/recipient',async c=>c.json(await readRecipient(c.env,c.get
 api.post('/api/routing/recipient',async c=>c.json(await consentRecipient(c.env,c.get('input'),c.get('access'))))
 api.post('/api/monitors/:id/alert-route/sample',async c=>c.json(await sampleAlertRoute(c.env,c.req.param('id'),c.get('input'))))
 api.post('/api/monitors/:id/alert-route/drill',async c=>c.json(await drillAlertRoute(c.env,c.req.param('id'),c.get('input'),(await operator(c)).ref),202))
+api.get('/api/installation-name',c=>installationNameResponse(c.get('systemBindings'),c.req.raw))
+api.patch('/api/installation-name',c=>installationNameResponse(c.get('systemBindings'),c.req.raw,c.get('input')))
+api.post('/api/profile',async c=>c.json(await changeProfile(c.get('systemBindings'),c.req.raw,c.get('input'))))
 api.get('/api/access/self',c=>accessMembers(c.env,c.req.raw))
 api.get('/api/access/members',c=>accessMembers(c.env,c.req.raw))
 api.post('/api/access/invitations',c=>accessMembers(c.env,c.req.raw,c.get('input')))
@@ -414,7 +419,7 @@ const handler={async fetch(request,env,execution){
  // The Lobby at / and GET /setup/state: Base's shared responses, before the public-path guard and the document renderer.
  const lobbyBindings={DB:bindings.DB,AUTH_ORIGIN:bindings.UPTIME_ORIGIN!};
  const state=await setupStateResponse(request,lobbyBindings,claimed);if(state)return state;
- const lobby=await lobbyResponse(request,lobbyBindings,identity,claimed);if(lobby)return lobby;
+ const lobby=await installedLobby(bindings,request,claimed);if(lobby)return lobby;
  if(path==='/monitor'||path==='/monitor/')return consoleRedirect(canonicalConsolePath(url)!);
  if(!publicPath(path,bindings.UPTIME_LOCAL_REVIEW==='true')&&!isConsoleDocument(path)&&!isEvidencePage&&!path.startsWith('/_serverFn/')&&path!=='/api'&&!path.startsWith('/api/'))return notFoundDocument();
  if(isEvidencePage){if(!['GET','HEAD'].includes(request.method))return new Response(null,{status:405});try{const id=decodeURIComponent(path.split('/').pop()!);if(!await evidencePrincipal(bindings,request,id)){if(!await authenticatedSession(bindings,request))return new Response(null,{status:303,headers:{location:'/login','cache-control':'no-store'}});return failureEvidenceDenied()}const response=failureEvidenceDocument(id);return request.method==='HEAD'?new Response(null,response):response}catch(error){return authFailure(error)}}
@@ -441,5 +446,5 @@ const handler={async fetch(request,env,execution){
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
 },async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);await scheduledDrills(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)));await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),async()=>{const data=await overview(bindings);return data.monitors.filter(m=>m.definition.enabled).every(m=>m.state.targetState==='Healthy')})}} satisfies ExportedHandler
 export default withDemo({...handler,fetch(request,env,execution){
- return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution)
+ return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution).then(response=>installationDocument(env,response))
 }} satisfies ExportedHandler,{seed:seedDemo})

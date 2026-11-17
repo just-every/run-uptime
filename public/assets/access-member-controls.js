@@ -1,3 +1,4 @@
+import {personProfile} from './person-profile.js';
 import {securityControls,securityRequest} from './security-controls.js';
 import {confirmErasure,showErasureReceipt} from '../notification-dialogs.js';
 // Settings › People's two cards (public/settings-people.js). Accounts lists everyone who can sign in, each once: the name,
@@ -34,7 +35,7 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
   item.className='operator-row';item.dataset.memberId=person.id;who.className='who';form.className='member-access';buttons.className='btn-row';
   name.textContent=person.displayName;
   line.textContent=[person.email,roleName(person),person.id===self.id?'You':'',person.status==='invited'?'Invited':person.status==='inactive'?'Removed':''].filter(Boolean).join(' · ');
-  who.append(name,line);summary.append(who);item.append(summary,form);fields(form,person);
+  who.append(name,line);summary.append(who);item.append(summary,form);if(person.id===self.id)item.append(personProfile(person,{request,reload:load}));fields(form,person);
   const save=document.createElement('button'),remove=document.createElement('button');save.textContent='Save assignment';remove.type='button';remove.textContent='Remove member';buttons.append(save,remove);form.append(buttons);
   form.onsubmit=async event=>{event.preventDefault();save.disabled=true;try{const result=await request(`/api/access/members/${encodeURIComponent(person.id)}`,'POST',{role:form.elements.role.value,scopes:scopes(form)});await load(result.unchanged?'Assignment unchanged.':'Assignment saved.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'})}finally{save.disabled=false}};
   remove.onclick=async()=>{remove.disabled=true;try{await request(`/api/access/members/${encodeURIComponent(person.id)}`,'DELETE');await load('Member removed.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'});remove.disabled=false}};
@@ -57,7 +58,8 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
    const owners=members.filter(person=>person.role==='owner'&&person.status==='active').length;
    // Only the owner invites an administrator.
    invite.elements.role.querySelector('option[value="admin"]').hidden=self.role!=='owner';
-   list.replaceChildren(...members.map(person=>row(person,{self,owners})));
+   const open=new Map([...list.querySelectorAll('details.operator-row[open]')].map(item=>[item.dataset.memberId,!!item.querySelector('.member-profile[open]')]));
+   list.replaceChildren(...members.map(person=>{const item=row(person,{self,owners});if(open.has(person.id)){item.open=true;if(open.get(person.id))item.querySelector('.member-profile')?.setAttribute('open','')}return item}));
    if(message){const item=memberId&&list.querySelector(`[data-member-id="${CSS.escape(memberId)}"]`);if(item)say(message,item);else say(message,helper)}
   }catch(error){say(`Accounts could not be read: ${refused(error).replace(/\.$/,'')}.`,list)}
  }

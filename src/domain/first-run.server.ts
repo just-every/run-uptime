@@ -1,3 +1,8 @@
+import {installationName,saveInstallationName,validateInstallationName} from './installation-name.server.ts'
+import {operatorAuth} from './operator-auth.server.ts'
+import {normalizeEmail} from '../base/modules/operator-auth/policy.mjs'
+// @ts-ignore Base's shared display-name validation is JavaScript.
+import {displayName as validateDisplayName} from '../base/modules/operator-auth/accounts/admin.mjs'
 import {runnerRuntime} from './private-runner.ts'
 import {ensureFirstRunner,listRunners} from './runner-registration.server.ts'
 import {authenticatedSession,authFailure} from './operator-auth.server.ts'
@@ -19,12 +24,12 @@ const BAD_SITE='Use a public website address, such as example.com or https://exa
 // The external check URL is not asked here; it is set in Settings. An installation that has none takes this one, so a
 // monitor on one location can still confirm an outage.
 const DEFAULT_EXTERNAL='https://example.org/'
-// The optional field of the native first-run form: empty when the request carries no form or the owner chose Skip, null
-// when the form is too large to be one.
+// Read the native identity and optional website fields once, retaining the
+// existing form-size limit and support for setup completion without a form.
 async function typedSite(request:Request){
- if(!(request.headers.get('content-type')??'').toLowerCase().startsWith('application/x-www-form-urlencoded'))return ''
+ if(!(request.headers.get('content-type')??'').toLowerCase().startsWith('application/x-www-form-urlencoded'))return new URLSearchParams()
  const text=await request.text(),form=new URLSearchParams(text);
- return text.length>FORM_LIMIT?null:form.get('skip')?'':(form.get('start_url')??'').trim()
+ return text.length>FORM_LIMIT?null:form
 }
 const withScheme=(value:string)=>value.includes('://')?value:`https://${value}`
 const redirect=(location:string)=>new Response(null,{status:303,headers:{location,'cache-control':'no-store'}})
@@ -42,12 +47,27 @@ export async function firstRun(env:Bindings,request:Request){
   // The first location's name shows once its runner has reached Uptime: the place it runs from, or its generated name.
   const place=first.last_contact_at!==null?first.network_label:null;
   const configured=env.UPTIME_START_URL;
+  let profile={displayName:owner.operator.displayName,email:owner.operator.email,installationName:await installationName(env)},profileProblem='';
   let site:StartSite=configured&&canDiscover?{checking:configured}:{},status=200
   if(request.method==='POST'){
-   const typed=await typedSite(request),address=canDiscover?configured??(typed?withScheme(typed):undefined):undefined;
-   let valid=typed!==null;
+   const form=await typedSite(request),typed=form?.get('skip')?'':(form?.get('start_url')??'').trim(),address=canDiscover?configured??(typed?withScheme(typed):undefined):undefined;
+   let valid=form!==null;
+   if(form){
+    profile={displayName:form.get('displayName')??profile.displayName,email:form.get('email')??profile.email,installationName:form.get('installationName')??profile.installationName};
+    try{validateDisplayName(profile.displayName);normalizeEmail(profile.email);validateInstallationName(profile.installationName)}catch{valid=false;profileProblem='Enter your name, a valid email address and an installation name.'}
+   }
    if(valid&&address)try{publicTarget(address)}catch{valid=false}
    if(valid){
+    try{
+     const auth=operatorAuth(env);
+     if(profile.email.trim().toLowerCase()!==owner.operator.email)await auth.changeEmail(request,{email:profile.email});
+     if(profile.displayName.trim()!==owner.operator.displayName)await auth.changeDisplayName(request,{displayName:profile.displayName});
+     await saveInstallationName(env,request,profile.installationName);
+    }catch(error){
+     const code=(error as {code?:string}).code;
+     profileProblem=code==='email_in_use'?'That email already belongs to another account.':code==='step_up_required'?'Confirm your sign-in before changing your email. You can also continue with your current email and change it in Settings › People.':'Your details could not be saved. Check them and try again.';
+     const response=setupDocument(profile.displayName,site,400,{place,askSite:canDiscover,profile,profileProblem});return response;
+    }
     const saved=(await externalCheck(env)).url;
     if(!saved||saved==='https://example.com/')await saveExternalCheck(env,JSON.stringify({url:DEFAULT_EXTERNAL}));
     const job=address?await ensureDiscovery(env,address):undefined
@@ -56,9 +76,9 @@ export async function firstRun(env:Bindings,request:Request){
     const empty=!(await env.DB.prepare('SELECT 1 FROM monitors LIMIT 1').first())
     return redirect(completed.meta.changes&&job?`/app/monitors/new/discovery/${encodeURIComponent(job)}`:empty?'/app/monitors/new':'/app/monitors')
    }
-   site={entered:typed??'',problem:BAD_SITE};status=400
+   site={entered:typed??'',...(profileProblem?{}:{problem:BAD_SITE})};status=400
   }else if(configured&&canDiscover&&request.method==='GET')await ensureDiscovery(env,configured)
-  const response=setupDocument(owner.operator.displayName,site,status,{place,askSite:canDiscover})
+  const response=setupDocument(owner.operator.displayName,site,status,{place,askSite:canDiscover,profile,profileProblem})
   return request.method==='HEAD'?new Response(null,{headers:response.headers}):response
  }catch(error){
   // A full job queue is the one plain refusal the owner can act on; everything else keeps the authentication failure shape.
