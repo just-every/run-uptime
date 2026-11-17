@@ -5,8 +5,11 @@
   "checkerPid": 10982,
   "stopSignal": "SIGKILL",
   "stoppedHealth": 503,
-  "stoppedMessage": "This computer’s checker stopped. In Uptime’s folder, run rer dev --stop, then rer dev.",
+  "stoppedMessage": "This computer\u2019s checker stopped. In Uptime\u2019s folder, run rer dev --stop, then rer dev.",
   "reentryExit": 4,
   "emittedReady": false,
-  "finished": "2026-11-17T13:57:47.936Z"
+  "finished": "2026-11-17T13:57:47.936Z",
+  "restartedHealth": 200,
+  "restartedCheckerPid": 11811,
+  "restartedReady": true
 }

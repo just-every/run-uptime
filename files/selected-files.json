@@ -42,5 +42,7 @@
   "ci-artifact-refusal.txt",
   "browser-repro-receipt.json",
   "browser-suites-receipt.json",
-  "browser-suites-fixed.log"
+  "browser-suites-fixed.log",
+  "ci-final-discovery.json",
+  "ci-final-run.json"
 ]

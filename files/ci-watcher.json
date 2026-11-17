@@ -1,9 +1,9 @@
 {
-  "calls": 8,
-  "lastCall": 1794923039.041694,
+  "calls": 10,
+  "lastCall": 1794924706.8237436,
   "sha": "701fa86628060e8057ec43a8366af3013b2581d8",
-  "budgetAccounting": "The failed artifact download is conservatively counted as two REST calls; gh run view log retrieval counts once as instructed.",
+  "budgetAccounting": "Conservative total: eight CI/API reads including two for the failed artifact download, plus the launcher authentication status check. One final-head discovery call is reserved.",
   "previousSha": "3b1930bd894b1b7903be7214e331f2beec1b1d25",
   "newHeadPushedAt": 1794923782.045331,
-  "discoveryNotBefore": 1794924382.045331
+  "discoveryNotBefore": 1794924682.045331
 }

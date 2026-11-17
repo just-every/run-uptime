@@ -27,8 +27,8 @@
   "testRegistrationsAdded": 0,
   "testRegistrationsRemoved": 0,
   "publicationScan": "Fleet Mac landing gate; unavailable in this cloud",
-  "ciRunId": null,
-  "ciConclusion": "pending",
+  "ciRunId": 44097734965,
+  "ciConclusion": "success",
   "plan": "PLAN.md",
   "report": "REPORT.md",
   "remoteHeadVerified": true,
@@ -39,5 +39,9 @@
     "conclusion": "failure",
     "failedShard": 134072977584
   },
-  "productPushCount": 2
+  "productPushCount": 2,
+  "ciStatus": "completed",
+  "ciUrl": "https://github.com/just-every/run-uptime/actions/runs/44097734965",
+  "terminalCustody": "READY",
+  "githubBudgetCalls": 10
 }
