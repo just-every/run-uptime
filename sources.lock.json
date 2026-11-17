@@ -2676,7 +2676,7 @@
       "executable": false
     },
     "public/assets/installation-name.js": {
-      "sha256": "6deaeb2ba15d8a7a43d1385c0c36937a1b783bb77fd87573ce42b465c15f7303",
+      "sha256": "5acfcef7888947ddc1d05c80b8b33019b494058e740c7fc04cbd549db1a8b43e",
       "executable": false
     },
     "public/assets/key-usage.js": {
@@ -7716,7 +7716,7 @@
       "executable": false
     },
     "src/domain/installation-document.server.ts": {
-      "sha256": "cee2e6d3c5e543dce102eb00aba1862514cdee56443203d556cdeb53f35a3928",
+      "sha256": "c525ac98526c401bae569cf87df2b00289fcefbb4fdf50723088f04a416d324c",
       "executable": false
     },
     "src/domain/installation-name.server.ts": {
@@ -8584,11 +8584,11 @@
       "executable": false
     },
     "src/server.dev.ts": {
-      "sha256": "5551175124d521f5ea2689598ed5e772389dbac650409355981ceef3231a937a",
+      "sha256": "a13404211f64c4c497581cd479bd2dff25a52eb0f85527b9224ad9e87f91b83b",
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "e96510d38aa463641452b3bc9226dcfd113d2d84e5640b9e448d9c071606a080",
+      "sha256": "42f3249e8f397f2366be0f4fa66602c3c551d557109d6508edf275b6586e9f54",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -8884,7 +8884,7 @@
       "executable": false
     },
     "src/ui/console-document.tsx": {
-      "sha256": "5f9a77a19ada1d1e6eec1dc81d5a4bd71ab9dfd6f3ff7370172e01005f75579d",
+      "sha256": "43b4b1e37859aceec454df3eeab578030bb42e5d0f095870a25de8b2165d1d46",
       "executable": false
     },
     "src/ui/console-paths.ts": {
@@ -8904,11 +8904,11 @@
       "executable": false
     },
     "src/ui/installation-label.js": {
-      "sha256": "3df7b40bc1eaa034371ab28313a5aa67008b0acaddf48ecbfa77ba50469834de",
+      "sha256": "de3816e255e9f76250bdc87c81f0654bdd55831802493975228723bfe72355dc",
       "executable": false
     },
     "src/ui/monitor-editor-document.tsx": {
-      "sha256": "fd0a93426126ccdf4f6b1f4071b1004b13a9397fb64e654ec0bae6bd05e1dff8",
+      "sha256": "c8a67d8c8c143a3d5eabc08fcba76079a862bb6035adb4a8c8857f06404953dd",
       "executable": false
     },
     "src/ui/monitor-editor-path.mjs": {

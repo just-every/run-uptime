@@ -3,7 +3,7 @@ import {savedLine,failureLine,saveAsYouGo} from '../settings-save.js';
 export function updateInstalledName(data){
  const name=data.installationName;
  if(typeof name!=='string'||!name)return;
- document.documentElement.dataset.uptimeInstallationName=name;
+ const source=document.querySelector('script[data-uptime-brand-script]');if(source)source.dataset.name=name;
  for(const label of document.querySelectorAll('[data-rer-name]'))if(label.textContent!==name)label.textContent=name;
  document.title=name==='Uptime'?name:`${name} · Uptime`;
 }

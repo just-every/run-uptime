@@ -20,7 +20,7 @@ const fetchDevelopment=async(request:Request<unknown,IncomingRequestCfProperties
  if(env.UPTIME_LOCAL_REVIEW==='true'&&path==='/login')return new Response(null,{status:303,headers:{location:'/signin?returnTo=%2Fapp','cache-control':'no-store'}});
  if(env.UPTIME_LOCAL_REVIEW==='true'&&publicPath(path,true)?.kind==='development-asset'){const limited=await limitPublicRequest(env,request);if(limited)return limited;return env.ASSETS?env.ASSETS.fetch(request):new Response('Not found',{status:404})}
  if(env.UPTIME_LOCAL_REVIEW==='true'&&['/__dev/personas','/auth/dev/enter'].includes(path)){const limited=await limitPublicRequest(env,request);if(limited)return limited}
- return installationDocument(env,await developmentWorker.fetch(request,env,execution),{testSignIns:path==='/signin',localLabel:true})
+ return installationDocument(env,await developmentWorker.fetch(request,env,execution),{testSignIns:path==='/signin',localLabel:true,reactDocument:path.startsWith('/app')||path.startsWith('/docs')})
 }
 export default {...developmentWorker,fetch(request,env,execution){
  const path=new URL(request.url).pathname;

@@ -1,12 +1,16 @@
-// Read the saved name as data, including after a General settings change.
-// Router head updates and newly mounted editor headers use that same name.
+// The view signals after hydration, before installation branding touches the
+// static markup. Later editor/header mounts and router titles use the same name.
 (()=>{
+ let observer;
  const update=()=>{
-  const name=document.documentElement.dataset.uptimeInstallationName;
+  const name=document.querySelector('script[data-uptime-brand-script]')?.dataset.name;
   if(!name)return;
   const title=name==='Uptime'?name:`${name} · Uptime`;
   if(document.title!==title)document.title=title;
   for(const label of document.querySelectorAll('[data-rer-name]'))if(label.textContent!==name)label.textContent=name;
  };
- update();new MutationObserver(update).observe(document,{childList:true,subtree:true,characterData:true});
+ document.addEventListener('uptime:brand-ready',()=>{
+  if(!observer){observer=new MutationObserver(update);observer.observe(document,{childList:true,subtree:true,characterData:true})}
+  update();
+ });
 })();
