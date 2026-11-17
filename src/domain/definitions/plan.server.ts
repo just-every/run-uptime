@@ -11,7 +11,7 @@ import {followedMappingOf,followedPart} from '../service-catalog/match.mjs'
 import type {Mapping,SourceEntry} from './importers/index.ts'
 
 export type Action='create'|'unchanged'|'change'|'refused'|'unsupported'
-export type SourceReport={sourceKind:string;sourceId:string;sourcePath?:string;companionOf?:string;schemaNotes?:string[]}
+export type SourceReport={sourceKind:string;sourceId:string;sourceProtocol?:string;sourcePath?:string;companionOf?:string;schemaNotes?:string[]}
 export type PlanEntry=Partial<SourceReport>&{index:number;label:string;action:Action;name?:string;reason?:string;monitorId?:string;revision?:number;
  /** The import door's expected target revision for a change: the import's own revision, or the native one. */
  expectedRevision?:string;changes?:{field:string;from:unknown;to:unknown}[];differences:string[];definition?:any}
@@ -160,7 +160,9 @@ export function fieldReport(documents:unknown[],entries:PlanEntry[]){
    if(typeof value==='string'&&value.includes('[withheld]')){fields.push({...base,disposition:'withheld',reason:'Secret or executable payload withheld before upload; local review/re-entry required.'});continue}
    if(owner){
     if(['refused','unsupported'].includes(owner.action)){fields.push({...base,disposition:owner.action,reason:owner.reason??'This source record has no imported target.'});continue}
-    const relative=fullPath.slice(owner.sourcePath!.length+1),target=FIELD_TARGETS[relative]??(/^tags\/\d+\/name$/.test(relative)?'tags':undefined)
+    const relative=fullPath.slice(owner.sourcePath!.length+1)
+    if(relative==='responsetime_threshold'&&owner.sourceProtocol!=='http'){fields.push({...base,disposition:'unsupported',reason:'Pingdom response-time down thresholds are not converted for this protocol. Review a native latency-failure policy before enabling.'});continue}
+    const target=FIELD_TARGETS[relative]??(/^tags\/\d+\/name$/.test(relative)?'tags':undefined)
     if(target){const lossy=['status','sendnotificationwhendown','responsetime_threshold','type/http/verify_certificate','type/http/ssl_down_days_before','type/smtp/encryption','type/dns/expectedip','type/dns/nameserver'].includes(relative)
      fields.push({...base,disposition:lossy?'lossy':'mapped',target,reason:lossy?`Reviewed adapter difference: ${target}. Source semantics are not claimed equivalent.`:`Mapped to ${target}.`});continue}
    }

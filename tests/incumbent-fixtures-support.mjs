@@ -34,7 +34,7 @@ export async function proveIncumbentCaptures({origin,cookie,DB,directory}){
  const product=()=>tables(true);
  const noEffects=async(label,run)=>{const before=await product(),result=await run();assert.deepEqual(await product(),before,label+' changes no product rows');return result};
  const noSecrets=async()=>{const stored=await tables(),texts=[JSON.stringify(stored)];for(const rows of Object.values(stored))for(const row of rows)for(const [key,value] of Object.entries(row))if(key==='base64'&&typeof value==='string')texts.push(Buffer.from(value,'base64').toString('utf8'));assert.ok(!texts.some(text=>/SYNTHETIC_(?:SOURCE|LOCAL)_/.test(text)),'source secret sentinels never persist in any application table or decoded upload, custody included')};
- const checked=async path=>{const document=await json(path),result=await noEffects(path,()=>door.preview(document));assert.equal(result.status,200,path+': '+JSON.stringify(result.body));exhaustive(document,result.body);assert.ok(!/SYNTHETIC_(?:SOURCE|LOCAL)_/.test(JSON.stringify(result.body)));return result.body};
+ const checked=async(path,supplied)=>{const document=supplied??await json(path),result=await noEffects(path,()=>door.preview(document));assert.equal(result.status,200,path+': '+JSON.stringify(result.body));exhaustive(document,result.body);assert.ok(!/SYNTHETIC_(?:SOURCE|LOCAL)_/.test(JSON.stringify(result.body)));return result.body};
  // Representative native responses, schema alternatives and inert package proposals all use the same real door.
  const aws=await checked('aws/capture.json');assert.equal(aws.counts.create+aws.counts.change,0);assert.ok(aws.counts.unsupported>0);
  const pageSpeed=await checked('pagespeed/capture.json');assert.equal(pageSpeed.counts.unsupported,1);
@@ -43,6 +43,8 @@ export async function proveIncumbentCaptures({origin,cookie,DB,directory}){
  for(const path of ['negative/truncated.json','negative/invalid-utf8.json','negative/wrong-envelope.json','negative/malformed-number.json','negative/malformed-date.json','negative/offset-gap.json','negative/offset-wrong-number.json','negative/repeated-token.json','negative/unmatched-tms-id.json','negative/deep-nesting.json','negative/prototype-keys.json','negative/501-monitors.json','negative/expanded-companion-bound.json','negative/oversized-text.json','negative/duplicate-id-conflict.json']){
   const bytes=await readFile(join(base,path)),result=await noEffects(path,()=>door.preview(bytes));assert.ok(result.status>=400,path+' is refused before product effects');
  }
+ const nonHttp=await json('pingdom/capture.json');nonHttp.records=[nonHttp.records.find(row=>row.kind==='check-detail'&&row.response.check.type.tcp&&!row.response.check.type.tcp.stringtosend)];nonHttp.records[0].response.check.responsetime_threshold=5000;
+ const tcpReport=await checked('non-HTTP threshold',nonHttp);assert.equal(tcpReport.entries[0].target.type,'tcp');assert.equal(tcpReport.fieldReport.fields.find(row=>row.path.endsWith('/responsetime_threshold')).disposition,'unsupported','a dropped common threshold is never reported as a Slow mapping on TCP');
  const document=await json('pingdom/capture.json'),plan=await checked('pingdom/capture.json');
  assert.equal(plan.fieldReport.counts.sourceChecks,69,'65 uptime checks plus four TMS checks, deduplicating list/detail appearances');
  assert.equal(plan.fieldReport.counts.tlsCompanions,8,'TLS companions are counted separately from source checks');

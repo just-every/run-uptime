@@ -69,7 +69,7 @@ export function lineEntries(source:Source,value:Json,line:number):(PlanItem&{sou
    const content=JSON.stringify(canonical(row.value))
    if(seen.has(sourceId)){if(seen.get(sourceId)!==content)throw new DefinitionFileError('Capture has conflicting content for one source identity.');continue}
    seen.set(sourceId,content)
-   const report={sourceKind:row.kind,sourcePath:row.path,sourceId}
+   const report={sourceKind:row.kind,sourcePath:row.path,sourceId,...(row.kind==='check-detail'?{sourceProtocol:Object.keys(row.value.type)[0]}:{})}
    if(row.kind==='check-detail'){
     const mapped=importer.entries(JSON.stringify({check:row.value}))
     for(const entry of mapped){
@@ -101,7 +101,7 @@ export function lineEntries(source:Source,value:Json,line:number):(PlanItem&{sou
  return importer.entries(text).map(entry=>{
   const missing=importer===pingdomImporter&&entry.value.id===undefined
   const id=missing?'missing:'+sha256(JSON.stringify(canonical(entry.value))):sourceId(entry.value,line,entry.index,importer===nativeImporter),mapping=missing?{refused:'Pingdom details require a stable source id. For a TMS response without id, use a capture with its request/list sourceId.'}:importer.map(entry)
-  return {...entry,mapping,sourceId:id,report:{sourceKind:'legacy',sourcePath:location(entry),sourceId:id,...(entry.value.certificateSource?{companionOf:id.replace(/:tls$/,'')}:{})}}
+  return {...entry,mapping,sourceId:id,report:{sourceKind:'legacy',sourcePath:location(entry),sourceId:id,...(importer===pingdomImporter?{sourceProtocol:typeof entry.value.type==='string'?entry.value.type:Object.keys(entry.value.type??{})[0]}:{}),...(entry.value.certificateSource?{companionOf:id.replace(/:tls$/,'')}:{})}}
  })
 }
 export function historyRecord(value:Json){
