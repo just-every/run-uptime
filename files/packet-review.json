@@ -5,8 +5,8 @@
   "files": [
     {
       "file": "REPORT.md",
-      "bytes": 5159,
-      "sha256": "b02d7eb594a12228d931375062bfdeeebc5ee481908a0668897f23326879348f"
+      "bytes": 3929,
+      "sha256": "7ff986da57d11e2ff472c6e2fabfecade9172840145f9cb7689ca0c123ae1946"
     },
     {
       "file": "before-receipt.json",
@@ -80,8 +80,8 @@
     },
     {
       "file": "ci-status.json",
-      "bytes": 415,
-      "sha256": "d46fe2301ee84a5506356008fd4f9799295c226cbfc3d75ae57d6309c35c21b0"
+      "bytes": 297,
+      "sha256": "a20f04b0f39d62f1f58e3e409a117775ddbbb623b6583208576a8914d4ad7088"
     },
     {
       "file": "before-alerts-1440.png",
