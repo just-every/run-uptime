@@ -1,0 +1,87 @@
+{
+  "head": "a1f7d72e3a73c9643aab92b3c9166046fb38038d",
+  "branch": "cloud/sd-uptime-member-1",
+  "base": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "at": "2026-11-17T13:04:42.404079+00:00",
+  "checks": [
+    {
+      "command": "npx -y @runeditrun/rer build",
+      "result": "passed",
+      "note": "Through cloud_run; owned dev PID stopped first."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "node --test --test-name-pattern='owner configures' tests/alert-routes.mjs",
+      "result": "passed",
+      "tests": 1,
+      "failures": 0,
+      "duration_ms": 41615.730808
+    },
+    {
+      "command": "pnpm spec:check",
+      "result": "passed"
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "result": "passed",
+      "note": "Last source change."
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "passed"
+    },
+    {
+      "command": "git log origin/main..HEAD --format=\"%an <%ae>%n%cn <%ce>%n%(trailers:only,unfold)\"",
+      "result": "passed",
+      "note": "Both candidate commits, including all parents, have the fleet author/committer and no trailers."
+    }
+  ],
+  "counts": {
+    "touchedFileTestRegistrationsBefore": 2,
+    "touchedFileTestRegistrationsAfter": 2,
+    "configuredCIJourneysBefore": 47,
+    "configuredCIJourneysAfter": 47,
+    "contractClauseChanges": 0
+  },
+  "scope": {
+    "releaseMetadataChanged": false,
+    "rerPinChanged": false,
+    "baseRefreshRun": false,
+    "mainPushed": false,
+    "PRCreated": false,
+    "productFiles": [
+      "docs/access.md",
+      "public/app.js",
+      "public/assets/alert-teams.js",
+      "public/sections.css",
+      "public/settings-alerts.js",
+      "public/settings-backup.js",
+      "public/settings-integrations.js",
+      "public/settings-view.js",
+      "sources.lock.json",
+      "src/server.ts",
+      "src/ui/console.html",
+      "tests/alert-routes.mjs",
+      "tests/member-settings-browser-support.mjs"
+    ]
+  },
+  "publicationScan": {
+    "cloud": "not run; fleet adaptation reserves publication scan and landing to the Mac",
+    "gate": "still required by the fleet before landing"
+  },
+  "administratorExport": {
+    "download": "passed",
+    "savedMonitorPresent": true
+  }
+}

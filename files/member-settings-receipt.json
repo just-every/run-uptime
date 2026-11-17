@@ -1,0 +1,42 @@
+{
+  "assertionWidth": 1440,
+  "roles": [
+    {
+      "role": "responder",
+      "nameShown": true,
+      "roleShown": true,
+      "ownConsentPersists": true,
+      "foreignConsentRefused": true,
+      "pageErrors": [],
+      "automaticForbiddenRequests": []
+    },
+    {
+      "role": "editor",
+      "nameShown": true,
+      "roleShown": true,
+      "ownConsentPersists": true,
+      "foreignConsentRefused": true,
+      "pageErrors": [],
+      "automaticForbiddenRequests": []
+    },
+    {
+      "role": "read-only",
+      "nameShown": true,
+      "roleShown": true,
+      "ownConsentPersists": true,
+      "foreignConsentRefused": true,
+      "pageErrors": [],
+      "automaticForbiddenRequests": []
+    },
+    {
+      "role": "admin",
+      "nameShown": true,
+      "roleShown": true,
+      "ownConsentPersists": true,
+      "foreignConsentRefused": true,
+      "pageErrors": [],
+      "automaticForbiddenRequests": []
+    }
+  ],
+  "externalNetwork": false
+}

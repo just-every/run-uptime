@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-17T13:04:13.709924+00:00",
+  "githubCalls": 2,
+  "runs": [
+    {
+      "id": 44089026197,
+      "name": "Verify",
+      "event": "push",
+      "status": "pending",
+      "conclusion": null,
+      "head_sha": "a1f7d72e3a73c9643aab92b3c9166046fb38038d",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44089026197",
+      "created_at": "2026-11-17T13:04:00Z"
+    }
+  ]
+}

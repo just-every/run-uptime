@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-17T13:09:15Z",
+  "githubCalls": 3,
+  "command": "gh api repos/just-every/run-uptime/actions/runs/44089026197 --jq '{status,conclusion,head_sha,html_url}'",
+  "exit": 1,
+  "httpStatus": "unknown; original wrapper did not retain stderr",
+  "result": "no CI status observed",
+  "recovery": "launcher refresh followed by fleet Git setup; next status read no earlier than 13:14:15Z",
+  "recoveryResult": {
+    "at": "2026-11-17T13:14:16.793055+00:00",
+    "githubCall": 4,
+    "statusRead": "success",
+    "workflowStatus": "in_progress",
+    "head": "a1f7d72e3a73c9643aab92b3c9166046fb38038d"
+  }
+}

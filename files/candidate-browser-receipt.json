@@ -1,0 +1,22 @@
+{
+  "head": "a1f7d72e3a73c9643aab92b3c9166046fb38038d",
+  "branch": "cloud/sd-uptime-member-1",
+  "cleanCheckout": true,
+  "build": "rer build",
+  "sources": {
+    "public/app.js": "8b933e3ba19e53d1986749449382803a1512495a90ce33f33644b2301ceb2503",
+    "public/settings-alerts.js": "4c01544eb73b3f5eed03f7d7ca912637cf8e042c5e1db9455f88498f3338bc91",
+    "public/settings-integrations.js": "8d19217ab96f4bec02835cc708100f27633993880b80850d54ecf2de76a45455",
+    "public/settings-backup.js": "2c2f650de4b86ea1b5a01a5806457b28f20307aae7b26f77ac5500dd45794a85",
+    "public/settings-view.js": "6c53c6c0ce56acac580cd0f7b3a829afff712248efe1ccd9c91761fd78ccaf20",
+    "public/assets/alert-teams.js": "278db339acad2b59833c452274ff48a920a61e35aedd514a7bee93866c617a7d",
+    "public/sections.css": "9011382bc92d3fb2453aa81bca4293ef26dac5f251874d34d09757f441e81577"
+  },
+  "assertionWidth": 1440,
+  "proofWidths": [
+    1440,
+    390
+  ],
+  "result": "passed",
+  "externalNetwork": false
+}

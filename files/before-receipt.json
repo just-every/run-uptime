@@ -1,0 +1,44 @@
+{
+  "source": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "screens": [
+    {
+      "area": "alerts",
+      "width": 1440,
+      "body": "SETTINGS\n\nAlerts\nAdd destination"
+    },
+    {
+      "area": "integrations",
+      "width": 1440,
+      "body": "SETTINGS\n\nIntegrations\nMetrics keys\nCreate key\nNo metrics keys yet.\n\nFor Prometheus or another metrics reader. Metrics guide\n\nProduct permission required\n\nBusiness imports\n\nAllow owner-approved imports from Business\nGrant signing keys\n\nBusiness import settings could not be read: Product permission required"
+    },
+    {
+      "area": "backup",
+      "width": 1440,
+      "body": "SETTINGS\n\nBackup and files\nBackup\nDownload backup\nRestore a backup\n\nCould not check whether this installation is empty: Product permission required\n\nRestoring an older backup\nMonitor files\nImport\n\nChoose saved JSON or an UptimeRobot event-log CSV, up to 2 MiB. Pasting the file uses the same preview.\n\nAccepted files and export steps\nA file from UptimeRobot, Pingdom, Better Stack, Site24x7 or Uptime\nPaste it instead\nPreview\nExport\nExport monitors\nPast imports\n\nPast imports could not be refreshed. Reload this page to try again."
+    },
+    {
+      "area": "alerts",
+      "width": 390,
+      "body": "SETTINGS\n\nAlerts\nAdd destination"
+    },
+    {
+      "area": "integrations",
+      "width": 390,
+      "body": "SETTINGS\n\nIntegrations\nMetrics keys\nCreate key\nNo metrics keys yet.\n\nFor Prometheus or another metrics reader. Metrics guide\n\nProduct permission required\n\nBusiness imports\n\nAllow owner-approved imports from Business\nGrant signing keys\n\nBusiness import settings could not be read: Product permission required"
+    },
+    {
+      "area": "backup",
+      "width": 390,
+      "body": "SETTINGS\n\nBackup and files\nBackup\nDownload backup\nRestore a backup\n\nCould not check whether this installation is empty: Product permission required\n\nRestoring an older backup\nMonitor files\nImport\n\nChoose saved JSON or an UptimeRobot event-log CSV, up to 2 MiB. Pasting the file uses the same preview.\n\nAccepted files and export steps\nA file from UptimeRobot, Pingdom, Better Stack, Site24x7 or Uptime\nPaste it instead\nPreview\nExport\nExport monitors\nPast imports\n\nPast imports could not be refreshed. Reload this page to try again."
+    }
+  ],
+  "errors": [
+    "Cannot read properties of undefined (reading 'deliveries')",
+    "Cannot read properties of undefined (reading 'deliveries')",
+    "Cannot read properties of undefined (reading 'deliveries')",
+    "Cannot read properties of undefined (reading 'deliveries')"
+  ],
+  "invitedRole": "responder",
+  "contactCreated": true,
+  "network": "Local built Worker, native invitation/confirmation; mail provider edge fake"
+}

@@ -1,0 +1,16 @@
+{
+  "base": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "head": "a1f7d72e3a73c9643aab92b3c9166046fb38038d",
+  "candidateCommits": 2,
+  "mergeCommits": 0,
+  "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "trailers": [],
+  "touchedTestRegistrations": {
+    "before": 2,
+    "after": 2
+  },
+  "publicModulesMatchBuild": true,
+  "priorPublishedHead": "c026fadd26ce622c4d5b2ee71533b72d84c26013",
+  "historyRewritten": false
+}

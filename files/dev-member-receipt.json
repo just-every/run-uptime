@@ -1,0 +1,22 @@
+{
+  "command": "rer dev --as synthetic-uptime-dev-responder@example.test",
+  "nativeInvitation": true,
+  "role": "responder",
+  "widths": [
+    1440,
+    390
+  ],
+  "screens": [
+    "monitors",
+    "alerts",
+    "general",
+    "people",
+    "integrations",
+    "backup"
+  ],
+  "optInSavedAndReloaded": true,
+  "errors": [],
+  "denials": [],
+  "identity": "Signed in as Synthetic Responder (Responder)",
+  "source": "Working tree implementing the Responder fix, before the first product commit; final committed built-page proof is recorded separately."
+}
