@@ -99,7 +99,7 @@ function previewMarkup(preview){
  if(preview.kind==='history')return countsMarkup(preview);
  const c=preview.counts,applying=!preview.applied&&(c.create+c.change);
  return `${countsMarkup(preview)}${fieldReportMarkup(preview.fieldReport)}<p><button id="definition-apply" class="primary"${applying?'':' disabled'}>${icon('check')}${preview.applied?'Applied':'Apply'}: create ${c.create}, change ${c.change}</button></p>
- <div class="table-scroll" tabindex="0" role="region" aria-label="Preview entries"><table class="ui-table ui-table--stack-md" aria-label="Preview entries"><thead><tr><th scope="col">Action</th><th scope="col">Monitor</th><th scope="col">Details</th></tr></thead><tbody>${preview.entries.slice(0,100).map(rowMarkup).join('')}</tbody></table></div>${preview.entries.length>100?`<p>${preview.entries.length-100} additional source rows are accounted for in the field report download.</p>`:''}`;
+ <div class="table-scroll" tabindex="0" role="region" aria-label="Preview entries"><table class="ui-table ui-table--stack-md" aria-label="Preview entries"><thead><tr><th scope="col">Action</th><th scope="col">Monitor</th><th scope="col">Details</th></tr></thead><tbody>${(preview.fieldReport?preview.entries.slice(0,100):preview.entries).map(rowMarkup).join('')}</tbody></table></div>${preview.fieldReport&&preview.entries.length>100?`<p>${preview.entries.length-100} additional source rows are accounted for in the field report download.</p>`:''}`;
 }
 // One row per past import: its source, then one quiet line (what it did, when, where it stands), its monitors one click away
 // and Undo. An import just applied or undone opens its monitors, so what happened to each is in view.
