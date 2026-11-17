@@ -16,7 +16,7 @@ async function audit(page, label, evidence, width) {
  const result = await page.evaluate(() => axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] } }));
  const severe = result.violations.filter(v => ['serious', 'critical'].includes(v.impact)).map(v => v.id);
  if (evidence) {
-  await page.screenshot({ path: join(evidence, `${label}-${width}.png`), fullPage: true });
+  await page.screenshot({ path: join(evidence, `${label}-${width}.png`), fullPage: !label.startsWith('guide-') });
   await writeFile(join(evidence, `${label}-${width}-axe.json`), JSON.stringify({ severe, violations: result.violations.map(v => ({ id: v.id, impact: v.impact })) }, null, 2));
  }
  assert.deepEqual(severe, [], `${label} at ${width}px has no serious or critical axe violations`);
@@ -88,7 +88,7 @@ export async function incumbentReportJourney(page,origin){
  await page.getByRole('button',{name:'Preview',exact:true}).click();await page.locator('#action-notice').filter({hasText:/JSON/i}).waitFor();assert.ok(await report.isVisible());for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await audit(page,'incumbent-input-error',evidence,width)};
  await page.reload();await page.locator('.definition-batches > li').first().getByRole('button',{name:/^Undo/}).click();await page.getByRole('dialog').getByRole('button',{name:'Undo import',exact:true}).click();await page.locator('#action-notice').filter({hasText:/^Batch undone/}).waitFor();
  for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await audit(page,'incumbent-undone',evidence,width)}
- for(const path of ['definitions','migrating-pingdom'])for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.goto(origin+'/docs/'+path);await page.locator('main h1').waitFor();await audit(page,'guide-'+path,evidence,width)}
+ for(const path of ['definitions','migrating-pingdom'])for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.goto(origin+'/docs/'+path);await page.locator('main h1').waitFor();await audit(page,'guide-'+path,evidence,width);if(path==='definitions'){await page.getByRole('heading',{name:'Pingdom saved check details',exact:true}).scrollIntoViewIfNeeded();await audit(page,'guide-pingdom-fields',evidence,width)}}
 }
 
 // A focused executable for this import screen; the command journey also calls the same flow.
