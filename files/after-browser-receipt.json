@@ -1,0 +1,147 @@
+{
+  "mode": "after",
+  "candidateHead": "701fa86628060e8057ec43a8366af3013b2581d8",
+  "started": "2026-11-17T13:57:24.283Z",
+  "screens": [
+    {
+      "phase": "stopped",
+      "screen": "monitors",
+      "width": 1440,
+      "file": "after-stopped-monitors-1440.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nMonitors\nNew monitor\n\n3 monitors · 3 unknown · from Brisbane · Add a location\n\nSearch monitors\nFilter\n\nSelect\nMain website\nUnknown\n\nrunner-target.test/health\n · from Brisbane · checked 2m ago\n\nBrisbane (this computer) has stopped checking. Current health is unknown. In Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\n\nLast 24 hours:\n100% of past checks\n\nSelect\nCustomer portal\nUnknown\n\nrunner-target.test/health\n · from Brisbane · checked 2m ago\n\nBrisbane (this computer) has stopped checking. Current health is unknown. In Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\n\nLast 24 hours:\n100% of past checks\n\nSelect\nHelp center\nUnknown\n\nrunner-target.test/health\n · from Brisbane · checked 2m ago\n\nBrisbane (this computer) has stopped checking. Current health is unknown. In Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\n\nLast 24 hours:\n100% of past checks",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "monitor",
+      "width": 1440,
+      "file": "after-stopped-monitor-1440.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nBack to\nMonitors\nMain website\nUnknown\n\nhttps://runner-target.test/health\n\nHTTP check · every 5 seconds\n\nRun now\nEdit\nPause\n\nNo location is checking this monitor. Open Locations to restart its checker.\n\nBrisbane (this computer) has stopped checking. Current health is unknown.\n\nIn Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\nLocations\n\nUp or down\n+\nLocation\ns to check from\nRule\nBrisbane\n2m ago\nStatus is\n200\n, change\n200\n+\nAdd a rule\nDOWN WHEN\n1\nfailed check\n, change\n · fails from Brisbane while canary.runner-target.test still loads there\nBACK UP AFTER\n1\npassing check\n, change\nRecent checks\n+15\n\n1:57 PM\n1:58 PM\n\n1:58 PM\nOverdue\n15 checks\n1:57 PM\nPassed\n0 ms\nAll checks\nAlerts\n:\nExample Operations\nIncidents\n:\nNone in 30 days\nReports\nFailure snapshots\nSlow-response notices\n:\nOff\nPlanned maintenance\n:\nNone planned\nFull check details",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "locations",
+      "width": 1440,
+      "file": "after-stopped-locations-1440.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nLocations\nAdd location\nLocation\tLast seen\tMonitors\t\nActions\n\nBrisbaneThis computer\tStopped checking\n\nIn Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker. Last seen 2m ago.\n\n\t3\tRename\nBrisbane\nRemove\nBrisbane",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "alerts",
+      "width": 1440,
+      "file": "after-stopped-alerts-1440.png",
+      "text": "Uptime\nMonitors\n\nSETTINGS\n\nAlerts\nGeneral\nPeople\nIntegrations\nBackup and files\nSign out\n\nSETTINGS\n\nAlerts\nAdd destination\n\nThe checker is not reporting. Uptime can still send checker warnings while the app is running.\n\nDestinations\nExample Operations\nEmail · operator@example.test · sent 3s ago\nSend test\nEdit\nWho is told by default\n\nAll enabled destinations\nOnly these\nRoot-cause categories\n\nHosting provider\nDeployment or code change\nDNS\nTLS certificate\nThird-party dependency\nNetwork\nConfiguration\nCapacity\nPlanned work\nMonitor or check issue\nUnknown\n+ Add category\nAlert teams\n\nA route can tell a team. Each member is told only at their own verified email contact, after they opt in below.\n\nNo teams yet.\nAdd team\nYour alert email\nTell me at Example Operations when a team I belong to is routed an alert\n\nYou are not in a team yet.\n\nSent alerts\nChecks stopped: Brisbane (this computer)\n1:59 PM · Example Operations\nAccepted\nScheduled reports\nNotification guide",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "monitors",
+      "width": 390,
+      "file": "after-stopped-monitors-390.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nMonitors\nNew monitor\n\n3 monitors · 3 unknown · from Brisbane · Add a location\n\nSearch monitors\nFilter\n\nSelect\nMain website\nUnknown\n\nrunner-target.test/health\n · checked 2m ago\n\nBrisbane (this computer) has stopped checking. Current health is unknown. In Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\n\nLast 24 hours:\n100% of past checks\n\nSelect\nCustomer portal\nUnknown\n\nrunner-target.test/health\n · checked 2m ago\n\nBrisbane (this computer) has stopped checking. Current health is unknown. In Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\n\nLast 24 hours:\n100% of past checks\n\nSelect\nHelp center\nUnknown\n\nrunner-target.test/health\n · checked 2m ago\n\nBrisbane (this computer) has stopped checking. Current health is unknown. In Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\n\nLast 24 hours:\n100% of past checks",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "monitor",
+      "width": 390,
+      "file": "after-stopped-monitor-390.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nBack to\nMonitors\nMain website\nUnknown\n\nhttps://runner-target.test/health\n\nHTTP check · every 5 seconds\n\nRun now\nEdit\nPause\n\nBrisbane (this computer) has stopped checking. Current health is unknown.\n\nIn Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\nLocations\n\nUp or down\n+\nLocation\ns to check from\nRule\nBrisbane\n2m ago\nStatus is\n200\n, change\n200\n+\nAdd a rule\nDOWN WHEN\n1\nfailed check\n, change\n · fails from Brisbane while canary.runner-target.test still loads there\nBACK UP AFTER\n1\npassing check\n, change\nRecent checks\n+15\n\n1:57 PM\n1:58 PM\n\n1:58 PM\nOverdue\n15 checks\n1:57 PM\nPassed\n0 ms\nAll checks\nAlerts\n:\nExample Operations\nIncidents\n:\nNone in 30 days\nReports\nFailure snapshots\nSlow-response notices\n:\nOff\nPlanned maintenance\n:\nNone planned\nFull check details",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "locations",
+      "width": 390,
+      "file": "after-stopped-locations-390.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nLocations\nAdd location\nLocation\nLast seen\nMonitors\nActions\nBrisbaneThis computer\nStopped checking\n\nIn Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker. Last seen 2m ago.\n\n3\nRename\nBrisbane\nRemove\nBrisbane",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "alerts",
+      "width": 390,
+      "file": "after-stopped-alerts-390.png",
+      "text": "Uptime\nMonitors\nAlerts\nGeneral\nPeople\nIntegrations\nBackup and files\nSign out\n\nSETTINGS\n\nAlerts\nAdd destination\n\nThe checker is not reporting. Uptime can still send checker warnings while the app is running.\n\nDestinations\nExample Operations\nEmail · operator@example.test · sent 2s ago\nSend test\nEdit\nWho is told by default\n\nAll enabled destinations\nOnly these\nRoot-cause categories\n\nHosting provider\nDeployment or code change\nDNS\nTLS certificate\nThird-party dependency\nNetwork\nConfiguration\nCapacity\nPlanned work\nMonitor or check issue\nUnknown\n+ Add category\nAlert teams\n\nA route can tell a team. Each member is told only at their own verified email contact, after they opt in below.\n\nNo teams yet.\nAdd team\nYour alert email\nTell me at Example Operations when a team I belong to is routed an alert\n\nYou are not in a team yet.\n\nSent alerts\nChecks stopped: Brisbane (this computer)\n1:59 PM · Example Operations\nAccepted\nScheduled reports\nNotification guide",
+      "overflow": false
+    }
+  ],
+  "notices": [
+    {
+      "title": "Uptime second-factor security change"
+    },
+    {
+      "title": "Uptime runner contact is stale"
+    },
+    {
+      "title": "Checks stopped: Brisbane (this computer)"
+    },
+    {
+      "title": "Uptime runner contact is stale"
+    }
+  ],
+  "baselineHead": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "healthyCount": 3,
+  "stoppedPid": 11123,
+  "stopSignal": "SIGKILL",
+  "runNow": "Uptime\nMonitors\nLocations\nSettings\nSign out\nBack to\nMonitors\nMain website\nUnknown\n\nhttps://runner-target.test/health\n\nHTTP check · every 5 seconds\n\nRun now\nEdit\nPause\n\nNo location is checking this monitor. Open Locations to restart its checker.\n\nBrisbane (this computer) has stopped checking. Current health is unknown.\n\nIn Uptime’s folder, run rer dev --stop, then rer dev to restart this computer’s checker.\nLocations\n\nUp or down\n+\nLocation\ns to check from\nRule\nBrisbane\n2m ago\nStatus is\n200\n, change\n200\n+\nAdd a rule\nDOWN WHEN\n1\nfailed check\n, change\n · fails from Brisbane while canary.runner-target.test still loads there\nBACK UP AFTER\n1\npassing check\n, change\nRecent checks\n+15\n\n1:57 PM\n1:58 PM\n\n1:58 PM\nOverdue\n15 checks\n1:57 PM\nPassed\n0 ms\nAll checks\nAlerts\n:\nExample Operations\nIncidents\n:\nNone in 30 days\nReports\nFailure snapshots\nSlow-response notices\n:\nOff\nPlanned maintenance\n:\nNone planned\nFull check details",
+  "stopped": [
+    {
+      "id": "d4956267-a292-4753-8305-0eaa41431f93",
+      "state": "Healthy",
+      "targetState": "Healthy",
+      "checking": {
+        "missing": [
+          {
+            "name": "Brisbane",
+            "thisComputer": true,
+            "lastContactAt": 1794923844272
+          }
+        ],
+        "reporting": 0
+      }
+    },
+    {
+      "id": "1c09694b-d27c-43cd-be14-c80223cb03bd",
+      "state": "Healthy",
+      "targetState": "Healthy",
+      "checking": {
+        "missing": [
+          {
+            "name": "Brisbane",
+            "thisComputer": true,
+            "lastContactAt": 1794923844272
+          }
+        ],
+        "reporting": 0
+      }
+    },
+    {
+      "id": "8e728a2f-5633-42d8-93e5-99d9e04133d0",
+      "state": "Healthy",
+      "targetState": "Healthy",
+      "checking": {
+        "missing": [
+          {
+            "name": "Brisbane",
+            "thisComputer": true,
+            "lastContactAt": 1794923844272
+          }
+        ],
+        "reporting": 0
+      }
+    }
+  ],
+  "deliveries": [
+    {
+      "id": "checker-stopped:self-9c5cfb77-5684-4228-aa3d-bce234b1b480:1794923844272:0fc4884d-2348-43e0-bb1a-5263577cbb71",
+      "title": "Checks stopped: Brisbane (this computer)",
+      "state": "accepted",
+      "attempts": 1
+    }
+  ],
+  "recoveredHealthyCount": 3,
+  "finished": "2026-11-17T13:57:49.879Z"
+}

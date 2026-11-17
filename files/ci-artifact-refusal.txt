@@ -1,0 +1,2 @@
+Command: gh run download 44092928309 --repo just-every/run-uptime --name uptime-browser-suites-evidence-3b1930bd894b1b7903be7214e331f2beec1b1d25-44092928309-1 --dir /tmp/uptime-private-ci-artifact
+Observed result: exit 1; GET https://productionresultssa10.blob.core.windows.net/<artifact-path>?<REDACTED> returned HTTP 403 Forbidden. No retry of the blocked blob download was made.

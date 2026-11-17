@@ -1,0 +1,13 @@
+{
+  "candidate": "3b1930bd894b1b7903be7214e331f2beec1b1d25",
+  "ciRun": 44092928309,
+  "ciFailedJob": 134072977584,
+  "ciDiagnostic": "operator-browser.mjs:270:24 (private child assertion was absent from workflow log)",
+  "localOperatorJourney": "passed",
+  "localRecoveryJourney": "failed at recovery-browser.mjs:63:201",
+  "localMismatch": {
+    "actual": "Not checking",
+    "expected": "Waiting to join"
+  },
+  "correction": "Restore the original never-joined location state; retain stopped-checker guidance after authenticated contact is lost."
+}

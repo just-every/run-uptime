@@ -1,0 +1,14 @@
+{
+  "baseline": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "screensBefore": 8,
+  "screensAfter": 8,
+  "healthyBeforeLoss": 3,
+  "checkerWarningsBefore": 0,
+  "checkerWarningsAfter": 1,
+  "healthyAfterRestart": 3,
+  "candidateHorizontalOverflow": false,
+  "widths": [
+    390,
+    1440
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "candidateHead": "701fa86628060e8057ec43a8366af3013b2581d8",
+  "started": "2026-11-17T13:57:43.928Z",
+  "initialHealth": 200,
+  "checkerPid": 10982,
+  "stopSignal": "SIGKILL",
+  "stoppedHealth": 503,
+  "stoppedMessage": "This computer’s checker stopped. In Uptime’s folder, run rer dev --stop, then rer dev.",
+  "reentryExit": 4,
+  "emittedReady": false,
+  "finished": "2026-11-17T13:57:47.936Z"
+}

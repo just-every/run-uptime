@@ -1,0 +1,102 @@
+{
+  "mode": "before",
+  "started": "2026-11-17T13:02:36.944Z",
+  "screens": [
+    {
+      "phase": "stopped",
+      "screen": "monitors",
+      "width": 1440,
+      "file": "before-stopped-monitors-1440.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nMonitors\nNew monitor\n\n3 monitors · 3 healthy · from Brisbane · Add a location\n\nSearch monitors\nFilter\n\nSelect\nHealthy\nMain website\n\nrunner-target.test/health\n · from Brisbane · checked 25s ago\n\nLast 24 hours:\n100%\npassing\n\nSelect\nHealthy\nCustomer portal\n\nrunner-target.test/health\n · from Brisbane · checked 25s ago\n\nLast 24 hours:\n100%\npassing\n\nSelect\nHealthy\nHelp center\n\nrunner-target.test/health\n · from Brisbane · checked 25s ago\n\nLast 24 hours:\n100%\npassing",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "monitor",
+      "width": 1440,
+      "file": "before-stopped-monitor-1440.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nBack to\nMonitors\nMain website\nHealthy\n\nhttps://runner-target.test/health\n\nHTTP check · every 5 seconds\n\nRun now\nEdit\nPause\n\nCheck queued. Its result will appear in Recent checks.\n\nUp · checked from Brisbane 46s ago\n\n100% passing · since 1:02 PM\n\nUp or down\n+\nLocation\ns to check from\nRule\nBrisbane\n46s ago\nStatus is\n200\n, change\n200\n+\nAdd a rule\nDOWN WHEN\n1\nfailed check\n, change\n · fails from Brisbane while canary.runner-target.test still loads there\nBACK UP AFTER\n1\npassing check\n, change\nRecent checks\n+14\n\n1:02 PM\n1:04 PM\n\n1:04:36 PM\nQueued\n1:04:05 PM\nOverdue\n14 checks\n1:02:36 PM\nPassed\n0 ms\nAll checks\nAlerts\n:\nExample Operations\nIncidents\n:\nNone in 30 days\nReports\nFailure snapshots\nSlow-response notices\n:\nOff\nPlanned maintenance\n:\nNone planned\nFull check details",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "locations",
+      "width": 1440,
+      "file": "before-stopped-locations-1440.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nLocations\nAdd location\nLocation\tLast seen\tMonitors\t\nActions\n\nBrisbaneThis computer\t48s ago\t3\tRename\nBrisbane\nRemove\nBrisbane",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "alerts",
+      "width": 1440,
+      "file": "before-stopped-alerts-1440.png",
+      "text": "Uptime\nMonitors\n\nSETTINGS\n\nAlerts\nGeneral\nPeople\nIntegrations\nBackup and files\nSign out\n\nSETTINGS\n\nAlerts\nAdd destination\n\nSending is waiting for your server to connect.\n\nDestinations\nExample Operations\nEmail · operator@example.test · nothing sent yet\nSend test\nEdit\nWho is told by default\n\nAll enabled destinations\nOnly these\nRoot-cause categories\n\nHosting provider\nDeployment or code change\nDNS\nTLS certificate\nThird-party dependency\nNetwork\nConfiguration\nCapacity\nPlanned work\nMonitor or check issue\nUnknown\n+ Add category\nAlert teams\n\nA route can tell a team. Each member is told only at their own verified email contact, after they opt in below.\n\nNo teams yet.\nAdd team\nYour alert email\nTell me at Example Operations when a team I belong to is routed an alert\n\nYou are not in a team yet.\n\nSent alerts\n\nNo alerts sent yet.\n\nScheduled reports\nNotification guide",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "monitors",
+      "width": 390,
+      "file": "before-stopped-monitors-390.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nMonitors\nNew monitor\n\n3 monitors · 3 healthy · from Brisbane · Add a location\n\nSearch monitors\nFilter\n\nSelect\nHealthy\nMain website\n\nrunner-target.test/health\n · checked 53s ago\n\nLast 24 hours:\n100%\npassing\n\nSelect\nHealthy\nCustomer portal\n\nrunner-target.test/health\n · checked 53s ago\n\nLast 24 hours:\n100%\npassing\n\nSelect\nHealthy\nHelp center\n\nrunner-target.test/health\n · checked 53s ago\n\nLast 24 hours:\n100%\npassing",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "monitor",
+      "width": 390,
+      "file": "before-stopped-monitor-390.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nBack to\nMonitors\nMain website\nHealthy\n\nhttps://runner-target.test/health\n\nHTTP check · every 5 seconds\n\nRun now\nEdit\nPause\n\nUp · checked from Brisbane 54s ago\n\n100% passing · since 1:02 PM\n\nUp or down\n+\nLocation\ns to check from\nRule\nBrisbane\n54s ago\nStatus is\n200\n, change\n200\n+\nAdd a rule\nDOWN WHEN\n1\nfailed check\n, change\n · fails from Brisbane while canary.runner-target.test still loads there\nBACK UP AFTER\n1\npassing check\n, change\nRecent checks\n+14\n\n1:02 PM\n1:04 PM\n\n1:04:36 PM\nQueued\n1:04:05 PM\nOverdue\n14 checks\n1:02:36 PM\nPassed\n0 ms\nAll checks\nAlerts\n:\nExample Operations\nIncidents\n:\nNone in 30 days\nReports\nFailure snapshots\nSlow-response notices\n:\nOff\nPlanned maintenance\n:\nNone planned\nFull check details",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "locations",
+      "width": 390,
+      "file": "before-stopped-locations-390.png",
+      "text": "Uptime\nMonitors\nLocations\nSettings\nSign out\nLocations\nAdd location\nLocation\nLast seen\nMonitors\nActions\nBrisbaneThis computer\n55s ago\n3\nRename\nBrisbane\nRemove\nBrisbane",
+      "overflow": false
+    },
+    {
+      "phase": "stopped",
+      "screen": "alerts",
+      "width": 390,
+      "file": "before-stopped-alerts-390.png",
+      "text": "Uptime\nMonitors\nAlerts\nGeneral\nPeople\nIntegrations\nBackup and files\nSign out\n\nSETTINGS\n\nAlerts\nAdd destination\n\nSending is waiting for your server to connect.\n\nDestinations\nExample Operations\nEmail · operator@example.test · nothing sent yet\nSend test\nEdit\nWho is told by default\n\nAll enabled destinations\nOnly these\nRoot-cause categories\n\nHosting provider\nDeployment or code change\nDNS\nTLS certificate\nThird-party dependency\nNetwork\nConfiguration\nCapacity\nPlanned work\nMonitor or check issue\nUnknown\n+ Add category\nAlert teams\n\nA route can tell a team. Each member is told only at their own verified email contact, after they opt in below.\n\nNo teams yet.\nAdd team\nYour alert email\nTell me at Example Operations when a team I belong to is routed an alert\n\nYou are not in a team yet.\n\nSent alerts\n\nNo alerts sent yet.\n\nScheduled reports\nNotification guide",
+      "overflow": false
+    }
+  ],
+  "notices": [
+    {
+      "title": "Uptime second-factor security change"
+    },
+    {
+      "title": "Uptime runner contact is stale"
+    }
+  ],
+  "baselineHead": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "healthyCount": 3,
+  "stoppedPid": 3129,
+  "stopSignal": "SIGKILL",
+  "runNow": "Uptime\nMonitors\nLocations\nSettings\nSign out\nBack to\nMonitors\nMain website\nHealthy\n\nhttps://runner-target.test/health\n\nHTTP check · every 5 seconds\n\nRun now\nEdit\nPause\n\nCheck queued. Its result will appear in Recent checks.\n\nUp · checked from Brisbane 46s ago\n\n100% passing · since 1:02 PM\n\nUp or down\n+\nLocation\ns to check from\nRule\nBrisbane\n46s ago\nStatus is\n200\n, change\n200\n+\nAdd a rule\nDOWN WHEN\n1\nfailed check\n, change\n · fails from Brisbane while canary.runner-target.test still loads there\nBACK UP AFTER\n1\npassing check\n, change\nRecent checks\n+14\n\n1:02 PM\n1:04 PM\n\n1:04:36 PM\nQueued\n1:04:05 PM\nOverdue\n14 checks\n1:02:36 PM\nPassed\n0 ms\nAll checks\nAlerts\n:\nExample Operations\nIncidents\n:\nNone in 30 days\nReports\nFailure snapshots\nSlow-response notices\n:\nOff\nPlanned maintenance\n:\nNone planned\nFull check details",
+  "stopped": [
+    {
+      "id": "2db6f949-6690-43d1-93f5-44e16653129c",
+      "state": "Healthy",
+      "targetState": "Healthy"
+    },
+    {
+      "id": "3a6762d8-f823-44e4-bd5c-2dab0e740f79",
+      "state": "Healthy",
+      "targetState": "Healthy"
+    },
+    {
+      "id": "f5831a8b-9cc2-4ea6-8c75-548e96bd1993",
+      "state": "Healthy",
+      "targetState": "Healthy"
+    }
+  ],
+  "deliveries": [],
+  "finished": "2026-11-17T13:03:34.236Z"
+}

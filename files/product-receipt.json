@@ -1,0 +1,43 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-checker-1",
+  "head": "701fa86628060e8057ec43a8366af3013b2581d8",
+  "tree": "a4ce50b0d23a6ff86b1e8f774e238def5cc38d73",
+  "base": "6fd9399cf9ce9acf4e009999581cc20f32c9e129",
+  "productPush": "success",
+  "productPushAttempt": 1,
+  "author": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "committer": "Run Edit Run fleet <fleet@runeditrun.com>",
+  "trailers": [],
+  "worktreeClean": true,
+  "checks": {
+    "typecheck": 0,
+    "build": 0,
+    "specCheck": 0,
+    "sourceLockCheck": 0,
+    "resilienceWatches": 0,
+    "signedRunner": 0,
+    "accessMatrix": 0,
+    "browser1440": 0,
+    "browser390": 0,
+    "browserSuites": 0
+  },
+  "contractChanges": [],
+  "releaseMetadataChanges": [],
+  "testRegistrationsAdded": 0,
+  "testRegistrationsRemoved": 0,
+  "publicationScan": "Fleet Mac landing gate; unavailable in this cloud",
+  "ciRunId": null,
+  "ciConclusion": "pending",
+  "plan": "PLAN.md",
+  "report": "REPORT.md",
+  "remoteHeadVerified": true,
+  "remoteHead": "701fa86628060e8057ec43a8366af3013b2581d8",
+  "previousHead": "3b1930bd894b1b7903be7214e331f2beec1b1d25",
+  "previousCi": {
+    "run": 44092928309,
+    "conclusion": "failure",
+    "failedShard": 134072977584
+  },
+  "productPushCount": 2
+}

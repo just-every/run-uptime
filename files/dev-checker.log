@@ -1,0 +1,1 @@
+Dev checker proof: health 200 -> 503 immediately after owned checker SIGKILL; rer dev refused without RER_READY.

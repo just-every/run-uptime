@@ -1,0 +1,15 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+Proof: migrated; starting native owner admission
+Proof: checker started, waiting for contact
+Proof: three healthy monitors; stopping checker
+Proof screen: after stopped monitors 1440
+Proof screen: after stopped monitor 1440
+Proof screen: after stopped locations 1440
+Proof screen: after stopped alerts 1440
+Proof screen: after stopped monitors 390
+Proof screen: after stopped monitor 390
+Proof screen: after stopped locations 390
+Proof screen: after stopped alerts 390
+after browser walk complete: 3 initially healthy monitors; checker killed; 8 screens; 1 deliveries
