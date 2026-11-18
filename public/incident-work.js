@@ -16,12 +16,12 @@ async function openIncidentWork(id,api,opener){
  dialog.addEventListener('close',()=>{dialog.remove();(opener.isConnected?opener:document.querySelector('button[data-incident-work]'))?.focus({preventScroll:true})});
  const content=dialog.querySelector('[data-incident-content]'),status=dialog.querySelector('[data-incident-status]'),error=dialog.querySelector('[data-incident-error]');
  const endpoint=`/api/incidents/${encodeURIComponent(id)}`;
- let detail,busy=false;
+ let detail,viewer,busy=false;
  const showError=problem=>{error.textContent=problem.message??String(problem);error.hidden=false;status.textContent='Changes were not saved.'};
  async function load(){
-  detail=await api(endpoint);
+  [detail,viewer]=await Promise.all([api(endpoint),viewer??api('/api/access/self')]);
   if(!dialog.isConnected)return;
-  content.innerHTML=detailMarkup(detail);status.textContent='Incident loaded.';
+  content.innerHTML=detailMarkup(detail,viewer);status.textContent='Incident loaded.';
  }
  async function mutate(path,method,body,message){
   if(busy)return;busy=true;error.hidden=true;status.textContent='Saving…';

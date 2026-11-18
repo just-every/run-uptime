@@ -1,15 +1,10 @@
 Uptime does a small set of things carefully. This page lists what it leaves out, so you can decide quickly whether it fits. Where something is not verified yet, we say so.
 
-## Checks it does not run
+## Where checks run
 
-Uptime monitors HTTP(S) endpoints, keyword text and incoming heartbeats. Its supported public feature set does not include:
+The monitor editor offers {{monitorKinds}}. Keyword checks use the HTTP form. Heartbeats and ICMP ping require a private runner. See [Monitors and evidence](/docs/monitors#where-each-check-runs) for location requirements.
 
-- DNS checks,
-- ping,
-- TCP port checks,
-- domain-expiry monitoring,
-- scripts, recorded sessions or screenshots of pages, or
-- browser checks.
+The hosted Cloudflare location cannot run browser checks. Assign [browser flows](/docs/browser-flows) and [page-speed checks](/docs/monitors#page-speed-and-real-users) to a private runner with browser support.
 
 ## Channels and workflows it does not have
 
