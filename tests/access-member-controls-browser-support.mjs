@@ -23,7 +23,16 @@ export async function proveMemberControls({origin,cookie,accept,call,DB,contactC
    await own.locator(':scope > summary').click();await own.getByLabel('Role',{exact:true}).selectOption('admin');
    const denied=page.waitForResponse(r=>r.url().endsWith(`/api/access/members/${self.id}`)&&r.request().method()==='POST');await own.getByRole('button',{name:'Save assignment',exact:true}).click();assert.equal((await denied).status(),409);
    await panel.getByRole('status').filter({hasText:'Another administrator'}).waitFor();assert.equal((await call(`/api/access/members/${self.id}`,{role:'admin',scopes:[]},{cookie})).status,409,'same self-assignment refused at direct route');
-   const previousRefusal=await panel.locator('[data-member-status]').textContent();await own.getByRole('button',{name:'Remove member',exact:true}).click();const onlyOwner=page.getByRole('dialog');await shot('only-owner-confirmation');const lastOwnerRefusal=page.waitForResponse(r=>new URL(r.url()).pathname===`/api/access/members/${self.id}`&&r.request().method()==='DELETE');await onlyOwner.getByRole('button',{name:'Remove member',exact:true}).click();const lastOwnerResponse=await lastOwnerRefusal;assert.equal(lastOwnerResponse.status(),409);assert.equal((await lastOwnerResponse.json()).error,'last_owner');await page.waitForFunction(previous=>{const text=document.querySelector('[data-member-status]').textContent;return text.trim()&&text!==previous},previousRefusal);assert.equal((await call('/api/access/self',undefined,{cookie})).status,200,'the refused removal preserves the owner');await shot('only-owner-refusal');
+   const removeOwner=own.getByRole('button',{name:'Remove member',exact:true});
+   assert.equal(await removeOwner.isDisabled(),true,'the only owner cannot start a removal');
+   const explanation=own.locator('#'+await removeOwner.getAttribute('aria-describedby'));
+   assert.equal(await explanation.isVisible(),true);
+   assert.ok((await explanation.textContent()).trim(),'the disabled control has a visible reason');
+   const lastOwnerResponse=await fetch(`${origin}/api/access/members/${self.id}`,{method:'DELETE',headers:{origin,cookie,'content-type':'application/json'}});
+   assert.equal(lastOwnerResponse.status,409);
+   assert.equal((await lastOwnerResponse.json()).error,'last_owner');
+   assert.equal((await call('/api/access/self',undefined,{cookie})).status,200,'the refused removal preserves the owner');
+   await shot('only-owner-protected');
    await own.locator(':scope > summary').click();
    let reader,fixtureNumber=width===1440?100:200;
    for(const role of ['admin','editor','responder','read-only']){
@@ -174,7 +183,7 @@ export async function proveReadOnlyActions(){
   const email='synthetic-uptime-readonly-actions@example.test';
   assert.equal((await call('/api/access/invitations',{email,displayName:'Synthetic read-only',role:'read-only',scopes:[]},{cookie:f.cookie})).status,202);
   const link=await deliveredLink(call,{email,kind:'invite'});
-  browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox']});
+  browser=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--use-mock-keychain','--password-store=basic']});
   const owner=await browser.newContext({viewport:{width:1440,height:1000}}),reader=await browser.newContext({viewport:{width:1440,height:1000}});
   const [name,...parts]=f.cookie.split('=');await owner.addCookies([{name,value:parts.join('='),url:f.origin}]);
   const ownerPage=await owner.newPage(),readerPage=await reader.newPage();

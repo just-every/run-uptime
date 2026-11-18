@@ -18,16 +18,17 @@ function activity(entry){
  if(entry.kind==='notification_outcome'||entry.kind==='escalation_outcome'||entry.kind==='delivery_resolution'){const outcome=d.outcome,state=typeof outcome==='string'?outcome:outcome?.kind,code=typeof outcome==='string'?d.code:outcome?.code;return simulatedDelivery({state,code})?'Simulated · no email sent':deliveryLabel(state)}
  return d.channel?'Recorded through '+d.channel:'';
 }
-function comment(c){
+function comment(c,editable){
  if(c.deletedAt!==null)return `<article class="incident-comment"><p>Comment deleted · ${text(at(c.deletedAt))}</p></article>`;
  return `<article class="incident-comment"><p><strong>${text(c.author.displayName)}</strong> · ${text(at(c.createdAt))}</p><p class="incident-prose">${linkedText(c.text)}</p>
- <details><summary>Edit comment</summary><form data-comment-edit="${text(c.id)}" data-version="${c.version}"><label>Comment text<textarea name="text" maxlength="5000" rows="4" required>${text(c.text)}</textarea></label><button>Save edit</button></form></details>
+ ${editable?`<details><summary>Edit comment</summary><form data-comment-edit="${text(c.id)}" data-version="${c.version}"><label>Comment text<textarea name="text" maxlength="5000" rows="4" required>${text(c.text)}</textarea></label><button>Save edit</button></form></details>`:''}
  ${c.history.length?`<details><summary>Edit history (${c.history.length})</summary>${c.history.map(h=>`<p>Version ${h.version} · ${text(h.editor.displayName)} · ${text(at(h.editedAt))}</p><p class="incident-prose">${linkedText(h.text)}</p>`).join('')}</details>`:''}
- <details><summary>Delete comment</summary><p>Remove this comment’s text and edit history. A deletion entry remains in the timeline.</p><button type="button" data-delete-comment="${text(c.id)}" data-version="${c.version}">Delete text and history</button></details></article>`;
+ ${editable?`<details><summary>Delete comment</summary><p>Remove this comment’s text and edit history. A deletion entry remains in the timeline.</p><button type="button" data-delete-comment="${text(c.id)}" data-version="${c.version}">Delete text and history</button></details>`:''}</article>`;
 }
 // The incident's own category select lists today's categories (Settings › Alerts manages them); a category removed since
 // stays on this incident, named as removed.
-export function detailMarkup(d){
+export function detailMarkup(d,viewer){
+ const canModerate=['owner','admin'].includes(viewer.role);
  const retired=d.rootCause.categoryId&&!d.rootCauseCategories.some(c=>c.id===d.rootCause.categoryId)?`<option value="${text(d.rootCause.categoryId)}" selected>${text(d.rootCause.categoryLabel)} (removed; choose a current category)</option>`:'';
 const categories=retired+d.rootCauseCategories.map(c=>`<option value="${text(c.id)}"${d.rootCause.categoryId===c.id?' selected':''}>${text(c.label)}</option>`).join('');
  return `<p>Confirmed ${text(at(d.startedAt))} · ${d.machineState==='recovered'?`Recovered ${text(at(d.endedAt))}`:'Monitoring incident remains open'}</p><p>${text(d.trigger.explanation)}</p>
@@ -36,6 +37,6 @@ const categories=retired+d.rootCauseCategories.map(c=>`<option value="${text(c.i
  <div class="incident-actions"><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="acknowledge"${d.status!=='open'?' disabled':''}>Acknowledge</button><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="stop"${d.stopReason?' disabled':''}>Stop follow-up</button><button${d.capabilities.scheduledFollowup?'':' hidden'} type="button" data-incident-action="resolve"${d.status==='resolved'?' disabled':''}>Resolve response</button><button type="button" data-incident-export>Download incident JSON</button></div><p>Response actions record your team’s work. Scheduled evidence alone determines monitor health and recovery.</p></section>
  ${dependencySections(d)}
  <section><h3>Root cause</h3><form data-root-cause><label>Category<select name="categoryId"><option value="">Not categorized</option>${categories}</select></label><label>Root-cause account<textarea name="text" maxlength="2000" rows="3">${text(d.rootCause.text)}</textarea></label><button>Save root cause</button></form><p>Private team account, separate from the machine’s observed cause.</p></section>
- <section><h3>Comments</h3>${d.comments.map(comment).join('')}<form data-comment-add><label>Add a comment<textarea name="text" maxlength="5000" rows="4" required></textarea></label><button>Add comment</button></form><p>Comments stay private. Member mentions, mention email and status-page publication are not available.</p></section>
+ <section><h3>Comments</h3>${d.comments.map(c=>comment(c,canModerate||c.author.id===viewer.id)).join('')}<form data-comment-add><label>Add a comment<textarea name="text" maxlength="5000" rows="4" required></textarea></label><button>Add comment</button></form><p>Comments stay private. Member mentions, mention email and status-page publication are not available.</p></section>
  <section><h3>Activity timeline</h3><ol class="incident-timeline">${d.timeline.map(e=>`<li><p><strong>${text(e.kind.replaceAll('_',' '))}</strong> · ${text(e.actor.displayName)} · ${text(at(e.at))}</p><p class="incident-prose">${text(activity(e))}</p></li>`).join('')}</ol></section>`;
 }
