@@ -1,0 +1,30 @@
+diff --git a/lib/parse.js b/lib/parse.js
+--- a/lib/parse.js
++++ b/lib/parse.js
+@@ -539,9 +539,14 @@
+   const extglobClose = token => {
+     const literal = input.slice(token.startIndex, state.index + 1);
+     const body = input.slice(token.startIndex + 2, state.index);
+-    const analysis = analyzeRepeatedExtglob(body, opts);
+-
+-    if ((token.type === 'plus' || token.type === 'star') && analysis.risky) {
++    const repeated = token.type === 'plus' || token.type === 'star';
++    // GHSA-fc5q-39xc-vjpf: literalize a single branch that would nest
++    // an unbounded wildcard inside a repeat, even with recursion limits off.
++    const repeatsWildcard = repeated && splitTopLevel(body).length === 1
++      && tokens.slice(token.tokensIndex + 2).some(part => part.wildcard && part.output);
++    const analysis = repeatsWildcard ? { risky: true } : analyzeRepeatedExtglob(body, opts);
++
++    if (repeated && analysis.risky) {
+       const safeOutput = analysis.safeOutput
+         ? (token.output ? '' : ONE_CHAR) + (opts.capture ? `(${analysis.safeOutput})` : analysis.safeOutput)
+         : undefined;
+@@ -1252,7 +1257,7 @@
+       continue;
+     }
+
+-    const token = { type: 'star', value, output: star };
++    const token = { type: 'star', value, output: star, wildcard: true };
+
+     if (opts.bash === true) {
+       token.output = '.*?';

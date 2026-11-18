@@ -8,6 +8,11 @@ overrides:
   miniflare@5.20260926.1-alpha>sharp: 0.35.5
   undici: 7.30.1
 
+patchedDependencies:
+  picomatch@4.0.7:
+    hash: 35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b
+    path: patches/picomatch@4.0.7.patch
+
 importers:
 
   .:
@@ -2576,7 +2581,7 @@ snapshots:
       exsolve: 1.1.1
       lightningcss: 1.33.0
       pathe: 2.0.3
-      picomatch: 4.0.7
+      picomatch: 4.0.7(patch_hash=35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b)
       seroval: 1.6.11
       source-map: 0.7.6
       srvx: 0.11.22
@@ -2790,9 +2795,9 @@ snapshots:
 
   exsolve@1.1.1: {}
 
-  fdir@6.5.0(picomatch@4.0.7):
+  fdir@6.5.0(picomatch@4.0.7(patch_hash=35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b)):
     optionalDependencies:
-      picomatch: 4.0.7
+      picomatch: 4.0.7(patch_hash=35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b)
 
   fetchdts@0.1.7: {}
 
@@ -2946,7 +2951,7 @@ snapshots:
 
   picocolors@1.1.1: {}
 
-  picomatch@4.0.7: {}
+  picomatch@4.0.7(patch_hash=35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b): {}
 
   playwright-core@1.64.1: {}
 
@@ -3083,8 +3088,8 @@ snapshots:
 
   tinyglobby@0.2.17:
     dependencies:
-      fdir: 6.5.0(picomatch@4.0.7)
-      picomatch: 4.0.7
+      fdir: 6.5.0(picomatch@4.0.7(patch_hash=35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b))
+      picomatch: 4.0.7(patch_hash=35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b)
 
   tslib@1.14.1: {}
 
@@ -3109,7 +3114,7 @@ snapshots:
   unplugin@3.3.0(esbuild@0.28.2)(rolldown@1.2.8)(vite@8.2.4(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)):
     dependencies:
       '@jridgewell/remapping': 2.3.5
-      picomatch: 4.0.7
+      picomatch: 4.0.7(patch_hash=35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b)
       webpack-virtual-modules: 0.6.2
     optionalDependencies:
       esbuild: 0.28.2
@@ -3129,7 +3134,7 @@ snapshots:
   vite@8.2.4(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0):
     dependencies:
       lightningcss: 1.33.0
-      picomatch: 4.0.7
+      picomatch: 4.0.7(patch_hash=35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b)
       postcss: 8.5.28
       rolldown: 1.2.8
       tinyglobby: 0.2.17
