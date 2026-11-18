@@ -9160,7 +9160,7 @@
       "executable": false
     },
     "tests/archive-transfer-support.mjs": {
-      "sha256": "4ee2af0f999282bd726eedbde491edb2cbe857e64069e518a180bfc2e0f28333",
+      "sha256": "2812cbef49b7d7aa05412f2cad9ca5866786a977763402242a23f9374d744af6",
       "executable": false
     },
     "tests/auth-test-support.mjs": {

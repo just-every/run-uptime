@@ -14,7 +14,9 @@ const tableRows=archive=>({...archive.payload.tables,...archive.payload.productT
  * revision population is explicitly not the full monitoring-scale acceptance. */
 export async function proveArchiveTransfer(installation){
  const source=await installation('chunk-source');
- const native=async(site,path,method='GET',body)=>site.owner.api(base+path,method,body,{origin:(await site.worker.ready).origin});
+ // Refusals and idle time during graph comparisons can close loopback sockets.
+ // Each transfer request owns its connection, including the nonempty refusal.
+ const native=async(site,path,method='GET',body)=>site.owner.api(base+path,method,body,{origin:(await site.worker.ready).origin,connection:'close'});
  const request=async(site,path,method='GET',body)=>{
   const result=await native(site,path,method,body);
   assert.ok(result.status>=200&&result.status<300,`${path}: ${result.status} ${JSON.stringify(result.data)}`);return result.data;
