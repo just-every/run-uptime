@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "blob": "77963ba3f935d2cc8d1a3e6c4aaac91798c2eb2d",
+      "bytes": 3124,
+      "path": "REPORT.md",
+      "sha256": "30b7ea5eb482e56e11fd644616ddcc55c782f8f379c31946016696a16efb2bc2"
+    },
+    {
+      "blob": "dd885e2939cff6f6f5afb079e4ac8419f6e341b6",
+      "bytes": 830,
+      "path": "result.json",
+      "sha256": "7bc9e501419d25a86f78c220b8fd9bd3704c2a5a69e45a47dd85fd8d474669a4"
+    },
+    {
+      "blob": "2a95ca1ed1e26142581b2e4422160733a0ccda2c",
+      "bytes": 3031,
+      "path": "verification.json",
+      "sha256": "058e815dd0a6cbcc5d81e128d93c6035a3ef3e79eacc8fdfb5879b27005ad009"
+    }
+  ],
+  "product_branch": "cloud/gr-mt-uptime-dep-9",
+  "product_head": "486f768a08123da5e1debcb34f3529b8d9a00411",
+  "ref": "refs/heads/evidence/gr-mt-uptime-dep-9",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "gr-mt-uptime-dep-9"
+}
