@@ -56,9 +56,14 @@ function upload(lifecycle) {
     migrations: database.migrations.map(({ sql, ...migration }) => migration),
    })) };
    const pendingVariables = originVar ? [originVar] : [];
-   store.report(`deploy: resource plan (provider state not queried):\n${JSON.stringify({ environment, plan, pendingVariables }, null, 2)}`);
-   if (originVar) store.report(`deploy: Cloudflare assigns the hosted origin and ${originVar} during deployment.`);
-   store.report('deploy: dry run complete; no deployment occurred and no provider request was made.');
+   store.report([
+    `deploy: resource plan for ${environment}`,
+    `  Worker: ${plan.worker}`,
+    ...plan.d1.map(database => `  D1: ${database.name} (${database.migrations.length} migrations)`),
+    `  Cron: ${plan.crons.join(', ')}`,
+    `  Secret bindings: ${plan.secrets.map(secret => secret.binding).join(', ')}`,
+    ...(originVar ? [`  Set by Cloudflare during deployment: ${originVar}`] : []),
+   ].join('\n'));
    return { dryRun: true, deployed: false, environment, plan, pendingVariables };
   }
   const env = ownerEnvironment({ ...processEnv, ...secrets });

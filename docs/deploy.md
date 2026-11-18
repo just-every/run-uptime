@@ -47,7 +47,7 @@ To build and inspect the resource plan first, run:
 rer deploy --dry-run
 ```
 
-The plan names the Worker, D1 database, migration names and digests, Cron triggers, public variables and secret bindings (names only). It uses saved mail and optional settings when present; otherwise it uses your supplied inputs. It makes no provider requests and does not generate deployment secrets. Cloudflare assigns the hosted origin during a real deployment, so `UPTIME_ORIGIN` is listed as pending. The plan does not establish whether those resources already exist, who owns them, or which migrations have already run; the real deploy checks that state. With `--json`, the result includes `plan` and `pendingVariables`.
+The terminal summary lists the Worker, D1 database and migration count, Cron triggers, and secret binding names. Use `rer deploy --dry-run --json` for the full plan, including migration names and digests, public variables, and pending variables. The plan uses saved mail and optional settings when present and otherwise uses your supplied inputs. Cloudflare assigns `UPTIME_ORIGIN` during a real deployment. The dry run makes no provider requests and generates no deployment secrets. The real deploy checks resource ownership and migration history.
 
 This page covers the default Cloudflare Workers deployment. Uptime also declares the `container` platform in `deploy.json`; the shared CLI supports `--platform container` with `--host ssh://...` and optional `--image` for Docker deployment to an SSH host. That separate path has not been exercised end to end for Uptime. The hosted demo uses the declared container image; see [the demo notes](https://github.com/just-every/run-uptime/blob/main/DEMO.md) for its acceptance status.
 
