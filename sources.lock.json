@@ -592,7 +592,7 @@
       "executable": false
     },
     "docs/definitions.md": {
-      "sha256": "c4a2cb431d1ddbaf03a72ae4e90271fbe9fedbb5b9f8f8c3787c6d901829c4f9",
+      "sha256": "3d10d37d58a63e5512ea3317e1af4b09aed341664df62d930be72c359094a3c1",
       "executable": false
     },
     "docs/deploy.md": {
@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "a9a170d0d14cbae2daf2e9292a1a78da5bc3b4aa26d1be50b0d0acc0e17ba75b",
+      "sha256": "da251dfd680874e211920db28cf0a6953e194c0f7c95d9178aae42b95faab9fc",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -2584,7 +2584,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "82a96da7bc63e00856bbfaf571ba33d32655b52d4bb7ad39865e60ab0a363c53",
+      "sha256": "eb4598bbc3f5bb8ad130befcbf17ea356806551d6825fc517ac3ef12469771c2",
       "executable": false
     },
     "public/action-feedback.mjs": {
