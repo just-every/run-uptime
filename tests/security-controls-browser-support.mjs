@@ -67,7 +67,8 @@ export async function proveSecurityControls(){
     const step=page.locator('[data-factor-step]'),codeField=step.getByLabel('Authenticator or recovery code',{exact:true}),verifyStep=step.getByRole('button',{name:'Verify and continue',exact:true});
     const asked=async served=>{assert.equal(served.status(),403);assert.match(served.headers()['content-type'],/^text\/html/);await page.getByRole('heading',{name:'Verify your second factor',exact:true}).waitFor();await codeField.waitFor();assert.ok(!(await page.locator('body').innerText()).includes('Access denied'))};
     await asked(await landing);await asked(await page.goto(origin+'/app/settings/backup'));
-    assert.equal(await codeField.evaluate(e=>e===document.activeElement),true);assert.equal(await step.getByRole('button',{name:'Use a passkey',exact:true}).isVisible(),true);
+    assert.equal(await codeField.evaluate(e=>e===document.activeElement),true);
+    await step.getByRole('button',{name:'Use a passkey',exact:true}).waitFor();
     for(const size of [1440,390]){await page.setViewportSize({width:size,height:size===390?844:1000});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));const box=await codeField.boundingBox();assert.ok(box&&box.y+box.height<=page.viewportSize().height);if(process.env.UPTIME_SCREENSHOTS){const out=join(process.env.UPTIME_SCREENSHOTS,'G4');await mkdir(out,{recursive:true});await page.screenshot({path:join(out,'signin-step-'+size+'.png'),fullPage:true})}}await page.setViewportSize({width,height:1000});
     const again=name+'='+(await context.cookies(origin)).find(c=>c.name===name).value;
     await codeField.fill('000000');await verifyStep.click();await step.getByText(/code didn't match/).waitFor();assert.equal(await codeField.inputValue(),'000000');assert.equal((await call('/api/overview',undefined,{cookie:again})).status,403,'a wrong code leaves the session refused');

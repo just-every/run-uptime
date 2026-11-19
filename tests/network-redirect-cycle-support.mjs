@@ -36,12 +36,9 @@ export async function proveNetworkRedirectCycle(){
  let worker,db,control,target,canary,active,bridgeError,origin,cookie='',mode='short';
  try{
   const certs=await certificates(directory);
-  target=https.createServer(certs.server,async(req,res)=>{
-   // Keep receiver processing inside the exchange despite midpoint clock-calibration uncertainty.
-   await sleep(50);
+  target=https.createServer(certs.server,(req,res)=>{
    const location=mode==='cycle'?(req.url==='/cycle-a'?'/cycle-b':'/cycle-a'):req.url==='/entry'?'/healthy':undefined;
    requests.push({at:Date.now(),host:req.headers.host,sni:req.socket.servername,method:req.method,path:req.url,status:location?302:200,...(location?{location}:{})});
-   await sleep(50);
    res.writeHead(location?302:200,location?{location}:{});res.end(location?'':'synthetic-uptime-164');
   });
   target.on('connection',socket=>{connections.push(Date.now());open.add(socket);socket.once('close',()=>open.delete(socket))});
@@ -51,6 +48,7 @@ export async function proveNetworkRedirectCycle(){
   canary=https.createServer(certs.server,(req,res)=>{canaries.push({host:req.headers.host,sni:req.socket.servername,path:req.url});res.end('synthetic-uptime-164-canary')});
   const canaryPort=await listen(canary);
   control=https.createServer(certs.server,async(req,res)=>{
+   const receivedAt=Date.now();
    try{
     let body='';for await(const chunk of req)body+=chunk;
     if(['/api/runner/enroll','/api/runner/results'].includes(req.url)){
@@ -59,8 +57,12 @@ export async function proveNetworkRedirectCycle(){
     }
     const response=await worker.dispatchFetch('http://localhost/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:origin+req.url,method:req.method,headers:req.headers,...(body?{body}:{})})});
     const text=await response.text();
-    if(req.url==='/api/runner/results')completions.push({body:JSON.parse(body),status:response.status,response:JSON.parse(text)});
-    if(req.url==='/api/runner/claim')claims.push(JSON.parse(text).task);
+    if(req.url==='/api/runner/results')completions.push({body:JSON.parse(body),status:response.status,response:JSON.parse(text),receivedAt});
+    if(req.url==='/api/runner/claim'){
+     // Delay delivery after the Worker samples its clock so calibration sees an asymmetric trip.
+     if(mode==='cycle')await sleep(250);
+     claims.push({task:JSON.parse(text).task,releasedAt:Date.now()});
+    }
     res.writeHead(response.status,Object.fromEntries(response.headers));res.end(text);
    }catch(error){bridgeError=error;res.writeHead(500);res.end('Emitted Worker request failed')}
   });
@@ -78,7 +80,7 @@ export async function proveNetworkRedirectCycle(){
    const timer=setTimeout(()=>child.kill('SIGKILL'),35000);
    try{const result=await ended;active=undefined;if(bridgeError)throw bridgeError;assert.equal(result.signal,null);if(result.code!==0&&process.env.UPTIME_REDIRECT_RECEIPT)await writeFile(process.env.UPTIME_REDIRECT_RECEIPT,JSON.stringify({journey:'proveNetworkRedirectCycle',failure:'signed runner completion refused',exit:result.code,completions,connections,handshakes,requests,canaries},null,2)+'\n');assert.equal(result.code,0,`signed runner failed (${bytes} private diagnostic bytes); last completion status ${completions.at(-1)?.status}, error ${completions.at(-1)?.response?.error}`)}finally{clearTimeout(timer)}
   }
-  await runner();assert.deepEqual(claims,[null]);
+  await runner();assert.deepEqual(claims.map(claim=>claim.task),[null]);
   const registration=await db.prepare('SELECT runner_id FROM runners WHERE legacy_key=1').first();assert.ok(registration);
   const boot=await api('/auth/bootstrap',{token:bindings.SETUP_TOKEN,displayName:'Redirect cycle owner'});assert.equal(boot.status,303);cookie=boot.headers['set-cookie'][0].split(';')[0];
   await completeApiSecondFactor(origin,cookie,api);
@@ -95,7 +97,7 @@ export async function proveNetworkRedirectCycle(){
    const counts=traffic(),completed=completions.length;
    await runner();
    assert.equal(completions.length,completed+1);
-   const completion=completions.at(-1),task=claims.at(-1);
+   const completion=completions.at(-1),{task,releasedAt}=claims.at(-1);
    assert.equal(completion.status,200,'signed redirect evidence passes native intake');
    assert.equal(task.monitorId,id);assert.deepEqual(task.definition,saved);
    const rows=await history(),slot=rows.find(row=>row.id===task.id);
@@ -114,15 +116,17 @@ export async function proveNetworkRedirectCycle(){
     assert.equal(observation.outcome,'target_failure');assert.equal(observation.status,undefined);assert.equal(observation.bytes,undefined);
     assert.deepEqual(observation.checks,[{assertion:'redirect',pass:false,reason:'Probe redirect check failed'}]);
     assert.ok(observation.durationMs<saved.timeoutMs,'hop exhaustion happens before the saved request timeout');
-    assert.ok(observation.completedAt-observation.startedAt<saved.timeoutMs);
+    assert.equal(observation.completedAt-observation.startedAt,observation.durationMs);
     assert.ok(received.length>wire[0].requests.length,'cycle actually follows more hops than the successful chain');
     assert.equal(received[0].path,'/entry');
     for(let index=0;index<received.length;index++){
      const row=received[index];assert.equal(row.status,302);
      if(index>0)assert.equal(row.path,received[index-1].location,'ordered receiver targets follow each prior redirect');
      assert.equal(row.location,row.path==='/cycle-a'?'/cycle-b':'/cycle-a');
-     assert.ok(row.at>=observation.startedAt&&row.at<=observation.completedAt);
+     // The receiver and control bridge share a clock. The signed wall times are aligned to the Worker.
+     assert.ok(row.at>=releasedAt&&row.at<=completion.receivedAt,'target request belongs to the claimed attempt');
     }
+    assert.ok(received.at(-1).at-received[0].at<=observation.durationMs,'receiver traffic fits within the signed attempt duration');
     assert.ok(received.some(row=>row.path==='/cycle-a')&&received.some(row=>row.path==='/cycle-b'));
    }else{
     assert.equal(observation.outcome,'pass');assert.equal(observation.status,200);assert.ok(observation.checks.every(check=>check.pass));

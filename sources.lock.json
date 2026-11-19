@@ -10376,7 +10376,7 @@
       "executable": false
     },
     "tests/network-redirect-cycle-support.mjs": {
-      "sha256": "1873d075397b263e22cf92dd3e202da2e5b8415411850b301d55539365f772f6",
+      "sha256": "5b2b1683c68d355c587e0ecb844a387720455f05a9f8c4ccdd94861017ab77f1",
       "executable": false
     },
     "tests/network-tls-hostname-routing.mjs": {
@@ -10648,7 +10648,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "af5a50f7d07888de59cb27648e0b828bc99a01fd6df58d946d604ae91ae85dcd",
+      "sha256": "622d2a5a680571552178626106b767f1c5613b765a50d0dd43340e9eebb77017",
       "executable": false
     },
     "tests/service-catalog-auth0-support.mjs": {
