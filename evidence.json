@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "blob": "25aa7fd48e8fcadc7fbe8dc4ca8f12630dbdd8bb",
+      "bytes": 4521,
+      "path": "REPORT.md",
+      "sha256": "4ea767701c249c9f6ef9eee473ef88370b37587f1488d9075bbd7229cf40ad8a"
+    },
+    {
+      "blob": "c21f08b2c9ea0e3329ab03a03a033d18c1ad4eb9",
+      "bytes": 3244,
+      "path": "historical-ci.json",
+      "sha256": "a8ef1ca0bf6f44b92282efc56143672444890ecc895ac98ddf44591e33c14d14"
+    },
+    {
+      "blob": "db2117c3c90a26e2ceb6f6fb08548e20a611cd89",
+      "bytes": 2398,
+      "path": "local-checks.json",
+      "sha256": "8955f2eaeb38f6279d17c10bff6c8b2a58c3d416cc1ee486ed0e4caf6983735a"
+    },
+    {
+      "blob": "43bd5f5718c0ab37f7b8786dac37a052215d0540",
+      "bytes": 1451,
+      "path": "publication.json",
+      "sha256": "e9b69706a1f2ca96fe7706ffbd2f727281b07acbd5db1469fe8bc50181cb29af"
+    },
+    {
+      "blob": "e35885c500c908028bf662ccd86308377fc24eb5",
+      "bytes": 527,
+      "path": "result.json",
+      "sha256": "74a4b6707bac58e8d2f8344229b4c88222a7334fdd3ae90abff8ea0cdb591393"
+    }
+  ],
+  "product_branch": "cloud/gr-mt-uptime-ci-5",
+  "product_head": "73e94712bb02c557ad067fc8df75b0cd2b1838c4",
+  "ref": "refs/heads/evidence/gr-mt-uptime-ci-5",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "gr-mt-uptime-ci-5"
+}

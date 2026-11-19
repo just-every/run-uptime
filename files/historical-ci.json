@@ -1,0 +1,127 @@
+{
+  "workflow": "Verify",
+  "run_id": 44475744343,
+  "event": "schedule",
+  "head_sha": "373dfff5fbbefd13d13d6c0598401393938118da",
+  "shards": [
+    {
+      "conclusion": "failure",
+      "id": 135396067308,
+      "name": "shards (push-5)",
+      "shard_step": {
+        "completed_at": "2026-11-19T07:03:12Z",
+        "conclusion": "failure",
+        "started_at": "2026-11-19T06:57:10Z"
+      }
+    },
+    {
+      "conclusion": "success",
+      "id": 135396067320,
+      "name": "shards (push-1)",
+      "shard_step": {
+        "completed_at": "2026-11-19T07:05:12Z",
+        "conclusion": "success",
+        "started_at": "2026-11-19T06:58:04Z"
+      }
+    },
+    {
+      "conclusion": "success",
+      "id": 135396067324,
+      "name": "shards (push-3)",
+      "shard_step": {
+        "completed_at": "2026-11-19T07:06:58Z",
+        "conclusion": "success",
+        "started_at": "2026-11-19T06:57:12Z"
+      }
+    },
+    {
+      "conclusion": "failure",
+      "id": 135396067333,
+      "name": "shards (push-8)",
+      "shard_step": {
+        "completed_at": "2026-11-19T07:11:22Z",
+        "conclusion": "failure",
+        "started_at": "2026-11-19T06:57:11Z"
+      }
+    },
+    {
+      "conclusion": "success",
+      "id": 135396067342,
+      "name": "shards (push-6)",
+      "shard_step": {
+        "completed_at": "2026-11-19T07:16:04Z",
+        "conclusion": "success",
+        "started_at": "2026-11-19T06:57:13Z"
+      }
+    },
+    {
+      "conclusion": "success",
+      "id": 135396067344,
+      "name": "shards (push-7)",
+      "shard_step": {
+        "completed_at": "2026-11-19T07:04:29Z",
+        "conclusion": "success",
+        "started_at": "2026-11-19T06:57:03Z"
+      }
+    },
+    {
+      "conclusion": "success",
+      "id": 135396067345,
+      "name": "shards (push-4)",
+      "shard_step": {
+        "completed_at": "2026-11-19T07:08:02Z",
+        "conclusion": "success",
+        "started_at": "2026-11-19T06:57:08Z"
+      }
+    },
+    {
+      "conclusion": "success",
+      "id": 135396067431,
+      "name": "shards (push-2)",
+      "shard_step": {
+        "completed_at": "2026-11-19T07:05:46Z",
+        "conclusion": "success",
+        "started_at": "2026-11-19T06:57:10Z"
+      }
+    }
+  ],
+  "aggregate": {
+    "id": 135404095192,
+    "step": "Require the selected coverage and its proof",
+    "conclusion": "failure"
+  },
+  "log_archive": {
+    "job_ids": [
+      135396067308,
+      135396067333,
+      135404095192
+    ],
+    "exit": 0,
+    "bytes_per_job": 0,
+    "run_exit": 0,
+    "run_bytes": 0,
+    "full_workflow": {
+      "gh_version": "2.83.1",
+      "exit": 0,
+      "bytes": 12670505
+    }
+  },
+  "browser_artifact": {
+    "http_status": 403,
+    "diagnostic": "Forbidden"
+  },
+  "assertions": [
+    {
+      "job_id": 135396067308,
+      "journey": "tests/operator-security.mjs",
+      "location": "tests/security-controls-browser-support.mjs:70:87",
+      "failure": "Use a passkey visibility was false while status was still loading."
+    },
+    {
+      "job_id": 135396067333,
+      "journey": "tests/tls-auth.mjs",
+      "location": "tests/network-redirect-cycle-support.mjs:124:13",
+      "failure": "A receiver timestamp was outside the clock-aligned signed observation interval."
+    }
+  ]
+}

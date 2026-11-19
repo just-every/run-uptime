@@ -1,0 +1,100 @@
+{
+  "head_sha": "73e94712bb02c557ad067fc8df75b0cd2b1838c4",
+  "node": "22.20.0",
+  "pnpm": "10.12.4",
+  "main_reproduction": {
+    "head_sha": "373dfff5fbbefd13d13d6c0598401393938118da",
+    "tier": "nightly",
+    "shards": [
+      {
+        "command": "node .github/scripts/verify-ci.mjs push-5",
+        "exit": 0
+      },
+      {
+        "command": "node .github/scripts/verify-ci.mjs push-8",
+        "exit": 0
+      }
+    ]
+  },
+  "controlled_reproduction": [
+    {
+      "entrypoint": "tests/security-controls-browser-support.mjs#proveSecurityControls",
+      "condition": "delay factor status by 5 seconds",
+      "before_assertion": "passkey visibility was false",
+      "before_exit": 1,
+      "after_exit": 0
+    },
+    {
+      "entrypoint": "tests/network-redirect-cycle-support.mjs#proveNetworkRedirectCycle",
+      "condition": "delay the outbound claim response by 250 ms",
+      "before_assertion": "receiver time outside runner-aligned signed interval",
+      "before_exit": 1,
+      "after_exit": 0
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "nice -n 15 node tests/operator-security.mjs",
+      "exit": 0
+    },
+    {
+      "command": "nice -n 15 node tests/tls-auth.mjs",
+      "exit": 0
+    },
+    {
+      "command": "nice -n 15 pnpm run typecheck",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs write",
+      "exit": 0
+    },
+    {
+      "command": "node src/base/contract-docs.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs lock",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    }
+  ],
+  "redirect_cycle": {
+    "saved_timeout_ms": 3000,
+    "quiet_windows": 2,
+    "quiet_window_ms": 3000,
+    "phases": [
+      {
+        "phase": "short",
+        "connections": 2,
+        "handshakes": 2,
+        "requests": 2,
+        "outcome": "pass",
+        "duration_ms": 22
+      },
+      {
+        "phase": "cycle",
+        "connections": 6,
+        "handshakes": 6,
+        "requests": 6,
+        "outcome": "target_failure",
+        "duration_ms": 48
+      },
+      {
+        "phase": "restored",
+        "connections": 2,
+        "handshakes": 2,
+        "requests": 2,
+        "outcome": "pass",
+        "duration_ms": 19
+      }
+    ]
+  }
+}

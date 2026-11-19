@@ -1,0 +1,50 @@
+{
+  "product_branch": "cloud/gr-mt-uptime-ci-5",
+  "product_head": "73e94712bb02c557ad067fc8df75b0cd2b1838c4",
+  "remote_branch_readback": "73e94712bb02c557ad067fc8df75b0cd2b1838c4",
+  "push_attempt": 1,
+  "publication_scan": {
+    "status": "PASS",
+    "complete": true,
+    "source": {
+      "commit": "73e94712bb02c557ad067fc8df75b0cd2b1838c4",
+      "tree": "7f2dc13decdd601639f9c0b07406592cd12cc9a8"
+    },
+    "public_base": {
+      "ref": "https://github.com/just-every/run-uptime#main",
+      "commit": "373dfff5fbbefd13d13d6c0598401393938118da"
+    },
+    "findings": [],
+    "history_commits": 1120,
+    "hydration": {
+      "missingBefore": 0,
+      "missingAfter": 0,
+      "fetches": 0,
+      "seconds": 0.047808
+    },
+    "scanner": {
+      "name": "gitleaks",
+      "version": "8.30.1"
+    },
+    "implementation": {
+      "version": "0.2.121",
+      "sha256": "dace44a03ce03a9402975c82e7f6c62a84c21671674722cfa6841d2b25fd600a",
+      "python": "3.12.14"
+    },
+    "first_attempt": {
+      "status": "INCOMPLETE",
+      "diagnostics": [
+        "scan.deadline-exceeded"
+      ],
+      "timeout_seconds": 300
+    },
+    "successful_attempt_timeout_seconds": 900
+  },
+  "verify": {
+    "status": "unconfirmed",
+    "historical_failure_run_id": 44475744343,
+    "candidate_run_id": null,
+    "github_diagnostic_calls": 10,
+    "reason": "The task GitHub call budget was exhausted retrieving and identifying the failed assertions."
+  }
+}
