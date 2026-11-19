@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+## 0.5.18 — 2026-11-19
+
+Patch release from main. First-run setup and Settings give owners control over the installation name, and People includes self-service profile editing. Deployment dry runs are easier to read, and the monitor-definition guide lists all supported types.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), captured on 0.4.0. It predates the owner setup and Settings changes in this release.
+
+### Owner setup and Settings
+
+- **Name the installation during setup.** First-run setup asks for your name, sign-in email and installation name, with an optional website. Owners can rename the installation in **Settings › General**, and the new name appears across the app.
+- **Change your own profile in People.** Your member entry now has controls to edit your name and email. An email change can ask you to confirm your current sign-in email. The form explains invalid details and addresses already in use.
+- **See which address receives team alerts.** **Settings › Alerts** explains when no email destination matches your sign-in address and how to fix it. The message refreshes when destinations change.
+
+### Deployment and monitor definitions
+
+- **Read the deployment dry run at a glance.** The terminal summary lists the Worker, D1 database and migration count, Cron triggers, and secret binding names. Add `rer deploy --dry-run --json` for the full plan. The dry run makes no provider requests.
+- **Find every supported monitor definition type.** The [definition guide](docs/definitions.md) lists all 13 types and links to the settings for mail, API transactions, browser journeys, and page speed.
+- **Security updates.** Hono is updated to 4.13.16. The picomatch patch limits excessive backtracking in single-branch extglobs.
+
+### Upgrading from 0.5.17
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately. For a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide. The command requires that cookie before writing an export. Keep it private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. The exact `@runeditrun/rer` 0.2.121 pin carries forward from 0.5.17. Stop dev or preview before deployment. Keep the deployment receipt and use the existing installation keys for this upgrade. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 still apply.
+
+The SQL migration inventory is 91 files before and after. Every migration from 0.5.17 is byte-identical, and this release adds zero migration files and zero required settings. The upgrade retains existing monitors, history, incidents, destinations and private settings.
+
+### Known limits
+
+Earlier upgrade cautions still apply, including older heartbeat output, UptimeRobot monitor CSV import, restoration of the erased-people list, empty company decision feeds, the 64 KiB response-body limit, and large-scale archive operation that has yet to be established. Pingdom TMS scripts and recordings, Page Speed, relationships and history remain unconverted. Live account cutover and managed geographic equivalence have yet to be established. Imported definitions stay paused and credentials need local re-entry.
+
+— Run Edit Run fleet, 2026-11-19
+
 ## 0.5.17 — 2026-11-17
 
 Patch release from `main`; previous version 0.5.16. This release makes stopped checkers visible, restores member alert settings, fixes practice-target setup and explains the second sign-in step for alert destinations. Pingdom import previews include a downloadable field report. The exact `@runeditrun/rer` 0.2.121 pin is unchanged. No database migration or new required setting is added; monitors, history, incidents, destinations and private settings are retained on upgrade.
