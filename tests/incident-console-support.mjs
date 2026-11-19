@@ -5,7 +5,7 @@ import {chromium} from 'playwright';
 import {browserSignIn,authRequest,deliveredLink} from './auth-test-support.mjs';
 import {completeBrowserSecondFactor} from './mfa-auth-support.mjs';
 
-// FOLLOWUP-001 through the signed-in console: the owner and a service-scoped responder
+// FOLLOWUP-001 and INCIDENT-001 through the signed-in console: the owner and a workspace responder
 // each open the incident dialog of the combined-incident journey (tests/incident-combined-support.mjs),
 // change its owner there, and every rendered follow-up line and timeline row is compared with READAPI-003.
 const KIND={reminder:'Reminder',escalation:'Escalation',notification:'Notification'};
@@ -16,7 +16,7 @@ const axe=async page=>{
  assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.filter(v=>['serious','critical'].includes(v.impact)).map(v=>v.id),[],'no serious accessibility findings');
 };
 export function incidentConsole({evidence=process.env.UPTIME_INCIDENT_EVIDENCE}={}){
- let browser,owner,responder,ownerPage,responderPage,ownerId,assigned=0;
+ let browser,owner,responder,ownerPage,responderPage,assigned=0;
  const api=(f,id,cookie=f.cookie)=>fetch(f.origin+'/api/v1/incidents/'+encodeURIComponent(id),{headers:{cookie}}).then(async r=>{assert.equal(r.status,200);return r.json()});
  async function page(f,viewport=1440){
   browser??=await chromium.launch({...(process.env.UPTIME_BROWSER_EXECUTABLE?{executablePath:process.env.UPTIME_BROWSER_EXECUTABLE}:{}),headless:true,args:['--no-sandbox','--disable-gpu','--use-mock-keychain','--password-store=basic']});
@@ -60,19 +60,38 @@ export function incidentConsole({evidence=process.env.UPTIME_INCIDENT_EVIDENCE}=
    await enroll(f,monitor);
    const dialog=await open(ownerPage,f,monitor,incident);await parity(ownerPage,dialog,await api(f,incident));
    const change=await assignThroughConsole(ownerPage,dialog,f,incident,responder);assert.equal(change.actor.id,owner.id);
+   await dialog.getByLabel('Add a comment').fill('Checking the store connection.');
+   await dialog.getByRole('button',{name:'Add comment',exact:true}).click();
+   await dialog.getByRole('status').getByText('Comment added.').waitFor();
    await dialog.locator('[data-close-incident]').click();
   }else if(phase==='reminder'){
-   // After the Worker restart: the owner's session still reads the incident, and the narrowed responder reaches it from a fresh sign-in.
+   // After restart, a service-scoped account can still read its incident through the API.
    const dialog=await open(ownerPage,f,monitor,incident);await parity(ownerPage,dialog,await api(f,incident));await dialog.locator('[data-close-incident]').click();
-   // Console entry is owner-only (default adopted for FOLLOWUP-001): the responder's own browser sign-in, with its second factor,
-   // is refused at the shell without exposing any incident, while the same session takes ownership through the API door.
    await responderPage.goto(f.origin+'/app');await responderPage.getByText('Only an owner can access the Uptime console and setup.').waitFor();
    assert.equal(await responderPage.locator(`[data-incident-work]`).count(),0,'the refused shell exposes no incident');
    const read=await fetch(f.origin+'/api/incidents/'+encodeURIComponent(incident),{headers:{cookie:responder.cookie}});assert.equal(read.status,200,'responder reads the in-scope incident through the API door');
    const seen=await read.json();assert.equal(seen.owner.id,responder.id);assert.equal(seen.status,'acknowledged');
-   assert.ok(seen.assignmentMembers.find(person=>person.id===owner.id),'responders can hand ownership to an eligible member');
-   const moved=await fetch(f.origin+'/api/incidents/'+encodeURIComponent(incident)+'/actions',{method:'POST',headers:{cookie:responder.cookie,origin:f.origin,'content-type':'application/json'},body:JSON.stringify({kind:'assign',ownerId:owner.id,version:seen.version})});assert.equal(moved.status,200);
-   const changes=(await api(f,incident)).timeline.filter(e=>e.kind==='owner_assigned');assert.equal(changes.at(-1).actor.id,responder.id);assert.equal(changes.at(-1).data.owner.id,owner.id);assigned++;
+   const assignee=seen.assignmentMembers.find(person=>person.id===owner.id);
+   assert.ok(assignee,'responders can hand ownership to an eligible member');
+   assert.equal((await f.request('/api/access/members/'+responder.id,{body:{role:'responder',scopes:[]}})).status,200);
+   const work=await open(responderPage,f,monitor,incident);
+   for(const action of ['acknowledge','stop','resolve'])assert.equal(await work.locator(`[data-incident-action="${action}"]`).isVisible(),false);
+   const ownerComment=work.locator('.incident-comment').filter({hasText:'Checking the store connection.'});
+   assert.equal(await ownerComment.locator('[data-comment-edit], [data-delete-comment]').count(),0);
+   await work.getByLabel('Add a comment').fill('Restarted the store connection.');
+   await work.getByRole('button',{name:'Add comment',exact:true}).click();
+   await work.getByRole('status').getByText('Comment added.').waitFor();
+   const ownComment=work.locator('.incident-comment').filter({hasText:'Restarted the store connection.'});
+   await ownComment.getByText('Edit comment',{exact:true}).click();
+   await ownComment.getByLabel('Comment text').fill('Restarted the store connection and checked the logs.');
+   await ownComment.getByRole('button',{name:'Save edit'}).click();
+   await work.getByRole('status').getByText(/Comment edited/).waitFor();
+   const saved=(await api(f,incident)).comments.find(comment=>comment.author.id===responder.id);
+   assert.equal(saved.text,'Restarted the store connection and checked the logs.');
+   assert.deepEqual(saved.history.map(version=>version.text),['Restarted the store connection.']);
+   const change=await assignThroughConsole(responderPage,work,f,incident,assignee);
+   assert.equal(change.actor.id,responder.id);
+   await work.locator('[data-close-incident]').click();
   }else if(phase==='final'){
    const dialog=await open(ownerPage,f,monitor,incident),final=await api(f,incident);await parity(ownerPage,dialog,final);
    const kinds=final.timeline.map(e=>e.kind),at=kind=>kinds.indexOf(kind);

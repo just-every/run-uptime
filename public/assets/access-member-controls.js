@@ -36,11 +36,14 @@ export function accessMemberControls({accounts,security,api,action,closeConsole,
   const identity=()=>{name.textContent=person.displayName;
   line.textContent=[person.email,roleName(person),person.id===self.id?'You':'',person.status==='invited'?'Invited':person.status==='inactive'?'Removed':''].filter(Boolean).join(' · ')};identity();
   who.append(name,line);summary.append(who);item.append(summary,form);if(person.id===self.id)item.append(personProfile(person,{request,updated:identity}));fields(form,person);
+  const lastOwner=person.role==='owner'&&person.status==='active'&&owners===1;
   const save=document.createElement('button'),remove=document.createElement('button');save.textContent='Save assignment';remove.type='button';remove.textContent='Remove member';buttons.append(save,remove);form.append(buttons);
   form.onsubmit=async event=>{event.preventDefault();save.disabled=true;try{const result=await request(`/api/access/members/${encodeURIComponent(person.id)}`,'POST',{role:form.elements.role.value,scopes:scopes(form)});await load(result.unchanged?'Assignment unchanged.':'Assignment saved.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'})}finally{save.disabled=false}};
-  remove.onclick=()=>confirmDestination({title:`Remove ${person.displayName}?`,explanation:'They can no longer sign in.',button:'Remove member',tone:'danger',onConfirm:async()=>{remove.disabled=true;try{await request(`/api/access/members/${encodeURIComponent(person.id)}`,'DELETE',undefined,{title:`Confirm removing ${person.displayName}`});await load('Member removed.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'});remove.disabled=false}}});
+  if(lastOwner){
+   const explanation=document.createElement('p');explanation.id='last-active-owner';explanation.textContent='At least one active owner must remain.';buttons.after(explanation);
+   remove.disabled=true;remove.setAttribute('aria-describedby',explanation.id);
+  }else remove.onclick=()=>confirmDestination({title:`Remove ${person.displayName}?`,explanation:'They can no longer sign in.',button:'Remove member',tone:'danger',onConfirm:async()=>{remove.disabled=true;try{await request(`/api/access/members/${encodeURIComponent(person.id)}`,'DELETE',undefined,{title:`Confirm removing ${person.displayName}`});await load('Member removed.',person.id)}catch(error){form.append(status);status.textContent=refused(error);status.scrollIntoView({block:'nearest'});remove.disabled=false}}});
   // Erasure is the owner's. Nobody can erase the last active owner, and an invitation is not an account to erase yet.
-  const lastOwner=person.role==='owner'&&person.status==='active'&&owners===1;
   if(self.role==='owner'&&person.status!=='invited'&&!lastOwner){
    const erase=document.createElement('button'),hidden=document.createElement('span');erase.type='button';erase.className='ui-link quiet-action';hidden.className='ui-visually-hidden';hidden.textContent=' '+person.displayName;erase.append('Erase',hidden,'…');buttons.append(erase);
    erase.onclick=()=>confirmErasure({kind:'operator',name:person.email,onConfirm:()=>eraseOperator(person)});
