@@ -1,7 +1,7 @@
-# Release Uptime 0.5.18
+# Release Uptime 0.5.19
 
 Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
-0.2.121), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
+0.2.125), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
 Playwright Chromium browser required by the lockfile.
 
 1. Review the changes since the previous release independently, including

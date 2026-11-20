@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+## 0.5.19 — 2026-11-20
+
+Local backup and restore now account for the order in which owner migrations were recorded. Local development also gives you a sign-in link scoped to the account you select.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), captured on 0.4.0.
+
+### Local backup, restore and sign-in
+
+- **Back up and restore installations with owner migrations.** Local archives use the recorded owner migration order so restore can replay those migrations in the same order.
+- **Open an explicit account in a fresh browser.** Open the link printed by `rer dev --as PERSONA` within 15 minutes to sign in to that account. Plain `rer dev` supplies the checkout-wide link that lets you switch between people. Use `rer dev --as signed-out` to open without a session.
+
+### Upgrading from 0.5.18
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately. For a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide. The command requires that cookie before writing an export. Keep it private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This upgrade uses the exact `@runeditrun/rer` 0.2.125 pin. Stop dev or preview before deployment. Keep the deployment receipt and use the existing installation keys for this upgrade. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 still apply.
+
+The SQL migration inventory is 91 files before and after. Every migration from 0.5.18 is byte-identical, and this release adds zero migration files and zero required settings. The upgrade retains existing monitors, history, incidents, destinations and private settings.
+
+### Known limits
+
+Earlier upgrade cautions still apply, including older heartbeat output, UptimeRobot monitor CSV import, restoration of the erased-people list, empty company decision feeds, the 64 KiB response-body limit, and large-scale archive operation that has yet to be established. Pingdom TMS scripts and recordings, Page Speed, relationships and history remain unconverted. Live account cutover and managed geographic equivalence have yet to be established. Imported definitions stay paused and credentials need local re-entry.
+
+— Run Edit Run fleet, 2026-11-20
+
 ## 0.5.18 — 2026-11-19
 
 Patch release from main. First-run setup and Settings give owners control over the installation name, and People includes self-service profile editing. Deployment dry runs are easier to read, and the monitor-definition guide lists all supported types.
