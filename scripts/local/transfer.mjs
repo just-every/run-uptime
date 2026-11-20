@@ -11,7 +11,8 @@ import { startLocalWorker } from '../local-worker.mjs';
 import { productPolicy } from './transfer-policy.mjs';
 import { migrationReplay } from '@runeditrun/rer/modules/portability/migration-history';
 import { catalogue, policy as archivePolicy } from '@runeditrun/rer/modules/portability/catalogue';
-import { appliedMigrations, sameSchemaMigrations, additiveBridge } from '@runeditrun/rer/internal/modules/portability/bridge.mjs';
+import { sameSchemaMigrations, additiveBridge } from '@runeditrun/rer/internal/modules/portability/bridge.mjs';
+import { destinationLedger } from '@runeditrun/rer/internal/modules/portability/ledgers.mjs';
 import { migrationHistory } from './migration-history.mjs';
 import { fileURLToPath } from 'node:url';
 import {permission,AccessError} from '../../src/domain/access.server.ts';
@@ -64,11 +65,12 @@ export async function transfer(direction, path) {
    const config = archivePolicy(policy);
    if(!Array.isArray(validatedManifest.payloads)||validatedManifest.payloads.length!==1||validatedManifest.payloads[0].name!=='uptime')throw new PortabilityError('invalid_product_payload');
    if (validatedManifest.product !== config.product) throw new PortabilityError('wrong_product');
-   await appliedMigrations(env.DB);
+   const ledger = await destinationLedger(env.DB);
    const cat = await catalogue(env.DB, config);
    if (!config.acceptedSchemas[validatedManifest.schema]) {
-    if (validatedManifest.schema === cat.identity) await sameSchemaMigrations(env.DB, validatedManifest, cat, migrations);
-    else await additiveBridge(env.DB, validatedManifest, cat, migrations);
+    const archived = () => validatedManifest.migrationLedger?.entries;
+    if (validatedManifest.schema === cat.identity) await sameSchemaMigrations(env.DB, ledger, validatedManifest, cat, migrations, archived);
+    else await additiveBridge(env.DB, ledger, validatedManifest, cat, migrations, archived);
    }
   }
   // Compatibility and resume ownership refuse before initializing transfer

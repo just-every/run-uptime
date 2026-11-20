@@ -158,10 +158,11 @@ to `/setup`; signed-out visitors sign in and return there. Once complete,
 Invite another person from the app's operator access screen, then choose
 **Sign in as <name>** beside that person. The same action appears at `/signin`;
 it accepts their current invitation and opens `/app` with their assigned role.
-After opening `RER_OPEN`, this browser can switch people without email. A fresh
-browser profile first opens `RER_OPEN` to receive this checkout's key cookie.
+In a fresh browser profile, open the link printed by plain `rer dev` to receive
+this checkout's key cookie and switch people without email.
 `rer dev --as person@example.com` also selects an invited or active person, including one invited at a built-in persona's address (the persona name selects them too);
 for an email that is no one in the local database, it lists the people it takes.
+An explicit `--as` link works in a fresh browser and opens only the selected account.
 Local dev and demos silently suppress mail; there is no mail-reading step.
 Cancelled or expired invitations and inactive people cannot use these actions.
 
@@ -224,9 +225,11 @@ checkout's dev key in its fragment: opening it signs the browser in through a
 real dev session, and the key is removed from the address bar and kept only as a
 host-only cookie. Treat that line as a credential and open it only on this
 computer. The app name and browser title identify Dev mode.
-`rer dev --as PERSONA` starts as
-another persona or `signed-out`. Legacy `rer dev --login` uses the same automatic
-sign-in. Captured email and its browser UI have been retired.
+`rer dev --as PERSONA` issues a link for that persona on this checkout. Open it
+within 15 minutes to start a normal dev session for that account. Use
+`--as signed-out` to open without a session. Only plain `rer dev` (including
+the legacy `--login` form) saves the checkout-wide owner link in `.rer/local/open-url`.
+Captured email and its browser UI have been retired.
 
 Dev and preview are managed servers. In a terminal the first invocation stays
 active while serving; without one, `rer dev` returns once the app is ready and
@@ -362,9 +365,10 @@ Local durable state is `.wrangler/state`; CLI bookkeeping is `.rer/local`,
 installer state is `.seed/installer`, and the default private settings file is
 `.dev.vars` with mode 0600. Setup writes this checkout's dev key to
 `.rer/local/dev-key.env` (mode 0600); a repeat setup keeps it and reset removes
-it, which also ends every browser's earlier dev cookie. Dev sign-in, personas
-answer only a request holding that key's cookie, so
-a tunnel or local proxy to the app cannot reach them; anything else returns 404.
+it, which also ends every browser's earlier dev cookie. The key's cookie
+allows browsing and switching between personas. An explicit `--as` link
+authorizes just its selected session. The dev gate returns 404 when a request
+lacks the credential for that operation, including through a tunnel or local proxy.
 Any local user or process that can read the checkout can read the key and sign
 in as the owner. `rer deploy` refuses the key, and `rer build` refuses output
 that contains the dev layer.

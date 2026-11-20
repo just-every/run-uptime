@@ -57,7 +57,7 @@ export async function earlyMfaGate(env:AuthBindings,request:Request){
  try{session=await authenticatedSession(env,request);if(session)await checkSecondFactor(env,session,requestNeedsStepUp(request));return null}catch(error){
   // An owner opening /setup, an alert drill link or an evidence page finishes signing in there instead of reading the
   // refusal's JSON.
-  const owed=session&&['GET','HEAD'].includes(request.method)&&(path==='/setup'||path==='/alert-drill'||/^\/app\/evidence\//.test(path))?await ownerFactorDocument(env,session,error,request.method==='HEAD'):null
+  const owed=session&&['GET','HEAD'].includes(request.method)&&(path==='/setup'||path==='/alert-drill'||/^\/app\/evidence\//.test(path))?await ownerFactorDocument(env,session,error,request.method):null
   return owed??mfaResponse(error)??authFailure(error)
  }
 }

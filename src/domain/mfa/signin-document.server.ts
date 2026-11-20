@@ -19,9 +19,9 @@ button.link{display:inline-flex;width:auto;min-height:44px;margin:0;padding:0;bo
 button.link:hover{background:none;text-decoration-color:var(--ink)}`
 
 // The step stays hidden until its script runs, so a browser without JavaScript never submits a code to this address.
-function secondFactorDocument(displayName:string,head:boolean){
+function secondFactorDocument(displayName:string,head:boolean,status:number){
  const body=head?null:shellDocument({title:`Verify your second factor · ${productName}`,style,card:`<h1>Verify your second factor</h1><p>You are signed in as <strong>${escapeHtml(displayName)}</strong>. This account has a second factor, so each new sign-in asks for it before the console opens.</p><div data-factor-step hidden><form data-factor-form><label>Authenticator or recovery code<input name="code" required autocomplete="one-time-code" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="64" aria-describedby="factor-help"></label><p id="factor-help" class="field-help">Enter the six-digit code your authenticator app shows now, or one of the recovery codes you saved when you enrolled.</p><p data-factor-status role="alert"></p><button>Verify and continue</button></form><button type="button" class="secondary" data-factor-passkey hidden>Use a passkey</button><p class="auth-help"><button type="button" class="link" data-factor-signout>Sign out</button></p></div><noscript><p>Turn on JavaScript in this browser to verify your second factor.</p></noscript><script type="module" src="/assets/second-factor.js"></script>`});
- return new Response(body,{status:403,headers:{...documentHeaders,'content-security-policy':`${documentHeaders['content-security-policy']}; script-src 'self'; connect-src 'self'`,'cache-control':'no-store, private',vary:'Cookie','x-content-type-options':'nosniff'}});
+ return new Response(body,{status,headers:{...documentHeaders,'content-security-policy':`${documentHeaders['content-security-policy']}; script-src 'self'; connect-src 'self'`,'cache-control':'no-store, private',vary:'Cookie','x-content-type-options':'nosniff'}});
 }
 
 // Only an owner's refusal for a factor the account enrolled becomes this step; every other refusal keeps its response,
@@ -30,6 +30,10 @@ export async function ownerOwesEnrolledFactor(env:AuthBindings,session:MfaSessio
  if(!(error instanceof MfaError)||error.code!=='second_factor_required'||session.operator.role!=='owner')return false
  return Boolean(await env.DB.prepare('SELECT 1 FROM uptime_mfa_factors WHERE operator_id=?').bind(session.operator.id).first())
 }
-export async function ownerFactorDocument(env:AuthBindings,session:MfaSession,error:unknown,head:boolean){
- return await ownerOwesEnrolledFactor(env,session,error)?secondFactorDocument(session.operator.displayName,head):null
+export async function ownerFactorDocument(env:AuthBindings,session:MfaSession,error:unknown,method:string){
+ if(!await ownerOwesEnrolledFactor(env,session,error))return null;
+ // rer dev checks that the signed-in browser can reach an actionable document.
+ // The challenge is ready to use while console and API access still require proof.
+ const localHandoff=env.UPTIME_LOCAL_REVIEW==='true'&&session.kind==='dev'&&(method==='GET'||method==='HEAD');
+ return secondFactorDocument(session.operator.displayName,method==='HEAD',localHandoff?200:403);
 }
