@@ -1,0 +1,58 @@
+{
+  "files": [
+    {
+      "blob": "2de8938a6914e786264e2efd6250bec16ece8ff9",
+      "bytes": 11172,
+      "path": "CHECKS.txt",
+      "sha256": "f7a8bc09ac2a004189b6c6c4fe4d5bb9e471f53c663823e09e3eedf17a11fe42"
+    },
+    {
+      "blob": "f6b5f177f923c9ea7075370c1ad08066bab3e390",
+      "bytes": 902,
+      "path": "CI.json",
+      "sha256": "9f00f6b29d5b7990be51b6483e7e7afa131e00a43ee087945b265ec19d331ece"
+    },
+    {
+      "blob": "a7fbee17a5e3189e8537149e086b84085f7f7bd0",
+      "bytes": 5271,
+      "path": "REPORT.md",
+      "sha256": "38ddb0f79d7759c442bdb02ca5b62f6d6b6b098dbbaf3c77cb6ce32239754031"
+    },
+    {
+      "blob": "3de977eb70500644cf470aeba42a15f67f0bd26a",
+      "bytes": 27154,
+      "path": "adoption.log",
+      "sha256": "40943709ca5c0bd7f3d12c9d87f79ab6066ecee71fdaf885fdc0f4c2e651f013"
+    },
+    {
+      "blob": "fa5f96380c979e615a2b5788d33201eee4f1a600",
+      "bytes": 3496,
+      "path": "archive-receipts.json",
+      "sha256": "c17fc58dbe56db377013dae4eab79246aa80ca377ae6f3710794ef0ed99970eb"
+    },
+    {
+      "blob": "fd696da0847cfa4a2afdbd85a3ec78e926dba2e9",
+      "bytes": 38365,
+      "path": "local-gate-1440.png",
+      "sha256": "cf56e7a1216873a2144347773ab37df274b488364abfb30343bba86661192385"
+    },
+    {
+      "blob": "6999adda82b5d8d71096ce10de5a631eb14fe82a",
+      "bytes": 34838,
+      "path": "local-gate-390.png",
+      "sha256": "3913f23d534895c8f73c440bef055a2a8197af40e1936366863423aaaadb136d"
+    },
+    {
+      "blob": "ae117a3831dd510bf85f9df6c4190ca810922b5e",
+      "bytes": 57007,
+      "path": "publication-receipt.json",
+      "sha256": "84924c98c906e3c1d351d0348c8921153893194e6caa1edee4a0e02fbba077f9"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-rer-pin-125-1",
+  "product_head": "6d0951f0024bbf7f9df055cc70e68a2c76c3d38c",
+  "ref": "refs/heads/evidence/sd-uptime-rer-pin-125-1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-rer-pin-125-1"
+}

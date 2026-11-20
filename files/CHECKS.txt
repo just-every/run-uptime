@@ -1,0 +1,129 @@
+Uptime candidate 6d0951f0024bbf7f9df055cc70e68a2c76c3d38c
+Main baseline 52f77a94a0a675ba5e1be122dfe0c720087144fb
+UTC record 2026-11-20T16:07:05Z
+Candidate commits 1
+Merge commits 0
+Node 22.20.0 / pnpm 10.12.4
+
+=== Setup, dependency, build and documentation checks ===
+> npx -y @runeditrun/rer setup --owner-email (fleet) --non-interactive
+RER_SETUP_READY http://127.0.0.1:8787
+> pnpm install --frozen-lockfile
+Lockfile is up to date, resolution step is skipped
+Already up to date
+> pnpm exec rer check --profile first-party
+> node scripts/edition-authoring/cli.mjs verify-base --offline --base <full-history Base>
+{"ok":true,"keys":["ok","record","origin","copies","drift","unrecordedCopies","adapted","meaning"]}
+> pnpm run typecheck
+> @uptime/uptime-console@0.5.18 typecheck <Uptime checkout>
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.runner.json
+> npx -y @runeditrun/rer build
+> @uptime/uptime-console@0.5.18 build:app [REDACTED]
+> vite build
+Your application is built
+build: complete (exit 0)
+> pnpm spec:generate
+> @uptime/uptime-console@0.5.18 spec:generate <Uptime checkout>
+> node scripts/delivery/publish-spec.mjs
+Deployment spec, setup digest and local setup regenerated from the build
+> pnpm spec:check
+> @uptime/uptime-console@0.5.18 spec:check <Uptime checkout>
+> node scripts/delivery/publish-spec.mjs --check
+Deployment spec, setup digest and local setup match the build
+Build gates passed.
+> node src/base/contract-docs.mjs write
+Wrote 0 contract documents.
+> node src/base/contract-docs.mjs check
+Contract prose: 0 errors, 0 warnings.
+Contract documents are current.
+> git checkout origin/main -- ACCEPTANCE.md docs/CLAIMS.md
+> node scripts/edition-authoring/cli.mjs lock
+> node scripts/edition-authoring/cli.mjs check
+Source lock check reports ok=true
+> git diff --cached --check
+
+=== Uptime archive, clean local state and built Worker checks ===
+The command journey calls rer export --output exports/product.rer, rer reset --yes --non-interactive,
+rer setup --non-interactive (with a separate synthetic owner), rer import --input exports/product.rer --yes,
+and rer export --output exports/restored.rer. It checks the restored database through the built Worker.
+Uptime rer import uses .wrangler/state. The documented import flag list has no --persist-to.
+The built-Worker recovery journey provisions its separate empty D1 state with
+wrangler d1 migrations apply uptime-local --local --persist-to <new directory> before POST /api/restore.
+A read-only ledger probe after setup counted 91 applied Wrangler migrations with applied_at TIMESTAMP
+and zero extra owner D1 migration ledgers. Uptime declares no extra owner migration directory.
+> node tests/control-runtime.mjs
+RESTART-001 passed: repeated additive setup, exact persisted evidence/session/outbox continuity, single delivery per assigned probe, expired acceptance rejection, real scheduled recovery after process interruption, and an incident confirmed and recovered across a steadily lagging vantage.
+RECOVERY-001 passed: separate empty D1 restore, forged revision/raw-body rejection, paused imported definitions, inactive imported outbox and no automatic execution/replay.
+> node tests/command-journey.mjs
+HYDRATION /app/monitors/new PASS: authenticated discovery/manual forms, UI save and reload persistence at 1440; zero console/page errors and failed client loads; navigation/effect cancellations recorded separately.
+COMMAND-JOURNEY PDF PASS: the freshly installed development app downloads a readable period report.
+LOCAL-SIGNIN-TRUTH PASS: both local invitation doors disclose non-delivery, pending accounts and private handoff; fresh Lobby/login agree; printed CLI handoffs admit the invited accounts.
+COMMAND-JOURNEY passed: explicit owner, teardown, exact rerun, conflicts, foreground Vite/HMR, dev identity/native forms, active reset refusal, private archive, confirmed reset/import/export and retained receipts.
+> SEED_VERIFY_SHARD=archive-roundtrip pnpm exec rer verify
+build: complete (exit 0)
+PASS selected archive: exact requested graph from signed scheduled checks, complete revisions and history, shared journals, inactive repeated restore, integrity, owner and fresh-factor authority, zero-write invalid and bound refusals
+ARCHIVE_LOCAL_RESUME_RECEIPT {"schema":1,"exportPhaseAtCrash":"building","exportPartsAtCrash":0,"importPhaseAtCrash":"staging","importPartsAtCrash":0,"changedFileExit":1,"exportExit":0,"importExit":0,"restoredMonitors":120,"restoredObservations":1,"inactive":true,"changedFileNoWrite":true,"foreignProductExit":1,"foreignProductNoWrite":true}
+PASS local archive interrupted-process resume: fsynced owner and installation checkpoints, original-file binding, no-write changed-file refusal and inactive completion
+ARCHIVE_TRANSFER_RECEIPT {"schema":1,"population":"test-only synthetic archive load with real catalog creation and frozen service report","monitors":120,"selectedLegacy":105,"selectedChunk":119,"syntheticRevisionRows":10001,"payloadBytes":7333589,"chunks":71,"fragments":3,"serviceSnapshotBytes":198023,"journalDigests":10008,"journalChunks":7,"originalCounts":{"migrations":3,"monitors":120,"revisions":10121,"slots":2,"observations":1,"outbox":2,"scheduled_reports":1,"incident_work":0,"incident_comments":0,"incident_comment_history":0,"incident_timeline":0,"incident_settings":0,"incident_mentions":0,"source_history_batches":0,"source_history_rows":0,"source_history_cutovers":0,"notification_destinations":3,"notification_jobs":5,"integration_deliveries":3,"notification_delivery_attempts":3,"integration_attempts":3,"integration_resolutions":1,"integration_replays":1,"archive_history":0,"uptime_erasure_receipts":0,"uptime_audit":128,"failure_snapshots":0,"heartbeat_runs":0,"definition_batches":1,"auxiliary_attempts":0,"definition_batch_entries":119,"cleanup_debt":0,"followed_services":0,"dependency_acks":0,"discovery_sources":0,"discovery_source_runs":0,"discovery_decisions":0},"restoredCounts":{"migrations":3,"monitors":120,"revisions":10241,"slots":2,"observations":1,"outbox":2,"scheduled_reports":1,"incident_work":0,"incident_comments":0,"incident_comment_history":0,"incident_timeline":0,"incident_settings":0,"incident_mentions":0,"source_history_batches":0,"source_history_rows":0,"source_history_cutovers":0,"notification_destinations":3,"notification_jobs":5,"integration_deliveries":3,"notification_delivery_attempts":3,"integration_attempts":3,"integration_resolutions":1,"integration_replays":1,"archive_history":132,"uptime_erasure_receipts":0,"uptime_audit":134,"failure_snapshots":0,"heartbeat_runs":0,"definition_batches":1,"auxiliary_attempts":1,"definition_batch_entries":119,"cleanup_debt":0,"followed_services":0,"dependency_acks":0,"discovery_sources":0,"discovery_source_runs":0,"discovery_decisions":0},"restoreAuditReceipts":["archive_restore","access_archive_restore","access_archive_restore"],"independentDigests":true,"corruptAndForeignNoWrite":true,"invalidReferenceAndFragmentNoWrite":true,"laterErasureNoWrite":true,"fullMonitoringScaleQualified":false}
+PASS native chunk archive: 120 monitors, 105 selected, synthetic revision load, independent digests, interrupted export and restore, complete counts, immutable history and no-write corrupt, foreign and erased-resume refusals
+PASS archive move, corrupt/nonempty refusal, exact history, separate receiving owners and inactive repeated restore
+Agent door conformance: 8116/8116 points passed.
+verify: complete (exit 0)
+
+=== Base owner migration tests at the released commit ===
+> pnpm install --frozen-lockfile (Base checkout)
+> node --test cli/owner-migration-restore.test.mjs
+ok 1 - local restore replays the exported owner migration and refuses a different one
+# pass 1
+# fail 0
+> node --test <Base>/modules/portability/tests/owner-worker-history.test.mjs
+ok 1 - Worker restore binds owner SQL and the interleaved native D1 migration history
+# changed owner SQL bytes: 409 schema_mismatch:owner_migration_history, zero rows
+# missing applied owner file: 409 schema_mismatch, zero rows
+# missing owner ALTER: 409 schema_mismatch:owner_migration_history, zero rows
+# different applied order: 409 schema_mismatch:owner_migration_history, zero rows
+# archive has an extra data-only owner migration: 409 schema_mismatch:owner_migration_history, zero rows
+# pass 1
+# fail 0
+
+=== Uptime authentication ===
+> node tests/operator-security.mjs
+Destination step-up PASS: public refusal guidance/deep link, QR scan, enrollment, stale proof, wrong code, cancellation and one retained-request creation.
+ACCESS-003/READAPI-001 Settings 1440 PASS: owner/member TOTP, recovery once, CDP passkey, stale policy/key step-up, hash-only restricted monitoring/CI issuance, usage and immediate revocation, live member refusal, factor removal, axe/reflow. Existing-document member proof; initial narrowed-role shell entry remains held.
+Import/erase step-up PASS: expired proof, cancelled preview/file retention, unchanged-byte retry, retained typed erasure, plain counted receipt with unchanged storage and later backup.
+OPERATOR-SECURITY completed one owner-to-runner lifecycle
+> node tests/hosted-auth-browser.mjs
+HOSTED-AUTH-BROWSER passed native HTTPS bootstrap, Open app login_hint prefill at 1440 without auto-submit, fresh-context magic link and confirmation; actual Origin, origin-only Referer and Secure Base owner session verified; outbound mail captured only in test
+MAIL-OFF configuration checks passed
+MAIL-OFF runtime ready
+MAIL-OFF database ready
+MAIL-OFF schema ready
+MAIL-OFF passed native setup, operations, deploy validation/preflight, fresh first-run, Settings, monitor failure/recovery, unavailable mail and protected hosted doors
+PASS signed-out local key gate screenshot at width 1440, HTTP 200
+PASS signed-out local key gate screenshot at width 390, HTTP 200
+
+=== Publication preflight ===
+The raw Gitleaks candidate delta found one hex-api-key match in base-copies.json line 603.
+The value is a Base copy record SHA-256. It matched the SHA-256 of the committed
+scripts/edition-authoring/api-source.mjs bytes, and verify-base reported no copy drift.
+Base publication scan scan INCOMPLETE, findings scan.deadline-exceeded
+Base publication scan scan-final PASS
+Scanned commit 6d0951f0024bbf7f9df055cc70e68a2c76c3d38c
+Scanned tree 7fd010af93e83d89f44c3f74a68006c34f8d43ac
+Publication scan complete true
+Publication findings 0, pre-existing 29, warnings 0
+
+=== Pin and Base provenance ===
+Fri Nov 20 16:07:56 UTC 2026
+Uptime shallow history false
+Base shallow history false
+Base 0.2.125 tag object and peeled commit
+ed28be13eb6fc1155d2b889410d044271966c2fa
+965e8d4e105f6f4d281dacb3c099f6a958a886e7
+rer dependency introduction history via git log -S
+bce1f75e9dd4c8da12980f6cf3601ed9ee296be3 Adopt isolated Base Uptime demos and confine runner effects
+734322c3fc4c2c4bd00c2786ed2d04e450195485 Continue Uptime development in this repository
+Last rer version pin change via git log -G
+6d0951f0024bbf7f9df055cc70e68a2c76c3d38c Adopt rer 0.2.125 and refresh recorded Base sources
+Last rer version pin change on original main
+0388aebe1792afee5609eb249a175e5617697061 Adopt rer mail selector transport and extend lifecycle proof [skip ci]

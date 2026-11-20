@@ -1,0 +1,29 @@
+{
+  "branch": "cloud/sd-uptime-rer-pin-125-1",
+  "candidate": "6d0951f0024bbf7f9df055cc70e68a2c76c3d38c",
+  "discovery": {
+    "queriedAt": "2026-11-20T16:06:29Z",
+    "run": {
+      "conclusion": null,
+      "event": "push",
+      "head_branch": "cloud/sd-uptime-rer-pin-125-1",
+      "head_sha": "6d0951f0024bbf7f9df055cc70e68a2c76c3d38c",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44769647428",
+      "id": 44769647428,
+      "name": "Verify",
+      "status": "in_progress"
+    }
+  },
+  "repository": "just-every/run-uptime",
+  "result": {
+    "queriedAt": "2026-11-20T16:21:32Z",
+    "run": {
+      "conclusion": "success",
+      "head_sha": "6d0951f0024bbf7f9df055cc70e68a2c76c3d38c",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44769647428",
+      "status": "completed"
+    }
+  },
+  "verifyRunId": 44769647428,
+  "workflow": "Verify"
+}
