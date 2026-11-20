@@ -1,0 +1,51 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/sd-uptime-release-0-5-19",
+  "head": "b9bff679ec99b702de753d63ad385d232e6b6d1e",
+  "main": "6d0951f0024bbf7f9df055cc70e68a2c76c3d38c",
+  "previous_tag": "v0.5.18",
+  "previous_tag_commit": "52f77a94a0a675ba5e1be122dfe0c720087144fb",
+  "version": "0.5.19",
+  "next_tag_present": false,
+  "next_release_lookup_http": 404,
+  "rer_pin": "0.2.125",
+  "migration_before": 91,
+  "migration_after": 91,
+  "added_migrations": [],
+  "changed_or_removed_previous_migrations": [],
+  "screenshot": ".github/assets/release/uptime-0.4.0-monitor-1440.png",
+  "declared_hashes": [
+    {
+      "key": "setup.sha256",
+      "path": "rer-setup.json",
+      "declared": "81aef96872569eb67d3dbaa2f2f561dca54aca2c32ded8021b153d3b818d6181",
+      "actual": "81aef96872569eb67d3dbaa2f2f561dca54aca2c32ded8021b153d3b818d6181"
+    }
+  ],
+  "counts_before": [
+    "| Core | 37 | 47 | 11 | 95 |",
+    "| Agent surface | 0 | 11 | 8 | 19 |",
+    "| Later | 0 | 0 | 1 | 1 |",
+    "| Full target | 37 | 58 | 20 | 115 |"
+  ],
+  "counts_after": [
+    "| Core | 37 | 47 | 11 | 95 |",
+    "| Agent surface | 0 | 11 | 8 | 19 |",
+    "| Later | 0 | 0 | 1 | 1 |",
+    "| Full target | 37 | 58 | 20 | 115 |"
+  ],
+  "clause_status_changes": [],
+  "checks": {
+    "frozen_install": "pass",
+    "typecheck_node_22.20.0": "pass",
+    "source_lock_check": "pass",
+    "contract_generator_check": "pass",
+    "offline_recorded_base_check": "pass",
+    "git_diff_check": "pass",
+    "all_candidate_identity_and_trailers": "pass",
+    "pushed_head_readback": "pass",
+    "rer_first_party_structural_check": "pass"
+  },
+  "checked_at": "2026-11-20T22:21:41Z",
+  "pull_request": null
+}

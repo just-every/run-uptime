@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "blob": "188c08a67470d9af56bd9e1714f7e77b9bc780ad",
+      "bytes": 3497,
+      "path": "REPORT.md",
+      "sha256": "70d64c107ca28adbf707491d0633d7b25652d00438466a63cdc0354dca646a28"
+    },
+    {
+      "blob": "38a665ae36f4b7b411fb3a4d07771e7f01fc93be",
+      "bytes": 1697,
+      "path": "release-metadata-receipt.json",
+      "sha256": "8c76be86d01e263e8b2922696e7b32d5060090f6ef5b443ae56f598d175aa37d"
+    },
+    {
+      "blob": "8f1d0ea3f6be108dc33e2898206be6457227a356",
+      "bytes": 304,
+      "path": "verify-receipt.json",
+      "sha256": "f26d8fe36e633e0923cd91e857b0fddd442511f275e152ce7ef02d30d19caad5"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-release-0-5-19",
+  "product_head": "b9bff679ec99b702de753d63ad385d232e6b6d1e",
+  "ref": "refs/heads/evidence/sd-uptime-release-0-5-19",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-release-0-5-19"
+}

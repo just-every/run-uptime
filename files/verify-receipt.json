@@ -1,0 +1,10 @@
+{
+  "conclusion": "success",
+  "head_sha": "b9bff679ec99b702de753d63ad385d232e6b6d1e",
+  "html_url": "https://github.com/just-every/run-uptime/actions/runs/44828229576",
+  "status": "completed",
+  "run_id": 44828229576,
+  "workflow": "Verify",
+  "event": "push",
+  "checked_at": "2026-11-20T22:36:50Z"
+}
