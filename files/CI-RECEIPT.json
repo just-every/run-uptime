@@ -1,0 +1,40 @@
+{
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-ci-6-c1",
+  "head": "73a3c77de5857576281d558c111301f9988a3aa4",
+  "observations": [
+    {
+      "id": 44881087377,
+      "name": "Verify",
+      "head_sha": "73a3c77de5857576281d558c111301f9988a3aa4",
+      "head_branch": "cloud/gr-mt-uptime-ci-6-c1",
+      "event": "push",
+      "status": "in_progress",
+      "conclusion": null,
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44881087377",
+      "run_attempt": 1,
+      "created_at": "2026-11-21T07:37:12Z",
+      "updated_at": "2026-11-21T07:37:15Z",
+      "observed_at": "2026-11-21T07:37:26.722202+00:00"
+    },
+    {
+      "id": 44881087377,
+      "name": "Verify",
+      "head_sha": "73a3c77de5857576281d558c111301f9988a3aa4",
+      "head_branch": "cloud/gr-mt-uptime-ci-6-c1",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44881087377",
+      "run_attempt": null,
+      "created_at": null,
+      "updated_at": null,
+      "observed_at": "2026-11-21T07:42:26.697645+00:00"
+    }
+  ],
+  "prior_read_api_calls": 1,
+  "observed_scan_api_calls": 2,
+  "poll_interval_seconds": 300,
+  "status": "success",
+  "run_id": 44881087377
+}

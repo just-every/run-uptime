@@ -1,0 +1,20 @@
+{
+  "scope": "All commits in origin/main..HEAD, including side parents",
+  "commits": [
+    {
+      "commit": "73a3c77de5857576281d558c111301f9988a3aa4",
+      "author_valid": true,
+      "committer_valid": true,
+      "trailers_present": false,
+      "openai_codex_coauthors": false
+    },
+    {
+      "commit": "70abf5925ea4a02f4f9c3ca47129b4b9fb666f0e",
+      "author_valid": true,
+      "committer_valid": true,
+      "trailers_present": false,
+      "openai_codex_coauthors": false
+    }
+  ],
+  "passed": true
+}

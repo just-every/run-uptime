@@ -1,0 +1,67 @@
+{
+  "schema": "rer.publish-check/v3",
+  "status": "INCOMPLETE",
+  "complete": false,
+  "source": null,
+  "scanner": {
+    "name": "gitleaks",
+    "version": "8.30.1"
+  },
+  "history": {
+    "scope": "selected-and-public-base",
+    "commits": 0,
+    "trees": 0,
+    "blobs": 0,
+    "commitMessages": 0,
+    "tagMessages": 0
+  },
+  "findings": [
+    {
+      "rule": "scan.history-incomplete",
+      "path": ".",
+      "commit": null,
+      "commits": [
+        null
+      ],
+      "scope": "newly-public",
+      "scopes": [
+        "newly-public"
+      ],
+      "reason": "missing blob 08ce50c37abe78b38745789b4498e7e47130b3b3 at tests/run-site-deploy.mjs: fetch the full history"
+    }
+  ],
+  "preExisting": [],
+  "warnings": [],
+  "fixtures": [],
+  "reviewed": [],
+  "info": [],
+  "thirdPartyNotices": [],
+  "guarantees": {
+    "historyScanned": false,
+    "visualRecognition": false,
+    "environmentChecked": true
+  },
+  "timings": {
+    "totalSeconds": 3.895312,
+    "phases": {
+      "history.prepare": {
+        "calls": 1,
+        "seconds": 3.561749
+      }
+    }
+  },
+  "implementation": {
+    "version": "0.2.125",
+    "sha256": "dace44a03ce03a9402975c82e7f6c62a84c21671674722cfa6841d2b25fd600a",
+    "python": "3.12.14"
+  },
+  "invocation": {
+    "caller": "release",
+    "scans": 1,
+    "stagedAnnotation": false,
+    "version": "0.2.125",
+    "seconds": 4.1222590619999995,
+    "stagingSeconds": 9.456610527,
+    "totalSeconds": 13.579271201000001
+  }
+}

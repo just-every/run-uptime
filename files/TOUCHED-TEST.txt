@@ -1,0 +1,11 @@
+✔ site deploy can read ownership after a transient Cloudflare 500 (261.836252ms)
+✔ site deploy refuses a deployments read when the provider keeps returning 500 (253.91526ms)
+✔ site deploy never replays an ambiguous Worker upload (1.609966ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 530.506231

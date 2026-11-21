@@ -1,0 +1,136 @@
+{
+  "tag": "gr-mt-uptime-ci-6-c1",
+  "repository": "just-every/run-uptime",
+  "branch": "cloud/gr-mt-uptime-ci-6-c1",
+  "head": "73a3c77de5857576281d558c111301f9988a3aa4",
+  "tree": "60de456ac781b8d66c03ea1d9441ef4d62e9b10d",
+  "base": "6e7149d1257fae22d2882ca7fa0b4b856acd22f2",
+  "merge_required": false,
+  "product_changes": "Saved two-commit candidate retained unchanged",
+  "clause_status_changes": [],
+  "counts": {
+    "before": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115,
+      "journeys": 47
+    },
+    "after": {
+      "done": 37,
+      "partial": 58,
+      "missing": 20,
+      "total": 115,
+      "journeys": 48
+    }
+  },
+  "checks": [
+    {
+      "command": "node tests/run-site-deploy.mjs",
+      "exit_code": 0,
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "log": "TOUCHED-TEST.txt"
+    },
+    {
+      "command": "pnpm run typecheck",
+      "exit_code": 0,
+      "log": "TYPECHECK.txt",
+      "runtime": "Node 24.19.0, pnpm 10.12.4; toolchain accepts newer installed Node, CI pins Node 22.20.0"
+    },
+    {
+      "command": "node scripts/edition-authoring/cli.mjs check",
+      "exit_code": 0,
+      "ok": true
+    },
+    {
+      "command": "python3 -B node_modules/@runeditrun/rer/scripts/publish-check/destination.py --repo . --ref HEAD --project just-every/uptime-monitor --repository https://github.com/just-every/run-uptime",
+      "exit_code": 0
+    },
+    {
+      "command": "Pinned Base sourcePublicationScan on raw committed bytes, full GitHub repository URL and remote public main base",
+      "status": "PASS",
+      "complete": true,
+      "source": {
+        "commit": "73a3c77de5857576281d558c111301f9988a3aa4",
+        "tree": "60de456ac781b8d66c03ea1d9441ef4d62e9b10d"
+      },
+      "implementation": {
+        "version": "0.2.125",
+        "sha256": "dace44a03ce03a9402975c82e7f6c62a84c21671674722cfa6841d2b25fd600a",
+        "python": "3.12.14"
+      },
+      "commits": 1126,
+      "blobs": 9922,
+      "new_findings": 0,
+      "pre_existing_findings": 29
+    }
+  ],
+  "publication_scan_recovery": [
+    "Initial partial clone lacked historic blobs.",
+    "Fetched complete main and tag history; five intermediate candidate blobs remained.",
+    "Fetched remaining object IDs from the declared origin before final scan.",
+    "A complete scan found only destination.invalid because the task invocation passed a bare repository slug where the scanner requires a full GitHub URL. Corrected the invocation and passed the official destination preflight without changing product files."
+  ],
+  "product_push": {
+    "repository": "just-every/run-uptime",
+    "branch": "cloud/gr-mt-uptime-ci-6-c1",
+    "head": "73a3c77de5857576281d558c111301f9988a3aa4",
+    "command": "python3 $HOME/rer-consolidation/.tools/cloud-push.py origin cloud/gr-mt-uptime-ci-6-c1",
+    "exit_code": 0,
+    "attempts": 1,
+    "status": "pushed",
+    "observed_at": "2026-11-21T07:37:23.722881+00:00",
+    "ref": "refs/heads/cloud/gr-mt-uptime-ci-6-c1",
+    "identity_and_message_audit": "All origin/main..HEAD commits passed immediately before this push",
+    "remote_main_unchanged": true,
+    "working_tree_clean": true
+  },
+  "status": "READY",
+  "ci": {
+    "repository": "just-every/run-uptime",
+    "branch": "cloud/gr-mt-uptime-ci-6-c1",
+    "head": "73a3c77de5857576281d558c111301f9988a3aa4",
+    "observations": [
+      {
+        "id": 44881087377,
+        "name": "Verify",
+        "head_sha": "73a3c77de5857576281d558c111301f9988a3aa4",
+        "head_branch": "cloud/gr-mt-uptime-ci-6-c1",
+        "event": "push",
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/44881087377",
+        "run_attempt": 1,
+        "created_at": "2026-11-21T07:37:12Z",
+        "updated_at": "2026-11-21T07:37:15Z",
+        "observed_at": "2026-11-21T07:37:26.722202+00:00"
+      },
+      {
+        "id": 44881087377,
+        "name": "Verify",
+        "head_sha": "73a3c77de5857576281d558c111301f9988a3aa4",
+        "head_branch": "cloud/gr-mt-uptime-ci-6-c1",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/just-every/run-uptime/actions/runs/44881087377",
+        "run_attempt": null,
+        "created_at": null,
+        "updated_at": null,
+        "observed_at": "2026-11-21T07:42:26.697645+00:00"
+      }
+    ],
+    "prior_read_api_calls": 1,
+    "observed_scan_api_calls": 2,
+    "poll_interval_seconds": 300,
+    "status": "success",
+    "run_id": 44881087377
+  },
+  "new_product_commits": 0,
+  "saved_product_commits_retained": 2,
+  "pr_url": null,
+  "blockers": [],
+  "finalized_at": "2026-11-21T07:42:51.268096+00:00"
+}

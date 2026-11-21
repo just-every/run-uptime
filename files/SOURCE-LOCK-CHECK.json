@@ -1,0 +1,9 @@
+{
+  "command": "node scripts/edition-authoring/cli.mjs check",
+  "exit_code": 0,
+  "ok": true,
+  "product_head": "73a3c77de5857576281d558c111301f9988a3aa4",
+  "source_lock_sha256": "e5fa6311340f1821e0513f304632189ac7aa087e9bb0fcab679bec5c5a64df60",
+  "raw_check_output_sha256": "d2a04c1a5b484c4d656f2a0fb990da069e70f5213fcdbc47dd1d2032cfe82a57",
+  "detail": "The command returned ok=true with the generated source-lock inventory. The inventory duplicates committed product metadata; this receipt records its check result and output digest."
+}

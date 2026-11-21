@@ -1,0 +1,94 @@
+{
+  "files": [
+    {
+      "blob": "a781f5611be0afcfc58c3846bd3eaebf0cab1065",
+      "bytes": 1295,
+      "path": "CI-RECEIPT.json",
+      "sha256": "542150cf1227478bc5dda1de13716a0019674173ea025a66603dbca8838411e5"
+    },
+    {
+      "blob": "b4d31a7c2e929b720b8e11cd95d809ae87ff42f3",
+      "bytes": 517,
+      "path": "IDENTITY-RECEIPT.json",
+      "sha256": "77ca31df4f567db56c3c73ba46d7b74bd3c87da2ac45290d81d1bd35e9eccb4b"
+    },
+    {
+      "blob": "41f1fe7f8812e6886b5243f0ef96d243df154533",
+      "bytes": 82,
+      "path": "JOURNEY-INVENTORY.json",
+      "sha256": "235e24fece45b6c95f82b06cc798748acc6bf2a9b4a7a86e730e91c3c3cceb97"
+    },
+    {
+      "blob": "442bd588d2fca82a930419477e54e50d1cde60fd",
+      "bytes": 802623,
+      "path": "PUBLICATION-SCAN-ARGUMENT-ERROR.json",
+      "sha256": "c56eb4b09527c23fa77458e4d93740e3577ba5733a94a24214370333300edd50"
+    },
+    {
+      "blob": "69cdb468f8284a68a070c9820f0612454e09a9ae",
+      "bytes": 1466,
+      "path": "PUBLICATION-SCAN-HISTORY-RETRY.json",
+      "sha256": "9fb18e423bbe48297e2101a681b61da675fc13514ea18e770e48954ffa7ec213"
+    },
+    {
+      "blob": "7679bfd498e441939e5e61209105c287b9e7ccf9",
+      "bytes": 1474,
+      "path": "PUBLICATION-SCAN-INITIAL.json",
+      "sha256": "9bf3d141f61a6577a9ec6a0f658d848930bc9db1b25b1c29713ed0b44282d00c"
+    },
+    {
+      "blob": "4e65e3bde3be9549b1be9da913b280d6487fe1a2",
+      "bytes": 802317,
+      "path": "PUBLICATION-SCAN.json",
+      "sha256": "a3fc4a88d86f9b8256fb097fdc63012e10209238b5b0a89d8fb850fda28153a3"
+    },
+    {
+      "blob": "ce627f1cb0133066908af5972b6ad5dfca111553",
+      "bytes": 567,
+      "path": "PUSH-RECEIPT.json",
+      "sha256": "8fd5e4c79d8dfad4c7f98a2943042d222024cee8913618200a6e8b814d77124d"
+    },
+    {
+      "blob": "6392d54e2b8d204bfbac4133ec811b1bab89b46f",
+      "bytes": 5868,
+      "path": "REPORT.md",
+      "sha256": "28940561f213453262da1c875f8252e45485fee28992ba67d34a7ac814e7859d"
+    },
+    {
+      "blob": "75485b2f50e2e213410cfaf0c9c0df1af3ba91d3",
+      "bytes": 4752,
+      "path": "RESULTS.json",
+      "sha256": "5095c3c823da2915af6c0de17c87419df3b660164bbcfd997be8a1f12319b92c"
+    },
+    {
+      "blob": "969dcae5ebec0f09a728d39a94ac080ecdba826a",
+      "bytes": 164,
+      "path": "SCAN-API-CALLS.json",
+      "sha256": "a64ca92a3ab8675265559106c6049036722cc7c2b4ba37b3bb270b23f141ff94"
+    },
+    {
+      "blob": "87feeb7cd7a6e61dca5df9e7f4cac563e3dba3a8",
+      "bytes": 543,
+      "path": "SOURCE-LOCK-CHECK.json",
+      "sha256": "e1a42a69c614724ea6fa5e2953b66132919e0815ba3318b55d3d5e751f2a02ae"
+    },
+    {
+      "blob": "9be622b17ea947b7e7a6e40be1a9d85af3ce8465",
+      "bytes": 363,
+      "path": "TOUCHED-TEST.txt",
+      "sha256": "cc0dd07a4ef5ef75632da0bcaebb315708889ac0f1e491d399ca22147ebf2893"
+    },
+    {
+      "blob": "51837af083f3f85a92c1c62442f08e4d8e8ead8f",
+      "bytes": 289,
+      "path": "TYPECHECK.txt",
+      "sha256": "661f0c04e9f4aac534623a4080e1fcabfe3418c377bfaab176a61c8cbb6fa4f9"
+    }
+  ],
+  "product_branch": "cloud/gr-mt-uptime-ci-6-c1",
+  "product_head": "73a3c77de5857576281d558c111301f9988a3aa4",
+  "ref": "refs/heads/evidence/gr-mt-uptime-ci-6-c1",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "gr-mt-uptime-ci-6-c1"
+}
