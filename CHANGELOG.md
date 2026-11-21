@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+## 0.5.20 — 2026-11-21
+
+Local sign-in and backup instructions are clearer, and fixes make archive transfers, definition imports and monitoring keys easier to use.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), captured on 0.4.0.
+
+### Local setup and operator workflows
+
+- **Open the right sign-in link.** The install guide points to the private `RER_OPEN` link for local sign-in. The `RER_READY` address opens the public Lobby.
+- **Set up local passkeys.** The local runner accepts a control address on `http://localhost` with an explicit port, so a new local installation can use `rer dev --host localhost` and enroll a passkey. **Security and keys** explains when to use an authenticator app and links to the passkey instructions.
+- **Transfer archives from the CLI.** Export and import report the archive path on success. The transfer and second-factor guides explain how to verify a native CLI session before stopping dev, then complete the transfer within five minutes.
+- **Resume a definition import after changing your email.** New approvals use the signed-in owner's current email. A resumed apply keeps its original approval identity and time.
+- **Scope and copy monitoring keys.** A monitoring read key can now be restricted to the selected tags. **Copy key** copies the token while it is shown once. The read API guide covers creating, using and revoking scoped keys from the CLI.
+- **Run deployment commands with the installed runtime.** The deploy guide shows how to start the private runner and check hosted health with `rer run --script`. The install guidance also clarifies the mail default and when a legacy SendGrid setup needs an explicit selector.
+
+### Upgrading from 0.5.19
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup**, with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately. For a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, stop dev and run `rer export --output exports/uptime.rer` with the verified `UPTIME_ACCESS_COOKIE` described in the current backup guide. The command requires that cookie before writing an export. Keep it private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This upgrade uses the exact `@runeditrun/rer` 0.2.125 pin. Stop dev or preview before deployment. Keep the deployment receipt and use the existing installation keys for this upgrade. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 still apply.
+
+The SQL migration inventory is 91 files before and after. All 91 migration files from 0.5.19 are byte-identical. No migration files or required settings were added. The upgrade retains existing monitors, history, incidents, destinations and private settings.
+
+### Known limits
+
+Earlier upgrade cautions still apply, including older heartbeat output, UptimeRobot monitor CSV import, restoration of the erased-people list, empty company decision feeds, the 64 KiB response-body limit, and large-scale archive operation that has yet to be established. Pingdom TMS scripts and recordings, Page Speed, relationships and history remain unconverted. Live account cutover and managed geographic equivalence have yet to be established. Imported definitions stay paused and credentials need local re-entry.
+
+— Run Edit Run fleet, 2026-11-21
+
 ## 0.5.19 — 2026-11-20
 
 Local backup and restore now account for the order in which owner migrations were recorded. Local development also gives you a sign-in link scoped to the account you select.

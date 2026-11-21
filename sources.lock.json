@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "4d567ee7ab33a8b02017afd8a48e30798063405a0d248700f9c87137b833233a",
+      "sha256": "5e79770fa4d47ee94601da9ae711e22533fcb823ace4291c626dae2b74d16955",
       "executable": false
     },
     "CLAUDE.md": {
@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "a3821c21bd89ec9ab332673b30a56314c18aeb29dcb2e86f3c91ffed95855874",
+      "sha256": "9c4df0f1c32eca55197bb87538f613d39a12119b7729f2946b8b49d16f47147a",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -3112,11 +3112,11 @@
       "executable": false
     },
     "RELEASE.json": {
-      "sha256": "65dba60dde72c27e4aec8e7f50ddc1f591e5053819814ef61cdbe7af5b4130f9",
+      "sha256": "461a83920368f82e2aaf513ecec4be4a7edf9e356b48ea4638b8fd5c440b42d5",
       "executable": false
     },
     "RELEASE.md": {
-      "sha256": "e818241c9f9537a6716bd8ffb9ba4a018256fc32d6201bbd3369f390cb8a7e56",
+      "sha256": "2f5ec7fa2bed915143a2a34ab1e2b3bc88f1c36497bd32a26f21b3113c337478",
       "executable": false
     },
     "rer-local-setup.json": {
@@ -4572,7 +4572,7 @@
       "executable": false
     },
     "seed.json": {
-      "sha256": "7a8736536e7b634270436aab1db5b9358bdcec0c1fcc2fb08279b39585f5da04",
+      "sha256": "b2a628e551465a38c2e094bdc417289e9f766f4b6cc25738351b26e5dcd0b62a",
       "executable": false
     },
     "src/agent-door/authority.server.ts": {
