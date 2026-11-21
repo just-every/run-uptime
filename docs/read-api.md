@@ -8,15 +8,34 @@ The Base owner creates a key with `POST /api/credentials`, after verifying a sec
 
 A selection with monitor IDs only admits those IDs. Tags only admit monitors with any listed current tag. When both lists are nonempty, a monitor must match an ID **and** a tag. Two empty selection lists grant no monitor access. An explicit workspace selection uses `{"mode":"workspace","monitorIds":[],"tags":[]}`. Every selection also stays within the issuer's live service/team authority. Reads outside it return the same 404 as a missing resource, including an explicit bulk selection; lists and totals contain only authorized monitors.
 
-The CLI calls those same doors. First complete the MFA flow and keep the native cookie in `UPTIME_ACCESS_COOKIE`. Create a key specification with a future expiry and the smallest required selection, then run:
+In **Settings › People › Security and keys**, choose **Create a monitoring or CI key** and select **Monitoring read**, the monitors or tags to allow, and a future expiry. Uptime asks for a fresh second factor when needed.
+
+For the CLI, use [Second factors](/docs/mfa) to get a native session in `UPTIME_ACCESS_COOKIE` and verify it. Set `UPTIME_ORIGIN` to the app address without a path, such as the address printed as `RER_READY` locally. Save the key specification as a private `key-specification.json` with the fields described above, then run from the installed checkout:
 
 ```sh
-node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" create < key-specification.json
-node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" list
-node scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" revoke --id CREDENTIAL_ID
+rer run --script scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" create < key-specification.json
+rer run --script scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" list
+rer run --script scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" revoke --id CREDENTIAL_ID
 ```
 
-Creation output contains the token; keep it with private server configuration. Send it as `Authorization: Bearer TOKEN` for versioned monitoring GET/HEAD requests, including scoped report formats and metrics. Each allowed request rechecks expiry, revocation and the issuer's live Base and edition authority. `RateLimit`, `RateLimit-Policy` and 429 `Retry-After` describe the key's separate request budget. Key metadata records the last allowed use. Bearer mutations and other private product doors are refused before token-use or product writes. Existing `metrics:read` keys retain their separate metrics-only scope. Settings provides owner key creation, safe metadata and revocation, with fresh second-factor step-up. Delegated issuance remains unavailable.
+Select **Copy key** in the console, or take the token from CLI creation output.
+In Bash or Zsh, set `UPTIME_ORIGIN` to your app address, then run this line,
+paste the key at the hidden input and press Enter:
+
+```sh
+read -rs UPTIME_READ_TOKEN
+```
+
+Read the selected monitors and clear the key from the terminal variable:
+
+```sh
+printf 'Authorization: Bearer %s\n' "$UPTIME_READ_TOKEN" |
+  curl --fail --silent --show-error --header @- "$UPTIME_ORIGIN/api/v1/monitors"
+unset UPTIME_READ_TOKEN
+```
+
+Keep any key used by a service in private server configuration. The same header
+works on versioned monitoring GET/HEAD requests, including scoped reports and metrics. Each allowed request rechecks expiry, revocation and the issuer's live Base and edition authority. `RateLimit`, `RateLimit-Policy` and 429 `Retry-After` describe the key's separate request budget. Key metadata records the last allowed use. Bearer mutations and other private product doors are refused before token-use or product writes. Existing `metrics:read` keys retain their separate metrics-only scope. Settings provides owner key creation, safe metadata and revocation, with fresh second-factor step-up. Delegated issuance remains unavailable.
 
 ## Monitors and current coverage
 
@@ -53,7 +72,7 @@ UptimeRobot uptime-ratio reads map to `/api/v1/monitors/{id}/uptime` for one mon
 For an existing v2 `getMonitors` consumer requesting `custom_uptime_ratios=1-7-30`, run the native Node example from the checkout root:
 
 ```sh
-node docs/examples/uptime-ratios.mjs --map monitor-map.json
+rer run --script docs/examples/uptime-ratios.mjs --map monitor-map.json
 ```
 
 Set `UPTIME_ORIGIN` to your installation's HTTPS origin and `UPTIME_READ_TOKEN` to an owner-issued `monitoring:read` key. The owner must complete fresh MFA before issuing it; limit the key to the local monitors in the map and give it an expiry. Keep the token in private server configuration. Do not put it in the mapping file, browser code or a query string. Local loopback HTTP is supported for development.

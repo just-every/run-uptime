@@ -49,8 +49,8 @@ When you open `/setup`, Uptime asks your runner to visit that site and look arou
 
 ## Sign in and finish setup
 
-1. Open the address printed as `RER_READY` and complete the browser sign-in handoff from `rer dev`. Keep local access credentials private.
-2. First-run setup opens at `/setup`. Setup asks only for your website, and it is optional. Choose **Continue** (or **Skip**). If you gave a website and the runner is working, you land on its proposed monitors; otherwise on the form for your first monitor. The External check URL (https://example.org/ by default) is set in **Settings**.
+1. Open the private `RER_OPEN` link printed by `rer dev` on this computer to sign in. Keep it private. The plain `RER_READY` address opens the public Lobby.
+2. First-run setup opens at `/setup`. Enter your name, email and installation name. Your website is optional. Choose **Continue**. If you gave a website and the runner is working, you land on its proposed monitors. Otherwise, you land on the form for your first monitor. The External check URL (https://example.org/ by default) is set in **Settings**.
 
 The console is then at `/app`. Hosted email-link sign-in and notifications use a configured mail sender. Development and demo runs report successful sends without sending email. Setup can defer mail configuration; dev identity provides local owner access while you configure it.
 
@@ -60,7 +60,7 @@ The console is then at `/app`. Hosted email-link sign-in and notifications use a
 rer dev --stop
 ```
 
-This stops the app and its owned runner and practice target. Stop it before deployment (including a dry run), export, import or reset.
+This stops the app and its owned runner and practice target. Stop it before deployment (including a dry run) or reset. For command-line export or import, [verify your second factor before stopping dev](/docs/data).
 
 ## Look after the settings file
 

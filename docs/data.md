@@ -2,24 +2,50 @@ Your monitoring history is yours to take with you. Uptime can export an archive 
 
 ## Export and restore
 
-On the source installation, stop dev and export the archive:
+In the console, open **Settings › Backup and files** to download or restore a backup. On the receiving installation, finish setup and leave the monitor list empty before restoring.
+
+### Transfer from the command line
+
+Both commands need a native owner session with a second factor verified in the previous five minutes. Get that proof in the terminal **while dev is still running**. The browser sign-in from `RER_OPEN` does not supply a native CLI session.
+
+1. If you need an authenticator, enroll one under **Settings › People › Security and keys › Manage second factors**. See [Second factors](/docs/mfa) for enrollment and recovery codes.
+2. In a private Bash or Zsh terminal in the checkout, replace the example address below with the app address printed as `RER_READY`. Copy only the value of `cookie` from the output. Run the second block, paste the cookie at the hidden input, and press Enter. Keep the cookie out of shell history and logs.
+
+   ```sh
+   UPTIME_ORIGIN=http://127.0.0.1:8787
+   rer run --script scripts/mfa.mjs local-session --origin "$UPTIME_ORIGIN"
+   ```
+
+   ```sh
+   read -rs UPTIME_ACCESS_COOKIE && export UPTIME_ACCESS_COOKIE
+   ```
+
+3. In the same terminal, run the first line below, type your current authenticator code and press Enter, then run the remaining lines. For an unused recovery code, use `recovery-use` in place of `totp-verify`. If you just used a code in the browser, wait for the next one.
+
+   ```sh
+   read -rs UPTIME_MFA_CODE
+   ```
+
+   ```sh
+   UPTIME_MFA_CODE="$UPTIME_MFA_CODE" rer run --script scripts/mfa.mjs totp-verify --origin "$UPTIME_ORIGIN"
+   unset UPTIME_MFA_CODE
+   ```
+
+4. Once verification succeeds, stop dev with Control-C in its terminal, or run `rer dev --stop` if it is in the background. Within five minutes of verification, run:
+
+   ```sh
+   rer export --output exports/uptime.rer
+   unset UPTIME_ACCESS_COOKIE
+   ```
+
+To restore into a new local installation, make a separate folder and run `rer install just-every/run-uptime` there. In its new `run-uptime` checkout, run `rer setup --owner-email EMAIL --non-interactive`, replacing `EMAIL` with the receiving owner's address. Start `rer dev`, open its private `RER_OPEN` link and finish setup without adding monitors. Copy the archive to `exports/uptime.rer` in that checkout and keep the file private. Repeat steps 1–3 with the receiving owner's own session and second factor. Stop receiving dev and run the following within five minutes of verification:
 
 ```sh
-rer export --output exports/uptime.rer
-```
-
-On the receiving checkout, run setup first to establish its owner and private settings, then import:
-
-```sh
-rer setup --owner-email EMAIL --non-interactive
 rer import --input exports/uptime.rer --yes
+unset UPTIME_ACCESS_COOKIE
 ```
 
-Archives from 0.1.2 or earlier must be re-exported from the upgraded installation first: `rer import` refuses them with a plain message and exit code 4 and writes nothing.
-
-The receiving installation's product data must be empty. Setup creates its local receiving owner and settings before import; restore preserves that installation-local identity and settings.
-
-On a hosted installation, use the archive export and restore actions in the console.
+If the proof expires, start dev again and verify before retrying. Restore keeps the receiving installation’s owner and settings. Archives from 0.1.2 or earlier must be re-exported from the upgraded installation first.
 
 Exports refuse to run, and name the reason, when an installation exceeds the archive limits, rather than silently cutting data off.
 

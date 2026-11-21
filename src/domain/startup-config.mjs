@@ -13,7 +13,7 @@ function origin(value, env, runner = false) {
   const url = new URL(value);
   if (!text(value) || url.origin !== value || url.username || url.password) return false;
   if (!local(env)) return url.protocol === 'https:';
-  if (runner) return url.protocol === 'https:' || (url.protocol === 'http:' && url.hostname === '127.0.0.1' && port(url.port));
+  if (runner) return url.protocol === 'https:' || (url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname) && port(url.port));
   return ['http:', 'https:'].includes(url.protocol) && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
  } catch { return false; }
 }

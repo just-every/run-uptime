@@ -1,4 +1,4 @@
-import {permission,accessResponse} from '../access.server.ts'
+import {permission,accessResponse,type Access} from '../access.server.ts'
 import {authorizedDatabase} from '../access-database.server.ts'
 import type {Bindings} from '../control.server.ts'
 import {createImportDoorHandler} from '../../base/modules/import-kit/src/door/index.ts'
@@ -87,27 +87,28 @@ export async function businessImportDoor(env:Bindings,request:Request){
 /** The owner's own imports at /api/operator/import/*: the same pipeline under the
  * owner's session and exact Origin, with the source named on every call. */
 export async function ownerImportDoor(env:Bindings,request:Request){
- try{const access=await permission(env,request,undefined,{action:'import',workspace:true});env={...env,DB:authorizedDatabase(env,access)}}catch(error){const denied=accessResponse(error);if(denied)return finishRequest(request,denied);throw error}
+ let access:Access
+ try{access=await permission(env,request,undefined,{action:'import',workspace:true});env={...env,DB:authorizedDatabase(env,access)}}catch(error){const denied=accessResponse(error);if(denied)return finishRequest(request,denied);throw error}
  // Nothing is read for a caller without an owner session; the door rechecks it inside every batch.
  if(!await ownerSessionPredicate(env,request))return finishRequest(request,Response.json({error:'owner_required'},{status:401,headers}))
  // The console's own request policy: no cross-site request, whatever Origin it claims.
  if(request.headers.get('sec-fetch-site')==='cross-site')return finishRequest(request,Response.json({error:'origin_required'},{status:403,headers}))
- return operatorImport(env,request,request=>ownerSessionPredicate(env,request))
+ return operatorImport(env,request,access.session.operator.email,request=>ownerSessionPredicate(env,request))
 }
 type Authorize=(request:Request)=>Promise<D1Sql|null>
 /** The owner, on this console's own Origin: what the door itself requires before anything is read. */
 const admitted=async(env:Bindings,request:Request,authorize:Authorize)=>request.headers.get('Origin')===env.UPTIME_ORIGIN&&Boolean(await authorize(request))
-async function ownerHandler(env:Bindings,namespace:string,authorize:Authorize){
+async function ownerHandler(env:Bindings,namespace:string,ownerEmail:string,authorize:Authorize){
  const source=await importSource(env,namespace)
  if(!source)return null
  const owner=await businessOwner(env)
  return createImportOperatorHandler({database:env.DB,targets:businessTargets(env,owner),ownerPrincipalId:owner,
   destination:BUSINESS_DESTINATION,format:'ndjson',limits,reversalPolicy:REVERSAL_POLICY,...source,installationId:DOOR_KEY,appOrigin:env.UPTIME_ORIGIN??'',
-  ownerEmail:env.OWNER_EMAIL??'',namespace,authorize})
+  ownerEmail,namespace,authorize})
 }
 /** Cancels one unapplied plan through the door, as its owner, and withdraws what it held. */
-async function cancel(env:Bindings,request:Request,namespace:string,planId:string,authorize:Authorize){
- const handler=await ownerHandler(env,namespace,authorize)
+async function cancel(env:Bindings,request:Request,namespace:string,planId:string,ownerEmail:string,authorize:Authorize){
+ const handler=await ownerHandler(env,namespace,ownerEmail,authorize)
  const forwarded=new Headers(request.headers);forwarded.delete('content-length');forwarded.set('x-import-source',namespace)
  const cancelling=new Request(new URL('/api/operator/import/undo',request.url),{method:'POST',headers:forwarded,body:JSON.stringify({planId})})
  return custody(env,cancelling,{planId},async()=>(await handler!(cancelling))!)
@@ -117,12 +118,21 @@ async function cancel(env:Bindings,request:Request,namespace:string,planId:strin
  * door's own cancel runs first, so a namespace never stays blocked by a stale preview.
  * Every definition file is one source: a new preview of one replaces any other unapplied
  * definition-file preview. An upload still carrying a live request secret is never planned. */
-export async function operatorImport(env:Bindings,request:Request,authorize:Authorize){
+export async function operatorImport(env:Bindings,request:Request,ownerEmail:string,authorize:Authorize){
  const namespace=request.headers.get('X-Import-Source')??''
  try{
-  const handler=await ownerHandler(env,namespace,authorize)
-  if(!handler)return finishRequest(request,Response.json({error:'unknown_import_source'},{status:400,headers}))
   const read=await buffered(request),step=action(request),body=read.body,uploadId=step==='plan'&&typeof body?.uploadId==='string'?body.uploadId:null
+  // New approvals use the acting owner. A resumed apply retains the original
+  // approval identity and time, including after an owner changes their email.
+  let approvalEmail=ownerEmail
+  if(step==='apply'&&typeof body?.planId==='string'&&await admitted(env,request,authorize)){
+   const existing=await env.DB.prepare(`SELECT a.owner FROM ik_door_approvals a JOIN ik_door_plans p ON p.id=a.plan_id
+    WHERE p.id=? AND p.installation_id=? AND p.namespace=? AND (a.reviewer='operator' OR a.owner=?)`)
+    .bind(body.planId,DOOR_KEY,namespace,env.OWNER_EMAIL??'').first<{owner:string}>()
+   if(existing)approvalEmail=existing.owner
+  }
+  const handler=await ownerHandler(env,namespace,approvalEmail,authorize)
+  if(!handler)return finishRequest(request,Response.json({error:'unknown_import_source'},{status:400,headers}))
   if(step==='plan'&&uploadId&&await admitted(env,request,authorize)){
    const bytes=await uploadBytes(env,uploadId)
    if(bytes&&bundleCarriesSecrets(bytes)){await withdrawSecretUpload(env,uploadId,namespace);return finishRequest(request,secretsWithheld())}
@@ -130,10 +140,10 @@ export async function operatorImport(env:Bindings,request:Request,authorize:Auth
     WHERE n.installation_id=? AND n.namespace=? AND p.job_id IS NULL AND p.complete=1
     AND p.bundle_sha256<>(SELECT bundle_sha256 FROM ik_door_uploads WHERE id=? AND installation_id=? AND namespace=?)
     AND NOT EXISTS(SELECT 1 FROM ik_jobs j WHERE j.operation_key='door:'||p.id)`).bind(DOOR_KEY,namespace,uploadId,DOOR_KEY,namespace).first<{id:string}>()
-   if(stale){const cancelled=await cancel(env,request,namespace,stale.id,authorize);if(!cancelled.ok)return finishRequest(request,cancelled)}
+   if(stale){const cancelled=await cancel(env,request,namespace,stale.id,ownerEmail,authorize);if(!cancelled.ok)return finishRequest(request,cancelled)}
    if(namespace.startsWith(DEFINITION_FILE_PREFIX)){
     const others=await otherDefinitionFiles(env,namespace)
-    for(const other of others.pending){const cancelled=await cancel(env,request,other.namespace,other.id,authorize);if(!cancelled.ok)return finishRequest(request,cancelled)}
+    for(const other of others.pending){const cancelled=await cancel(env,request,other.namespace,other.id,ownerEmail,authorize);if(!cancelled.ok)return finishRequest(request,cancelled)}
     for(const other of others.orphans)await dropAbandoned(env,other)
    }
   }

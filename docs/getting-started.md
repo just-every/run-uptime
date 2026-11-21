@@ -6,7 +6,7 @@ Uptime runs on your own computer first, which is the quickest way to try it. Ope
 
 {{runRequirements}} Already have Node 22 or later? `{{runAlternative}}` does the same.
 
-The line installs `rer`, the Run Edit Run command, clones Uptime into a `run-uptime` folder, installs everything and starts the app, its private runner and a practice target, with you as the owner. A first launch can take several minutes. When it is ready it prints `RER_READY` with the address: open it and complete the browser sign-in handoff from `rer dev` on the same computer, and keep that sign-in private. This free copy runs only on your computer: it sends no email, and nobody else can open it.
+The line installs `rer`, the Run Edit Run command, clones Uptime into a `run-uptime` folder, installs everything and starts the app, its private runner and a practice target, with you as the owner. A first launch can take several minutes. When it is ready, open the private `RER_OPEN` link on the same computer to sign in. Keep it private. The plain `RER_READY` address opens the public Lobby. This free copy runs only on your computer: it sends no email, and nobody else can open it.
 
 If the installer prints a line that puts `rer` on your PATH, run that line too. To start Uptime again later, run the same line from the same folder, or `cd run-uptime && rer dev`. `rer dev --stop` stops it.
 
@@ -34,7 +34,7 @@ When you open `/setup`, Uptime asks your runner to visit that site and look arou
 
 ## Sign in and finish setup
 
-1. Open the address printed as `RER_READY` and complete the browser sign-in handoff from `rer dev`. Keep local access credentials private.
+1. Open the private link printed as `RER_OPEN` by `rer dev` to sign in.
 2. First-run setup at `/setup` asks for your name, email and installation name. Your website is optional. Choose **Continue** to enter the console. This copy runs only on this computer: checks run only while it is on and Uptime is running. To keep public checks running independently, [put it online](/docs/deploy). — sd, 2026-11-17T14:52:05Z.
 
 The console is then at `/app`. Hosted email-link sign-in and notifications use a configured mail sender. Development and demo runs report successful sends without sending email. Setup can defer mail configuration; dev identity provides local owner access while you configure it.
@@ -45,7 +45,7 @@ The console is then at `/app`. Hosted email-link sign-in and notifications use a
 rer dev --stop
 ```
 
-This stops the app and its owned runner and practice target. Stop it before deployment (including a dry run), export, import or reset.
+This stops the app and its owned runner and practice target. Stop it before deployment (including a dry run) or reset. For command-line export or import, [verify your second factor before stopping dev](/docs/data).
 
 ## Look after the settings file
 

@@ -70,10 +70,10 @@ If mail is deliberately off, use guarded `rer signin` from the deploying checkou
 ## Check it
 
 ```sh
-node scripts/deployment/owner-cli.mjs health
+rer run --script scripts/deployment/owner-cli.mjs health
 ```
 
-Run this from the installed deployment checkout under Node 22.20.0 with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` available. For another environment, pass its name: `node scripts/deployment/owner-cli.mjs health --environment staging`. This avoids requiring `pnpm` on your shell's PATH. If pnpm is available, `pnpm run health -- --environment staging` runs the same command; its forwarded `--` is accepted. Health checks your deployment through Cloudflare without changing hosted resources. A passing result tells you the database is ready and the deployment is the one you expect. It does not tell you the runner is working, that your targets are healthy, or that an email reached a person.
+Run this from the installed deployment checkout with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` available. For another environment, pass its name: `rer run --script scripts/deployment/owner-cli.mjs health --environment staging`. The installer supplies the Node runtime for these commands. Health checks your deployment through Cloudflare without changing hosted resources. A passing result tells you the database is ready and the deployment is the one you expect. It does not tell you the runner is working, that your targets are healthy, or that an email reached a person.
 
 ## Hosted checks and the private runner
 
@@ -85,7 +85,7 @@ To start the original deployment runner from the checkout holding that environme
 
 ```sh
 export UPTIME_CONTROL_ORIGIN='https://your-uptime-address.example'
-node scripts/runner-start.mjs --environment production
+rer run --script scripts/runner-start.mjs --environment production
 ```
 
 For a named environment, replace `production` with its name and use its own hosted origin. The wrapper reads the environment's saved runner key privately. An added runner instead uses the complete command from its console dialog, including its own ID, key and network label.
@@ -113,7 +113,7 @@ Then redeploy the same environment:
 
 ```sh
 rer deploy --environment NAME
-node scripts/deployment/owner-cli.mjs health --environment NAME
+rer run --script scripts/deployment/owner-cli.mjs health --environment NAME
 ```
 
 Compare the recorded Worker and D1 identities before and after; an update retains the same resources, owner, monitors, history, destinations and saved private settings while applying additive migrations and the new code. Inspect deployment readback and health, including the deployed-source identity matching the reviewed public commit, then test ordinary email sign-in at `/login`. Unfinished owners should reach `/setup`; completed owners should reach `/app` with their existing monitors and history. Check runner contact and actual results separately. Deployment does not update or supervise the private runner's host.
@@ -162,6 +162,6 @@ rer deploy --unset-secret MAIL_PROVIDER,MAIL_FROM,SENDGRID_API_KEY
 
 Run the unset command without the enabling `--env-file` and remove sending inputs from your shell. It removes the Worker overrides and restores public `MAIL_PROVIDER=none` in the same Worker version; a subsequent plain deploy stays off. The command does not rewrite Uptime's private input file: remove obsolete sender, key and selector entries from `.rer/deploy/<environment>.secrets.env` when retiring email, preserving owner and installation keys. Guarded `rer signin` remains available. To turn off another provider, also unset that provider's declared sending inputs; never leave a sending credential with `none`.
 
-Inspect local deployment inputs, with the same default, using `node scripts/deployment/ops-config.mjs`. This calls Base's operations inspector after applying the public default from `deploy.json`; Base's generic descriptor does not accept `none` as a `whenUnset` entry. Explicit SendGrid, Resend and Cloudflare require their declared sender and credential inputs; explicit or default `none` reports optional mail off. Run `rer check --profile first-party` for the structural contract. Hosted verification uses declaration-only synthetic SendGrid and sender stand-ins because Base supplies managed mail test keys there. Those stand-ins never enter a deployment plan or replace the public `none` default. These checks do not contact a provider or prove delivery. Verify actual email sign-in and recipient delivery separately after an authorized deployment.
+Inspect local deployment inputs, with the same default, using `rer run --script scripts/deployment/ops-config.mjs`. This calls Base's operations inspector after applying the public default from `deploy.json`; Base's generic descriptor does not accept `none` as a `whenUnset` entry. Explicit SendGrid, Resend and Cloudflare require their declared sender and credential inputs; explicit or default `none` reports optional mail off. Run `rer check --profile first-party` for the structural contract. Hosted verification uses declaration-only synthetic SendGrid and sender stand-ins because Base supplies managed mail test keys there. Those stand-ins never enter a deployment plan or replace the public `none` default. These checks do not contact a provider or prove delivery. Verify actual email sign-in and recipient delivery separately after an authorized deployment.
 
 — Run Edit Run fleet, 2026-11-16

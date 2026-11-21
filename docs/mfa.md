@@ -1,10 +1,8 @@
-# Second factors
-
 Native email-link sign-in remains Base's authentication method. Uptime binds
 TOTP and WebAuthn verification to that live Base session ID and operator version.
 A revoked, expired or inactive Base identity cannot use an old factor proof.
 The console enrolls and verifies factors; the same operations are available
-through the API and CLI below. Provider MFA assertions await ACCESS-002 SSO.
+through the API and CLI below.
 
 ## Enroll in the console
 
@@ -16,7 +14,14 @@ manual secret once. Scan the QR code or open the link in an RFC 6238
 authenticator app (SHA-1, six digits, 30 seconds), or enter the secret manually.
 Enter the app's current code
 and choose **Confirm authenticator**. **Enroll passkey** uses the browser's
-standard WebAuthn prompt on HTTPS or localhost. The first factor shows ten
+standard WebAuthn prompt on HTTPS or `http://localhost`. A passkey needs a
+website name, so the default address `http://127.0.0.1:PORT` offers an
+authenticator app. To start a new local installation with passkeys, run
+`rer dev just-every/run-uptime --host localhost` from a folder that does
+not contain an Uptime checkout. Open its private `RER_OPEN` link and return to
+**Manage second factors** to enroll. This creates a separate local installation.
+If you want to keep your existing installation on its current address, choose
+**Enroll authenticator** there. The first factor shows ten
 single-use recovery codes once: store them in your password manager, then choose
 **I saved this**. **Replace recovery codes** issues a new set after a fresh
 verification.
@@ -53,12 +58,17 @@ terminal environment. Keep it out of command arguments, shell history, logs and
 shared files. All commands below use the exact application origin:
 
 ```sh
-node scripts/mfa.mjs status --origin https://your-app.example
-node scripts/mfa.mjs totp-enroll --origin https://your-app.example
+rer run --script scripts/mfa.mjs status --origin https://your-app.example
+rer run --script scripts/mfa.mjs totp-enroll --origin https://your-app.example
 ```
 
-For a local checkout, start `rer dev`, then run `rer run --script scripts/mfa.mjs
-local-session --origin http://127.0.0.1:PORT` with the saved app origin (with Node on your PATH, `node scripts/mfa.mjs` is the same command). This uses
+For a local checkout, start `rer dev`. In the checkout, run the following with
+the app address printed as `RER_READY` in place of the example address:
+
+```sh
+rer run --script scripts/mfa.mjs local-session --origin http://127.0.0.1:8787
+```
+ This uses
 Base's existing local installation-authority endpoint and shows its new native
 session cookie once. Keep that cookie privately in `UPTIME_ACCESS_COOKIE`, then
 enroll or verify a second factor through the commands above. A dev-persona
@@ -70,8 +80,17 @@ Enrollment returns a challenge ID, a base32 seed and an `otpauth:` URI once.
 Add the seed or URI to an RFC 6238 authenticator (SHA-1, six digits, 30 seconds).
 Supply the challenge as JSON on standard input and the authenticator's current
 code in `UPTIME_MFA_CODE`, then run `totp-confirm` with the same `--origin`.
-After a later email-link sign-in, `totp-verify` with the current code in
-`UPTIME_MFA_CODE` verifies that session, as the console's sign-in step does. A
+For an enrolled authenticator, use the current code in the private terminal to
+verify the native CLI session. In Bash or Zsh:
+
+```sh
+read -rs UPTIME_MFA_CODE
+UPTIME_MFA_CODE="$UPTIME_MFA_CODE" rer run --script scripts/mfa.mjs totp-verify --origin "$UPTIME_ORIGIN"
+unset UPTIME_MFA_CODE
+```
+
+Set `UPTIME_ORIGIN` to the same app address you used for sign-in. After
+`read` starts, type the current code and press Enter. A
 consumed time step cannot be used again; use a subsequent code or one unused
 recovery code for another session.
 
@@ -97,7 +116,7 @@ User verification is required. This does not replace email-link sign-in.
 An owner with a fresh proof can run:
 
 ```sh
-node scripts/mfa.mjs require --origin https://your-app.example --required true
+rer run --script scripts/mfa.mjs require --origin https://your-app.example --required true
 ```
 
 Enforcement revokes existing sessions without a valid factor proof. A later

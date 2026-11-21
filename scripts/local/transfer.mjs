@@ -130,7 +130,15 @@ export async function transfer(direction, path) {
   await worker.dispose();
  }
 }
-if (import.meta.url === new URL(process.argv[1], 'file:').href) {
- try { console.log(JSON.stringify({ ok: true, ...await transfer(process.argv[2], process.argv[3]) })); }
- catch (error) { console.log(JSON.stringify({ ok: false, refused: error instanceof PortabilityError || error instanceof MfaError || error instanceof AccessError || /Restore requires empty|EEXIST/.test(error.message), reason: error instanceof PortabilityError ? error.code.split(':')[0] : error instanceof AccessError ? (error.status===401?'session_required':'permission_required') : error.code ?? error.name })); process.exitCode = 1; }
+if (import.meta.main && process.send) {
+ try {
+  process.send({ ok: true, ...await transfer(process.argv[2], process.argv[3]) });
+ } catch (error) {
+  process.send({
+   ok: false,
+   refused: error instanceof PortabilityError || error instanceof MfaError || error instanceof AccessError || /Restore requires empty|EEXIST/.test(error.message),
+   reason: error instanceof PortabilityError ? error.code.split(':')[0] : error instanceof AccessError ? (error.status===401?'session_required':'permission_required') : error.code ?? error.name,
+  });
+  process.exitCode = 1;
+ }
 }

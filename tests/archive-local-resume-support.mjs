@@ -30,9 +30,9 @@ export async function proveLocalArchiveResume(source,installation){
   return {checkout,bindings,cookie};
  };
  const run=(site,direction,path)=>{
-  const child=spawn(process.execPath,[join(site.checkout,'scripts/local/transfer.mjs'),direction,path],{cwd:site.checkout,env:{...process.env,UPTIME_ACCESS_COOKIE:site.cookie},detached:true,stdio:['ignore','pipe','pipe']});
-  children.add(child);let output='';child.stdout.on('data',bytes=>output+=bytes);child.stderr.on('data',()=>{});
-  const done=new Promise((resolve,reject)=>{child.once('error',reject);child.once('close',(code,signal)=>{children.delete(child);resolve({code,signal,output})})});
+  const child=spawn(process.execPath,[join(site.checkout,'scripts/local/transfer.mjs'),direction,path],{cwd:site.checkout,env:{...process.env,UPTIME_ACCESS_COOKIE:site.cookie},detached:true,stdio:['ignore','ignore','ignore','ipc']});
+  children.add(child);let receipt;child.on('message',message=>{receipt=message});
+  const done=new Promise((resolve,reject)=>{child.once('error',reject);child.once('close',(code,signal)=>{children.delete(child);resolve({code,signal,receipt})})});
   return {child,done};
  };
  const interrupt=async(site,direction,path)=>{
@@ -45,7 +45,7 @@ export async function proveLocalArchiveResume(source,installation){
   });
   const process=run(site,direction,path);
   try{
-   await Promise.race([observed,process.done.then(()=>{throw Error('Local command completed before the interruption probe')})]);
+   await Promise.race([observed,process.done.then(({code,signal,receipt})=>{throw Error(`Local command ended before the interruption probe (\${receipt?.reason??signal??code})`)})]);
    // This exact group was created by this test; no shared process is targeted.
    globalThis.process.kill(-process.child.pid,'SIGKILL');
    assert.equal((await process.done).signal,'SIGKILL');
@@ -58,7 +58,7 @@ export async function proveLocalArchiveResume(source,installation){
   const exportCheckpoint=await interrupt(original,'export',archive);
   const inspect=async(site,fn)=>{const worker=await startLocalWorker({root:site.checkout,persist:join(site.checkout,'.wrangler/state'),bindings:site.bindings,assets:false});try{return await fn(await worker.getD1Database('DB'))}finally{await worker.dispose()}};
   const sourceJob=await inspect(original,db=>db.prepare('SELECT phase,completed FROM rer_portability_jobs WHERE id=?').bind(exportCheckpoint.id).first());assert.ok(['building','complete'].includes(sourceJob.phase));
-  const resumed=await run(original,'export',archive).done;assert.equal(resumed.code,0,'the interrupted local export resumes');assert.equal(JSON.parse(resumed.output.trim().split('\n').at(-1)).ok,true);
+  const resumed=await run(original,'export',archive).done;assert.equal(resumed.code,0,'the interrupted local export resumes');assert.equal(resumed.receipt.ok,true);
   assert.ok(!(await readdir(join(archive,'..'))).some(name=>name.endsWith('transfer.json')),'successful export removes its checkpoint');
   const receiving=await prepare(await installation('cli-resume-receiver'),'receiver');
   const records=[];for await(const record of readArchive(new Response(await readFile(archive)).body))records.push(record);
@@ -70,7 +70,7 @@ export async function proveLocalArchiveResume(source,installation){
    return Object.fromEntries(await Promise.all(names.map(async({name})=>[name,createHash('sha256').update(JSON.stringify((await db.prepare(`SELECT * FROM \"${name}\" ORDER BY rowid`).all()).results)).digest('hex')])));
   };
   const beforeForeign=await inspect(receiving,inventory),foreign=await run(receiving,'import',foreignPath).done;
-  assert.notEqual(foreign.code,0);assert.equal(JSON.parse(foreign.output.trim().split('\n').at(-1)).reason,'wrong_product');assert.deepEqual(await inspect(receiving,inventory),beforeForeign,'wrong-product CLI refusal preserves every durable table before transfer identity initialization');
+  assert.notEqual(foreign.code,0);assert.equal(foreign.receipt.reason,'wrong_product');assert.deepEqual(await inspect(receiving,inventory),beforeForeign,'wrong-product CLI refusal preserves every durable table before transfer identity initialization');
   const importCheckpoint=await interrupt(receiving,'import',archive);
   const captured=await inspect(receiving,db=>db.prepare('SELECT phase,completed FROM rer_portability_jobs WHERE id=?').bind(importCheckpoint.id).first());assert.equal(captured.phase,'staging');
   const product=db=>Promise.all(TABLES.map(async name=>[name,(await db.prepare(`SELECT * FROM ${name} ORDER BY rowid`).all()).results])).then(Object.fromEntries);
@@ -79,7 +79,7 @@ export async function proveLocalArchiveResume(source,installation){
   const changed=await run(receiving,'import',archive).done;assert.notEqual(changed.code,0,'a changed archive cannot reuse its checkpoint');
   assert.deepEqual(await inspect(receiving,product),before,'changed-file resume writes no product');
   await writeFile(archive,bytes);
-  const imported=await run(receiving,'import',archive).done;assert.equal(imported.code,0,'the interrupted local import resumes from the original archive');assert.equal(JSON.parse(imported.output.trim().split('\n').at(-1)).ok,true);
+  const imported=await run(receiving,'import',archive).done;assert.equal(imported.code,0,'the interrupted local import resumes from the original archive');assert.equal(imported.receipt.ok,true);
   const after=await inspect(receiving,product);assert.equal(after.monitors.length,120);assert.ok(after.monitors.every(m=>!JSON.parse(m.definition).enabled));assert.ok(after.observations.length>0);assert.ok(after.slots.every(s=>s.lease_owner==='restored-inactive'&&s.lease_until===0));
   console.log('ARCHIVE_LOCAL_RESUME_RECEIPT '+JSON.stringify({schema:1,exportPhaseAtCrash:sourceJob.phase,exportPartsAtCrash:sourceJob.completed,importPhaseAtCrash:captured.phase,importPartsAtCrash:captured.completed,changedFileExit:changed.code,exportExit:resumed.code,importExit:imported.code,restoredMonitors:after.monitors.length,restoredObservations:after.observations.length,inactive:true,changedFileNoWrite:true,foreignProductExit:foreign.code,foreignProductNoWrite:true}));
   console.log('PASS local archive interrupted-process resume: fsynced owner and installation checkpoints, original-file binding, no-write changed-file refusal and inactive completion');

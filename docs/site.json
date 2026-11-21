@@ -22,6 +22,12 @@
           "summary": "Run Uptime on your own computer with the rer command, then sign in and finish setup."
         },
         {
+          "slug": "mfa",
+          "title": "Second factors",
+          "file": "mfa.md",
+          "summary": "Enroll and verify an authenticator or passkey, and sign in for protected command-line actions."
+        },
+        {
           "slug": "deploy",
           "title": "Deploy to Cloudflare",
           "file": "deploy.md",

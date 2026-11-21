@@ -14,7 +14,8 @@ import {createHash} from 'node:crypto';
 import {join} from 'node:path';
 import {readFile} from 'node:fs/promises';
 import {migratedWorker,runtimeDirectory,cleanupDirectory,availablePorts} from './notify-acceptance-runtime.mjs';
-import {testAuthBindings,authRequest,sessionCookie,finishSetup,definitionDoor} from './auth-test-support.mjs';
+import {testAuthBindings,authRequest,sessionCookie,finishSetup,definitionDoor,emailSignIn} from './auth-test-support.mjs';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {inviteDoorMember} from './access-door-support.mjs';
 import {populateArchiveFixture} from './archive-fixture.mjs';
 import {typeScriptDefinitionsProof} from './definitions-typescript-support.mjs';
@@ -38,10 +39,15 @@ let worker;
 try{
  let DB;({worker,DB}=await migratedWorker({port,persist:join(directory,'local'),bindings:{UPTIME_ORIGIN:origin}}));
  const call=authRequest(origin);
- const cookie=sessionCookie(await call('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Import owner'}));
+ sessionCookie(await call('/auth/bootstrap',{token:testAuthBindings.SETUP_TOKEN,displayName:'Import owner'}));
+ const cookie=await emailSignIn(origin,{secondFactor:false});
  // A self-hosted install has no Run Edit Run trust, so RER's signed reads do not exist.
  for(const path of ['/api/rer/runner-status','/api/rer/cutover-status'])assert.equal((await fetch(origin+path,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer x.y.z'},body:JSON.stringify({since:new Date().toISOString()})})).status,404,path);
- await finishSetup(origin,cookie);
+ const ownerEmail='synthetic-uptime-import-owner@example.test';
+ const setup=await fetch(origin+'/setup',{method:'POST',redirect:'manual',headers:{origin,cookie},
+  body:new URLSearchParams({email:ownerEmail,displayName:'Import owner',installationName:'Import workspace'})});
+ assert.equal(setup.status,303,'owner replaces the bootstrap identity in first-run setup');
+ await completeSecondFactor(origin,cookie);
  // The owner opens the console first, which establishes the installation's runner; an import never creates one.
  assert.equal((await fetch(origin+'/api/overview',{headers:{origin,cookie}})).status,200);
  await populateArchiveFixture({...testAuthBindings,UPTIME_ORIGIN:origin,DB});
@@ -239,6 +245,10 @@ try{
   DB.prepare("INSERT INTO definition_batch_entries(batch_id,monitor_id,action,revision,previous_revision) VALUES('legacy-batch','legacy-import','create',1,NULL)")]);
  const listed=(await json(await send('/api/definitions/batches',undefined,{method:'GET'}))).body;
  assert.ok(listed.some(b=>b.id==='legacy-batch')&&listed.some(b=>b.businessApproval?.via==='owner'),'one history lists the earlier batch and door imports');
+ for(const plan of [imported.body,pairView]){
+  const entry=listed.find(batch=>batch.id==='business:'+plan.planId);
+  assert.equal(entry?.businessApproval?.owner,ownerEmail,'the saved approval names the owner who approved the file');
+ }
  const legacyUndo=await json(await send('/api/definitions/batches/legacy-batch/undo','{}'));assert.equal(legacyUndo.status,200);assert.deepEqual(legacyUndo.body.outcomes.map(o=>o.outcome),['paused']);
  // Request secrets never become import data. Recognising a file withholds them, the screen uploads that text, and an
  // upload still carrying one is refused and withdrawn; none is in any table after a preview, an apply or a cancel.

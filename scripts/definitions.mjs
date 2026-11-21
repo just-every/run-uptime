@@ -76,7 +76,8 @@ const localAccess=env=>permission(env,ownerRequest(env,'/api/operator/import/loc
 const ownerAuthority = env => async () => accessFence(await localAccess(env));
 // History reads the owner's import history with the same local authority.
 async function door(env, namespace, step, body) {
- const response = await operatorImport(env, ownerRequest(env, `/api/operator/import/${step}`, { method: 'POST', headers: { 'x-import-source': namespace }, body: JSON.stringify(body) }), ownerAuthority(env));
+ const {session} = await localAccess(env);
+ const response = await operatorImport(env, ownerRequest(env, `/api/operator/import/${step}`, { method: 'POST', headers: { 'x-import-source': namespace }, body: JSON.stringify(body) }), session.operator.email, ownerAuthority(env));
  const result = await response.json();
  if (!response.ok) throw Object.assign(Error(`The import door refused ${step}: ${result.error}.`), { exitCode: 1 });
  return result;
