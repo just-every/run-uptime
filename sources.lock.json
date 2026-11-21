@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "cb3a8118000e155731d124bd431deabc4cfcc190fa7336211155c63d87687046",
+      "sha256": "1a19586f4474e2c946364c3dcd7da0667ee572a572c50323ccce795312f8517c",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -2583,8 +2583,12 @@
       "sha256": "2eebc919b98755691bd00540a81158ceb06c3677539f3fdfb82d6a33f1f3d268",
       "executable": false
     },
+    "patches/rer-site-deployments-retry.patch": {
+      "sha256": "a12c09b58367295cc1c92682338a0b14cde2f7e7dcd7b2b2f33621d53fb751b8",
+      "executable": false
+    },
     "pnpm-lock.yaml": {
-      "sha256": "a0cfc59aeebadd33cd413879161d02d2c4f3d070fb480bc01f3f5b3908aebb64",
+      "sha256": "150ef6223543f388ddf5483993e0a48584f843527be0a43a33a123ed880496de",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -4540,7 +4544,7 @@
       "executable": false
     },
     "scripts/verification-plan.mjs": {
-      "sha256": "78e8ddb935bee8df8a71a54f1da495944d58e1b6f0be0f8bef86baff8cfdfc09",
+      "sha256": "7b4bfccaf08ab9f8a7ce748f83e1149fabf2699056e1b0d8d41c38036b10e4a7",
       "executable": false
     },
     "scripts/verify-app.mjs": {
@@ -10665,6 +10669,10 @@
     },
     "tests/roster-erasure.mjs": {
       "sha256": "a611f6f053ff992e02061bfc4e2780f01d83a6371d57f8fdfa0fa3dff1cab2f1",
+      "executable": false
+    },
+    "tests/run-site-deploy.mjs": {
+      "sha256": "9ccf1c1c575dfda70104c17b357a23aef1d8838e10036e0a159439adf869aef7",
       "executable": false
     },
     "tests/scratch-installation.mjs": {
