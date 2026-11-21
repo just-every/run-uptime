@@ -1,0 +1,161 @@
+{
+  "acceptance": {
+    "after": {
+      "Agent surface": {
+        "done": 0,
+        "missing": 8,
+        "partial": 11,
+        "total": 19
+      },
+      "Core": {
+        "done": 37,
+        "missing": 11,
+        "partial": 47,
+        "total": 95
+      },
+      "Full target": {
+        "done": 37,
+        "missing": 20,
+        "partial": 58,
+        "total": 115
+      },
+      "Later": {
+        "done": 0,
+        "missing": 1,
+        "partial": 0,
+        "total": 1
+      }
+    },
+    "before": {
+      "Agent surface": {
+        "done": 0,
+        "missing": 8,
+        "partial": 11,
+        "total": 19
+      },
+      "Core": {
+        "done": 37,
+        "missing": 11,
+        "partial": 47,
+        "total": 95
+      },
+      "Full target": {
+        "done": 37,
+        "missing": 20,
+        "partial": 58,
+        "total": 115
+      },
+      "Later": {
+        "done": 0,
+        "missing": 1,
+        "partial": 0,
+        "total": 1
+      }
+    },
+    "status_changes": []
+  },
+  "base_main": "73a3c77de5857576281d558c111301f9988a3aa4",
+  "branch": "cloud/sd-uptime-release-0-5-20",
+  "checks": {
+    "ancestry": "pass",
+    "app_build": "pass",
+    "base_copy_check_offline": "pass",
+    "candidate_identity_and_trailers": "pass",
+    "contract_generator_check": "pass",
+    "declared_hashes_at_remote_head": "pass",
+    "deployment_spec": "pass",
+    "frozen_pnpm_install": "pass",
+    "metadata_scope": "pass",
+    "publication_scan": "fleet-lander",
+    "remote_branch_readback": "pass",
+    "source_lock": "pass",
+    "typecheck": "pass",
+    "whitespace": "pass"
+  },
+  "collision_check": {
+    "github_release_lookup_http": 404,
+    "tag_absent": true
+  },
+  "declared_hashes": [
+    {
+      "actual": "81aef96872569eb67d3dbaa2f2f561dca54aca2c32ded8021b153d3b818d6181",
+      "declared": "81aef96872569eb67d3dbaa2f2f561dca54aca2c32ded8021b153d3b818d6181",
+      "key": "setup.sha256",
+      "path": "rer-setup.json"
+    }
+  ],
+  "migrations": {
+    "added": [],
+    "after": 91,
+    "before": 91,
+    "changed": [],
+    "inventory_sha256": "db9d2fb069e95a18f15e72504f035881fced822edce9b8ba16976ab98d4c3bb6",
+    "previous_bytes_identical": true,
+    "removed": []
+  },
+  "open_pr": null,
+  "previous_version": "0.5.19",
+  "previous_version_commit": "b9bff679ec99b702de753d63ad385d232e6b6d1e",
+  "product_head": "6d5fcba139c65c636f87799f432c5124bfc2f641",
+  "push": {
+    "attempt": 1,
+    "branch_ref": "refs/heads/cloud/sd-uptime-release-0-5-20",
+    "head": "6d5fcba139c65c636f87799f432c5124bfc2f641",
+    "transport": "fleet-cloud-push-guard"
+  },
+  "recorded_at": "2026-11-21T22:51:08Z",
+  "repository": "just-every/run-uptime",
+  "rer_pin": "0.2.125",
+  "schema": 1,
+  "screenshot": {
+    "blob": "239dff21ed54b8b9a43783abfe298778ba400435",
+    "captured_version": "0.4.0",
+    "path": ".github/assets/release/uptime-0.4.0-monitor-1440.png"
+  },
+  "touched_paths": [
+    "CHANGELOG.md",
+    "RELEASE.json",
+    "RELEASE.md",
+    "package.json",
+    "seed.json",
+    "sources.lock.json"
+  ],
+  "verify": [
+    {
+      "conclusion": null,
+      "event": "push",
+      "head_branch": "cloud/sd-uptime-release-0-5-20",
+      "head_sha": "6d5fcba139c65c636f87799f432c5124bfc2f641",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44957473056",
+      "id": 44957473056,
+      "name": "Verify",
+      "phase": "discovery",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "6d5fcba139c65c636f87799f432c5124bfc2f641",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44957473056",
+      "id": 44957473056,
+      "observed_utc": "2026-11-21T22:40:53.647997+00:00",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "6d5fcba139c65c636f87799f432c5124bfc2f641",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44957473056",
+      "id": 44957473056,
+      "observed_utc": "2026-11-21T22:45:55.314177+00:00",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "6d5fcba139c65c636f87799f432c5124bfc2f641",
+      "html_url": "https://github.com/just-every/run-uptime/actions/runs/44957473056",
+      "id": 44957473056,
+      "observed_utc": "2026-11-21T22:50:57.020190+00:00",
+      "status": "completed"
+    }
+  ],
+  "version": "0.5.20"
+}

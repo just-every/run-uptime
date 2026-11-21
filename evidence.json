@@ -1,0 +1,22 @@
+{
+  "files": [
+    {
+      "blob": "0ba89e97f98498f0f737d5439dadbce5cac07823",
+      "bytes": 4351,
+      "path": "RELEASE-CHECKS.json",
+      "sha256": "5e62e9f5658eae1abb4d46c81876af0f5934a084969f1114373711b4df9af1a3"
+    },
+    {
+      "blob": "8de4d0675f0dec738c9c3949dc9eb8f03189ae40",
+      "bytes": 3928,
+      "path": "REPORT.md",
+      "sha256": "875eff4e0c2fde94ac7954d1a568b21f03423c544f7ff448cfdb26ee75d34fb3"
+    }
+  ],
+  "product_branch": "cloud/sd-uptime-release-0-5-20",
+  "product_head": "6d5fcba139c65c636f87799f432c5124bfc2f641",
+  "ref": "refs/heads/evidence/sd-uptime-release-0-5-20",
+  "repository": "just-every/run-uptime",
+  "schema": 1,
+  "tag": "sd-uptime-release-0-5-20"
+}
