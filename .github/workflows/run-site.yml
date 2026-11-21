@@ -27,6 +27,7 @@ jobs:
           COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
       - run: pnpm exec rer deploy --site
         env:
+          NODE_OPTIONS: --import=./scripts/deployment/run-site-http.mjs
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Public readback

@@ -480,7 +480,7 @@
       "executable": false
     },
     ".github/workflows/run-site.yml": {
-      "sha256": "1466e0cc78eeee30a85f1602c0b4bbb74f053fc9f1aa723635c5f0fc5a0f19b0",
+      "sha256": "4a194a3172458bffbea047c865df66f12b2c4ec2251e6f7636164d08245c1bfe",
       "executable": false
     },
     ".github/workflows/verify.yml": {
@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "1a19586f4474e2c946364c3dcd7da0667ee572a572c50323ccce795312f8517c",
+      "sha256": "a3821c21bd89ec9ab332673b30a56314c18aeb29dcb2e86f3c91ffed95855874",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -2583,12 +2583,8 @@
       "sha256": "2eebc919b98755691bd00540a81158ceb06c3677539f3fdfb82d6a33f1f3d268",
       "executable": false
     },
-    "patches/rer-site-deployments-retry.patch": {
-      "sha256": "a12c09b58367295cc1c92682338a0b14cde2f7e7dcd7b2b2f33621d53fb751b8",
-      "executable": false
-    },
     "pnpm-lock.yaml": {
-      "sha256": "150ef6223543f388ddf5483993e0a48584f843527be0a43a33a123ed880496de",
+      "sha256": "a0cfc59aeebadd33cd413879161d02d2c4f3d070fb480bc01f3f5b3908aebb64",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -3793,6 +3789,10 @@
     },
     "scripts/deployment/prepare.mjs": {
       "sha256": "ef7a83a2d7eb071456e4049febeb1fdc599bc3e5008b04bcab7f5ec71f8ec9cb",
+      "executable": false
+    },
+    "scripts/deployment/run-site-http.mjs": {
+      "sha256": "4e86ddb195b75ac7b8213876c24bdeb3a1e25fe080e497a7ab9851dfe4b10c29",
       "executable": false
     },
     "scripts/deployment/secret-custody.mjs": {
@@ -10672,7 +10672,7 @@
       "executable": false
     },
     "tests/run-site-deploy.mjs": {
-      "sha256": "9ccf1c1c575dfda70104c17b357a23aef1d8838e10036e0a159439adf869aef7",
+      "sha256": "e3b09bdc89230c726d96e11cbe96497870c5fc9befa513cfbb6421696d2db166",
       "executable": false
     },
     "tests/scratch-installation.mjs": {

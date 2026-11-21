@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { cloudflare } from '@runeditrun/rer/internal/modules/deploy-kit/provider.mjs';
+import { retrySiteDeploymentRead } from '../scripts/deployment/run-site-http.mjs';
 
 const siteWorker = '/workers/scripts/synthetic-uptime--site';
 const deployments = siteWorker + '/deployments';
@@ -9,9 +10,9 @@ const snapshot = { deployments: [{ id: 'synthetic-deployment' }] };
 function provider(...statuses) {
   const requests = [];
   const api = cloudflare({
-    accountId: 'a'.repeat(32),
+    accountId: 'A'.repeat(32),
     token: 'synthetic-uptime-test',
-    fetch: async (url, { method }) => {
+    fetch: retrySiteDeploymentRead(async (url, { method }) => {
       requests.push({ path: new URL(url).pathname, method });
       assert.ok(statuses.length, 'unexpected provider request');
       const status = statuses.shift();
@@ -21,7 +22,7 @@ function provider(...statuses) {
             success: false,
             errors: [{ code: 10500, message: 'Internal authentication error: internal server error' }],
           }, { status });
-    },
+    }),
   });
   return { api, requests };
 }
