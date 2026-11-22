@@ -1,7 +1,6 @@
 import {demoEnvironment,runtimeEnvironment} from '../local/demo-state.mjs';
 import { localInstaller } from '@runeditrun/rer/local-installer';
 import { commandAdapter as createCommandAdapter } from '@runeditrun/rer/adapter';
-import { ensureChromium } from '@runeditrun/rer/internal/cli/browser-runtime.mjs';
 import { deployment } from '../deployment/command.mjs';
 import { settingsDefinition } from '../local-settings.mjs';
 import { features } from './ui/seed.mjs';
@@ -16,12 +15,7 @@ export const lifecycle = { ...localInstaller({
  signIn: { emailKey: 'OWNER_EMAIL', returnTo: '/setup' },
 }), mailOffSignIn: 'rer signin' };
 export const commandAdapter = createCommandAdapter(lifecycle, {
- async dev(context) {
-  // A cold Chromium download has its own budget before rer checks the owner link.
-  const signal = AbortSignal.any([context.signal, AbortSignal.timeout(5 * 60 * 1000)]);
-  await ensureChromium(context.root, context.store, signal);
-  return runtimeTarget(context, true);
- },
+ dev: context => runtimeTarget(context, true),
  preview: context => runtimeTarget(context, false), verify: ['pnpm', ['run', 'verify:app']],
  deploy: deployment(lifecycle), portability, mailOffSignIn: 'rer signin',
  settings: ['data/local-secrets.json'], setup: { manifestFile: 'rer-local-setup.json' },

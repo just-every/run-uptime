@@ -6,7 +6,7 @@
   "toolchain": {
     "id": "runeditrun/edition-authoring",
     "version": "1.1.0",
-    "sha256": "a1b3801ecb3c1ad5263135138c10aa7afccebc2843cc57102264d681288617b0"
+    "sha256": "4afb54aff4bb60a05f902e67bb9b20f8478c2d6cb76819ce8e17f142224c25b8"
   },
   "components": [
     {
@@ -512,7 +512,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "a7bad362ca58ebe7531524df70822edbb6abe427e117af7aa4f550b270842c07",
+      "sha256": "938ab00c4e83583049f5e51a334564a4526745e0d635bcf7c61f0b3b211a2cac",
       "executable": false
     },
     "BASELINE.md": {
@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "36f3e111f6f05a74cdc4145e38f4ff596ca1a6fe42d05deba2028107936bb0d9",
+      "sha256": "a0e2c6ff22bf778e0575be4999386ffba38b37a0d9291e261cb74ac2b7bef7fb",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -2584,7 +2584,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "a0cfc59aeebadd33cd413879161d02d2c4f3d070fb480bc01f3f5b3908aebb64",
+      "sha256": "cca7009a836cf15ca6050dddc851c9088c9dcb1c438fac8f5874e3d5678cccbf",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -2620,7 +2620,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "d67afc4223e29a94493429379ad4bc75b0f56de8b6db875bc4c2903a1a1d374e",
+      "sha256": "c2b94f1abb838ddbf5b59078240a3597045289627a31eaa047289fdc566080bc",
       "executable": false
     },
     "public/archive-view.js": {
@@ -3060,7 +3060,7 @@
       "executable": false
     },
     "public/settings-alerts.js": {
-      "sha256": "4c01544eb73b3f5eed03f7d7ca912637cf8e042c5e1db9455f88498f3338bc91",
+      "sha256": "694ef01a8b557bdb2104248a5f3d654bc020a41258b47cf9d6603b011de372d9",
       "executable": false
     },
     "public/settings-backup.js": {
@@ -3828,11 +3828,11 @@
       "executable": false
     },
     "scripts/edition-authoring/base-copies.mjs": {
-      "sha256": "bd1ad7bb65bc31c25f0e3b402d940e3a04fb09d1587e0fc16014a32343366438",
+      "sha256": "8568c95f6adf07d8d6d1b136fa140223ffe0a544ba292ce05b5532d5efb807cf",
       "executable": false
     },
     "scripts/edition-authoring/cli.mjs": {
-      "sha256": "87bff33255838dbbcdb017c034380002b3cffe65b7fb098dc05f20544d1931fc",
+      "sha256": "2812198aa88c81ee4c0ba2f178947a328b2ccfcfab9d183fb948e4961c821d61",
       "executable": false
     },
     "scripts/edition-authoring/copy-checkout.mjs": {
@@ -4436,7 +4436,7 @@
       "executable": false
     },
     "scripts/installer/local.mjs": {
-      "sha256": "7660b9a9792e86e9ffe091596c2cf3ad0ad3fdfc7770791565ba8e7ca4bd384c",
+      "sha256": "038f681317f3d7ff6a5cf8b21702017137aba60ca0b41e487a350201bb28414c",
       "executable": false
     },
     "scripts/installer/ui/seed.mjs": {
@@ -4496,7 +4496,7 @@
       "executable": false
     },
     "scripts/local/transfer.mjs": {
-      "sha256": "0dbade71117a4e29fcb727e5887dcb96f89b65e23a8a4932c118ea79858afb13",
+      "sha256": "37d04206c4786becbfa6badf536b96dac77dcb55010d6e932090924a5b170f96",
       "executable": false
     },
     "scripts/local/vite-runtime.mjs": {
@@ -4720,7 +4720,7 @@
       "executable": false
     },
     "src/base/modules/agent-door/ADOPTING.md": {
-      "sha256": "db0b4718bc6578e01cb50cb6bbac46c732ecb7e2ce9ce2743fbaba26b3674c20",
+      "sha256": "01cf396d792a748386c72cefb89f48a4454db48752e42fe35c5bb0153d487506",
       "executable": false
     },
     "src/base/modules/agent-door/adoption/penny/0106_agent_erasure_custody.sql": {
@@ -6652,7 +6652,7 @@
       "executable": false
     },
     "src/base/modules/operator-auth/dev-gate-script.mjs": {
-      "sha256": "939d1911b862638a7e358ca6f41a78af213f66aa319799a77c82b909a6fb16f6",
+      "sha256": "2cefa49df99a8cce920ce1b585c6c6ff50c3ebd83019d4def131aea888a79e7a",
       "executable": false
     },
     "src/base/modules/operator-auth/dev-gate.mjs": {
@@ -6864,7 +6864,7 @@
       "executable": false
     },
     "src/base/modules/operator-auth/README.md": {
-      "sha256": "b8412340e65441dab25a4773ed188a3edcc2c1631a09d36736f71ed4917128d7",
+      "sha256": "6fa2202148d6163c6b77ee71a70edcc1321a78b79d60f68eca0eaa705f2b9e9b",
       "executable": false
     },
     "src/base/modules/operator-auth/rejected-response.mjs": {

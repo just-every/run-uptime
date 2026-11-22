@@ -581,6 +581,13 @@ exchanges the grant for a dev session and a cookie that admits that session
 only. Persona switching and dev-minted credentials still require the
 checkout-wide gate. Reset invalidates both forms of local entry.
 
+If a seed implements its own dev owner-entry route, pass a `redeemPersona`
+callback to `gate.exchange(request, branding, { redeemPersona })` for
+`/__dev/key`, as Base's [dev wrapper](dev/index.mjs) does. The callback must
+validate the grant and issue the selected account's local session through the
+seed's own auth. A route that only exchanges the checkout key cannot redeem an
+explicit persona link.
+
 `dev/` is the dev layer: **server-only and local-only**. Import it only from a
 local-only Worker entry (a Vite-serve or local `wrangler dev` entry), never
 from the deployed main; its `DEV_LAYER_MARKER` lets `rer build` refuse any output

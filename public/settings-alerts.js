@@ -1,4 +1,5 @@
 import {patch,firstMount} from './dom-patch.js';
+import {icon} from './console-format.js';
 import {clausesMarkup} from './alert-clauses.js';
 import {destinationsMarkup} from './alert-destinations.js';
 import {sentAlertsMarkup} from './sent-alerts.js';
@@ -11,7 +12,9 @@ import {mountAlertTeams} from './assets/alert-teams.js';
 // five-second overview redraws the clauses, the destination rows and the sent alerts in place (public/dom-patch.js); the two
 // middle cards fill themselves (data-owned), so a choice not yet applied, a typed name or a pending save survives it.
 const routes=new WeakMap();let current;
-export function renderAlerts({area,data,api,action,readUnavailable}){
+export function renderAlerts({area,actions,data,api,action,readUnavailable}){
+ patch(actions,data.notifications?`<button class="primary" id="add-destination">${icon('plus')}Add destination</button>`:'');
+ actions.hidden=!data.notifications;
  if(!data.notifications){
   patch(area,'<div class="settings-area alerts-area"><section class="ui-card set-card" id="alert-teams" data-owned="my-alerts" aria-labelledby="alert-teams-heading"></section></div>');
   const teams=area.querySelector('#alert-teams');if(firstMount(teams))mountAlertTeams(teams,{api,manage:false});
@@ -27,7 +30,7 @@ export function renderAlerts({area,data,api,action,readUnavailable}){
  // Scheduled reports fill their own host once (public/assets/report-schedule-controls.js).
  if(data.access?.role!=='owner')reports.closest('details').hidden=true;
  else if(!reports.hasChildNodes())void import('./assets/report-schedule-controls.js').then(({reportScheduleControls})=>reportScheduleControls(reports,{data,api}));
- const add=document.getElementById('add-destination');if(add)add.onclick=()=>destinationDialog(null,current);
+ actions.querySelector('#add-destination').onclick=()=>destinationDialog(null,current);
 }
 // A row's Send test and Edit, and a clause's fix, which opens the destination's Edit dialog.
 function openFromPage(event){

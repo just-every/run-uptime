@@ -122,7 +122,7 @@ const summary=$('.list-summary');
 if(view==='monitor'){area.setAttribute('aria-label','Monitor details');area.querySelector('.loading-note').textContent='Loading monitor…';$('.top h1').textContent='Monitor';$('.subtitle').textContent='Loading…';$('.subtitle').hidden=false}
 else{setHeading();$('.subtitle').hidden=true;actions.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;if(button.id==='new-monitor')window.dispatchEvent(new Event('uptime:new-monitor'));else if(button.id==='add-location-button')startAdding({api,action,render})})}
 // Each view's buttons beside its heading.
-const viewActions={monitors:()=>`<button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`,locations:()=>`<button class="primary" id="add-location-button"${addingLocation()?' disabled':''}>${icon('plus')}Add location</button>`,settings:()=>settingsArea==='alerts'&&data.notifications?`<button class="primary" id="add-destination">${icon('plus')}Add destination</button>`:''};
+const viewActions={monitors:()=>`<button class="primary" id="new-monitor">${icon('plus')}New monitor</button>`,locations:()=>`<button class="primary" id="add-location-button"${addingLocation()?' disabled':''}>${icon('plus')}Add location</button>`};
 const lockedControls=new Map(),lockedLinks=new Map();
 // Async tasks and dialogs can insert controls without rendering the whole view.
 // Observe those insertions before the browser can offer a click on a busy console.
@@ -156,15 +156,15 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  // With no monitors yet, the list opens the new-monitor form instead of an empty table.
  if(view==='monitors'&&!data.access?.monitoringOnly&&!readUnavailable&&!data.monitors.length){if(!redirecting){redirecting=true;location.replace('/app/monitors/new')}return}
  const screen=view==='settings'?'settings/'+settingsArea:view;
- if(screen!==shown){area.replaceChildren();right.replaceChildren();shown=screen}right.hidden=sideHidden();
+ if(screen!==shown){area.replaceChildren();right.replaceChildren();actions.replaceChildren();actions.hidden=true;shown=screen}right.hidden=sideHidden();
  markCurrent();showAlertCount();let drawn;
  installationNote.hidden=!['monitors','locations'].includes(view);
  patch(installationNote,`${data.runner.hosted===false?'This copy runs only on this computer. Checks run only while this computer is on and Uptime is running. <a href="/docs/deploy">Put it online</a>. ':''}Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.`);
  if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable,lockControls});
- else{const buttons=view==='monitors'&&data.access?.monitoringOnly?'':viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons;summary.hidden=view!=='monitors';
+ else{if(view!=='settings'){const buttons=view==='monitors'&&data.access?.monitoringOnly?'':viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons}summary.hidden=view!=='monitors';
   setHeading();
   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');
-  if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')drawn=renderSettings(settingsArea,{area,right,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,showing:requested=>!closed&&shown==='settings/'+requested,readUnavailable})}
+  if(view==='monitors')renderMonitors();else if(view==='locations')renderLocations();else if(view==='settings')drawn=renderSettings(settingsArea,{area,right,actions,data,api,action,refresh:()=>refresh(),notice,closeConsole,navigateToLogin,closed:()=>closed,showing:requested=>!closed&&shown==='settings/'+requested,readUnavailable})}
  updateInstalledName(data);
  if(feedback.busy)lockControls(true);
  return drawn}
