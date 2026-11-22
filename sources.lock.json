@@ -588,7 +588,7 @@
       "executable": false
     },
     "docs/data.md": {
-      "sha256": "712c2993e16809a84bdbe8e0a1321a4a297e883f2deb3b461dcc86c2ebc7f085",
+      "sha256": "07eea2ce08edb1ad20b61f6b319385edc53bda3fc71be2b4cfb4b205454220c7",
       "executable": false
     },
     "docs/definitions.md": {
@@ -2060,7 +2060,7 @@
       "executable": true
     },
     "docs/getting-started.md": {
-      "sha256": "592125ed85244796e08d6d572c584480fadf471077b32302d1da415b78941726",
+      "sha256": "06d7ac357d53b7a8c5ab9d0335ec336783cf3bad285349750bdf739013c5fe35",
       "executable": false
     },
     "docs/grafana/uptime-dashboard.json": {
@@ -2076,7 +2076,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "1ee4456641afa37d75fcefbd4cd4074fd1d876c3e540611ec2c66cd0eded120f",
+      "sha256": "e18e597ff03abfcb564347789f76b5e7a3f4ce732c27d3eb441c8e024538bcdc",
       "executable": false
     },
     "docs/limits.md": {
@@ -2088,7 +2088,7 @@
       "executable": false
     },
     "docs/mfa.md": {
-      "sha256": "21588b3276792be066b9310218c4372b5d5966fe36cfec4a4f45c59c8a8d5572",
+      "sha256": "9632cf64cbd9b4674a328316c0dbfa089fa4e83273c83904bb147fabe89a9e4e",
       "executable": false
     },
     "docs/migrating-betterstack.md": {
@@ -2132,7 +2132,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "ef34b077590cc73336c076d53783ad830c29ddb73c7df09062f2a77715e5ffb7",
+      "sha256": "088a1c7f2b7546586afed335b772148e3614c1b02ba43888a5b590dd04694747",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "9c4df0f1c32eca55197bb87538f613d39a12119b7729f2946b8b49d16f47147a",
+      "sha256": "a34dddb1e055f0cffd5a0ee978ae50d271aafcff5704b9f493fcba6fab182929",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -2583,8 +2583,12 @@
       "sha256": "2eebc919b98755691bd00540a81158ceb06c3677539f3fdfb82d6a33f1f3d268",
       "executable": false
     },
+    "patches/rer-0.2.125-owner-entry.patch": {
+      "sha256": "a75f9d1af849e84a2fc223dd11af7ae842c9a8fad90b1219b6ecd48bfc1459e1",
+      "executable": false
+    },
     "pnpm-lock.yaml": {
-      "sha256": "a0cfc59aeebadd33cd413879161d02d2c4f3d070fb480bc01f3f5b3908aebb64",
+      "sha256": "8eeaed11d6e6ab0603c83e0763de90cbb5f8428d63b98e30fe83deb03448fbd3",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -2704,11 +2708,11 @@
       "executable": false
     },
     "public/assets/security-controls.css": {
-      "sha256": "eb814ab21b02d027821ec081ec58a80fad6db8c8e424a57f8bcbb997940a7126",
+      "sha256": "0a84bb1ecbd69f3250965431d6b6aac763fed1494f74819edf93a7b6f4e7ab75",
       "executable": false
     },
     "public/assets/security-controls.js": {
-      "sha256": "b4bf6cefc626e2c8d78bbbba78fa4692de6df1c6d44f9c46174d63ec9c4da0ea",
+      "sha256": "b0bdde915d332bafeff4f1e70bf18157a7de7561abb6861cdb0639f056d7ca7a",
       "executable": false
     },
     "public/assets/setup.js": {
@@ -3108,7 +3112,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "c3c1a80859a641421fe4de74e330d399f6363e9626cabf3b50dff99c1959438b",
+      "sha256": "75c530ef8e00d7c9ab0aca52c5d5068533956bc92d68ee2cf0f63778cefe6ec4",
       "executable": false
     },
     "RELEASE.json": {
@@ -8880,7 +8884,7 @@
       "executable": false
     },
     "src/site/run.ts": {
-      "sha256": "8da5fffb62e8e1fbe0eae70fc466c5f58916d87a30d32392efd379cd9130660c",
+      "sha256": "717efead29d9181cb4b4d1970929697f04ae705793cc656926227d4f857fa80c",
       "executable": false
     },
     "src/site/shell/Brand.tsx": {
@@ -10680,7 +10684,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "1c96a08c4c1439f606c328028d2929c6f944e83ac0695f8e430a29a496e2f550",
+      "sha256": "1fd8072a99433c40f75238776c16d8c9d6c618540bd9d1fa450c9c6bc347eb8a",
       "executable": false
     },
     "tests/service-catalog-auth0-support.mjs": {

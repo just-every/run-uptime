@@ -68,13 +68,11 @@ the app address printed as `RER_READY` in place of the example address:
 ```sh
 rer run --script scripts/mfa.mjs local-session --origin http://127.0.0.1:8787
 ```
- This uses
-Base's existing local installation-authority endpoint and shows its new native
-session cookie once. Keep that cookie privately in `UPTIME_ACCESS_COOKIE`, then
-enroll or verify a second factor through the commands above. A dev-persona
-cookie cannot be used by stopped-app archive/definitions commands: Base admits
-it only behind the running dev key gate. Local session issuance never counts
-as a second-factor proof.
+This issues a new native Base session and shows its cookie once. The new
+session still needs factor verification, even if your browser session is fresh.
+Keep the issued cookie in `UPTIME_ACCESS_COOKIE` and verify that session while
+dev is running. Stopped-app archive and definitions commands require this
+native session and its own factor proof.
 
 Enrollment returns a challenge ID, a base32 seed and an `otpauth:` URI once.
 Add the seed or URI to an RFC 6238 authenticator (SHA-1, six digits, 30 seconds).
@@ -99,6 +97,27 @@ them in your password manager. `recovery-use` accepts one in `UPTIME_MFA_CODE`;
 `recovery-rotate` requires fresh verification and replaces all remaining codes
 with ten new codes. Rotation and initial confirmation display the new set only
 in the command's response. Status never returns a seed or recovery code.
+
+### Verify a local CLI session with a passkey
+
+1. Keep dev running at the `http://localhost:PORT` address where you enrolled
+   the passkey. Run `local-session` as shown above with that exact `RER_READY`
+   origin. Keep the issued `cookie` value in your private terminal as
+   `UPTIME_ACCESS_COOKIE`.
+2. In a browser profile that can use your passkey, open the plain `RER_READY`
+   address. In the browser's developer tools, open the cookie table for that
+   origin (in Chrome, **Application › Storage › Cookies**). Add a cookie using
+   the part before the first `=` as its name and the part after it as its value.
+   Use `localhost` as the domain, `/` as the path, **HttpOnly** and
+   **SameSite Lax**. Replace any cookie with the same name and path.
+3. Open `/app` at that same origin and choose **Use a passkey**. Use the plain
+   address throughout this handoff so the browser verifies the CLI-issued
+   session. In the terminal, run
+   `rer run --script scripts/mfa.mjs status --origin "$UPTIME_ORIGIN"` and
+   check that it reports `"fresh": true`. For a backup, [stop dev and export
+   within five minutes](/docs/data#transfer-from-the-command-line).
+
+### Passkey operations for browser clients
 
 Passkeys and security keys use standard browser WebAuthn on HTTPS or localhost.
 `passkey-enroll` returns registration options and a challenge ID;

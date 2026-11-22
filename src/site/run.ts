@@ -8,6 +8,9 @@ export const run: RunData = {
   clone: 'npx -y @runeditrun/rer dev just-every/run-uptime',
   licence: 'MIT',
   docs: true,
-  paths: { product: null },
+  paths: {
+    product: null,
+    requirementsExtra: 'The default local address is 127.0.0.1. For passkeys, use the localhost command in the getting-started guide.',
+  },
   pricing: runPricing,
 };

@@ -6,10 +6,10 @@ In the console, open **Settings › Backup and files** to download or restore a 
 
 ### Transfer from the command line
 
-Both commands need a native owner session with a second factor verified in the previous five minutes. Get that proof in the terminal **while dev is still running**. The browser sign-in from `RER_OPEN` does not supply a native CLI session.
+Both commands need a native owner session with a second factor verified in the previous five minutes. Verify it **while dev is still running**.
 
-1. If you need an authenticator, enroll one under **Settings › People › Security and keys › Manage second factors**. See [Second factors](/docs/mfa) for enrollment and recovery codes.
-2. In a private Bash or Zsh terminal in the checkout, replace the example address below with the app address printed as `RER_READY`. Copy only the value of `cookie` from the output. Run the second block, paste the cookie at the hidden input, and press Enter. Keep the cookie out of shell history and logs.
+1. Enroll a factor under **Settings › People › Security and keys › Manage second factors** if you need one. See [Second factors](/docs/mfa) for enrollment and recovery codes.
+2. In a private Bash or Zsh terminal in the checkout, replace the example address below with the exact address printed as `RER_READY`. The `local-session` command issues a new native session that still needs factor verification, even if you already verified in the browser. Copy the `cookie` value, including its name and the equals sign, into the hidden prompt in the second block. Keep it out of shell history and logs.
 
    ```sh
    UPTIME_ORIGIN=http://127.0.0.1:8787
@@ -20,7 +20,7 @@ Both commands need a native owner session with a second factor verified in the p
    read -rs UPTIME_ACCESS_COOKIE && export UPTIME_ACCESS_COOKIE
    ```
 
-3. In the same terminal, run the first line below, type your current authenticator code and press Enter, then run the remaining lines. For an unused recovery code, use `recovery-use` in place of `totp-verify`. If you just used a code in the browser, wait for the next one.
+3. With a passkey, [verify this CLI session in your browser](/docs/mfa#verify-a-local-cli-session-with-a-passkey), then go to step 4. With an authenticator, run the first line below, type your current code and press Enter, then run the remaining lines. For an unused recovery code, use `recovery-use` in place of `totp-verify`. If you just used an authenticator code in the browser, wait for the next one.
 
    ```sh
    read -rs UPTIME_MFA_CODE

@@ -49,6 +49,8 @@ When you open `/setup`, Uptime asks your runner to visit that site and look arou
 
 ## Sign in and finish setup
 
+The default local address is `http://127.0.0.1`. For passkeys, follow [Start with passkeys](/docs/getting-started#start-with-passkeys) to launch a new installation at `http://localhost`.
+
 1. Open the private `RER_OPEN` link printed by `rer dev` on this computer to sign in. Keep it private. The plain `RER_READY` address opens the public Lobby.
 2. First-run setup opens at `/setup`. Enter your name, email and installation name. Your website is optional. Choose **Continue**. If you gave a website and the runner is working, you land on its proposed monitors. Otherwise, you land on the form for your first monitor. The External check URL (https://example.org/ by default) is set in **Settings**.
 

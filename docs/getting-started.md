@@ -10,6 +10,16 @@ The line installs `rer`, the Run Edit Run command, clones Uptime into a `run-upt
 
 If the installer prints a line that puts `rer` on your PATH, run that line too. To start Uptime again later, run the same line from the same folder, or `cd run-uptime && rer dev`. `rer dev --stop` stops it.
 
+## Start with passkeys
+
+The default local launch uses `http://127.0.0.1`, which offers an authenticator app. To start a new local installation for passkeys, run this from a folder without an Uptime checkout.
+
+```sh
+curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime --host localhost
+```
+
+Open the resulting `RER_OPEN` link at `http://localhost` and [enroll a passkey](/docs/mfa#enroll-in-the-console).
+
 ## Explicit owner setup
 
 To choose an owner or supply setup answers yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout, before `rer dev`:
@@ -37,7 +47,7 @@ When you open `/setup`, Uptime asks your runner to visit that site and look arou
 1. Open the private link printed as `RER_OPEN` by `rer dev` to sign in.
 2. First-run setup at `/setup` asks for your name, email and installation name. Your website is optional. Choose **Continue** to enter the console. This copy runs only on this computer: checks run only while it is on and Uptime is running. To keep public checks running independently, [put it online](/docs/deploy). — sd, 2026-11-17T14:52:05Z.
 
-The console is then at `/app`. Hosted email-link sign-in and notifications use a configured mail sender. Development and demo runs report successful sends without sending email. Setup can defer mail configuration; dev identity provides local owner access while you configure it.
+The console is then at `/app`. For a local practice incident, look under **Settings › Alerts › Sent alerts** for the simulated notification marked **no email sent**. Hosted email-link sign-in and notifications use a configured mail sender. Setup can defer mail configuration; dev identity provides local owner access while you configure it.
 
 ## Stop it
 

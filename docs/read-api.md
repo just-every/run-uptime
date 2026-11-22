@@ -10,7 +10,28 @@ A selection with monitor IDs only admits those IDs. Tags only admit monitors wit
 
 In **Settings › People › Security and keys**, choose **Create a monitoring or CI key** and select **Monitoring read**, the monitors or tags to allow, and a future expiry. Uptime asks for a fresh second factor when needed.
 
-For the CLI, use [Second factors](/docs/mfa) to get a native session in `UPTIME_ACCESS_COOKIE` and verify it. Set `UPTIME_ORIGIN` to the app address without a path, such as the address printed as `RER_READY` locally. Save the key specification as a private `key-specification.json` with the fields described above, then run from the installed checkout:
+For the CLI, use [Second factors](/docs/mfa) to get a native session in `UPTIME_ACCESS_COOKIE` and verify it. Set `UPTIME_ORIGIN` to the app address without a path, such as the address printed as `RER_READY` locally. From the installed checkout, run this example in a private directory to create `key-specification.json` with a one-day expiry. Replace `journey` with a tag on the monitors you want to read.
+
+```sh
+(
+  umask 077
+  expires_at=$((($(date +%s) + 86400) * 1000))
+  cat > key-specification.json <<EOF
+{
+  "name": "Journey read",
+  "scopes": ["monitoring:read"],
+  "expiresAt": $expires_at,
+  "resources": {
+    "mode": "selection",
+    "monitorIds": [],
+    "tags": ["journey"]
+  }
+}
+EOF
+)
+```
+
+Create the key with the file as input. To manage keys later, list them and use the returned credential ID for revocation.
 
 ```sh
 rer run --script scripts/api-keys.mjs --origin "$UPTIME_ORIGIN" create < key-specification.json

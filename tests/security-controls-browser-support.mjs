@@ -107,6 +107,22 @@ export async function proveSecurityControls(){
 
    assert.equal((await fetch(origin+'/api/v1/monitors/'+monitor.id,{headers:{authorization:'Bearer '+token}})).status,200);
    let keys=await(await call('/api/credentials',undefined,{cookie})).json(),key=keys.find(k=>k.name==='synthetic-uptime-604');assert.ok(key.lastUsedAt);assert.deepEqual([...key.resources.monitorIds].sort(),[monitor.id,second.id].sort());const otherResponse=await call('/api/monitors',{name:'synthetic-uptime-610',url:'https://example.org/',enabled:false},{cookie});assert.equal(otherResponse.status,201);assert.equal((await fetch(origin+'/api/v1/monitors/'+(await otherResponse.json()).id,{headers:{authorization:'Bearer '+token}})).status,404);const keyText=await panel.locator('[data-credential-id="'+key.id+'"]').textContent();assert.ok(!keyText.includes('monitoring:read')&&!keyText.includes(monitor.id));await panel.locator('[data-credential-id="'+key.id+'"] summary').click();await shot('G3','monitoring-key');assert.ok(!JSON.stringify(keys).includes(token));assert.ok(!await panel.textContent().then(text=>text.includes(token)));
+   await form.getByLabel('Name',{exact:true}).fill('synthetic-uptime-613');
+   await form.getByRole('checkbox',{name:monitor.definition.name,exact:true}).uncheck();
+   await form.getByRole('checkbox',{name:second.definition.name,exact:true}).uncheck();
+   await form.getByLabel('Resource selection',{exact:true}).selectOption('workspace');
+   await form.getByLabel('Resource selection',{exact:true}).selectOption('selection');
+   await form.getByRole('group',{name:'Monitor tags'}).getByRole('checkbox',{name:monitor.definition.tags[0],exact:true}).check();
+   await form.getByRole('button',{name:'Create key',exact:true}).click();
+   await panel.getByRole('button',{name:'Copy key',exact:true}).click();
+   await panel.getByText('Key copied.',{exact:true}).waitFor();
+   const tagToken=await page.evaluate(()=>navigator.clipboard.readText());
+   const tagHeaders={authorization:'Bearer '+tagToken};
+   const taggedRead=await fetch(origin+'/api/v1/monitors',{headers:tagHeaders});
+   assert.equal(taggedRead.status,200);
+   assert.deepEqual((await taggedRead.json()).items.map(item=>item.id),[monitor.id]);
+   assert.equal((await fetch(origin+'/api/v1/monitors/'+second.id,{headers:tagHeaders})).status,404);
+   await panel.getByRole('button',{name:'I saved this',exact:true}).click();
    await form.getByLabel('Name',{exact:true}).fill('synthetic-uptime-606');await form.getByLabel('Key scope',{exact:true}).selectOption('ci-apply');await form.getByLabel('Tags (one per line)',{exact:true}).fill('synthetic-uptime-603');await form.getByLabel('CI environment',{exact:true}).fill('synthetic-uptime-607');await form.getByRole('button',{name:'Create key',exact:true}).click();await panel.getByText('Copy this key once',{exact:true}).waitFor();const ciToken=await panel.locator('[data-secret-once] pre').textContent();assert.equal(await panel.locator('[data-key-usage] a[href="/docs/read-api"]').isVisible(),true);assert.equal(await panel.locator('[data-key-usage] a[href$="#ci-credentials"]').isVisible(),true);await panel.getByRole('button',{name:'I saved this',exact:true}).click();assert.ok(!JSON.stringify(await(await call('/api/credentials',undefined,{cookie})).json()).includes(ciToken));
    const row=await loadCredentialRow(()=>page.reload(),key.id);await row.locator('summary').click();assert.match(await row.textContent(),/Last use/);assert.ok(!(await row.textContent()).includes('Never'));await stepupShot('people-credentials-reloaded');
    await DB.prepare('UPDATE uptime_mfa_proofs SET verified_at=?').bind(Date.now()-300001).run();const staleRevoke=await fetch(origin+'/api/credentials/'+key.id,{method:'DELETE',headers:{origin,cookie}});assert.equal(staleRevoke.status,403);assert.equal((await staleRevoke.json()).error,reason);

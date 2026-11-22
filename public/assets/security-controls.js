@@ -79,7 +79,7 @@ export function securityControls(host,transport){
  const api=securityRequest;
  if(!firstMount(host))return;
  const style=document.createElement('link');style.rel='stylesheet';style.href='/assets/security-controls.css';document.head.append(style);
- host.innerHTML='<div class="card-head"><h2 id="security-heading">Security and keys</h2></div><p role="status" data-security-status></p><div data-factor-state></div><p data-passkey-unavailable hidden>Use an authenticator app at this address. Passkeys require HTTPS or localhost. <a href="/docs/mfa">Set up a passkey</a>.</p><details><summary>Manage second factors</summary><div class="notification-form"><button type="button" data-enroll-totp>Enroll authenticator</button><button type="button" data-enroll-passkey>Enroll passkey</button><button type="button" data-recovery>Replace recovery codes</button></div><div data-enrollment></div><div data-factors></div></details><details><summary>Verify a second factor</summary><form data-stepup class="notification-form"><label>Authenticator or recovery code<input name="code" required autocomplete="one-time-code"></label><button>Verify code</button><button type="button" data-verify-passkey>Verify passkey</button></form></details><form data-mfa-policy class="notification-form"><label><input type="checkbox" name="required"> Require second factors for all members</label><button>Save factor policy</button></form><div data-secret-once></div><details><summary>Create a monitoring or CI key</summary><form data-key-create class="notification-form"><label>Name<input name="name" maxlength="100" required></label><label><span id="security-key-scope-label">Key scope</span><select name="scope" aria-labelledby="security-key-scope-label"><option value="monitoring:read">Monitoring read</option><option value="ci-preview">CI preview</option><option value="ci-apply">CI preview and apply</option></select></label><label><span id="security-key-resources-label">Resource selection</span><select name="mode" aria-labelledby="security-key-resources-label"><option value="selection">Selected monitors and tags</option><option value="workspace">All monitors</option></select></label><div data-monitor-selection role="group" aria-labelledby="security-monitor-label"><span id="security-monitor-label">Monitors</span><div class="security-monitor-choices" data-monitor-choices></div></div><label data-tag-selection>Tags (one per line)<textarea name="tags" rows="2"></textarea></label><label data-ci-environment>CI environment<input name="environment" maxlength="100"></label><label>Expires at (local time)<input name="expiry" type="datetime-local" required></label><button>Create key</button></form></details><div data-key-list></div>';
+ host.innerHTML='<div class="card-head"><h2 id="security-heading">Security and keys</h2></div><p role="status" data-security-status></p><div data-factor-state></div><p data-passkey-unavailable hidden>Use an authenticator app at this address. Passkeys require HTTPS or localhost. <a href="/docs/mfa">Set up a passkey</a>.</p><details><summary>Manage second factors</summary><div class="notification-form"><button type="button" data-enroll-totp>Enroll authenticator</button><button type="button" data-enroll-passkey>Enroll passkey</button><button type="button" data-recovery>Replace recovery codes</button></div><div data-enrollment></div><div data-factors></div></details><details><summary>Verify a second factor</summary><form data-stepup class="notification-form"><label>Authenticator or recovery code<input name="code" required autocomplete="one-time-code"></label><button>Verify code</button><button type="button" data-verify-passkey>Verify passkey</button></form></details><form data-mfa-policy class="notification-form"><label><input type="checkbox" name="required"> Require second factors for all members</label><button>Save factor policy</button></form><div data-secret-once></div><details><summary>Create a monitoring or CI key</summary><form data-key-create class="notification-form"><label>Name<input name="name" maxlength="100" required></label><label><span id="security-key-scope-label">Key scope</span><select name="scope" aria-labelledby="security-key-scope-label"><option value="monitoring:read">Monitoring read</option><option value="ci-preview">CI preview</option><option value="ci-apply">CI preview and apply</option></select></label><label><span id="security-key-resources-label">Resource selection</span><select name="mode" aria-labelledby="security-key-resources-label"><option value="selection">Selected monitors and tags</option><option value="workspace">All monitors</option></select></label><div data-monitor-selection role="group" aria-labelledby="security-monitor-label"><span id="security-monitor-label">Monitors</span><div class="security-key-choices" data-monitor-choices></div></div><div data-tag-selection role="group" aria-labelledby="security-tag-label"><span id="security-tag-label">Monitor tags</span><p>When you select monitors and tags, access requires both.</p><div class="security-key-choices" data-tag-choices></div></div><label data-ci-tags>Tags (one per line)<textarea name="tags" rows="2"></textarea></label><label data-ci-environment>CI environment<input name="environment" maxlength="100"></label><label>Expires at (local time)<input name="expiry" type="datetime-local" required></label><button>Create key</button></form></details><div data-key-list></div>';
  const status=host.querySelector('[data-security-status]'),once=host.querySelector('[data-secret-once]'),enrollment=host.querySelector('[data-enrollment]');let pendingAction=null,busy=false,owner=false,monitors=[];
  const place=control=>{const target=control?.closest('form')??control?.parentElement??host;if(target.closest('[data-secret-once]'))once.after(status);else target.append(status);status.textContent=''};
  host.addEventListener('click',event=>{const button=event.target.closest('button');if(button)place(button)},true);
@@ -147,9 +147,34 @@ export function securityControls(host,transport){
  const lines=value=>value.split('\n').map(v=>v.trim()).filter(Boolean);
  const keyForm=host.querySelector('[data-key-create]');
  const scopeLabel=scopes=>scopes.includes('monitoring:read')?'Monitoring read':scopes.includes('definitions:apply')?'CI preview and apply':'CI preview';
- const fields=()=>{const ci=keyForm.elements.scope.value!=='monitoring:read';if(ci)keyForm.elements.mode.value='selection';keyForm.elements.mode.disabled=ci;const selected=keyForm.elements.mode.value==='selection';host.querySelector('[data-monitor-selection]').hidden=ci||!selected;host.querySelector('[data-tag-selection]').hidden=!ci||!selected;host.querySelector('[data-ci-environment]').hidden=!ci};
+ const fields=()=>{
+  const ci=keyForm.elements.scope.value!=='monitoring:read';
+  if(ci)keyForm.elements.mode.value='selection';
+  keyForm.elements.mode.disabled=ci;
+  const monitoringSelection=!ci&&keyForm.elements.mode.value==='selection';
+  keyForm.querySelector('[data-monitor-selection]').hidden=!monitoringSelection;
+  keyForm.querySelector('[data-tag-selection]').hidden=!monitoringSelection;
+  keyForm.querySelector('[data-ci-tags]').hidden=!ci;
+  keyForm.querySelector('[data-ci-environment]').hidden=!ci;
+ };
  keyForm.elements.scope.onchange=fields;keyForm.elements.mode.onchange=fields;fields();
- keyForm.onsubmit=event=>{event.preventDefault();const v=keyForm.elements;const ci=v.scope.value!=='monitoring:read',input={name:v.name.value,scopes:ci?v.scope.value==='ci-apply'?['definitions:preview','definitions:apply']:['definitions:preview']:['monitoring:read'],expiresAt:new Date(v.expiry.value).getTime(),resources:{mode:v.mode.value,monitorIds:ci||v.mode.value==='workspace'?[]:Array.from(keyForm.querySelectorAll('[name=monitorIds]:checked'),o=>o.value),tags:v.mode.value==='workspace'?[]:lines(v.tags.value)},...(ci?{environment:v.environment.value}:{})};void run(()=>fresh(async()=>{const result=await api('/api/credentials','POST',input);showKey(result.token,keyUsage(ci));status.textContent='Key created. The token cannot be read again.';await keyList()}))};
+ const checked=name=>Array.from(keyForm.querySelectorAll(`[name=${name}]:checked`),input=>input.value);
+ keyForm.onsubmit=event=>{
+  event.preventDefault();
+  const v=keyForm.elements,ci=v.scope.value!=='monitoring:read',mode=v.mode.value;
+  const input={
+   name:v.name.value,
+   scopes:ci?v.scope.value==='ci-apply'?['definitions:preview','definitions:apply']:['definitions:preview']:['monitoring:read'],
+   expiresAt:new Date(v.expiry.value).getTime(),
+   resources:{
+    mode,
+    monitorIds:!ci&&mode==='selection'?checked('monitorIds'):[],
+    tags:ci?lines(v.tags.value):mode==='selection'?checked('monitorTags'):[],
+   },
+   ...(ci?{environment:v.environment.value}:{}),
+  };
+  void run(()=>fresh(async()=>{const result=await api('/api/credentials','POST',input);showKey(result.token,keyUsage(ci));status.textContent='Key created. The token cannot be read again.';await keyList()}));
+ };
  async function keyList(){
   const list=host.querySelector('[data-key-list]');
   try{if(!owner){list.textContent='Only the owner manages keys.';return}const keys=await api('/api/credentials');if(!host.isConnected)return;list.replaceChildren();
@@ -160,7 +185,23 @@ export function securityControls(host,transport){
    }
   }catch(problem){list.textContent=problem.readable?problem.message:'Keys could not be loaded. Refresh and try again.'}
  }
- const initialized=(async()=>{await factorState();if(owner){monitors=(await api('/api/overview')).monitors;for(const monitor of monitors){const row=document.createElement('label'),check=document.createElement('input'),name=document.createElement('span');row.className='security-monitor-choice';check.type='checkbox';check.name='monitorIds';check.value=monitor.id;name.textContent=monitor.definition.name;row.append(check,name);keyForm.querySelector('[data-monitor-choices]').append(row)}}await keyList()})().catch(error);
+ function keyChoice(name,value,label){
+  const row=document.createElement('label'),check=document.createElement('input'),text=document.createElement('span');
+  row.className='security-key-choice';
+  check.type='checkbox';check.name=name;check.value=value;text.textContent=label;
+  row.append(check,text);
+  return row;
+ }
+ const initialized=(async()=>{
+  await factorState();
+  if(owner){
+   monitors=(await api('/api/overview')).monitors;
+   keyForm.querySelector('[data-monitor-choices]').replaceChildren(...monitors.map(m=>keyChoice('monitorIds',m.id,m.definition.name)));
+   const tags=[...new Set(monitors.flatMap(m=>m.definition.tags??[]))].sort((a,b)=>a.localeCompare(b));
+   keyForm.querySelector('[data-tag-choices]').replaceChildren(...(tags.length?tags.map(tag=>keyChoice('monitorTags',tag,tag)):['No monitors have tags yet.']));
+  }
+  await keyList();
+ })().catch(error);
  void initialized.then(()=>{if(new URLSearchParams(location.search).get('enroll')==='authenticator'){const button=host.querySelector('[data-enroll-totp]');button.closest('details').open=true;button.click()}});
  return {request:async(path,method,body,context)=>{try{return await api(path,method,body)}catch(problem){if(!['fresh_second_factor_required','second_factor_required'].includes(problem.code))throw problem;return new Promise((resolve,reject)=>{void fresh(async()=>{try{resolve(await api(path,method,body))}catch(error){reject(error)}},context).catch(reject)})}}};
 }
