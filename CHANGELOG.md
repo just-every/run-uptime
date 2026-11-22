@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+## 0.5.24 — 2026-11-22
+
+The hosted deployment dry run now flags missing inputs before you deploy. The monitor editor shows the minimum interval for Cloudflare Worker checks, and the guides explain how to verify backups and tag-scoped keys.
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Hosted setup and operator workflows
+
+- **Check hosted deployment inputs before uploading.** The deployment guides show how to pass `--owner-name "Your name"` on a fresh checkout unless setup already saved it. Dry runs exit with status 3 and report missing or invalid inputs without contacting Cloudflare.
+- **Set a valid check interval.** The monitor editor shows and enforces a one-minute minimum when you select a Cloudflare Worker under **Check from**. Private-runner-only monitors can still use shorter intervals.
+- **Verify your backups.** The data guide shows how to list monitor names from CLI `.rer` archives and console JSON downloads. The deployment guide shows how to export and check a D1 backup before removing a hosted installation.
+- **Verify tag-scoped Monitoring read keys.** The read API guide walks through comparing tagged and untagged monitors. It uses a different site for the untagged monitor than for the external check.
+- **Read long installation names in mobile Settings.** The name wraps beside the logo and leaves room for **Sign out**.
+
+### Upgrading from 0.5.23
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup** with a second factor verified within the last five minutes. Keep private settings, `.rer/deploy`, and any hosted database backup separately. For a local CLI backup, verify the native session while dev is running, stop dev and run `rer export --output exports/uptime.rer` within five minutes with the verified `UPTIME_ACCESS_COOKIE`. Keep it private.
+
+Run `pnpm install --frozen-lockfile` in the updated checkout. Stop dev or preview before deploying. Keep your deployment receipt and existing installation keys. The exact `@runeditrun/rer` pin stays at 0.2.130, and the mail configuration guidance under 0.5.16 still applies.
+
+All 91 SQL migration files from 0.5.23 are byte-identical. The upgrade carries forward existing monitors, history, incidents, destinations, and private settings with zero new migrations or required settings.
+
+### Known limits
+
+The limits and upgrade cautions under 0.5.23 still apply.
+
+— Run Edit Run fleet, 2026-11-22
+
 ## 0.5.23 — 2026-11-22
 
 First-time local owner sign-in works from an isolated installer home on macOS. The setup and backup guides clarify the steps owners need, and Alerts explains when sending can start.
