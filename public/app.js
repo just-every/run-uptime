@@ -156,7 +156,11 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  // With no monitors yet, the list opens the new-monitor form instead of an empty table.
  if(view==='monitors'&&!data.access?.monitoringOnly&&!readUnavailable&&!data.monitors.length){if(!redirecting){redirecting=true;location.replace('/app/monitors/new')}return}
  const screen=view==='settings'?'settings/'+settingsArea:view;
- if(screen!==shown){area.replaceChildren();right.replaceChildren();actions.replaceChildren();actions.hidden=true;shown=screen}right.hidden=sideHidden();
+ if(screen!==shown){
+  area.replaceChildren();right.replaceChildren();
+  if(view==='settings'){actions.replaceChildren();actions.hidden=true}
+  shown=screen;
+ }right.hidden=sideHidden();
  markCurrent();showAlertCount();let drawn;
  installationNote.hidden=!['monitors','locations'].includes(view);
  patch(installationNote,`${data.runner.hosted===false?'This copy runs only on this computer. Checks run only while this computer is on and Uptime is running. <a href="/docs/deploy">Put it online</a>. ':''}Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.`);

@@ -2620,7 +2620,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "c2b94f1abb838ddbf5b59078240a3597045289627a31eaa047289fdc566080bc",
+      "sha256": "2e1a326dbcf7b5fbac117b76483292a834932270464beb0757b535c3c532033e",
       "executable": false
     },
     "public/archive-view.js": {
