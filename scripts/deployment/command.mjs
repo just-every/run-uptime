@@ -29,19 +29,22 @@ function upload(lifecycle) {
    if (!declared.has(rule.name)) throw missing(`Missing deployment configuration declaration: ${rule.name}`);
   }
   let secrets;
-  if (!options.dryRun) {
-   try {
-    // Owner deployments always use hosted mail, irrespective of local shell flags.
-    const hosted = { ...processEnv, UPTIME_LOCAL_REVIEW: 'false' };
-    validateConfiguration(hosted, { scope: 'deploy', suppliedOnly: true });
+  try {
+   // Owner deployments always use hosted mail, irrespective of local shell flags.
+   const hosted = { ...processEnv, UPTIME_LOCAL_REVIEW: 'false' };
+   validateConfiguration(hosted, { scope: 'deploy', suppliedOnly: true });
+   if (!options.dryRun) {
     validateAccount(process.env, store);
     secrets = await ownerSecrets(root, environment, { env: processEnv, store });
     validateConfiguration({ ...hosted, ...secrets }, { scope: 'deploy' });
-   } catch (error) {
-    if (error.message.startsWith('Invalid')) throw missing(error.message);
-    if (error.message === 'missing-input') throw missing(`Required deployment configuration is missing: ${error.inputs.join(', ')}. See OPERATIONS.md.`);
-    throw error;
    }
+  } catch (error) {
+   if (error.message.startsWith('Invalid')) {
+    if (options.dryRun) throw new RerError('deploy_inputs_invalid', `Dry run blocked. ${error.message}`, 3);
+    throw missing(error.message);
+   }
+   if (error.message === 'missing-input') throw missing(`Required deployment configuration is missing: ${error.inputs.join(', ')}. See OPERATIONS.md.`);
+   throw error;
   }
   await lifecycle.run(root, {}, store, () => {}, signal, { verb: 'build', operationToken, privateSettings: ['data/local-secrets.json'] });
   await prepareOwnerBuild(root);
@@ -94,7 +97,12 @@ export function deployment(lifecycle) {
   const previous = { ...process.env };
   try {
    Object.assign(process.env, inputs);
-   return await deployCommand({ ...context, adapter: { ...context.adapter, deploy: hook } });
+   const result = await deployCommand({ ...context, adapter: { ...context.adapter, deploy: hook } });
+   if (context.options.dryRun && result.neededForRealDeploy?.length) {
+    const inputs = result.neededForRealDeploy.map(item => `  - ${item}`).join('\n');
+    throw new RerError('deploy_inputs_missing', `Dry run blocked. Supply these inputs before deploying:\n${inputs}`, 3);
+   }
+   return result;
   } finally {
    for (const name of Object.keys(process.env)) if (!Object.hasOwn(previous, name)) delete process.env[name];
    Object.assign(process.env, previous);

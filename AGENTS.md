@@ -45,7 +45,9 @@ rer export --output exports/uptime.rer
 rer import --input exports/uptime.rer --yes
 ```
 
-Import requires an empty product-data destination whose receiving owner and private settings have already been established. On the receiving checkout, run `rer setup --owner-email EMAIL --non-interactive` before `rer import --input exports/uptime.rer --yes`; monitors stay paused and destinations disabled. An archive exported by Uptime 0.1.2 or earlier is refused (exit 4) with a plain message: re-export it from the upgraded installation first. Stop dev or preview before any deployment command, including a dry run. For an authorized owner-account deployment use `rer deploy`; `rer deploy --dry-run` makes no provider requests. Use `rer describe` for the rest and `rer check --profile first-party` for the structural contract.
+Import requires an empty product-data destination whose receiving owner and private settings have already been established. On the receiving checkout, run `rer setup --owner-email EMAIL --non-interactive` before `rer import --input exports/uptime.rer --yes`; monitors stay paused and destinations disabled. An archive exported by Uptime 0.1.2 or earlier is refused (exit 4) with a plain message: re-export it from the upgraded installation first. Use the [archive readback commands](docs/data.md#check-your-backup) to check the exported monitor names.
+
+Stop dev or preview before any deployment command, including a dry run. An authorized owner-account deployment requires `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `OWNER_EMAIL` and the owner's name. On a fresh checkout run `rer deploy --owner-name "Your name"`, or omit the name flag if setup already saved it. Add `--dry-run` to check the required inputs and plan without provider requests. See the [deployment guide](docs/deploy.md) for mail inputs and saved environments. Use `rer describe` for the other commands and `rer check --profile first-party` for the structural contract.
 
 ## Set up Uptime for a business
 

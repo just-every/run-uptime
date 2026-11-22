@@ -508,7 +508,7 @@
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "25f9a3e6b389c7edfcf22745fe9f3feefeed2f11896101516b7000bcbcb61a69",
+      "sha256": "640fc68497b7e7a47b8c43b8555f75899795920ed4335be8ca24f4febde7dc01",
       "executable": false
     },
     "base-copies.json": {
@@ -588,7 +588,7 @@
       "executable": false
     },
     "docs/data.md": {
-      "sha256": "df00fcb5c44854a32d8f744f938490d4ecad5c30ca646378ed37611757e32a4a",
+      "sha256": "111a5bdb5425717797dc1070fe23cb95611b3b0abb2e8ce7ffc22884dd91890e",
       "executable": false
     },
     "docs/definitions.md": {
@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "029cc77aa5b54f3d2d232b4ac0739d0131f8461060eca9a73b8df9ccb6e815fd",
+      "sha256": "557fa414d7ac94a79e115b1d534554d6b56c708a22a0055fec38969aa548f620",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2132,7 +2132,7 @@
       "executable": false
     },
     "docs/read-api.md": {
-      "sha256": "088a1c7f2b7546586afed335b772148e3614c1b02ba43888a5b590dd04694747",
+      "sha256": "24f00147d4670ea6e7bfb6fac6312fbe8aae8dc6dc605ca32313fcaa0b7a9760",
       "executable": false
     },
     "docs/resilient-monitoring.md": {
@@ -2568,7 +2568,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "4173aa871f8e88d9c28916d94fc3243fd39cc945e6f5c9a143a2991704998940",
+      "sha256": "84ef514cdfd1d95cdae637ccd8cb0e1bccb6c8d5ce5fc3922a3cbec980659b3d",
       "executable": false
     },
     "package.json": {
@@ -2616,7 +2616,7 @@
       "executable": false
     },
     "public/app-theme.css": {
-      "sha256": "2294fd30ebd2f2f89fb7ee2c155af80e3933ee21c7689320531727b7cf1828fe",
+      "sha256": "239ad0802895cd0a4932bc136e536b073554f09481137221a241c736b44ee1c3",
       "executable": false
     },
     "public/app.js": {
@@ -2824,7 +2824,7 @@
       "executable": false
     },
     "public/editor.css": {
-      "sha256": "661e36e818e0818d0e4445cb9f57d3f0bbf392b6ee71ad155b7fac1ce5e7b3a9",
+      "sha256": "17c82eb1ccf8fdf9411ca0d19efb8e70aca5ce1322b34478ae8d4476ea185c41",
       "executable": false
     },
     "public/editor/catalog.css": {
@@ -3108,7 +3108,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "574d57ac5bb7767296272ee02e48b01c424f0e0baf46b6e8a6a385b94242281a",
+      "sha256": "d14efa2791a07fba5f654b72662869f5facffc48e3ff3da0ac5c8a4407fdf5ba",
       "executable": false
     },
     "RELEASE.json": {
@@ -3752,7 +3752,7 @@
       "executable": false
     },
     "scripts/deployment/command.mjs": {
-      "sha256": "f5683f0ab09c0a4bdfae54d6506dfc1188cc0c26b62b981498233ac9890a176a",
+      "sha256": "b1d9fe921e326938560212365db6cd21719978a46877bccdce0aa9776e3189f9",
       "executable": false
     },
     "scripts/deployment/deploy.mjs": {
@@ -8444,7 +8444,7 @@
       "executable": false
     },
     "src/editor/monitor/check-from.mjs": {
-      "sha256": "40f674d5440f964ee2dea5ed4e6529f0f56f6ec025b9560b913710416e66bc6b",
+      "sha256": "e5cce9e539b80ea03068385b33e6ba6bd25328d291a32fd3c64141f20325366d",
       "executable": false
     },
     "src/editor/monitor/definition.mjs": {
@@ -8952,7 +8952,7 @@
       "executable": false
     },
     "src/ui/editor.html": {
-      "sha256": "69da3e7eba4e9453042bd9b3dce8b8e32694336dc649586577861c6b6c37449f",
+      "sha256": "a1d1a1c0ec524a6cfc8482fc773a7d1ee53c6e81b2d9f7213e420e19a42cc245",
       "executable": false
     },
     "src/ui/installation-label.js": {
@@ -10476,7 +10476,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {
-      "sha256": "b7a509ec879f4c3c161324ebe3bff338b765b63a5fef3ec87ed75d77d63fbd93",
+      "sha256": "8bb06399156775235132f7a05e8e336861c8c4e1662be7bdcafb9e5cf6455ae3",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/auth.mjs": {
@@ -10488,7 +10488,7 @@
       "executable": false
     },
     "tests/owner-deploy-lifecycle/commands.mjs": {
-      "sha256": "c598429292e5fd59aee98fc12f299f5ad71a85e6dbfa5406b4b3ec9c96e7d32d",
+      "sha256": "9904764baf879b31a8aaaa2678e08cef2d24a024ab881f7bcc359e3de60453e4",
       "executable": false
     },
     "tests/owner-deploy-lifecycle/preload.mjs": {

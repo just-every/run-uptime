@@ -643,6 +643,9 @@ body:has(.ui-sidebar)::before {
   .ui-sidebar { position: relative; min-height: 0; gap: 12px; padding: 12px 16px 0; border-right: 0; background: radial-gradient(55% 260px at 90% 0%, rgba(251, 227, 207, 0.62), rgba(251, 227, 207, 0) 72%), var(--sky-wash), var(--ground); }
   .ui-brand { padding: 0; font-size: 22px; }
   .ui-brand .ui-mark { width: 26px; height: 26px; }
+  .app[data-menu="settings"] .ui-brand { max-width: calc(100% - 96px); }
+  .app[data-menu="settings"] .ui-brand .ui-mark { flex: none; }
+  .app[data-menu="settings"] .ui-brand [data-rer-name] { overflow-wrap: anywhere; }
   /* Sign out sits beside the logo; under it one row of pills (Monitors, Locations, Settings), or in Settings the way back
      on its own line and then the areas, wrapping onto a second row. Nothing scrolls sideways. */
   .ui-sidebar nav { flex-direction: row; flex-wrap: wrap; gap: 8px; margin-top: -1px; padding: 1px 0 12px; }

@@ -43,7 +43,10 @@
        <label>Monitor name<input disabled name="name" maxlength="100" required></label>
        <div class="editor-pair">
         <label>What to check<select disabled name="checkType"><option value="http">Website or API (HTTP)</option><option value="heartbeat">Scheduled job (heartbeat)</option><option value="mail">SMTP or mailbox protocol</option><option value="api">Multi-step API transaction</option><option value="tcp">TCP port</option><option value="udp">UDP request and response</option><option value="ping">ICMP ping</option><option value="dns">DNS record</option><option value="tls">TLS certificate</option><option value="domain">Domain registration expiry</option></select></label>
-        <label data-heartbeat-hide>Check every (minutes)<input disabled name="intervalMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required></label>
+        <div class="editor-field" data-heartbeat-hide>
+         <label>Check every (minutes)<input disabled name="intervalMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required></label>
+         <p class="ui-helper" id="worker-interval" hidden>Cloudflare Worker checks run at intervals of 1 minute or longer.</p>
+        </div>
        </div>
        <div class="type-fields editor-fields" data-types="heartbeat" hidden>
         <div class="editor-pair"><label>Expected interval (seconds)<input disabled name="heartbeatPeriod" type="number" min="30" max="2678400" step="1" value="86400" required></label><label>Grace period (seconds)<input disabled name="heartbeatGrace" type="number" min="0" max="86400" step="1" value="900" required></label></div>

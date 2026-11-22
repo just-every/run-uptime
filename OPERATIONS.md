@@ -42,11 +42,10 @@ Production and preview share an allowance of 20 messages per minute, 200 per hou
 
 ## Deploy in your own Cloudflare account
 
-Stop dev with `rer dev --stop` (or stop preview with `rer preview --stop`) before any deployment command, including `--dry-run`. The owner-account path is `rer deploy`. Use `deploy --environment production` to select the environment; `deploy --dry-run` builds and prints the Worker, D1, migrations, Cron and binding plan with zero provider requests. Its hosted origin remains pending until Cloudflare assigns it; it does not establish current provider state. The `--json` result includes `plan` and `pendingVariables`. It builds with provider credentials
+Stop dev with `rer dev --stop` (or stop preview with `rer preview --stop`) before any deployment command, including `--dry-run`. On a fresh checkout use `rer deploy --owner-name "Your name"`. Omit the flag if setup already saved the name. Use `--environment NAME` to select an environment. Adding `--dry-run` prints the Worker, D1, migrations, Cron and binding plan with zero provider requests. Missing required inputs block deployment. The `--json` result of a successful dry run includes `plan` and `pendingVariables`. Cloudflare assigns the hosted origin during a real deploy. It builds with provider credentials
 excluded, then provisions a Worker, D1 database, migrations and one-minute
 Cron through Base deploy-kit. Supply `CLOUDFLARE_ACCOUNT_ID` and
-`CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL`, `MAIL_FROM` and the selected mail
-provider's credentials. The deployment token needs the account permission groups **Workers Scripts: Edit** and **D1: Edit**, scoped to that account (Run Edit Run fleet, 2026-11-16).
+`CLOUDFLARE_API_TOKEN`, plus `OWNER_EMAIL` and the owner name. With email enabled, also supply `MAIL_FROM` and the selected mail provider's credentials. The deployment token needs the account permission groups **Workers Scripts: Edit** and **D1: Edit**, scoped to that account (Run Edit Run fleet, 2026-11-16).
 Uptime has no name or prefix input: the Worker is `uptime-monitor-<environment>` and D1 is `<worker>-db`; name a copy through `--environment` only (Run Edit Run fleet, 2026-11-16).
 When outbound email is enabled, hosted email-link sign-in requires a configured Base mail adapter, verified sender and that provider's credentials. An explicit `MAIL_PROVIDER=none` instead uses guarded `rer signin` from the deploying checkout (Run Edit Run fleet, 2026-11-15).
 `MAIL_PROVIDER` selects `resend`, `sendgrid`, `cloudflare`, managed `rer`, or `none` (the default when unset). Resend uses `MAIL_PROVIDER_API_KEY`; SendGrid uses

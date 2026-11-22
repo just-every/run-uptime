@@ -10,9 +10,12 @@ The account credentials and provider mail inputs below apply when deploying to y
 
 ## What you need
 
-- A Cloudflare account ID and an API token for that account.
-- An owner email address, for the person who will claim the installation.
-- A verified sender and the API credential for Resend, SendGrid or Cloudflare Email Sending. These deployment inputs support ordinary email-link sign-in and email notifications. They are required when mail is enabled, even if you chose **Set up later** locally; choose `MAIL_PROVIDER=none` deliberately to operate without email.
+- Your Cloudflare account ID.
+- An API token scoped to that account.
+- Your first owner's email address.
+- Your first owner's name. Give it with `--owner-name "Your name"` on a fresh checkout unless setup already saved it.
+
+When mail is enabled, also provide a verified sender and the selected provider's credentials, even if you chose **Set up later** locally. Choose `MAIL_PROVIDER=none` to operate without email.
 
 ## Set the inputs
 
@@ -34,7 +37,7 @@ Uptime also needs three secrets of its own: `SESSION_SECRET`, `SETUP_TOKEN` and 
 
 ```sh
 rer dev --stop
-rer deploy
+rer deploy --owner-name "Your name"
 ```
 
 The command builds Uptime without your Cloudflare credentials in the build environment, then creates the Worker `uptime-monitor-production`, the D1 database `uptime-monitor-production-db`, the database migrations and a one-minute Cron trigger in your account. Cloudflare assigns the hosted address.
@@ -44,10 +47,10 @@ When it finishes, it prints the hosted address with the Worker and environment, 
 To build and inspect the resource plan first, run:
 
 ```sh
-rer deploy --dry-run
+rer deploy --owner-name "Your name" --dry-run
 ```
 
-The terminal summary lists the Worker, D1 database and migration count, Cron triggers, and secret binding names. Use `rer deploy --dry-run --json` for the full plan, including migration names and digests, public variables, and pending variables. The plan uses saved mail and optional settings when present and otherwise uses your supplied inputs. Cloudflare assigns `UPTIME_ORIGIN` during a real deployment. The dry run makes no provider requests and generates no deployment secrets. The real deploy checks resource ownership and migration history.
+The terminal summary lists the Worker, D1 database and migration count, Cron triggers, and secret binding names. Add `--json` for the full plan, including migration names and digests, public variables, and pending variables. If the dry run reports any required inputs, supply them before deploying. Current source exits 3 in that case; Uptime 0.5.23 can exit 0 while listing what is still needed. The dry run makes no provider requests and generates no deployment secrets. Cloudflare assigns `UPTIME_ORIGIN` and checks resource ownership and migration history during the real deployment.
 
 This page covers the default Cloudflare Workers deployment. Uptime also declares the `container` platform in `deploy.json`; the shared CLI supports `--platform container` with `--host ssh://...` and optional `--image` for Docker deployment to an SSH host. That separate path has not been exercised end to end for Uptime. The hosted demo uses the declared container image; see [the demo notes](https://github.com/just-every/run-uptime/blob/main/DEMO.md) for its acceptance status.
 
@@ -57,7 +60,7 @@ Uptime has no name or prefix input: the Worker is `uptime-monitor-<environment>`
 
 ### A separate environment
 
-`rer deploy --environment staging` deploys a second installation named `uptime-monitor-staging` with the database `uptime-monitor-staging-db`. An environment name starts with a lowercase letter and has at most 40 lowercase letters, digits and hyphens. Each environment keeps its own ownership record in `.rer/deploy/<environment>.json` and its private settings in `.rer/deploy/<environment>.secrets.env`. New environments generate their own session secret, setup token and runner key, so one environment's credentials cannot grant access to another. Repeat deployments reuse saved session and runner keys. Upgrading an existing environment preserves its deployed keys and saved owner and mail inputs; see the upgrade guidance below.
+`rer deploy --environment staging --owner-name "Your name"` deploys a second installation named `uptime-monitor-staging` with the database `uptime-monitor-staging-db`. An environment name starts with a lowercase letter and has at most 40 lowercase letters, digits and hyphens. Each environment keeps its own ownership record in `.rer/deploy/<environment>.json` and its private settings in `.rer/deploy/<environment>.secrets.env`. New environments generate their own session secret, setup token and runner key, so one environment's credentials cannot grant access to another. Repeat deployments reuse saved session and runner keys. Upgrading an existing environment preserves its deployed keys and saved owner and mail inputs; see the upgrade guidance below.
 
 ## Owner claim and sign-in
 
@@ -77,7 +80,7 @@ Run this from the installed deployment checkout with `CLOUDFLARE_ACCOUNT_ID` and
 
 ## Hosted checks and the private runner
 
-Public website checks and notifications (email, signed JSON and Slack) run automatically in the deployed Cloudflare Worker. While the owner console is open, its requests prompt due checks and sends. The one-minute Cron schedule continues work without the console, but Cloudflare can take up to about two hours to activate the trigger after deployment; this is not a promise of delivery within a minute.
+Public website checks and notifications (email, signed JSON and Slack) run automatically in the deployed Cloudflare Worker. In the monitor form, choose at least **1** for **Check every (minutes)** whenever the Worker is selected under **Check from**. For the local walkthrough's six-second interval, select only private runners. While the owner console is open, its requests prompt due checks and sends. The one-minute Cron schedule continues work without the console, but Cloudflare can take up to about two hours to activate the trigger after deployment; this is not a promise of delivery within a minute.
 
 A private runner is required for heartbeats and website discovery, as well as private targets and runner-local credentials. Before using **Website to monitor** on a hosted installation, start that runner; otherwise choose **Fill in the form yourself** and create public monitors for the Worker. Add a runner when checks need a network you control or browser execution. In **Runner / Archive**, create a runner for its independent network and save the complete one-time command; paste it into a shell from an installed Uptime checkout on that network. Keep it under a supervisor and inspect its contact and actual results. Deployment does not start or supervise that separate process. Follow [The private runner](/docs/runner).
 
@@ -120,7 +123,13 @@ Compare the recorded Worker and D1 identities before and after; an update retain
 
 ## Remove a deployment
 
-Export a hosted product archive from the owner console and back up D1 before removal; keep private settings separately. D1 deletion permanently destroys the installation's monitors and history. Use:
+Export a hosted product archive from the owner console and back up D1 before removal. Keep both backups and the private settings somewhere private. With the deploying account's Cloudflare credentials available, replace `NAME` with the environment (`production` for the default) and export its D1 schema and data:
+
+```sh
+(umask 077; npx wrangler d1 export uptime-monitor-NAME-db --remote --output=./uptime-NAME.sql)
+```
+
+See [Cloudflare's D1 export instructions](https://developers.cloudflare.com/d1/best-practices/import-export-data/#export-an-existing-d1-database). Check that the SQL file exists and contains the expected schema and data before removing the environment. D1 deletion permanently destroys the installation's monitors and history.
 
 ```sh
 rer deploy --environment NAME --remove --yes
@@ -133,8 +142,6 @@ A resource with a familiar name but mismatched identity must not be adopted or d
 ## About verification
 
 Local checks cover the deploy command and the installer. One fresh-account hosted installation of version 0.1.1 has been exercised end to end: claim, email sign-in, a signed runner, and down and recovery emails. Its first deploy attempt stopped part way and completed on the documented resume. If something does not behave as written here, open an issue at https://github.com/just-every/run-uptime.
-
-On a fresh checkout, unattended deployment with the pinned rer version also needs `--owner-name "Your name"` unless setup already saved that owner name. The CLI asks interactively when needed and keeps the answer for later deploys; it refuses before uploading when an unattended run has no name.
 
 ## Deliberately run without outbound email
 

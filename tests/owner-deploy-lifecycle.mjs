@@ -157,6 +157,11 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   // A fresh mail-off deployment uses its ordinary owner bootstrap, then the
   // actual rer signin command against that exact recorded account and Worker.
   const offRoot=await checkout(t),offProvider=await providerBridge(t);
+  const mailOffInputs={OWNER_EMAIL:'synthetic-uptime-620@example.test'};
+  const incompletePlan=await deploy(offRoot,offProvider,t.signal,['--dry-run'],{inputs:mailOffInputs,ownerName:null});
+  assert.notEqual(incompletePlan.code,0,'a fresh checkout cannot deploy without its owner name');
+  assert.ok(incompletePlan.messages.some(message=>message.includes('--owner-name')),'the dry run explains how to supply the missing name');
+  assert.equal(offProvider.state.calls.length,0,'an incomplete dry run never contacts the provider');
   const omittedWithKey=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test',SENDGRID_API_KEY:'synthetic-uptime-omitted-key'}});
   assert.notEqual(omittedWithKey.code,0,'a sending key without a selector cannot enable mail');
   assert.ok(omittedWithKey.messages.some(message=>message.includes('Remove it or choose a mail provider')),'the refusal explains the declared mail-off default');
@@ -166,7 +171,7 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
     assert.equal(offProvider.state.writes.length,0,'invalid explicit selectors never mutate the provider');
   }
   const callsBeforeDryRun=offProvider.state.calls.length;
-  const offPlan=await deploy(offRoot,offProvider,t.signal,['--dry-run'],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
+  const offPlan=await deploy(offRoot,offProvider,t.signal,['--dry-run'],{inputs:mailOffInputs});
   assert.equal(offPlan.code,0,JSON.stringify(offPlan));
   assert.equal(offPlan.result?.dryRun,true);
   assert.equal(offProvider.state.calls.length,callsBeforeDryRun,'mail-off dry run never contacts the provider');

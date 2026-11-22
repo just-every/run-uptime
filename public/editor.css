@@ -34,6 +34,7 @@
 .editor-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
 .editor-pair > label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .editor-pair > label > :is(input, select) { margin-top: auto; }
+.editor-pair:has(#worker-interval) { align-items: start; }
 
 /* Monospace only where the value is a URL or JSON. */
 .editor-panel :is(input[name="url"], input[name="jsonPath"], input[name="regexPattern"]) { font-family: var(--mono); font-size: 14px; }

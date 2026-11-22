@@ -10,6 +10,8 @@ A selection with monitor IDs only admits those IDs. Tags only admit monitors wit
 
 In **Settings › People › Security and keys**, choose **Create a monitoring or CI key** and select **Monitoring read**, the monitors or tags to allow, and a future expiry. Uptime asks for a fresh second factor when needed.
 
+To check a tag-scoped key, compare a tagged monitor with an untagged one. Give the untagged monitor a target on a different site from the **External check URL** in **Settings › General**. If the external check is `https://example.com/`, use `https://www.iana.org/` for the untagged target. The key's monitor list should contain only the tagged monitor.
+
 For the CLI, use [Second factors](/docs/mfa) to get a native session in `UPTIME_ACCESS_COOKIE` and verify it. Set `UPTIME_ORIGIN` to the app address without a path, such as the address printed as `RER_READY` locally. From the installed checkout, run this example in a private directory to create `key-specification.json` with a one-day expiry. Replace `journey` with a tag on the monitors you want to read.
 
 ```sh

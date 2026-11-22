@@ -6,11 +6,56 @@ In the console, open **Settings › Backup and files** to download or restore a 
 
 ### Check your backup
 
-The CLI `.rer` archive is JSON Lines with a base64-encoded Uptime payload. To check your monitors in a readable backup, choose **Download backup** under **Settings › Backup and files** in the local or hosted console. Open the downloaded `.json` and search for your monitor names. If you have `jq`, you can list just the names (replace `uptime-backup.json` with the downloaded filename).
+For a local or hosted console backup, choose **Download backup** under **Settings › Backup and files**. Open the downloaded `.json` and search for your monitor names, or list the names with `jq`. Replace `uptime-backup.json` with your filename.
 
 ```sh
 jq -r '.payload.tables.monitors[].definition | fromjson | .name' uptime-backup.json
 ```
+
+For a CLI `.rer` archive, run this with Python 3 and supply the file you just exported. It decodes the Uptime payload locally and prints the monitor names.
+
+```sh
+python3 - exports/uptime.rer <<'PY'
+import base64
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as archive:
+    payload = b"".join(
+        base64.b64decode(item["data"], validate=True)
+        for line in archive for item in json.loads(line).get("items", [])
+        if item["kind"] == "payload" and item["name"] == "uptime"
+    )
+
+lines = iter(payload.splitlines())
+header = json.loads(next(lines, b"null"))
+if header is None:
+    sys.exit("No Uptime payload in this archive")
+if header.get("kind") == "uptime-chunks":
+    rows = []
+    fragment = bytearray()
+    for line in lines:
+        chunk = json.loads(line)
+        if chunk["table"] != "monitors":
+            continue
+        if chunk["kind"] == "chunk":
+            rows.extend(chunk["rows"])
+        elif chunk["kind"] == "fragment":
+            fragment.extend(base64.b64decode(chunk["data"], validate=True))
+            if chunk["last"]:
+                rows.append(json.loads(fragment))
+                fragment.clear()
+    if fragment or len(rows) != header["counts"]["monitors"]:
+        sys.exit("Incomplete monitor records in this archive")
+else:
+    rows = json.loads(payload)["payload"]["tables"]["monitors"]
+
+for row in rows:
+    print(json.loads(row["definition"])["name"])
+PY
+```
+
+To check archive integrity and confirm that the data restores, follow the restore procedure into a separate empty installation.
 
 ### Transfer from the command line
 

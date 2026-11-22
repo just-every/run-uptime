@@ -49,15 +49,22 @@ export function mountCheckFrom(fieldset,{overview,definition,externalCheck,isNew
  const rule=element('p','agreement-rule helper ui-helper');rule.id='agreement-rule';rule.setAttribute('aria-live','polite');
  const more=element('p','probe-more');more.innerHTML='<a class="ui-link" href="/app/locations">Add a location</a>';
  // The form's own input in Advanced (editor.html); the agreement line below reads it.
- const own=fieldset.closest('form').querySelector('#external-check-own');
+ const form=fieldset.closest('form'),own=form.querySelector('#external-check-own');
+ const interval=form.elements.intervalMinutes,privateMin=interval.min,workerInterval=form.querySelector('#worker-interval');
  own.placeholder=overview.runner.externalCheckUrl?`${overview.runner.externalCheckUrl} (from Settings)`:'';own.value=externalCheck?.own??'';
  fieldset.append(list,note,rule,more);
  const boxes=[...list.querySelectorAll('input[name=locations]')];
  const update=()=>{
   const chosen=boxes.filter(box=>box.checked),full=chosen.length>=limit;
+  const locations=chosen.map(box=>shown.find(row=>row.runnerId===box.value));
+  const includesWorker=locations.some(row=>row.hosted);
+  interval.min=includesWorker?'1':privateMin;
+  workerInterval.hidden=!includesWorker;
+  if(includesWorker)interval.setAttribute('aria-describedby',workerInterval.id);
+  else interval.removeAttribute('aria-describedby');
   for(const box of boxes)box.disabled=!box.checked&&full;
   note.classList.toggle('is-full',full);
-  rule.textContent=agreementText(chosen.map(box=>shown.find(row=>row.runnerId===box.value).networkLabel),hostOf(own.value.trim()||overview.runner.externalCheckUrl),Boolean(own.value.trim()));
+  rule.textContent=agreementText(locations.map(row=>row.networkLabel),hostOf(own.value.trim()||overview.runner.externalCheckUrl),Boolean(own.value.trim()));
  };
  list.addEventListener('change',update);own.addEventListener('input',update);update();
  // `update` again once the form enables its controls, so a full list keeps its unticked locations disabled.
