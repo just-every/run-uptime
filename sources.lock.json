@@ -508,7 +508,7 @@
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "8c9ef5a8a453dce1764ce392d518a1ef2d1729e61bd46724a153ddb96f1e32fc",
+      "sha256": "25f9a3e6b389c7edfcf22745fe9f3feefeed2f11896101516b7000bcbcb61a69",
       "executable": false
     },
     "base-copies.json": {
@@ -588,7 +588,7 @@
       "executable": false
     },
     "docs/data.md": {
-      "sha256": "07eea2ce08edb1ad20b61f6b319385edc53bda3fc71be2b4cfb4b205454220c7",
+      "sha256": "df00fcb5c44854a32d8f744f938490d4ecad5c30ca646378ed37611757e32a4a",
       "executable": false
     },
     "docs/definitions.md": {
@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "2638f05c14e463cdf6803076e6b7b9fba943129c6d47c97370bda9ecccad318e",
+      "sha256": "029cc77aa5b54f3d2d232b4ac0739d0131f8461060eca9a73b8df9ccb6e815fd",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2060,7 +2060,7 @@
       "executable": true
     },
     "docs/getting-started.md": {
-      "sha256": "e34d72bcafb929638f7e5f2191cc2226293314c7e164a21a4f4a9ecfd12a0c3d",
+      "sha256": "919e1a08432052db037ca2f540fbe370abbae8001f5e0799feb23b5dea94fc4b",
       "executable": false
     },
     "docs/grafana/uptime-dashboard.json": {
@@ -2076,7 +2076,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "7739906a1a84c51142c01a7e9fc8d875aa86382f8b071eb9659885c1656465f0",
+      "sha256": "e18e597ff03abfcb564347789f76b5e7a3f4ce732c27d3eb441c8e024538bcdc",
       "executable": false
     },
     "docs/limits.md": {
@@ -2592,7 +2592,7 @@
       "executable": false
     },
     "public/alert-clauses.js": {
-      "sha256": "0dda4ae1a644027bc04ef3efbd5d9a59e361cd444ac0e2dcd4b0953aae74d558",
+      "sha256": "07926c7749d1a364237e7d29bff6c13eee9dc7b98f0b992cea28e7c288d6efc9",
       "executable": false
     },
     "public/alert-destinations.js": {
@@ -3108,7 +3108,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "d308becc54d01f2a848bd107910c1e6f07205dc26fef0ac408c13c4d5e04629f",
+      "sha256": "574d57ac5bb7767296272ee02e48b01c424f0e0baf46b6e8a6a385b94242281a",
       "executable": false
     },
     "RELEASE.json": {
@@ -3116,7 +3116,7 @@
       "executable": false
     },
     "RELEASE.md": {
-      "sha256": "88a4d1779c232ccc0976ceb67b6db28b434c488293e380e6871f5819f67c5959",
+      "sha256": "87faa5659bba8bc42759195f4abb4029a9de04858ef8d6f89df2b0dee97b77d0",
       "executable": false
     },
     "rer-local-setup.json": {
@@ -8880,7 +8880,7 @@
       "executable": false
     },
     "src/site/run.ts": {
-      "sha256": "a70216382f59943b08bd9aea012335d73910b8dbc6ce28835543c23a00bae9bb",
+      "sha256": "ea631d453b3fce365b5fb54a66acba83746434dcf124581d06be9b2e4fcccde1",
       "executable": false
     },
     "src/site/shell/Brand.tsx": {

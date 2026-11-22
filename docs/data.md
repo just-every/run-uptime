@@ -4,6 +4,14 @@ Your monitoring history is yours to take with you. Uptime can export an archive 
 
 In the console, open **Settings › Backup and files** to download or restore a backup. On the receiving installation, finish setup and leave the monitor list empty before restoring.
 
+### Check your backup
+
+The CLI `.rer` archive is JSON Lines with a base64-encoded Uptime payload. To check your monitors in a readable backup, choose **Download backup** under **Settings › Backup and files** in the local or hosted console. Open the downloaded `.json` and search for your monitor names. If you have `jq`, you can list just the names (replace `uptime-backup.json` with the downloaded filename).
+
+```sh
+jq -r '.payload.tables.monitors[].definition | fromjson | .name' uptime-backup.json
+```
+
 ### Transfer from the command line
 
 Both commands need a native owner session with a second factor verified in the previous five minutes. Verify it **while dev is still running**.

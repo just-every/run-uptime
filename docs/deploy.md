@@ -142,8 +142,6 @@ Select `MAIL_PROVIDER=none` in the hosted setup or the deploying checkout's priv
 
 With mail off, use `rer signin` (or `rer signin --environment NAME`) from the checkout that deployed this environment, with that deploying account's Cloudflare credentials and its saved deployment record. Base checks the recorded Worker, account, project, environment and ownership receipt before issuing a short-lived owner grant. Keep the terminal link private; it is never an invitation or a hosted local-development entry. Losing the deploying checkout's receipt requires restoring that receipt, not bypassing ownership.
 
-For local setup, `rer dev` prints the private first-owner sign-in link on its own `RER_OPEN` line. After hosted setup with mail off, `rer signin` prints the one-time HTTPS owner sign-in link on its own line. Pass the hosted link to the business harness as `sign_in` in Uptime’s `tools[i]` entry in `session.report`. Never share either link in chat or save it to a file.
-
 First-run setup, monitor checks, incident recovery and Settings remain available. Email-link and invitation requests return `503 mail_unavailable`, including for unknown addresses. Email alerts remain unavailable and are never recorded as sent; configure another supported destination for delivery. Webhook and Slack delivery keep their existing configuration requirements. Optional operations sign-in mail reports off; required delivery loops cannot claim readiness while off.
 
 ### Enable email later or switch back to none

@@ -12,7 +12,7 @@ export const run: RunData = {
   docs: true,
   paths: {
     product: null,
-    requirementsExtra: 'The default local address is 127.0.0.1. For passkeys, use the localhost command in the getting-started guide. ' + ownerSignInGuide,
+    requirementsExtra: 'The default local address is 127.0.0.1. For passkeys, use the localhost command in the getting-started guide. Open the private RER_OPEN link printed by rer dev to sign in on this computer.',
   },
   pricing: runPricing,
 };
