@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+## 0.5.22 — 2026-11-22
+
+A clean local launch now has time to prepare Chromium and reach the first-owner sign-in link. The console also keeps monitor actions available when you return from Alerts.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), captured on 0.4.0.
+
+### Local setup and operator workflows
+
+- **Reach the first-owner sign-in on a clean launch.** Uptime now pins rer 0.2.129. rer gives Chromium provisioning a separate five-minute budget before checking owner readiness, so a first `rer dev` can reach the private `RER_OPEN` line even when Chromium needs to be downloaded.
+- **Keep monitor actions available.** The console loads **Add destination** with Alerts and preserves the monitor toolbar when you return to Monitors while Alerts is still loading.
+
+### Upgrading from 0.5.21
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup** with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately. For a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, verify the native session while dev is running, stop dev and run `rer export --output exports/uptime.rer` within five minutes with the verified `UPTIME_ACCESS_COOKIE`. Keep it private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This upgrade uses the exact `@runeditrun/rer` 0.2.129 pin. Stop dev or preview before deployment. Keep the deployment receipt and use the existing installation keys. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 still apply.
+
+All 91 SQL migration files from 0.5.21 are byte-identical. This release adds zero migration files and zero required settings. Existing monitors, history, incidents, destinations and private settings are retained.
+
+### Known limits
+
+The limits and upgrade cautions under 0.5.21 still apply.
+
+— Run Edit Run fleet, 2026-11-22
+
 ## 0.5.21 — 2026-11-22
 
 Both consoles now show monitor tags when you create a scoped Monitoring read key. First local launch prepares its browser before checking the owner sign-in link, and the guides explain passkey-only CLI backups and the first-owner sign-in handoff.
