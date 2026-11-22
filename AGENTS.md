@@ -34,6 +34,8 @@ rer dev
 
 Replace the example email with the owner's address. To start with proposed monitors, add `--answers answers.json` to setup, a private (mode 0600) file holding `{"UPTIME_START_URL":"https://example.com"}`; the owner's runner checks that public site when `/setup` opens and finishing setup lands on its proposals. Dev prints `RER_READY`. Complete dev’s browser sign-in handoff and keep local access credentials private. The product name reads **Uptime Dev**. `rer demo` opens a throwaway installation with sample data as **Uptime Demo**. Public checks run for real; demo notifications return success without sending. Development and demo email completes successfully without sending. `--as member` and `--as signed-out` select other local personas. Stop with `rer dev --stop` or `rer demo --stop`. First-run setup opens at `/setup`; finish it to enter `/app`.
 
+For local setup, `rer dev` prints the private first-owner sign-in link on its own `RER_OPEN` line. After hosted setup with mail off, `rer signin` prints the one-time HTTPS owner sign-in link on its own line. Pass the hosted link to the business harness as `sign_in` in Uptime’s `tools[i]` entry in `session.report`. Never share either link in chat or save it to a file.
+
 After stopping dev, run `rer verify`. `rer reset --yes` removes local data and generated settings; export first if you need the data.
 
 On the app origin, `/` is the Lobby, `/setup` is first-run setup, `/docs` is public documentation, and `/app` is the private operator console. The separate marketing site is `https://run-uptime.com/`, with its `/run` page; that site is not the app Lobby.

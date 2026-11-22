@@ -25,6 +25,8 @@ rer dev
 
 `rer install` installs frozen dependencies. `rer setup` asks for the first owner and saves private settings. `rer dev` starts the app, private runner and practice target, then prints `RER_READY`. A first launch can take several minutes; repeating `rer dev` resumes interrupted setup. In an interactive terminal it stays in the foreground and Control-C stops it. From a non-interactive shell it returns once ready, leaving the app in the background. Use `rer dev --detach` for an explicit background run.
 
+For local setup, `rer dev` prints the private first-owner sign-in link on its own `RER_OPEN` line. After hosted setup with mail off, `rer signin` prints the one-time HTTPS owner sign-in link on its own line. Pass the hosted link to the business harness as `sign_in` in Uptime’s `tools[i]` entry in `session.report`. Never share either link in chat or save it to a file.
+
 ## Explicit owner setup
 
 To choose an owner or supply setup answers yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout, before `rer dev`:

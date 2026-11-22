@@ -7,6 +7,7 @@ import { Cabin } from '../atmosphere/Cabin';
 import { checks, evidence, incidents, notifications, ownership } from '../copy';
 import { Icon } from '../../shell/Icon';
 import { Section } from '../parts/Section';
+import { ownerSignInGuide } from '../../run';
 
 // The five alternating sections, one idea each, the card switching sides as the page goes down.
 
@@ -27,10 +28,13 @@ export function Notifications() {
 }
 
 export function Ownership() {
-  const points = (
-    <ul className="ut-points">
-      {ownership.points.map(point => <li key={point.text}><span className="ut-points-icon"><Icon name={point.icon} /></span>{point.text}</li>)}
-    </ul>
+  const details = (
+    <>
+      <p className="ut-sec-body">{ownerSignInGuide}</p>
+      <ul className="ut-points">
+        {ownership.points.map(point => <li key={point.text}><span className="ut-points-icon"><Icon name={point.icon} /></span>{point.text}</li>)}
+      </ul>
+    </>
   );
-  return <Section id="ownership" eyebrow={ownership.eyebrow} title={ownership.title} body={ownership.body} extras={points}><Cabin /><TerminalCard /></Section>;
+  return <Section id="ownership" eyebrow={ownership.eyebrow} title={ownership.title} body={ownership.body} extras={details}><Cabin /><TerminalCard /></Section>;
 }

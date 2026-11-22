@@ -10,6 +10,8 @@ The line installs `rer`, the Run Edit Run command, clones Uptime into a `run-upt
 
 If the installer prints a line that puts `rer` on your PATH, run that line too. To start Uptime again later, run the same line from the same folder, or `cd run-uptime && rer dev`. `rer dev --stop` stops it.
 
+For local setup, `rer dev` prints the private first-owner sign-in link on its own `RER_OPEN` line. After hosted setup with mail off, `rer signin` prints the one-time HTTPS owner sign-in link on its own line. Pass the hosted link to the business harness as `sign_in` in Uptime’s `tools[i]` entry in `session.report`. Never share either link in chat or save it to a file.
+
 ## Start with passkeys
 
 The default local launch uses `http://127.0.0.1`, which offers an authenticator app. To start a new local installation for passkeys, run this from a folder without an Uptime checkout.

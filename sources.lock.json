@@ -508,7 +508,7 @@
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "56ddf14edf811f700c62850d4419a8ac60179866ca0d0cdca34efe7748b83ef3",
+      "sha256": "8c9ef5a8a453dce1764ce392d518a1ef2d1729e61bd46724a153ddb96f1e32fc",
       "executable": false
     },
     "base-copies.json": {
@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "029cc77aa5b54f3d2d232b4ac0739d0131f8461060eca9a73b8df9ccb6e815fd",
+      "sha256": "2638f05c14e463cdf6803076e6b7b9fba943129c6d47c97370bda9ecccad318e",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2060,7 +2060,7 @@
       "executable": true
     },
     "docs/getting-started.md": {
-      "sha256": "06d7ac357d53b7a8c5ab9d0335ec336783cf3bad285349750bdf739013c5fe35",
+      "sha256": "e34d72bcafb929638f7e5f2191cc2226293314c7e164a21a4f4a9ecfd12a0c3d",
       "executable": false
     },
     "docs/grafana/uptime-dashboard.json": {
@@ -2076,7 +2076,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "e18e597ff03abfcb564347789f76b5e7a3f4ce732c27d3eb441c8e024538bcdc",
+      "sha256": "7739906a1a84c51142c01a7e9fc8d875aa86382f8b071eb9659885c1656465f0",
       "executable": false
     },
     "docs/limits.md": {
@@ -3108,7 +3108,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "75c530ef8e00d7c9ab0aca52c5d5068533956bc92d68ee2cf0f63778cefe6ec4",
+      "sha256": "d308becc54d01f2a848bd107910c1e6f07205dc26fef0ac408c13c4d5e04629f",
       "executable": false
     },
     "RELEASE.json": {
@@ -8840,7 +8840,7 @@
       "executable": false
     },
     "src/site/landing/sections/Stories.tsx": {
-      "sha256": "e708f5fec96a782bb06130b2856e2deed612d046a62568d0d6d79e8f247f7259",
+      "sha256": "a65211e683c9be84c0174f7a36acab5bacd559ef7cd999f2faf669654ae7be9e",
       "executable": false
     },
     "src/site/landing/styles/cards.css": {
@@ -8880,7 +8880,7 @@
       "executable": false
     },
     "src/site/run.ts": {
-      "sha256": "717efead29d9181cb4b4d1970929697f04ae705793cc656926227d4f857fa80c",
+      "sha256": "a70216382f59943b08bd9aea012335d73910b8dbc6ce28835543c23a00bae9bb",
       "executable": false
     },
     "src/site/shell/Brand.tsx": {
