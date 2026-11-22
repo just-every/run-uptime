@@ -508,11 +508,11 @@
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "640fc68497b7e7a47b8c43b8555f75899795920ed4335be8ca24f4febde7dc01",
+      "sha256": "87cd27b615fd70b356349c01cd204a516042cc91543220ea87558cc6c3797321",
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "938ab00c4e83583049f5e51a334564a4526745e0d635bcf7c61f0b3b211a2cac",
+      "sha256": "87ea038d07a6045fda59d73db0302f173f836f75c2bb412b8042786bbf501c58",
       "executable": false
     },
     "BASELINE.md": {
@@ -2060,7 +2060,7 @@
       "executable": true
     },
     "docs/getting-started.md": {
-      "sha256": "919e1a08432052db037ca2f540fbe370abbae8001f5e0799feb23b5dea94fc4b",
+      "sha256": "7af43f3e44fac4348566e92710e1a1c80f5dc127324086adcdab4b71b6e86562",
       "executable": false
     },
     "docs/grafana/uptime-dashboard.json": {
@@ -2076,7 +2076,7 @@
       "executable": false
     },
     "docs/install.md": {
-      "sha256": "e18e597ff03abfcb564347789f76b5e7a3f4ce732c27d3eb441c8e024538bcdc",
+      "sha256": "1fa2422fad74bcb059be4955cc29abf6f2ecb07a1d61e93cd3f82754d002e6ce",
       "executable": false
     },
     "docs/limits.md": {
@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "400587f4ab441192c1ca79b97e2bab611bbbb10f26d30c6229be80d24db45c47",
+      "sha256": "f9b6346dd59834a7087ed7fac40f6f215d404fb2116468d497964b58bd54b4d9",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -2584,7 +2584,7 @@
       "executable": false
     },
     "pnpm-lock.yaml": {
-      "sha256": "375719f662132b1cc54cb1dae0d128d9c54daf98b2667b2ebe37ffa21c040cd8",
+      "sha256": "49eb70e38f8fcaec608f046bbb66e07e56ace136f26ccb995fa87b34b0c1f358",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -3108,7 +3108,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "d14efa2791a07fba5f654b72662869f5facffc48e3ff3da0ac5c8a4407fdf5ba",
+      "sha256": "4187d9bff15e37cc181ce0d0f28b8c3370d33e4114d259d4194b773f4dbdcae9",
       "executable": false
     },
     "RELEASE.json": {
@@ -3116,7 +3116,7 @@
       "executable": false
     },
     "RELEASE.md": {
-      "sha256": "dc55a134e910fe79a7d1f643a23828decf9b54f09fffef8121d2f68dfeded24f",
+      "sha256": "87b28bb244f00e7214ba3abf548e5e5547a3f8af4bf172dec5b026703e9975cd",
       "executable": false
     },
     "rer-local-setup.json": {
@@ -3136,7 +3136,7 @@
       "executable": false
     },
     "RUN-LOCALLY.md": {
-      "sha256": "b820cd451c7b02ec26090f4747ef40f045cb889943c208453e7a7f0a506ac3d1",
+      "sha256": "812783a5dc158f6db0e59382cf9d8b352e1d160f0c0cb4d5daa94e330e997584",
       "executable": false
     },
     "runners/migrations/0001-monitor-credentials.mjs": {
@@ -6996,7 +6996,7 @@
       "executable": false
     },
     "src/base/run-site.ts": {
-      "sha256": "36f0e5756a0c85543ed5392c127baa9bcc3fbe5fd94cc634a254920017f61b20",
+      "sha256": "1eddfc17874282fc726b8fd7691ef94aaca45cf25eea801a04e9733c823d85f8",
       "executable": false
     },
     "src/base/seed-contract.d.mts": {

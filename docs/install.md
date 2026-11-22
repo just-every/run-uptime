@@ -23,7 +23,7 @@ rer setup
 rer dev
 ```
 
-`rer install` installs frozen dependencies. `rer setup` asks for the first owner and saves private settings. `rer dev` starts the app, private runner and practice target, then prints `RER_READY`. A first launch can take several minutes; repeating `rer dev` resumes interrupted setup. In an interactive terminal it stays in the foreground and Control-C stops it. From a non-interactive shell it returns once ready, leaving the app in the background. Use `rer dev --detach` for an explicit background run.
+`rer install` installs frozen dependencies. `rer setup` asks for the first owner and saves private settings. `rer dev` starts the app, private runner and practice target, then prints `RER_READY`. A first local start usually takes about a minute. On a busy computer it can take longer: `rer dev` prints progress every 20 seconds, with the limit to allow. Repeating `rer dev` resumes interrupted setup. In an interactive terminal it stays in the foreground and Control-C stops it. From a non-interactive shell it returns once ready, leaving the app in the background. Use `rer dev --detach` for an explicit background run.
 
 ## Explicit owner setup
 

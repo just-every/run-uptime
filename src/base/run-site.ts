@@ -80,7 +80,7 @@ export const PATHS = {
     guide: { label: 'Walk me through it', href: '/docs/getting-started' },
     start: 'You paste the line',
     steps: (n: string) => ['rer installs itself', `Gets ${n}`, 'Sets up its database', `Starts ${n} and prints a link that signs you in`],
-    pasteTitle: 'Now paste it into your terminal.', note: 'A first start takes a few minutes.',
+    pasteTitle: 'Now paste it into your terminal.', note: 'A first local start usually takes about a minute. On a busy computer it can take longer: rer dev prints progress every 20 seconds, with the limit to allow.',
   },
   assisted: { title: 'Assisted', lead: 'We set it up with you and keep it updated.',
     rest: 'It stays yours, on your computer or your own cloud.', price: (run: RunData) => run.pricing.assisted, action: 'Set it up with us' },

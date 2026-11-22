@@ -288,7 +288,16 @@
       },
       "originFiles": [
         "default-seed/RUN-LOCALLY.md"
-      ]
+      ],
+      "adapted": {
+        "RUN-LOCALLY.md": "8fa76d1ceef21535d0c1fa31298326d971bd8520"
+      },
+      "acknowledged": {
+        "RUN-LOCALLY.md": {
+          "sha256": "812783a5dc158f6db0e59382cf9d8b352e1d160f0c0cb4d5daa94e330e997584",
+          "mode": "100644"
+        }
+      }
     },
     {
       "path": "scripts/delivery/base/artifact.mjs",
@@ -4020,7 +4029,16 @@
       },
       "originFiles": [
         "foundation/runtime/run-site.ts"
-      ]
+      ],
+      "adapted": {
+        "src/base/run-site.ts": "8fa76d1ceef21535d0c1fa31298326d971bd8520"
+      },
+      "acknowledged": {
+        "src/base/run-site.ts": {
+          "sha256": "1eddfc17874282fc726b8fd7691ef94aaca45cf25eea801a04e9733c823d85f8",
+          "mode": "100644"
+        }
+      }
     },
     {
       "path": "src/base/seed-contract.d.mts",

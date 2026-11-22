@@ -6,7 +6,7 @@ Uptime runs on your own computer first, which is the quickest way to try it. Ope
 
 {{runRequirements}} Already have Node 22 or later? `{{runAlternative}}` does the same.
 
-The line installs `rer`, the Run Edit Run command, clones Uptime into a `run-uptime` folder, installs everything and starts the app, its private runner and a practice target, with you as the owner. A first launch can take several minutes. When it is ready, open the private `RER_OPEN` link on the same computer to sign in. Keep it private. The plain `RER_READY` address opens the public Lobby. This free copy runs only on your computer: it sends no email, and nobody else can open it.
+The line installs `rer`, the Run Edit Run command, clones Uptime into a `run-uptime` folder, installs everything and starts the app, its private runner and a practice target, with you as the owner. A first local start usually takes about a minute. On a busy computer it can take longer: `rer dev` prints progress every 20 seconds, with the limit to allow. When it is ready, open the private `RER_OPEN` link on the same computer to sign in. Keep it private. The plain `RER_READY` address opens the public Lobby. This free copy runs only on your computer: it sends no email, and nobody else can open it.
 
 If the installer prints a line that puts `rer` on your PATH, run that line too. To start Uptime again later, run the same line from the same folder, or `cd run-uptime && rer dev`. `rer dev --stop` stops it.
 

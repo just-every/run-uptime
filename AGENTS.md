@@ -9,9 +9,9 @@ first:
 rer dev
 ```
 
-- It installs and sets up a fresh checkout by itself and prints progress; a
-  first launch can take several minutes. Give the shell tool at least 10
-  minutes. If the tool times out, run the same `rer dev` again: it resumes.
+- It installs and sets up a fresh checkout by itself. A first local start usually takes about a minute.
+  On a busy computer it can take longer: `rer dev` prints progress every 20 seconds, with the limit to allow.
+  If the tool times out, run the same `rer dev` again: it resumes.
 - Never run install, setup, reset or deploy for this, and never ask for an
   email, port, password or answers file.
 - Give the owner the `RER_READY` address and complete dev’s browser sign-in

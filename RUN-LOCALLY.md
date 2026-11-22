@@ -88,8 +88,9 @@ with exit 3 and a message naming the field.
   the app is ready and leaves it running in the background, printing its
   private log path; in a terminal it stays in the foreground and Ctrl-C stops
   it. `--detach` and `--foreground` override that.
-- **Progress and resuming.** A first launch can take several minutes. It prints
-  a progress line at least every 30 seconds (`progress` events with `--json`).
+- **Progress and resuming.** A first local start usually takes about a minute.
+  On a busy computer it can take longer: `rer dev` prints progress every 20 seconds, with the limit to allow.
+  With `--json`, these are `progress` events.
   If the calling command is killed the launch carries on; run `rer dev` again to
   reattach or to finish an install or setup that stopped. A second `rer dev`
   reprints the ready lines.
