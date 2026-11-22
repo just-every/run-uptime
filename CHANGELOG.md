@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+## 0.5.21 — 2026-11-22
+
+Both consoles now show monitor tags when you create a scoped Monitoring read key. First local launch prepares its browser before checking the owner sign-in link, and the guides explain passkey-only CLI backups and the first-owner sign-in handoff.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), captured on 0.4.0.
+
+### Local setup and operator workflows
+
+- **Scope Monitoring read keys by tag.** In both consoles, **Selected monitors and tags** shows checkboxes for existing monitor tags. Select tags on their own or combine them with specific monitors. When you select both, a monitor must match both selections.
+- **Start from a clean local checkout.** The Uptime adapter installs Chromium before rer checks the owner sign-in link. A cold Chromium download has a separate time budget.
+- **Use passkeys locally.** The install guides and Run page point passkey users to the explicit `--host localhost` launch for a new installation. The default local address is `127.0.0.1`, where the console offers an authenticator app.
+- **Back up from the CLI with a passkey.** The backup and second-factor guides show how to hand the native CLI session to the browser, verify it with a passkey, confirm that the proof is fresh, and complete the transfer after stopping dev.
+- **Create a scoped key from the CLI.** The read API guide includes a private `key-specification.json` example for a tag-scoped key with a one-day expiry.
+- **Hand off the first-owner sign-in link.** The setup guides and public site identify the local `RER_OPEN` line and the one-time HTTPS link printed by hosted `rer signin` with mail off. Set-up agents pass the hosted link in Uptime’s `tools[i].sign_in` field in `session.report`.
+- **Find the checkout’s release details.** The README links to the release record, changelog and release procedure.
+- **Find the result of a local practice incident.** The getting-started guide points to the simulated notification under **Settings › Alerts › Sent alerts**.
+
+### Upgrading from 0.5.20
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup** with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately. For a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, verify the native session while dev is running, stop dev and run `rer export --output exports/uptime.rer` within five minutes with the verified `UPTIME_ACCESS_COOKIE`. Keep it private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This upgrade uses the exact `@runeditrun/rer` 0.2.125 pin. Stop dev or preview before deployment. Keep the deployment receipt and use the existing installation keys. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 still apply.
+
+All 91 SQL migration files from 0.5.20 are byte-identical. This release adds zero migration files and zero required settings. Existing monitors, history, incidents, destinations and private settings are retained.
+
+### Known limits
+
+Earlier upgrade cautions still apply, including older heartbeat output, UptimeRobot monitor CSV import, restoration of the erased-people list, empty company decision feeds, the 64 KiB response-body limit, and large-scale archive operation that has yet to be established. Pingdom TMS scripts and recordings, Page Speed, relationships and history remain unconverted. Live account cutover and managed geographic equivalence have yet to be established. Imported definitions stay paused and credentials need local re-entry.
+
+— Run Edit Run fleet, 2026-11-22
+
 ## 0.5.20 — 2026-11-21
 
 Local sign-in and backup instructions are clearer, and fixes make archive transfers, definition imports and monitoring keys easier to use.
