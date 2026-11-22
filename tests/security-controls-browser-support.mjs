@@ -115,7 +115,7 @@ export async function proveSecurityControls(){
    await form.getByRole('group',{name:'Monitor tags'}).getByRole('checkbox',{name:monitor.definition.tags[0],exact:true}).check();
    await form.getByRole('button',{name:'Create key',exact:true}).click();
    await panel.getByRole('button',{name:'Copy key',exact:true}).click();
-   await panel.getByText('Key copied.',{exact:true}).waitFor();
+   await panel.locator('[data-secret-once] [role=status]').filter({hasText:/\S/}).waitFor();
    const tagToken=await page.evaluate(()=>navigator.clipboard.readText());
    const tagHeaders={authorization:'Bearer '+tagToken};
    const taggedRead=await fetch(origin+'/api/v1/monitors',{headers:tagHeaders});

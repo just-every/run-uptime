@@ -2572,7 +2572,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "a34dddb1e055f0cffd5a0ee978ae50d271aafcff5704b9f493fcba6fab182929",
+      "sha256": "9c4df0f1c32eca55197bb87538f613d39a12119b7729f2946b8b49d16f47147a",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -2583,12 +2583,8 @@
       "sha256": "2eebc919b98755691bd00540a81158ceb06c3677539f3fdfb82d6a33f1f3d268",
       "executable": false
     },
-    "patches/rer-0.2.125-owner-entry.patch": {
-      "sha256": "a75f9d1af849e84a2fc223dd11af7ae842c9a8fad90b1219b6ecd48bfc1459e1",
-      "executable": false
-    },
     "pnpm-lock.yaml": {
-      "sha256": "8eeaed11d6e6ab0603c83e0763de90cbb5f8428d63b98e30fe83deb03448fbd3",
+      "sha256": "a0cfc59aeebadd33cd413879161d02d2c4f3d070fb480bc01f3f5b3908aebb64",
       "executable": false
     },
     "public/action-feedback.mjs": {
@@ -4440,7 +4436,7 @@
       "executable": false
     },
     "scripts/installer/local.mjs": {
-      "sha256": "3c259a934fd1f67b69c4805556e4db6ae6c0e681804c8abe823077e84a99fb07",
+      "sha256": "7660b9a9792e86e9ffe091596c2cf3ad0ad3fdfc7770791565ba8e7ca4bd384c",
       "executable": false
     },
     "scripts/installer/ui/seed.mjs": {
@@ -10684,7 +10680,7 @@
       "executable": false
     },
     "tests/security-controls-browser-support.mjs": {
-      "sha256": "1fd8072a99433c40f75238776c16d8c9d6c618540bd9d1fa450c9c6bc347eb8a",
+      "sha256": "04ff8164edd606c6816e5fb8bd117c32ce15147bb284cab5636977c78a87f61e",
       "executable": false
     },
     "tests/service-catalog-auth0-support.mjs": {

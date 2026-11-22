@@ -9,9 +9,6 @@ overrides:
   undici: 7.30.1
 
 patchedDependencies:
-  '@runeditrun/rer@0.2.125':
-    hash: a75f9d1af849e84a2fc223dd11af7ae842c9a8fad90b1219b6ecd48bfc1459e1
-    path: patches/rer-0.2.125-owner-entry.patch
   picomatch@4.0.7:
     hash: 35fffafb79237d89b70c8e8cff0df4f4b156c76868f839e89accecdecc4da33b
     path: patches/picomatch@4.0.7.patch
@@ -62,7 +59,7 @@ importers:
         version: 5.20261006.1
       '@runeditrun/rer':
         specifier: 0.2.125
-        version: 0.2.125(patch_hash=a75f9d1af849e84a2fc223dd11af7ae842c9a8fad90b1219b6ecd48bfc1459e1)
+        version: 0.2.125
       '@types/node':
         specifier: 26.6.4
         version: 26.6.4
@@ -2394,7 +2391,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@runeditrun/rer@0.2.125(patch_hash=a75f9d1af849e84a2fc223dd11af7ae842c9a8fad90b1219b6ecd48bfc1459e1)': {}
+  '@runeditrun/rer@0.2.125': {}
 
   '@simplewebauthn/server@14.0.3':
     dependencies:
