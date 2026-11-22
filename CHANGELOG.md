@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+## 0.5.23 — 2026-11-22
+
+First-time local owner sign-in works from an isolated installer home on macOS. The setup and backup guides clarify the steps owners need, and Alerts explains when sending can start.
+
+Product screenshot: [scheduled check and recovered incidents at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png), captured on 0.4.0.
+
+### Local setup and operator workflows
+
+- **Reach the first-owner sign-in on macOS.** Uptime pins rer 0.2.130. Chromium used the isolated installer's home, which could cause it to exit before rer printed the private `RER_OPEN` link. The readiness check now launches Chromium with the macOS account's home for keychain services and a fresh browser profile. The installer and app still use their own environment.
+- **Check exported monitors before restoring or resetting.** The backup guide explains that CLI `.rer` archives are JSON Lines with a base64-encoded Uptime payload. It shows how to check monitor names in a readable JSON backup downloaded from the local or hosted console.
+- **Find the right sign-in instructions.** The Run page directs local owners to the private `RER_OPEN` link from `rer dev`. The business setup instructions in `AGENTS.md` explain where agents pass the one-time hosted owner link after deployment with mail off.
+- **Know when alerts can send.** Settings › Alerts explains that Uptime can send due alerts while the console is open. Cloudflare can take up to two hours to activate background sending.
+- **Avoid a port conflict when starting with passkeys.** The getting-started guide tells you to stop the other local Uptime copy before launching with `--host localhost`.
+
+### Upgrading from 0.5.22
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup** with a second factor verified within the last five minutes. Keep private settings and `.rer/deploy` separately. For a hosted installation, also keep a database backup as described in the 0.5.4 notes below. For a local CLI backup, verify the native session while dev is running, stop dev and run `rer export --output exports/uptime.rer` within five minutes with the verified `UPTIME_ACCESS_COOKIE`. Keep it private.
+
+Update the checkout with `pnpm install --frozen-lockfile`, then deploy as usual. This upgrade uses the exact `@runeditrun/rer` 0.2.130 pin. Stop dev or preview before deployment. Keep the deployment receipt and use the existing installation keys. The mail enable/disable commands and legacy SendGrid selector guidance under 0.5.16 still apply.
+
+All 91 SQL migration files from 0.5.22 are byte-identical. This release adds zero migration files and zero required settings. Existing monitors, history, incidents, destinations and private settings are retained.
+
+### Known limits
+
+The limits and upgrade cautions under 0.5.22 still apply.
+
+— Run Edit Run fleet, 2026-11-22
+
 ## 0.5.22 — 2026-11-22
 
 A clean local launch now has time to prepare Chromium and reach the first-owner sign-in link. The console also keeps monitor actions available when you return from Alerts.
