@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+## 0.5.25 — 2026-11-22
+
+First local starts now report progress while Uptime gets ready. New hosted public HTTP monitors select the Cloudflare Worker by default, and the deployment guide backs up D1 using the installer’s Node runtime.
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Local setup and operator workflows
+
+- **Follow first-start progress.** The rer 0.2.131 pin serves a retryable HTTP 503 while the local runtime starts and reports an owner sign-in browser exit promptly. The local guides and Run page explain that `rer dev` reports progress every 20 seconds with the time to allow.
+- **Back up hosted D1 from an installer checkout.** The removal guide runs the checkout’s Wrangler through `rer` with its supplied Node runtime. It explains where to run the export and how to keep the output private and check it before removing the environment.
+- **Start public HTTP checks on the Worker.** New hosted public HTTP monitors with ordinary TLS and no runner-local credentials default to Cloudflare Worker. You can still choose a private runner, and your manual location choice is kept while editing the form.
+- **Read long installation names on mobile.** In Monitors and the monitor editor, the name wraps beside the logo and leaves room for **Sign out**.
+
+### Upgrading from 0.5.24
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup** with a second factor verified within the last five minutes. Keep private settings, `.rer/deploy`, and any hosted database backup separately. For a local CLI backup, verify the native session while dev is running, stop dev and run `rer export --output exports/uptime.rer` within five minutes with the verified `UPTIME_ACCESS_COOKIE`. Keep it private.
+
+Run `pnpm install --frozen-lockfile` in the updated checkout. Stop dev or preview before deploying. Keep your deployment receipt and existing installation keys. The exact `@runeditrun/rer` pin is 0.2.131, and the mail configuration guidance under 0.5.16 still applies.
+
+All 91 SQL migration files from 0.5.24 are byte-identical. The upgrade carries forward existing monitors, history, incidents, destinations, and private settings with zero new migrations or required settings.
+
+### Known limits
+
+The limits and upgrade cautions under 0.5.24 still apply.
+
+— Run Edit Run fleet, 2026-11-22
+
 ## 0.5.24 — 2026-11-22
 
 The hosted deployment dry run now flags missing inputs before you deploy. The monitor editor shows the minimum interval for Cloudflare Worker checks, and the guides explain how to verify backups and tag-scoped keys.

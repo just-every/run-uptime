@@ -36,7 +36,7 @@ Uptime checks your site and tells you when it’s down. It does not publish a pa
 
 ## Run it on your computer
 
-Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime). Each release is a version tag on `main`. See [the release record](RELEASE.json) for this checkout's version, [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
+Use Git on macOS, Linux or Windows with WSL2. The CLI selects the checkout's pinned Node 22.20.0 for application commands; direct `node` and `pnpm` contributor commands use that pinned runtime. Uptime is developed in its public repository, [just-every/run-uptime](https://github.com/just-every/run-uptime). Find the current published version under [GitHub Releases](https://github.com/just-every/run-uptime/releases/latest). Each release is a version tag on `main`. See [the release record](RELEASE.json) for this checkout's version, [the changelog](CHANGELOG.md) for changes and [the release procedure](RELEASE.md) for producing the annotated tag and bundle.
 
 ```sh
 curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptime

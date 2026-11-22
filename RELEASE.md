@@ -1,4 +1,4 @@
-# Release Uptime 0.5.24
+# Release Uptime 0.5.25
 
 Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
 0.2.131), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
