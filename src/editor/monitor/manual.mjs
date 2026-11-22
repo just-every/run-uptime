@@ -41,6 +41,7 @@ export function mountManualForm({form,overview,definition,id,returnTo,message,mo
  showType(form,form.elements.checkType.value);
  checkFrom.update();
  message.textContent='';
+ return checkFrom.update;
 }
 // A new monitor the owner fills in by hand, starting from the website address they already gave.
 export function prefillManualForm(form,{url='',name=''}={}){

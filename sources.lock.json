@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "557fa414d7ac94a79e115b1d534554d6b56c708a22a0055fec38969aa548f620",
+      "sha256": "accc2c48c0a482a563bece7801f2c5ac72fb6cfd8a5531bfc89028884c9e21ec",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2616,7 +2616,7 @@
       "executable": false
     },
     "public/app-theme.css": {
-      "sha256": "239ad0802895cd0a4932bc136e536b073554f09481137221a241c736b44ee1c3",
+      "sha256": "bb58d68dcab03d82618dcff483d474daac39e67de9bb89e0f0076baa7e07880e",
       "executable": false
     },
     "public/app.js": {
@@ -8444,7 +8444,7 @@
       "executable": false
     },
     "src/editor/monitor/check-from.mjs": {
-      "sha256": "e5cce9e539b80ea03068385b33e6ba6bd25328d291a32fd3c64141f20325366d",
+      "sha256": "ce71cbb886dbac908cbeba108095c02131fc41c08df75819133af1f455dcede1",
       "executable": false
     },
     "src/editor/monitor/definition.mjs": {
@@ -8488,7 +8488,7 @@
       "executable": false
     },
     "src/editor/monitor/index.mjs": {
-      "sha256": "9a176936bfd8a9e8014d691e08ba9caa542c3032b444cff25676de73c110fa47",
+      "sha256": "f49cd5bd4da0108c347e085f96f60210aa74a2a1b8af23ddf1cea038ea709961",
       "executable": false
     },
     "src/editor/monitor/initial-markup.mjs": {
@@ -8500,7 +8500,7 @@
       "executable": false
     },
     "src/editor/monitor/manual.mjs": {
-      "sha256": "f5860e1f0ebe4b68d1e10f0f7a43374ed10fd23af19ef3e098aac00f440b373a",
+      "sha256": "e6720917dfc7c8af81a6c1bc1b61f6d3b3f223786af1326087f800f9646cbe82",
       "executable": false
     },
     "src/editor/monitor/metadata-fields.mjs": {
@@ -10324,7 +10324,7 @@
       "executable": false
     },
     "tests/mail-off-support.mjs": {
-      "sha256": "230825e4b7e27dfd21256933e1f41fce8dffb134d32ac4289c9b58dc6ded0d94",
+      "sha256": "cf326f0adced9f9512dd6fbc8fad112e7ff603c6e98b73e9a95485d552193184",
       "executable": false
     },
     "tests/mail-provider-fixture.mjs": {

@@ -132,11 +132,30 @@ export async function proveMailOff() {
   const capture=async name=>{if(process.env.UPTIME_AUTH_SHOTS){await mkdir(process.env.UPTIME_AUTH_SHOTS,{recursive:true});for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.screenshot({path:join(process.env.UPTIME_AUTH_SHOTS,`mail-off-${name}-${width}.png`),fullPage:true})}await page.setViewportSize({width:1440,height:1000})}};
   await capture('people');
   const destination=await post('/api/notifications/destinations',{name:'Mail-off destination',kind:'email',address:answers.OWNER_EMAIL});assert.equal(destination.status(),201);
-  const monitor=await post('/api/monitors',{name:'Mail-off monitor',url:'https://synthetic-uptime-617.example.test/',retries:0,confirmSlots:1,recoverSlots:1,intervalMs:60000});assert.equal(monitor.status(),201,await monitor.text());const saved=await monitor.json();
+  const contact=await context.request.post(origin+'/api/runner/claim',{headers:{'x-runner-key':bindings.UPTIME_RUNNER_KEY},data:{}});
+  assert.equal(contact.status(),200,'the private runner has checked in');
+  await page.goto(origin+'/app/monitors/new/manual');
+  const locations=page.locator('#check-from'),worker=locations.getByRole('checkbox',{name:'Cloudflare Worker'});
+  await worker.waitFor();
+  const privateRunner=locations.getByRole('checkbox',{name:/^(?!Cloudflare Worker$).+/});
+  assert.equal(await worker.isChecked(),true,'a new public website check defaults to the Worker');
+  assert.equal(await privateRunner.isChecked(),false);
+  await privateRunner.check();
+  assert.equal(await worker.isChecked(),true,'the connected private runner remains selectable');
+  await privateRunner.uncheck();
+  await page.locator('[name=name]').fill('Mail-off monitor');
+  await page.locator('[name=url]').fill('https://synthetic-uptime-617.example.test/');
+  await page.locator('#editor-advanced > summary').click();
+  for(const [field,value] of Object.entries({retries:'0',confirmSlots:'1',recoverSlots:'1'}))await page.locator(`[name=${field}]`).fill(value);
+  const creating=page.waitForResponse(response=>response.url()===origin+'/api/monitors'&&response.request().method()==='POST');
+  await page.getByRole('button',{name:'Save monitor'}).click();
+  assert.equal((await creating).status(),201);
+  await page.waitForURL(url=>/^\/app\/monitors\/[^/]+$/.test(url.pathname));
+  const monitorId=new URL(page.url()).pathname.split('/').at(-1);
   const scheduled=async()=>{const r=await runtime.worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});assert.equal(r.status,204,await r.text())};
   await scheduled();
   let incidents=[];
-  for(let n=0;n<100;n++){incidents=await (await context.request.get(origin+`/api/monitors/${saved.id}/incidents`)).json();if(incidents.length)break;await new Promise(r=>setTimeout(r,50))}
+  for(let n=0;n<100;n++){incidents=await (await context.request.get(origin+`/api/monitors/${monitorId}/incidents`)).json();if(incidents.length)break;await new Promise(r=>setTimeout(r,50))}
   assert.ok(incidents.length&&incidents.every(i=>i.endedAt===null),'mail-off monitoring opens an incident');
   const notes=await (await context.request.get(origin+'/api/notifications')).json();assert.equal(notes.mailConfigured,false);
   assert.ok(notes.deliveries.length);assert.ok(notes.deliveries.every(d=>d.state!=='accepted'&&d.code==='mail_unavailable'));
@@ -146,7 +165,7 @@ export async function proveMailOff() {
   assert.match(await page.locator('.sent-row').first().innerText(),/Failed|Not sent/);
   await capture('alerts');
   fail=false;await new Promise(r=>setTimeout(r,61000));await scheduled();
-  for(let n=0;n<100;n++){incidents=await (await context.request.get(origin+`/api/monitors/${saved.id}/incidents`)).json();if(incidents.every(i=>typeof i.endedAt==='number'))break;await new Promise(r=>setTimeout(r,50))}
+  for(let n=0;n<100;n++){incidents=await (await context.request.get(origin+`/api/monitors/${monitorId}/incidents`)).json();if(incidents.every(i=>typeof i.endedAt==='number'))break;await new Promise(r=>setTimeout(r,50))}
   assert.ok(incidents.length&&incidents.every(i=>typeof i.endedAt==='number'&&i.recovery?.kind==='recovery'),'mail-off monitoring recovers');
   await post('/auth/signout',{});
   for(const path of ['/api/overview','/api/notifications'])assert.equal((await context.request.get(origin+path)).status(),401);

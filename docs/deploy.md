@@ -123,13 +123,19 @@ Compare the recorded Worker and D1 identities before and after; an update retain
 
 ## Remove a deployment
 
-Export a hosted product archive from the owner console and back up D1 before removal. Keep both backups and the private settings somewhere private. With the deploying account's Cloudflare credentials available, replace `NAME` with the environment (`production` for the default) and export its D1 schema and data:
+Export a hosted product archive from the owner console and back up D1 before removal. Keep both backups and the private settings somewhere private. Run this in the checkout that deployed the environment, with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` available. Replace `NAME` with the environment (`production` for the default):
 
 ```sh
-(umask 077; npx wrangler d1 export uptime-monitor-NAME-db --remote --output=./uptime-NAME.sql)
+(
+  umask 077
+  "$HOME/.local/bin/rer" run --script \
+    ./node_modules/wrangler/bin/wrangler.js \
+    d1 export uptime-monitor-NAME-db \
+    --remote --output=./uptime-NAME.sql
+)
 ```
 
-See [Cloudflare's D1 export instructions](https://developers.cloudflare.com/d1/best-practices/import-export-data/#export-an-existing-d1-database). Check that the SQL file exists and contains the expected schema and data before removing the environment. D1 deletion permanently destroys the installation's monitors and history.
+`rer` runs the checkout's Wrangler with the Node runtime supplied by the one-line installer. Choose a new output file so it is created with private permissions. Check that the SQL file exists and contains the expected schema and data before removing the environment. D1 deletion permanently destroys the installation's monitors and history. See [Cloudflare's D1 export instructions](https://developers.cloudflare.com/d1/best-practices/import-export-data/#export-an-existing-d1-database).
 
 ```sh
 rer deploy --environment NAME --remove --yes

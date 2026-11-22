@@ -54,7 +54,16 @@ export function mountCheckFrom(fieldset,{overview,definition,externalCheck,isNew
  own.placeholder=overview.runner.externalCheckUrl?`${overview.runner.externalCheckUrl} (from Settings)`:'';own.value=externalCheck?.own??'';
  fieldset.append(list,note,rule,more);
  const boxes=[...list.querySelectorAll('input[name=locations]')];
+ const worker=isNew?runners.find(row=>row.hosted):undefined;
+ let locationsEdited=false;
  const update=()=>{
+  if(worker&&!locationsEdited){
+   const {checkType,networkScope,tlsTrustMode,credentialRef,url}=form.elements;
+   const target=url.value.trim(),selfCheck=URL.canParse(target)&&new URL(target).origin===location.origin;
+   const publicHttp=checkType.value==='http'&&networkScope.value==='public'&&tlsTrustMode.value==='default'&&!credentialRef.value.trim()&&!selfCheck;
+   const defaults=publicHttp?[worker]:live.slice(0,limit);
+   for(const box of boxes)box.checked=defaults.some(row=>row.runnerId===box.value);
+  }
   const chosen=boxes.filter(box=>box.checked),full=chosen.length>=limit;
   const locations=chosen.map(box=>shown.find(row=>row.runnerId===box.value));
   const includesWorker=locations.some(row=>row.hosted);
@@ -66,7 +75,13 @@ export function mountCheckFrom(fieldset,{overview,definition,externalCheck,isNew
   note.classList.toggle('is-full',full);
   rule.textContent=agreementText(locations.map(row=>row.networkLabel),hostOf(own.value.trim()||overview.runner.externalCheckUrl),Boolean(own.value.trim()));
  };
- list.addEventListener('change',update);own.addEventListener('input',update);update();
+ list.addEventListener('change',()=>{locationsEdited=true;update()});
+ own.addEventListener('input',update);
+ if(worker){
+  form.addEventListener('input',event=>{if(['url','credentialRef'].includes(event.target.name))update()});
+  form.addEventListener('change',event=>{if(['checkType','networkScope','tlsTrustMode'].includes(event.target.name))update()});
+ }
+ update();
  // `update` again once the form enables its controls, so a full list keeps its unticked locations disabled.
  return {runnerIds:()=>boxes.filter(box=>box.checked).map(box=>box.value),ownUrl:()=>own.value.trim(),update};
 }

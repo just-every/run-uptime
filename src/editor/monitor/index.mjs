@@ -28,12 +28,13 @@ export async function mountMonitorEditor(signal){
  if(!form.dataset.rulesBound){form.dataset.rulesBound='true';bindRules(form)}
  // A field the browser will not save may sit in a closed Advanced or Labels: open the folds around it first.
  form.addEventListener('invalid',openFoldsAround,{capture:true,signal});
- let ways;
+ let ways,refreshLocations;
  // The form as a way to add: the website address typed in the card comes along, a private address opens Advanced with Private chosen.
  const showManualForm=({url:typed='',network}={})=>{
   const url=typed&&!/^[a-z][a-z0-9+.-]*:\/\//i.test(typed)?'https://'+typed:typed;
   if(url){let host='';try{host=new URL(url).hostname.replace(/^www\./,'')}catch{}prefillManualForm(form,{url,name:host})}
   if(network){form.elements.networkScope.value=network;showType(form,form.elements.checkType.value);if(network==='private')openAdvanced(form)}
+  refreshLocations?.();
   description.hidden=!description.textContent;
   ways.open('manual',{path:manualPath({url,network})});
   form.elements.namedItem(url?'name':'url').focus();
@@ -66,7 +67,7 @@ export async function mountMonitorEditor(signal){
   const returnTo=id?'/app/monitors/'+encodeURIComponent(id):'/app/monitors',back=document.querySelector('.editor-back');
   back.href=returnTo;if(id)back.lastChild.textContent='Back to monitor';form.querySelector('.editor-cancel').href=returnTo;
   form.querySelector('.loading-note')?.remove();
-  mountManualForm({form,overview,definition,id,returnTo,message,monitors:await others,preserveFields:!id});
+  refreshLocations=mountManualForm({form,overview,definition,id,returnTo,message,monitors:await others,preserveFields:!id});
   mountErase(form,{id,name:definition.name,message});
   document.querySelector('#editor-signout').onclick=async event=>{event.preventDefault();try{await api('/api/auth/sign-out','POST',{});window.dispatchEvent(new Event('uptime:auth-lost'));location.href='/login'}catch(error){notice.textContent=error.message;notice.hidden=false}};
   if(id)form.hidden=false;
