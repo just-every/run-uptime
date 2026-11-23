@@ -90,8 +90,10 @@ export async function ensureNotificationCustody(env:Bindings,{validate=true}:{va
  }
  return validated;
 }
+const readySchemas=new WeakSet<D1Database>();
 /** Schema readiness remains distinct from individual destination availability. */
 export async function notificationReadiness(env:Bindings){
+ if(readySchemas.has(env.DB))return;
  const row=await env.DB.prepare(`SELECT
   EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='notification_credentials_legacy') AS legacy,
   (SELECT COUNT(*) FROM pragma_table_info('notification_credentials') WHERE name IN ('ciphertext','retired_at','unavailable_at')) AS columns,
@@ -100,4 +102,6 @@ export async function notificationReadiness(env:Bindings){
  if(!row||row.legacy||row.columns!==3||!row.custody)throw unavailable();
  const template=await env.DB.prepare("SELECT COUNT(*) AS n FROM pragma_table_info('notification_destinations') WHERE name='webhook_template'").first<{n:number}>();
  if(template?.n!==1)throw unavailable();
+ // Cache successful observations only. A storage failure or incomplete upgrade can recover.
+ readySchemas.add(env.DB);
 }

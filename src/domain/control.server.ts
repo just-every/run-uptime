@@ -37,13 +37,25 @@ export function grants(env:Bindings){if(!env.UPTIME_SYNTHETIC_PORT)return [];con
 export async function session(env:Bindings,request:Request){return Boolean(await operatorSession(env,request))}
 const monitorRow=(row:any)=>({id:row.id,revision:row.revision,definition:JSON.parse(row.definition),nextDue:row.next_due,storedState:JSON.parse(row.state)})
 export async function get(env:Bindings,id:string){const row=await env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(id).first<any>();return row?monitorRow(row):null}
-async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:number,runners:any[],legacy:any,staleMs:number,readOnly=false){
+async function currentMonitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:number,readOnly=false){
  const snapshot=await attemptSnapshot(env,m.id,m.revision,m.definition,now,undefined,readOnly);
  const state:any={...projectRecentAttempts(m.definition,snapshot.slots,snapshot.observations,now,snapshot.checkpoint),notificationOpen:m.storedState.notificationOpen,incidentKey:m.storedState.incidentKey};
- const changed=m.storedState.notificationOpen?await definitionChange(env,m.id,m.storedState.incidentRevision,m.revision,m.definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
  if(state.notificationOpen&&state.targetState==='Healthy'&&state.recoveryStreak<m.definition.recoverSlots){
   state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true;
  }
+ return state;
+}
+// The watch needs the same evidence and recovery rules as the overview.
+export async function currentTargetsHealthy(env:Bindings){
+ const now=Date.now();
+ const {results}=await env.DB.prepare('SELECT * FROM monitors').all<any>();
+ const enabled=results.map(monitorRow).filter(m=>m.definition.enabled);
+ const states=await Promise.all(enabled.map(m=>currentMonitorState(env,m,now)));
+ return states.every(state=>state.targetState==='Healthy');
+}
+async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:number,runners:any[],legacy:any,staleMs:number,readOnly=false){
+ const state=await currentMonitorState(env,m,now,readOnly);
+ const changed=m.storedState.notificationOpen?await definitionChange(env,m.id,m.storedState.incidentRevision,m.revision,m.definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
  const activeLabels=new Set();
  for(const assignment of Object.values(m.definition.assignments??(legacy?{legacy:{runnerId:legacy.runner_id,networkLabel:legacy.network_label}}:{})) as any[]){
   const runner=runners.find((r:any)=>r.runnerId===assignment.runnerId) as any;
