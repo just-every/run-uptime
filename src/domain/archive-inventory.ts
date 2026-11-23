@@ -51,6 +51,8 @@ export const installationLocalTables:Record<string,string>={
  oa_domain_rules:'Installation sign-in provider policy; never portable authorization.',
  oa_step_up_challenges:'Installation session-bound step-up token authority; never portable.',
  runner_contact:'Installation runner contact, not product target evidence.',
+ availability_bucket_history:'Installation-local record of backfilled evidence days.',
+ availability_buckets:'Rebuildable availability and latency projection derived from portable scheduled evidence.',
  attempt_checkpoints:'Rebuildable installation-local scheduled evidence checkpoints.',
  runners:'Installation runner identities and encrypted per-runner keys.',runner_assignments:'Installation execution assignments; revisions retain their selected configuration.',evidence_generation:'Installation atomic evidence projection generations.',monitoring_watch:'Installation watch dispatch state; never portable authority.',
  cron_runs:'Installation record of the latest Cron invocation; a receiving installation records its own.',

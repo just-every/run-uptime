@@ -11,6 +11,7 @@ import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 import {chromium} from 'playwright';
 import {startLocalWorker} from './mail-provider-fixture.mjs';
+import {nextOverviewPoll,waitForMonitorState} from './plain-monitor-text-support.mjs';
 
 // Full restore/re-authorize workflow uses the owned live fixture and its
 // current custody grant. No source-installation monitor is edited by this test.
@@ -60,7 +61,7 @@ try{
  const archiveFeedback=await prepareArchiveFeedback(sourcePage,source,dir);
  const response=await sourcePage.request.get(source+'/api/archive');assert.equal(response.status(),200);const archive=await response.json();assert.ok(archive.payload.tables.monitors.length>0);assert.ok(archive.payload.tables.observations.length>0,'restoration needs real recorded observations');assert.ok(archive.payload.tables.outbox.length>0,'quarantine assertion requires actual prior alerts');await writeFile(join(out,'source-private-archive.json'),JSON.stringify(archive,null,2),{mode:0o600});assert.ok(!Object.hasOwn(archive.payload.tables,'runner_contact'));
  const archiveFile=join(dir,'private-archive.json');await writeFile(archiveFile,JSON.stringify(archive),{mode:0o600});await sourcePage.close();
- const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));await login(page,origin);await page.getByRole('link',{name:'Locations',exact:true}).click();assert.equal(await page.locator('#locations-table tbody tr').first().locator('.ui-pill').textContent(),'Waiting to join');await page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}).click();await page.getByRole('link',{name:'Backup and files',exact:true}).click();
+ const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));await page.clock.install({time:Date.now()});await login(page,origin);await page.getByRole('link',{name:'Locations',exact:true}).click();assert.equal(await page.locator('#locations-table tbody tr').first().locator('.ui-pill').textContent(),'Waiting to join');await page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}).click();await page.getByRole('link',{name:'Backup and files',exact:true}).click();
  await page.locator('#restore:not(:disabled)').waitFor();await proveFencedArchiveFeedback(page,origin,archiveFeedback);await page.locator('#restore').setInputFiles(archiveFile);await page.locator('#notice').filter({hasText:'Archive restored.'}).waitFor({timeout:15000});
  await assertRestoredImportHistory(page);
  let overview=await (await page.request.get(origin+'/api/overview')).json();assert.ok(overview.monitors.every(m=>!m.definition.enabled&&m.state.state==='Paused'));assert.ok(overview.alerts.every(a=>a.status==='imported-inactive'));assert.equal(overview.runner.contact.state,'Never seen');
@@ -74,7 +75,7 @@ try{
  const identities=await (await page.request.get(origin+'/api/runners')).json();
  await page.getByRole('button',{name:'Resume',exact:true}).click();await page.locator('html.editor-context-ready').waitFor();for(const id of [identities.find(r=>r.builtIn).runnerId,receivingSecond.runnerId])await page.locator(`input[name=locations][value="${id}"]`).check();await page.getByRole('button',{name:'Save monitor'}).click();await page.getByRole('button',{name:'Resume',exact:true}).click();await page.getByRole('button',{name:'Pause',exact:true}).waitFor();
  runner=spawn(process.execPath,[join(root,'runners/src/private-runner.mjs')],{cwd:root,env:{...process.env,UPTIME_CONTROL_ORIGIN:origin,UPTIME_RUNNER_KEY:runnerKey,UPTIME_GRANT_FILE:join(root,'data/synthetic-grant.json'),UPTIME_LOCAL_REVIEW:'true'},stdio:'pipe'});runner.stdout.on('data',c=>logs+=c);runner.stderr.on('data',c=>logs+=c);
- await page.locator('#monitor-state.badge').filter({hasText:'Failing'}).waitFor({timeout:30000});
+ await waitForMonitorState(page,'Failing');
  const history=await (await page.request.get(origin+`/api/monitors/${first.id}/history`)).json();assert.ok(history.some(slot=>!slot.manual&&slot.revision===first.revision+2&&slot.status==='complete'&&slot.observations.some(o=>o.outcome==='target_failure'&&o.status===200)),'new current-custody scheduled evidence required');
  overview=await (await page.request.get(origin+'/api/overview')).json();assert.equal(overview.runner.contact.state,'Fresh contact');assert.ok(archive.payload.tables.outbox.every(old=>overview.alerts.some(a=>a.id===old.id&&a.status==='imported-inactive')),'old alerts must not replay after deliberate resume');assert.ok(overview.alerts.some(a=>a.kind==='trigger'&&a.status==='pending'&&a.event.monitorRevision===first.revision+2),'a new confirmed failure must create a distinct current trigger');assert.equal(overview.monitors[0].definition.assertions.status,201,'success criteria must remain unchanged');
  await auditWidths(page,'reauthorized-current-evidence','Failing');
@@ -92,7 +93,8 @@ try{
   // The row as rendered now. The poll and the history read it starts patch the list in place: afterwards this is the
   // same row, with focus still on it and no other row expanded above it.
   const rendered=await summary.elementHandle();
-  await page.waitForResponse(response=>new URL(response.url()).pathname==='/api/overview'&&response.ok(),{timeout:12000});
+  const poll=await nextOverviewPoll(page);
+  assert.ok(poll.ok()||poll.status()===304,'the restored monitor revalidates through the overview');
   await page.waitForLoadState('networkidle');
   assert.ok(await page.evaluate(([id,rendered])=>document.getElementById(id)===rendered&&document.activeElement?.id===id&&document.querySelector('#raw-history details[open] summary')?.id===id,[evidenceId,rendered]),'confirmed failure evidence stays the same open row through polling at '+width);
   assert.equal(await page.evaluate(()=>document.activeElement?.id),evidenceId,'confirmed failure evidence keeps keyboard focus through polling at '+width);

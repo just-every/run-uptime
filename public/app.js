@@ -25,38 +25,57 @@ function routeOf(path){
 }
 const pathOf=({view,area})=>view==='settings'?`/app/settings/${area}`:`/app/${view}`;
 const TITLES={monitors:'Monitors',locations:'Locations',signout:'Sign out'};
-function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname),entry=routeOf(location.pathname);let data=null,view=pageId!==null?'monitor':entry?.view??(location.pathname.split('/')[2]||'monitors'),settingsArea=entry?.area??null,feedback,readUnavailable=false,redirecting=false,closed=false,polling,retryReadAt=0,retryTimer,shown=null;const $=s=>document.querySelector(s);
+function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname),entry=routeOf(location.pathname);let data=null,view=pageId!==null?'monitor':entry?.view??(location.pathname.split('/')[2]||'monitors'),settingsArea=entry?.area??null,feedback,readUnavailable=false,redirecting=false,closed=false,retryReadAt=0,retryTimer,shown=null;const $=s=>document.querySelector(s);
+const overviewPath=pageId===null?'/api/overview':`/api/overview?monitor=${encodeURIComponent(pageId)}`;
+let overviewTag=null,overviewUnchanged=false,pollTimer;
 // /app/settings, or an area Settings does not have, opens Alerts at its own path.
 if(entry&&location.pathname!==pathOf(entry))history.replaceState(history.state,'',pathOf(entry)+location.search+location.hash);
 // A monitor's page started its first reads while the document parsed (src/ui/console-prefetch.ts); each is used once.
 function takePrefetched(path){const early=window.uptimePrefetch?.[path];if(!early)return null;delete window.uptimePrefetch[path];return Date.now()-early.at<15000?early.response:null}
 // A 429 is a refusal, never a reason to replay a write. Reads share a cooldown
 // so normal polling and user-triggered refreshes cannot beat Retry-After.
-async function api(path,method='GET',body,retried=false){
+async function request(path,method,body,{ifNoneMatch,retried=false}={}){
  if(closed)throw Error('The console is closed. Sign in again to continue.');
  if(method==='GET'&&Date.now()<retryReadAt)throw Object.assign(Error('Too many requests. Waiting before trying again.'),{status:429,retryAt:retryReadAt});
- const response=await((method==='GET'?takePrefetched(path):null)??fetch(path,{method,headers:{'content-type':'application/json','x-uptime-time-zone':Intl.DateTimeFormat().resolvedOptions().timeZone},...(method==='GET'?{signal:AbortSignal.timeout(10000)}:{}),body:body===undefined?undefined:JSON.stringify(body)}));
+ const headers={'content-type':'application/json','x-uptime-time-zone':Intl.DateTimeFormat().resolvedOptions().timeZone};
+ if(ifNoneMatch)headers['if-none-match']=ifNoneMatch;
+ const response=await((method==='GET'&&!ifNoneMatch?takePrefetched(path):null)??fetch(path,{
+  method,headers,body:body===undefined?undefined:JSON.stringify(body),
+  ...(method==='GET'?{signal:AbortSignal.timeout(10000)}:{}),
+  ...(ifNoneMatch!==undefined?{cache:'no-store'}:{}),
+ }));
  if(response.status===429){
   const value=response.headers.get('retry-after'),now=Date.now(),after=value&&/^\d+$/.test(value)?now+Number(value)*1000:Date.parse(value??''),retryAt=Number.isFinite(after)?Math.max(now+1000,after):now+5000;
   if(method==='GET'){
    retryReadAt=Math.max(retryReadAt,retryAt);clearTimeout(retryTimer);
-   retryTimer=setTimeout(()=>{retryTimer=null;void refresh()},Math.min(2147483647,Math.max(0,retryReadAt-Date.now())));
+   retryTimer=setTimeout(()=>{retryTimer=null;if(!document.hidden)void refresh()},Math.min(2147483647,Math.max(0,retryReadAt-Date.now())));
   }
   throw Object.assign(Error(method==='GET'?'Too many requests. Waiting before trying again.':'Too many requests. Wait before trying this action again.'),{status:429,retryAt});
  }
+ if(response.ok||ifNoneMatch&&response.status===304)return response;
  const result=await response.json();
- if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result,{destination:path==='/api/notifications/destinations'&&method==='POST'});return api(path,method,body,true)}
+ if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result,{destination:path==='/api/notifications/destinations'&&method==='POST'});return request(path,method,body,{ifNoneMatch,retried:true})}
  if([401,403].includes(response.status)&&!needsStepUp(result))window.dispatchEvent(new Event('uptime:auth-lost'));
- if(!response.ok)throw Object.assign(Error(result.error??`Request ${response.status}`),{status:response.status,code:result.code});return result;
+ throw Object.assign(Error(result.error??`Request ${response.status}`),{status:response.status,code:result.code});
+}
+async function api(path,method='GET',body){return (await request(path,method,body)).json()}
+async function loadOverview({conditional}){
+ const previous=data,ifNoneMatch=conditional?overviewTag:null;
+ const response=await request(overviewPath,'GET',undefined,{ifNoneMatch});
+ const unchanged=response.status===304;
+ const overview=unchanged?previous:await response.json();
+ // Keep the server's snapshot on a 304 and separately record when it was confirmed.
+ const now=unchanged?Date.parse(response.headers.get('date')??''):overview.now;
+ return {overview,unchanged,etag:response.headers.get('etag')??(unchanged?ifNoneMatch:null),now:Number.isFinite(now)?now:Date.now()};
 }
 const notice=text=>feedback?.announceBackground(text);
 const catalog=createCatalog({api,action});
 if(!document.querySelector('link[href="/catalog.css"]')){const style=document.createElement('link');style.rel='stylesheet';style.href='/catalog.css';document.head.append(style)}
 function disposeConsole(){
- if(closed)return;closed=true;feedback?.dispose();clearInterval(polling);clearTimeout(retryTimer);data=null;
+ if(closed)return;closed=true;feedback?.dispose();clearTimeout(pollTimer);clearTimeout(retryTimer);data=null;
  window.uptimeBooted=false;
  window.removeEventListener('pagehide',closeConsole);window.removeEventListener('pageshow',restored);window.removeEventListener('popstate',followHistory);window.removeEventListener('uptime:console-unmount',disposeConsole);window.removeEventListener('beforeunload',holdUnsaved);
- document.removeEventListener('click',guardBusyNavigation,true);document.removeEventListener('click',followSection);
+ document.removeEventListener('click',guardBusyNavigation,true);document.removeEventListener('click',followSection);document.removeEventListener('visibilitychange',visibilityChanged);
  controlsObserver.disconnect();lockedControls.clear();lockedLinks.clear();
  document.documentElement.classList.remove('signed-in');
 }
@@ -73,8 +92,26 @@ window.addEventListener('uptime:console-unmount',disposeConsole);
 // A history restore reloads through the document's server-side authority check.
 function restored(event){if(event.persisted)location.reload()}
 window.addEventListener('pageshow',restored);
-async function refresh(options){if(closed||Date.now()<retryReadAt||document.querySelector('dialog[open]'))return;return feedback.refresh(options)}
-async function action(fn,options){const focusId=document.activeElement?.id,result=await feedback.run(fn,options);if(result.accepted&&focusId)document.getElementById(focusId)?.focus({preventScroll:true});return result}
+function scheduleOverview(){
+ clearTimeout(pollTimer);
+ if(closed||view==='signout')return;
+ pollTimer=setTimeout(()=>void refresh({conditional:true}),document.hidden||overviewUnchanged?60000:5000);
+}
+async function refresh({conditional=false}={}){
+ try{
+  if(!closed&&Date.now()>=retryReadAt&&!document.querySelector('dialog[open]'))return await feedback.refresh({conditional,supersede:!conditional});
+ }finally{scheduleOverview()}
+}
+function visibilityChanged(){
+ if(document.hidden){scheduleOverview();return}
+ overviewUnchanged=false;
+ void refresh();
+}
+async function action(fn,options){
+ const focusId=document.activeElement?.id,result=await feedback.run(fn,options);
+ if(result.accepted){scheduleOverview();if(focusId)document.getElementById(focusId)?.focus({preventScroll:true})}
+ return result;
+}
 // The menus are the document's own markup (src/ui/console.html), painted before this module loads; here they only follow the
 // view. In Settings the sidebar shows the Settings menu (data-menu="settings" on .app): one attribute, so switching menus
 // never remounts either. Exactly one entry is current, the Settings area or the section; a monitor's page marks Monitors.
@@ -139,7 +176,16 @@ function lockControls(busy){area.setAttribute('aria-busy',String(busy));if(busy)
 // html.signed-in: the first read succeeded and the view it shows has drawn. A Settings area shown for the first time draws
 // once its module loads, so the mark waits for that draw; the browser journeys read the view as soon as it is set.
 const signedIn=()=>{if(!closed)document.documentElement.classList.add('signed-in')};
-feedback=createActionFeedback({load:()=>api(view==='monitor'?`/api/overview?monitor=${encodeURIComponent(pageId)}`:'/api/overview'),lock:lockControls,publish:state=>{if(closed)return;for(const [name,channel]of Object.entries({action:state.action,read:state.read,background:state.background})){const host=$('#'+name+'-notice'),lead=channel.state==='unavailable'?channel.message.indexOf(': ')+1:0;if(lead>0){const body=document.createElement('span');body.append(Object.assign(document.createElement('strong'),{textContent:channel.message.slice(0,lead)}),channel.message.slice(lead));host.replaceChildren(body)}else host.textContent=channel.message;host.hidden=!channel.message;if(channel.state)host.dataset.state=channel.state}n.hidden=![state.action.message,state.read.message,state.background.message].some(Boolean)},render:(next,state)=>{if(closed)return;if(state.error?.status===401){navigateToLogin();return}if(!next){if(state.readUnavailable)firstReadFailed();return}data=next;rememberZone(next);readUnavailable=state.readUnavailable;const drawn=render();if(!state.error&&!state.readUnavailable){if(drawn)void drawn.then(signedIn);else signedIn()}}});
+function renderOverview(next,state){
+ if(closed)return;
+ if(state.error?.status===401){navigateToLogin();return}
+ overviewUnchanged=!state.readUnavailable&&next?.unchanged===true;
+ if(!next){if(state.readUnavailable)firstReadFailed();return}
+ data=next.overview;overviewTag=next.etag;rememberZone(data);readUnavailable=state.readUnavailable;
+ const drawn=render();
+ if(!state.readUnavailable){if(drawn)void drawn.then(signedIn);else signedIn()}
+}
+feedback=createActionFeedback({load:loadOverview,lock:lockControls,render:renderOverview,publish:state=>{if(closed)return;for(const [name,channel]of Object.entries({action:state.action,read:state.read,background:state.background})){const host=$('#'+name+'-notice'),lead=channel.state==='unavailable'?channel.message.indexOf(': ')+1:0;if(lead>0){const body=document.createElement('span');body.append(Object.assign(document.createElement('strong'),{textContent:channel.message.slice(0,lead)}),channel.message.slice(lead));host.replaceChildren(body)}else host.textContent=channel.message;host.hidden=!channel.message;if(channel.state)host.dataset.state=channel.state}n.hidden=![state.action.message,state.read.message,state.background.message].some(Boolean)}});
 
 // The amber count on Settings and Alerts while a destination cannot send or none is enabled (public/alert-health.js), also
 // in the item's accessible name ("Settings, 1 to fix"). Only its text and two attributes change, so the menu never remounts;
@@ -173,6 +219,6 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  if(feedback.busy)lockControls(true);
  return drawn}
 {const flash=sessionStorage.getItem('uptime-notice');if(flash){sessionStorage.removeItem('uptime-notice');notice(flash)}}
-if(view==='signout')void signOut();else{refresh();polling=setInterval(refresh,5000)}
+if(view==='signout')void signOut();else{document.addEventListener('visibilitychange',visibilityChanged);void refresh()}
 }
 window.addEventListener('uptime:console-mount',mountConsole);

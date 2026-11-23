@@ -1,17 +1,18 @@
 import assert from 'node:assert/strict';
-import {randomBytes, randomUUID} from 'node:crypto';
+import {randomUUID} from 'node:crypto';
 import {readFile, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join, parse, relative, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Miniflare, convertV4MiniflareOptions} from 'miniflare';
 import {validateDefinition} from '../src/domain/policy.mjs';
+import {signInOwner, testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 
 export const minute = 60_000;
 export const minutesPerDay = 24 * 60;
-export const historyMinutes = 7 * minutesPerDay;
 export const monitorCount = 4;
-const origin = 'https://uptime-cron-budget.test';
+export const origin = 'https://uptime-cron-budget.test';
+export const clientHeaders = {'cf-connecting-ip':'192.0.2.10'};
 const target = 'https://target.cron-budget.test';
 const migrations = fileURLToPath(new URL('../migrations/', import.meta.url));
 
@@ -22,16 +23,17 @@ export async function runtime(build, directory) {
  const wrapper = join(directory, 'meter.mjs');
  const meter = fileURLToPath(new URL('./cron-d1-meter-worker.mjs', import.meta.url));
  await writeFile(wrapper, `import app from ${JSON.stringify(relative(dirname(wrapper), entry))};
-import {meteredCron} from ${JSON.stringify(relative(dirname(wrapper), meter))};
-export default meteredCron(app);`);
+import {meteredWorker} from ${JSON.stringify(relative(dirname(wrapper), meter))};
+export default meteredWorker(app);`);
  const assets = join(emitted, 'assets');
  const modules = [wrapper, meter, entry, ...(await readdir(assets)).filter(name => name.endsWith('.js')).map(name => join(assets, name))];
  const bindings = {
-  ...config.vars, UPTIME_ORIGIN:origin, OWNER_EMAIL:'operator@example.test',
-  SESSION_SECRET:randomBytes(32).toString('base64url'), UPTIME_RUNNER_KEY:randomBytes(32).toString('base64url'),
+  ...config.vars, UPTIME_ORIGIN:origin, OWNER_EMAIL:testAuthBindings.OWNER_EMAIL,
+  SESSION_SECRET:testAuthBindings.SESSION_SECRET, SETUP_TOKEN:testAuthBindings.SETUP_TOKEN,
+  UPTIME_RUNNER_KEY:testAuthBindings.UPTIME_RUNNER_KEY,
  };
  return new Miniflare(convertV4MiniflareOptions({
-  host:'127.0.0.1', port:0, scriptPath:wrapper, modulesRoot:parse(emitted).root,
+  host:'127.0.0.1', port:0, cf:false, scriptPath:wrapper, modulesRoot:parse(emitted).root,
   modules:modules.map(path => ({type:'ESModule', path})), bindings,
   compatibilityDate:config.compatibility_date, compatibilityFlags:config.compatibility_flags,
   assets:{directory:resolve(emitted, config.assets.directory), binding:'ASSETS', routerConfig:{has_user_worker:true}, run_worker_first:true},
@@ -52,31 +54,37 @@ export default meteredCron(app);`);
 
 export async function dispatchCron(service, time) {
  const outcome = await service.scheduled({scheduledTime:new Date(time), cron:'* * * * *'});
- assert.equal(outcome.outcome, 'ok', `emitted scheduled handler at ${new Date(time).toISOString()}`);
-}
-
-export async function migrationPlan(before, defer) {
- assert.ok(!before || !defer, 'use either --before-migration or --defer-migration');
- const all = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
- const boundary = before ?? defer;
- if (!boundary) return {initial:all, afterHistory:[]};
- const at = all.indexOf(boundary);
- assert.ok(at >= 0, `unknown migration ${boundary}`);
- return {initial:all.slice(0, at), afterHistory:defer ? all.slice(at) : []};
-}
-
-export async function migrate(db, files) {
- for (const name of files) {
-  const sql = splitSql(await readFile(join(migrations, name), 'utf8'));
-  await db.batch(sql.map(statement => db.prepare(statement)));
+ if (outcome.outcome !== 'ok') {
+  const report = await (await service.fetch(origin + '/__d1_meter')).json();
+  assert.equal(outcome.outcome, 'ok', `emitted scheduled handler at ${new Date(time).toISOString()}\n${report?.unmetered.join('\n') ?? ''}`);
  }
 }
 
-export async function seedHistory(db, service, firstMinute) {
+export async function migrationPlan() {
+ const all = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
+ const at = all.findIndex(name => name.startsWith('0091_'));
+ assert.ok(at > 0, 'the forward migration follows the retained installation schema');
+ return {initial:all.slice(0, at), afterHistory:all.slice(at)};
+}
+
+export async function migrate(db, files, {profile=false}={}) {
+ for (const name of files) {
+  const sql = splitSql(await readFile(join(migrations, name), 'utf8'));
+  const started = performance.now();
+  const results = await db.batch(sql.map(statement => db.prepare(statement)));
+  if (!profile) continue;
+  console.log(`${name}: ${Math.round(performance.now()-started)} ms batch wall time`);
+  for (const [index, {meta}] of results.entries()) {
+   const label = sql[index].trim().split('\n').find(line => !line.startsWith('--')).slice(0, 100);
+   console.log(`  ${label} (${meta.duration} ms, ${meta.rows_read} reads, ${meta.rows_written} writes)`);
+  }
+ }
+}
+
+export async function seedHistory(db, service, firstMinute, historyMinutes) {
  // SQLite's authorization clock is real. Only the historical copies predate it.
  const start = firstMinute - historyMinutes * minute;
  const sample = firstMinute - 2 * minute;
- await db.prepare('INSERT INTO oa_bootstrap(singleton,claim_id,claimed_at) VALUES(1,?,?)').bind(randomUUID(), start).run();
  await dispatchCron(service, sample - minute);
  const runner = await db.prepare('SELECT runner_id,network_label FROM runners WHERE legacy_key=0').first();
  assert.ok(runner, 'the emitted handler prepared its hosted assignment');
@@ -134,10 +142,51 @@ export async function seedHistory(db, service, firstMinute) {
  }
 }
 
+export async function upgradeHistory(db, files, firstMinute, historyMinutes, {profile=false}={}) {
+ const oldest = firstMinute - historyMinutes * minute;
+ const snapshot = async () => {
+  const counts = await db.prepare(`SELECT
+   (SELECT COUNT(*) FROM slots) AS slots,
+   (SELECT COUNT(*) FROM observations) AS observations,
+   (SELECT COUNT(*) FROM runner_assignments) AS assignments`).first();
+  const {results:oldestEvidence} = await db.prepare(`SELECT s.id,o.evidence,a.received_times
+   FROM monitors m CROSS JOIN slots s JOIN observations o ON o.slot_id=s.id JOIN runner_assignments a ON a.slot_id=s.id AND a.probe=o.probe
+   WHERE s.monitor_id=m.id AND s.due_at=? ORDER BY s.id`).bind(oldest).all();
+  return {counts, oldestEvidence};
+ };
+ const before = await snapshot();
+ assert.equal(before.oldestEvidence.length, monitorCount);
+ await migrate(db, files, {profile});
+ assert.deepEqual(await snapshot(), before, 'forward upgrade preserves retained records and oldest evidence');
+ await migrate(db, files);
+ assert.deepEqual(await snapshot(), before, 'replaying the upgrade preserves retained records and evidence');
+ console.log(`Applied and replayed the forward migrations with ${before.counts.slots} retained slots and ${before.counts.observations} observations`);
+}
+
+export async function authorizeRequests(worker) {
+ const fetcher = async (url, init) => {
+  const response = await worker.dispatchFetch(url, {...init, headers:{...init.headers, ...clientHeaders}});
+  if (new URL(url).pathname === '/auth/bootstrap' && response.status === 403) {
+   const reason = response.headers.get('content-type')?.startsWith('application/json')
+    ? (await response.clone().json()).error : 'invalid request host';
+   throw Error(`Owner bootstrap was refused: ${reason}`);
+  }
+  return response;
+ };
+ const cookie = await signInOwner(origin, {fetcher, finishFirstRun:true});
+ const response = await fetcher(origin + '/api/metrics/keys', {
+  method:'POST', headers:{origin,cookie,'content-type':'application/json'},
+  body:JSON.stringify({name:'Monitoring budget scrape'}),
+ });
+ assert.equal(response.status, 201, 'owner created a metrics credential');
+ return {cookie, authorization:'Bearer ' + (await response.json()).token};
+}
+
 export async function assertHealthyTick(db, time) {
  const {results} = await db.prepare(`SELECT s.monitor_id,s.status,json_extract(o.evidence,'$.outcome') AS outcome,
    json_extract(m.state,'$.targetState') AS health
-   FROM slots s JOIN observations o ON o.slot_id=s.id JOIN monitors m ON m.id=s.monitor_id WHERE s.due_at=? AND s.manual=0`).bind(time).all();
+   FROM monitors m CROSS JOIN slots s JOIN observations o ON o.slot_id=s.id
+   WHERE s.monitor_id=m.id AND s.due_at=? AND s.manual=0`).bind(time).all();
  assert.equal(new Set(results.map(row => row.monitor_id)).size, monitorCount, `every monitor ran at ${new Date(time).toISOString()}`);
  assert.equal(results.length, monitorCount, 'one observation per scheduled monitor');
  for (const row of results) {

@@ -8,6 +8,30 @@ export async function assertPlainMonitorText(region){
  assert.doesNotMatch(visible,/\blocal-[a-z]\b|\bself-[0-9a-f-]{36}\b|\b[A-Z][A-Z0-9]*(?:-[A-Z]+)*-\d{3}\b|\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b|[{}]/,'visible monitor text has no internal location/clause IDs or JSON payload');
 }
 
+const overviewResponse=response=>new URL(response.url()).pathname==='/api/overview'&&response.request().method()==='GET';
+export async function nextOverviewPoll(page){
+ const received=page.waitForResponse(overviewResponse,{timeout:12000});
+ const [response]=await Promise.all([received,page.clock.fastForward('01:05').then(()=>page.clock.setSystemTime(Date.now()))]);
+ await response.finished();
+ return response;
+}
+export async function refreshVisibleOverview(page){
+ const [response]=await Promise.all([
+  page.waitForResponse(response=>overviewResponse(response)&&!response.request().headers()['if-none-match']),
+  page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange'))),
+ ]);
+ assert.ok(response.ok(),'returning to the visible console reads fresh data');
+ await response.finished();
+}
+export async function waitForMonitorState(page,state,{timeout=30000}={}){
+ const status=page.locator('#monitor-state').filter({hasText:state}),end=Date.now()+timeout;
+ while(Date.now()<end&&!await status.isVisible()){
+  await refreshVisibleOverview(page);
+  if(!await status.isVisible())await page.waitForTimeout(1000);
+ }
+ await status.waitFor({timeout:1000});
+}
+
 // Extends the existing owner monitor journey: the incident is produced by a real scheduled runner and target control.
 // Changing today's status rule while the incident remains open must not change the expectation shown for its saved slot.
 export async function provePlainMonitorEvidence(page,origin,monitor){
@@ -24,7 +48,7 @@ export async function provePlainMonitorEvidence(page,origin,monitor){
  }
  assert.ok(slots.some(s=>s.revision===reviewed.revision&&s.status==='complete'&&s.observations.every(o=>o.outcome==='pass')),'reviewed status range has a real passing check');
  try{
-  await control('failing');await page.locator('#monitor-state').filter({hasText:'Failing'}).waitFor({timeout:30000});
+  await control('failing');await waitForMonitorState(page,'Failing');
   await page.evaluate(()=>{location.hash='incidents'});
   const incident=page.locator('#monitor-incidents');
   await incident.getByText('Incident evidence',{exact:true}).first().click();
@@ -37,7 +61,7 @@ export async function provePlainMonitorEvidence(page,origin,monitor){
   await check.locator('summary').click();await assertPlainMonitorText(check);
   assert.doesNotMatch(await check.innerText(),/target_failure|runner_error|body-absent/,'attempt results use readable rule names');
   await save(monitor.definition);
-  await page.waitForResponse(r=>new URL(r.url()).pathname==='/api/overview'&&r.ok());
+  await refreshVisibleOverview(page);
   const evidence=incident.locator('details[open]').first();
   await assertPlainMonitorText(evidence);
   const words=await evidence.innerText(),expected=slot.definition.assertions.status.map(String).join(', ').replaceAll('-','–');
@@ -49,7 +73,7 @@ export async function provePlainMonitorEvidence(page,origin,monitor){
   assert.equal(await details.locator('pre').count(),0,'saved details never render a raw payload');
   assert.deepEqual((await current()).definition,monitor.definition,'the full saved criteria remain available through the API');
  }finally{await control('healthy')}
- await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:30000});
+ await waitForMonitorState(page,'Healthy');
  await provePeriodReport(page,origin,monitor);
  return current();
 }
@@ -84,7 +108,8 @@ export async function provePeriodReport(page,origin,monitor){
  await page.addScriptTag({path:join(process.cwd(),'node_modules/axe-core/axe.min.js')});
  assert.deepEqual((await page.evaluate(()=>axe.run(document))).violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)})),[],'report remains accessible');
  const generated=await report.locator('time').first().getAttribute('datetime');
- await page.waitForResponse(r=>new URL(r.url()).pathname==='/api/overview'&&r.ok());
+ const poll=await nextOverviewPoll(page);
+ assert.ok(poll.ok()||poll.status()===304,'the report revalidates through the overview');
  assert.equal(await report.locator('time').first().getAttribute('datetime'),generated,'polling preserves the generated snapshot');
  for(const format of ['json','csv','pdf']){
   const downloaded=page.waitForEvent('download');await page.locator(`#report-${format}`).click();

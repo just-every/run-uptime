@@ -1,3 +1,4 @@
+import {overviewValidator} from './domain/overview-etag.server.ts'
 import {checkerStatus} from './domain/checker-status.ts'
 import {archiveTransfer} from './domain/archive-transfer.server.ts'
 import {scheduledDrills} from './domain/alert-drill-scheduler.server.ts'
@@ -27,6 +28,7 @@ import {readSnapshots,saveSnapshotSettings,eraseSnapshots,incidentSnapshots} fro
 import {authorizeMetrics,metricsKeys,createMetricsKey,revokeMetricsKey} from './domain/metrics/auth.server.ts'
 import {metricsSnapshot} from './domain/metrics/snapshot.server.ts'
 import {prometheusMetrics} from './domain/metrics/prometheus.ts'
+import {defaultMetricsScrape} from './domain/metrics/scrape-cache.server.ts'
 import {registerHeartbeatReceipts} from './domain/heartbeat-routes.server.ts'
 import {importContactSchedule} from './domain/contact-schedule-import.ts'
 import {saveNotificationPreferences,initializeNotificationTimeZone} from './domain/notification-preferences.server.ts'
@@ -163,7 +165,7 @@ api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(!a
  await uptimeAgentDoor(c.get('systemBindings')??c.env).emit({type:family.slice(0,-1)+'.updated',uri:`uptime://${family}/${decodeURIComponent(m[2])}`,person:{id:person.id,name:person.displayName,email:person.email,role:access.role,active:true}})
 })
 // Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
-api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&c.get('access')?.role!=='read-only'&&(c.req.path==='/api/overview'||/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path))){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
+api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&c.get('access')?.role!=='read-only'&&/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path)){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
 api.get('/api/routing/named-routes',async c=>c.json(await namedAlertRoutes(c.env)))
 api.post('/api/routing/named-routes',async c=>c.json(await saveNamedAlertRoute(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id}),201))
 api.post('/api/catalog/routes/undo',async c=>c.json(await undoCatalogRoutes(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id})))
@@ -192,17 +194,29 @@ api.delete('/api/metrics/keys/:id',async c=>c.json(await revokeMetricsKey(c.env,
 api.get('/api/v1/metrics',async c=>{
  const params=new URL(c.req.url).searchParams
  try{
-  const snapshot=await metricsSnapshot(c.env,params)
-  if(params.get('format')==='json'){const bytes=JSON.stringify(snapshot);if(new TextEncoder().encode(bytes).length>2*1024*1024)throw new ReportInputError('Metrics exceeds 2 MiB');return c.body(bytes,200,{'content-type':'application/json'})}
-  const text=prometheusMetrics(snapshot);if(new TextEncoder().encode(text).length>2*1024*1024)throw new ReportInputError('Metrics exceeds 2 MiB')
+  if(params.get('format')==='json'){const bytes=JSON.stringify(await metricsSnapshot(c.env,params));if(new TextEncoder().encode(bytes).length>2*1024*1024)throw new ReportInputError('Metrics exceeds 2 MiB');return c.body(bytes,200,{'content-type':'application/json'})}
+  const scrape=async()=>{
+   const text=prometheusMetrics(await metricsSnapshot(c.env,params))
+   if(new TextEncoder().encode(text).length>2*1024*1024)throw new ReportInputError('Metrics exceeds 2 MiB')
+   return text
+  }
+  const defaultScrape=!c.env.readCredential&&(!params.size||params.size===1&&params.get('format')==='prometheus')
+  const text=defaultScrape?await defaultMetricsScrape(c.env.DB,scrape):await scrape()
   return c.body(text,200,{'content-type':'text/plain; version=0.0.4; charset=utf-8'})
  }catch(error){if(error instanceof ReportInputError)return c.json({error:error.message,code:error.code},error.code==='monitor_not_found'?404:400);throw error}
 })
 api.get('/api/overview',async c=>{
  const actor=c.get('access'),readOnly=!['owner','admin'].includes(actor.role),zone=c.req.header('x-uptime-time-zone')
+ const monitorId=c.req.query('monitor'),person=actor.session.operator
+ const key=JSON.stringify([person.id,person.version,actor.role,actor.scopes,actor.revision,monitorId,zone])
+ const validator=await overviewValidator(c.env.DB,key,c.req.header('if-none-match'),monitorId)
+ if(validator.unchanged)return c.body(null,304,{'etag':validator.etag})
  if(zone&&!readOnly)await initializeNotificationTimeZone(c.env,zone)
- const monitorId=c.req.query('monitor')
- return c.json({...await overview(c.env,{monitorId,readOnly}),operator:{displayName:actor.session.operator.displayName},access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}})
+ const snapshot=await overview(c.env,{monitorId,readOnly})
+ // An owner can start work while Cloudflare is still activating Cron.
+ if(!readOnly&&!snapshot.runner.cronStarted)c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))
+ c.header('etag',validator.remember())
+ return c.json({...snapshot,operator:{displayName:person.displayName},access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}})
 })
 for(const [path,preview,apply] of [
  ['/api/catalog/routes',previewCatalogRoutes,applyCatalogRoutes],['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],

@@ -1,5 +1,5 @@
-import { availabilityQuery } from './availability-query.ts'
-import { maintenanceReportSnapshots } from './planned-maintenance/report.server.ts'
+import { availabilityBucketReports } from './availability-buckets.server.ts'
+import { summarizeAvailability } from './availability-rollup.ts'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const WEEK_MS = 7 * DAY_MS
@@ -69,30 +69,13 @@ export async function availabilityOverview(
   if (!Number.isSafeInteger(now) || now < 0) throw Error('Availability clock must be a nonnegative safe integer')
   const result = new Map<string, MonitorAvailability>()
   if (!monitors.length) return result
-  const snapshots = await maintenanceReportSnapshots(db,monitors.map(monitor=>monitor.id),now-WEEK_MS,now)
-  const statements = monitors.map(monitor => db.prepare(availabilityQuery).bind(now, monitor.id, now - WEEK_MS, snapshots.get(monitor.id)!))
-  const rows = await db.batch(statements)
-  for (const [index, monitor] of monitors.entries()) {
-    const row = rows[index]?.results?.[0] as Record<string, unknown> | undefined
-    if (!row) {
-      throw Error(`Availability aggregate missing for monitor ${monitor.id}`)
-    }
-    const dayUp = Number(row.day_up_ms ?? 0)
-    const dayNotPassing = Number(row.day_not_passing_ms ?? 0)
-    const weekUp = Number(row.week_up_ms ?? 0)
-    const weekNotPassing = Number(row.week_not_passing_ms ?? 0)
-    const lastCheckAt = Number.isSafeInteger(row.last_check_at) && Number(row.last_check_at) <= now
-      ? Number(row.last_check_at)
-      : null
-    const responseDurationMs = Number.isSafeInteger(row.response_duration_ms) && Number(row.response_duration_ms) >= 0
-      ? Number(row.response_duration_ms)
-      : null
-    result.set(monitor.id, {
-      lastCheckAt,
-      responseDurationMs,
-      last24h: windowMetrics(dayUp, dayNotPassing, DAY_MS, Number(row.day_paused_ms), Number(row.day_maintenance_ms)),
-      last7d: windowMetrics(weekUp, weekNotPassing, WEEK_MS, Number(row.week_paused_ms), Number(row.week_maintenance_ms)),
+  await availabilityBucketReports(db,monitors.map(monitor=>monitor.id),now-WEEK_MS,now,true,async(data,index)=>{
+    const {totals:[day,week],lastCheckAt,responseDurationMs}=await summarizeAvailability(data,now-WEEK_MS,now,'overview')
+    result.set(monitors[index].id,{
+      lastCheckAt,responseDurationMs,
+      last24h:windowMetrics(day.up,day.notPassing,DAY_MS,day.paused,day.maintenance),
+      last7d:windowMetrics(week.up,week.notPassing,WEEK_MS,week.paused,week.maintenance),
     })
-  }
+  })
   return result
 }

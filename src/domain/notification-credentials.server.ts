@@ -61,8 +61,14 @@ export async function retireObsoleteCredentials(env:Bindings){await env.DB.batch
  * is persisted as unavailable while the key itself is missing or short.
  * `validate:false` only seals plaintext (no decryption), for health and cron. */
 export async function ensureNotificationCustody(env:Bindings,{validate=true}:{validate?:boolean}={}){
- await retireObsoleteCredentials(env);
  const validated:ValidatedCredentials=new Map();
+ // Without any credential, queued job or delivery there is nothing to seal,
+ // retire, validate or re-hash. The indexed probes also work after erasure.
+ const present=await env.DB.prepare(`SELECT 1 WHERE EXISTS(SELECT 1 FROM notification_credentials WHERE id>='')
+  OR EXISTS(SELECT 1 FROM notification_jobs WHERE state='queued')
+  OR EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace='uptime-notifications')`).first();
+ if(!present)return validated;
+ await retireObsoleteCredentials(env);
  const [rows,hashes]=await Promise.all([env.DB.prepare('SELECT * FROM notification_credentials WHERE retired_at IS NULL').all<CredentialRow>(),
   env.DB.prepare("SELECT id,destination_hash,envelope,max_attempts,retry_delays FROM integration_deliveries WHERE namespace='uptime-notifications' AND destination_hash NOT LIKE 'hmac-v1:%' AND destination_hash NOT LIKE 'unavailable:%'").all<any>()]);
  await Promise.all(rows.results.map(async row=>{

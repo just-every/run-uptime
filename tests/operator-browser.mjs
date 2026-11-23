@@ -1,4 +1,4 @@
-import {assertPlainMonitorText,provePlainMonitorEvidence} from './plain-monitor-text-support.mjs';
+import {assertPlainMonitorText,provePlainMonitorEvidence,nextOverviewPoll,refreshVisibleOverview,waitForMonitorState} from './plain-monitor-text-support.mjs';
 import {provePasteImport} from './import-paste-browser-support.mjs';
 import {proveReadableMaintenanceAndErasure} from './readable-maintenance-erasure-support.mjs';
 import {browserSignIn,testAuthBindings} from './auth-test-support.mjs';
@@ -61,13 +61,15 @@ async function bulkAddDoor(page){
  assert.equal(await door.getAttribute('aria-pressed'),'false','pressing the open button closes its panel');
 }
 async function nextPoll(page){
- await page.waitForResponse(response=>overviewRead(new URL(response.url()))&&response.request().method()==='GET'&&response.ok(),{timeout:12000});
+ const poll=await nextOverviewPoll(page);
+ assert.ok(poll.ok()||poll.status()===304,'automatic overview revalidation succeeded');
  // The next keyboard action must see the completed redraw, not just headers.
  await page.waitForFunction(()=>document.querySelector('#content-area')?.getAttribute('aria-busy')!=='true');
 }
 async function unavailableJourney(page,width){
  await page.route(overviewRead,route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Synthetic read unavailable'})}));
  try{
+  assert.equal((await nextOverviewPoll(page)).status(),503);
   await page.locator('#read-notice[data-state=unavailable]').waitFor({timeout:12000});
   assert.equal(await page.locator('#monitor-state').textContent(),'Unknown');
   assert.match(await page.locator('#read-notice').textContent(),/Last successful refresh/);
@@ -75,6 +77,7 @@ async function unavailableJourney(page,width){
   assert.match(await page.locator('#monitor-status').textContent(),/Showing the last result/);assert.ok(await page.locator('#recent-rows time').count(),'the last recorded checks stay listed');
   await audit(page,`unavailable-${width}`,{state:'Unknown',reason:/couldn.t refresh/i});
  }finally{await page.unroute(overviewRead)}
+ await nextPoll(page);
  await page.locator('#read-notice[data-state=recovered]').waitFor({timeout:12000});
  await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor();
 }
@@ -180,13 +183,13 @@ async function editJourney(page,monitor,width){
  await page.locator('[name=intervalMinutes]:visible').fill('1');
  await page.locator('[name=confirmSlots]:visible').fill('1');await page.locator('[name=recoverSlots]:visible').fill('1');
  await page.getByRole('button',{name:'Save monitor',exact:true}).click();await ready(page);
- await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});
+ await waitForMonitorState(page,'Healthy',{timeout:18000});
  const after=await (await page.request.get(origin+'/api/overview')).json(),saved=after.monitors.find(m=>m.id===monitor.id);
  assert.equal(saved.revision,monitor.revision+1);assert.deepEqual(saved.definition.assertions,{...monitor.definition.assertions,latencyMs:10000});
  await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-ready').waitFor();
  assert.equal(await page.locator('[name=jsonEquals]:visible').inputValue(),'true');assert.equal(await page.locator('[name=latencyMs]:visible').inputValue(),'10');
  await page.locator('.editor-cancel:visible').click();await ready(page);
- await page.locator('#monitor-state').filter({hasText:'Unknown'}).waitFor({timeout:22000});
+ await waitForMonitorState(page,'Unknown',{timeout:22000});
  await audit(page,`stale-${width}`,{state:'Unknown',reason:/recent result|waiting/i});
  assert.ok(await page.locator('#recent-rows time').count(),'stale state retains the last real check time');
  const history=await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json();
@@ -203,6 +206,7 @@ async function ruleEditJourney(page,width){
  const current=async()=>(await (await page.request.get(origin+'/api/overview')).json()).monitors.find(m=>m.id===monitor.id);
  await page.goto(origin+`/app/monitors/${monitor.id}`);await ready(page);
  const row=page.locator('#rule-grid tr[data-key="rule-latencyMs"]');
+ await waitForMonitorState(page,'Healthy');
  await row.locator('td .ui-result.passed').first().waitFor({timeout:30000});
  await row.locator('#edit-latencyMs > summary').click();
  const seconds=row.locator('input[name=seconds]');assert.equal(await seconds.inputValue(),'2');
@@ -218,6 +222,7 @@ async function ruleEditJourney(page,width){
  assert.ok(slot,'a scheduled check of the new revision completed');
  assert.equal(slot.definition.assertions.latencyMs,3000,'the check ran with the new rule');
  assert.ok(slot.observations.every(o=>o.checks.some(c=>c.assertion==='latency'&&c.pass)),'every location passed the new rule');
+ await refreshVisibleOverview(page);
  // The page shows only a check of the current revision, so once every location's age is back its row says what it measured.
  await page.waitForFunction(()=>{const ages=[...document.querySelectorAll('#rule-grid thead .col-age')],cells=[...document.querySelectorAll('#rule-grid tr[data-key="rule-latencyMs"] td .ui-result')];return ages.length>0&&ages.every(age=>/ago$/.test(age.textContent))&&cells.length>0&&cells.every(cell=>cell.classList.contains('passed')&&/^\d+ ms$/.test(cell.textContent.trim()))},null,{timeout:20000});
  const status=page.locator('#edit-status');await status.locator('summary').click();
@@ -239,6 +244,7 @@ try{
   await context.route('**/*',route=>{const u=new URL(route.request().url());return u.origin===origin?route.continue():route.abort()});
   try{
    const page=await context.newPage(),errors=[],failed=[];failedReads.set(page,failed);page.on('pageerror',error=>errors.push(error.message));
+   await page.clock.install({time:Date.now()});
    page.on('response',response=>{const path=new URL(response.url()).pathname;if(response.status()>=400&&(path.startsWith('/assets/')||path==='/app.js'||path==='/api/overview'))failed.push({path,status:response.status()})});
    await browserSignIn(page,origin,{bootstrap:false,bindings:{...testAuthBindings,OWNER_EMAIL:process.env.UPTIME_OPERATOR_OWNER_EMAIL??testAuthBindings.OWNER_EMAIL}});
    // The installation has no monitors before the first width: the console opens straight into the new-monitor form.
@@ -271,7 +277,7 @@ try{
    const overview=await (await page.request.get(origin+'/api/overview')).json(),monitor=overview.monitors.find(m=>m.definition.name===name);
    assert.ok(monitor);assert.equal(monitor.definition.network,'synthetic');assert.equal(monitor.definition.privateGrantRef,undefined);assert.deepEqual(Object.values(monitor.definition.assignments).map(a=>a.runnerId),overview.runner.runners.filter(r=>!r.revokedAt).map(r=>r.runnerId),'a new monitor checks from every location');
    await page.waitForURL(url=>url.pathname===`/app/monitors/${monitor.id}`);await ready(page);await page.locator('#all-checks > summary').click();
-   await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor({timeout:18000});await page.locator('#raw-history details').first().waitFor();
+   await waitForMonitorState(page,'Healthy',{timeout:18000});await page.locator('#raw-history details').first().waitFor();
    await audit(page,`healthy-${width}`,{state:'Healthy',reason:/^Up/});
    await unavailableJourney(page,width);for(const status of [503,429])await actionErrorJourney(page,monitor,width,status);
    await page.getByRole('button',{name:'Run now',exact:true}).click();await page.locator('#raw-history summary').filter({hasText:/Manual check complete · .+[✓✗]/}).first().waitFor({timeout:12000});
@@ -286,7 +292,7 @@ try{
    if(width===1440||width===390)await ruleEditJourney(page,width);
    await tabTo(page,page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}));await page.keyboard.press('Enter');await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await page.getByRole('heading',{name:'Destinations',exact:true}).waitFor();await audit(page,`notifications-${width}`);
    const destinationResponse=await page.request.post(origin+'/api/notifications/destinations',{headers:{origin},data:{name:'Synthetic operations email',kind:'email',address:'synthetic-uptime-operations@example.test',enabled:false}});assert.equal(destinationResponse.status(),201);const destination=await destinationResponse.json();
-   await nextPoll(page);await page.locator(`[data-edit-destination="${destination.id}"]`).click();
+   await refreshVisibleOverview(page);await page.locator(`[data-edit-destination="${destination.id}"]`).click();
    await page.locator('[data-delete-destination]').click();const destinationErase=page.waitForResponse(r=>new URL(r.url()).pathname===`/api/notifications/destinations/${destination.id}`&&r.request().method()==='DELETE');
    await page.getByRole('dialog').last().getByRole('button',{name:'Delete destination',exact:true}).click();const destinationReceipt=(await (await destinationErase).json()).receipt;
    const receipt=page.getByRole('dialog',{name:'Erasure complete',exact:true});await receipt.waitFor();assert.ok(!(await receipt.innerText()).includes(destinationReceipt.id),'the raw destination receipt id stays private');

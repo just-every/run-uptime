@@ -3,6 +3,7 @@ import {spawn} from 'node:child_process';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {once} from 'node:events';
+import {refreshVisibleOverview} from './plain-monitor-text-support.mjs';
 
 // The command shown by Locations runs the downloaded tool with rer's runtime,
 // without node or pnpm on PATH. It exchanges a real one-use key and enrolls.
@@ -34,6 +35,7 @@ export async function joinFromLocations(page,origin,{root,directory}){
    assert.equal(child.exitCode,null,'the displayed command remains running');assert.ok(Date.now()<end,'the downloaded location joins');
    await new Promise(resolve=>setTimeout(resolve,150));
   }
+  await refreshVisibleOverview(page);
   await page.locator('#location-joined').waitFor({timeout:12000});
   await page.locator('#check-all-monitors').uncheck();await page.getByRole('button',{name:'Done',exact:true}).click();
   return JSON.parse(await readFile(join(folder,'uptime-runner/location.json'),'utf8'));

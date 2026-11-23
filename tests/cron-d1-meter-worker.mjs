@@ -1,5 +1,5 @@
-// Run the emitted scheduled handler with workerd's Cron controller and D1.
-export function meteredCron(app) {
+// Run the emitted Worker with workerd's real request handlers, Cron and D1.
+export function meteredWorker(app) {
  const bindings = new WeakMap();
  const wallNow = Date.now;
  let clock, current, latest;
@@ -13,12 +13,13 @@ export function meteredCron(app) {
    const pending = operation().then(result => {
     const results = Array.isArray(result) ? result : [result];
     for (const [index, {sql}] of statements.entries()) {
-     const rows = results[index]?.meta?.rows_read;
-     if (!Number.isSafeInteger(rows) || rows < 0) sample.unmetered.push(sql);
+     const {rows_read:rows, rows_written:writes} = results[index]?.meta ?? {};
+     if (!Number.isSafeInteger(rows) || rows < 0 || !Number.isSafeInteger(writes) || writes < 0) sample.unmetered.push(sql);
      else {
-      const count = sample.queries.get(sql) ?? {calls:0, rows:0};
+      const count = sample.queries.get(sql) ?? {calls:0, rows:0, writes:0};
       count.calls++;
       count.rows += rows;
+      count.writes += writes;
       sample.queries.set(sql, count);
      }
     }
@@ -60,22 +61,56 @@ export function meteredCron(app) {
   };
  }
 
+ async function measure(door, time, env, ctx, run) {
+  clock = time;
+  if (!bindings.has(env.DB)) bindings.set(env.DB, meterBinding(env.DB));
+  // Reuse the binding's identity across invocations, including for app caches.
+  const sample = {queries:new Map(), unmetered:[], pending:new Set()};
+  current = sample;
+  try {
+   return await run({...env, DB:bindings.get(env.DB)}, {
+    waitUntil(pending) {
+     ctx.waitUntil(pending);
+     sample.pending.add(pending);
+     pending.then(() => sample.pending.delete(pending), () => sample.pending.delete(pending));
+    },
+    passThroughOnException: () => ctx.passThroughOnException(),
+   });
+  } finally {
+   // Include work kicked by the dashboard in the poll that triggers it.
+   while (sample.pending.size) await Promise.allSettled(sample.pending);
+   latest = {door, time, queries:[...sample.queries], unmetered:sample.unmetered};
+   current = undefined;
+   clock = undefined;
+  }
+ }
+
  return {
-  fetch() { return Response.json(latest); },
-  async scheduled(controller, env, ctx) {
-   clock = controller.scheduledTime;
-   if (!bindings.has(env.DB)) bindings.set(env.DB, meterBinding(env.DB));
-   // Reuse the binding's identity across invocations, including for app caches.
-   const sample = {queries:new Map(), unmetered:[], pending:new Set()};
-   current = sample;
-   try {
-    await app.scheduled(controller, {...env, DB:bindings.get(env.DB)}, ctx);
-   } finally {
-    // Await any outstanding D1 work within this invocation's I/O context.
-    while (sample.pending.size) await Promise.allSettled(sample.pending);
-    latest = {time:clock, queries:[...sample.queries], unmetered:sample.unmetered};
-    current = undefined;
+  fetch(request, env, ctx) {
+   const url = new URL(request.url);
+   if (url.pathname === '/__d1_meter') {
+    if (!latest || !url.searchParams.has('summary')) return Response.json(latest);
+    const {queries, ...sample} = latest;
+    const summary = {rows:0, writes:0};
+    for (const [, {rows, writes}] of queries) {
+     summary.rows += rows;
+     summary.writes += writes;
+    }
+    return Response.json({...sample, ...summary});
    }
+   // The local listener is HTTP. Give the application the fixture's hosted URL.
+   const hosted = new URL(env.UPTIME_ORIGIN);
+   hosted.pathname = url.pathname;
+   hosted.search = url.search;
+   const incoming = new Request(hosted, request);
+   incoming.headers.set('host', hosted.host);
+   const time = request.headers.get('x-d1-meter-time');
+   return measure(url.pathname, time === null ? undefined : Number(time), env, ctx,
+    (bindings, context) => app.fetch(incoming, bindings, context));
+  },
+  scheduled(controller, env, ctx) {
+   return measure('cron', controller.scheduledTime, env, ctx,
+    (bindings, context) => app.scheduled(controller, bindings, context));
   },
  };
 }

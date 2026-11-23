@@ -21,6 +21,7 @@ const seconds={
  "probe-native-evidence": 25,
  "network-mixed-dns": 10,
  "private-network": 55,
+ "cron-d1-budget": 600,
  "notify-delivery": 140,
  "notification-recovery": 325,
  "notification-fallback": 150,

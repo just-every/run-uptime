@@ -4,11 +4,11 @@ export function createActionFeedback({load,render,publish,lock=()=>{}}) {
   let busy=false,disposed=false,version=0,current=null,pendingRead=null,recoverableReadFailure=false,busyRefusal=null;
   const feedback={action:{state:'idle',message:''},read:{state:'idle',message:''},background:{message:''}};
   const emit=()=>publish({busy,action:{...feedback.action},read:{...feedback.read},background:{...feedback.background}});
-  async function refresh({duringAction=false,supersede=false}={}) {
+  async function refresh({duringAction=false,supersede=false,conditional=false}={}) {
     if(disposed||busy&&!duringAction||pendingRead&&!duringAction&&!supersede)return false;
     const ticket=++version;pendingRead=ticket;
     try {
-      const value=await load();
+      const value=await load({conditional});
       if(ticket!==version)return false;
       const recovered=recoverableReadFailure;recoverableReadFailure=false;current=value;
       feedback.read={state:recovered?'recovered':'ready',message:recovered?'Refresh recovered. Current observations and freshness are available again.':''};

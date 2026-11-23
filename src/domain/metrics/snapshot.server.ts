@@ -1,10 +1,8 @@
 import {credentialMonitorFilter} from '../credentials/model.server.ts'
 import type {Bindings} from '../control.server.ts'
-import {periodAvailability} from '../reports/coverage.server.ts'
-import {periodLatency} from '../reports/latency.server.ts'
+import {metricsReports} from './report.server.ts'
 import {periodIncidents} from '../reports/incidents.server.ts'
 import {reportPeriod,ReportInputError} from '../reports/period.ts'
-import {availabilityOverview} from '../availability.server.ts'
 import {attemptSnapshot} from '../attempt-checkpoint.server.ts'
 import {projectRecentAttempts} from '../attempt-projection.ts'
 import {METRICS_MONITOR_LIMIT,METRICS_LOCATION_LIMIT,METRICS_STATES,DELIVERY_STATES,type MetricsSnapshot,type MetricsMonitor,type DeliveryState} from './types.ts'
@@ -30,21 +28,19 @@ export async function metricsSnapshot(env:Bindings,params:URLSearchParams,now=Da
  if(ids.length&&population.results.length!==ids.length)throw new ReportInputError('A selected monitor is unavailable','monitor_not_found')
  const rows=population.results.map(row=>({...row,definition:JSON.parse(row.definition),storedState:JSON.parse(row.state)}))
  for(const row of rows)if(!Array.isArray(row.definition.probes)||row.definition.probes.length>METRICS_LOCATION_LIMIT)throw new ReportInputError('Metrics supports at most 3 locations per monitor')
- const availability=await availabilityOverview(env.DB,rows,now)
+ const reports=await metricsReports(env.DB,rows.map(row=>({id:row.id,definition:{probes:row.definition.probes}})),period,now)
  const monitors:MetricsMonitor[]=[]
  // Small batches bound in-flight D1 work while preserving independent reads.
  for(let offset=0;offset<rows.length;offset+=2){
-  const batch=await Promise.all(rows.slice(offset,offset+2).map(async row=>{
-   const [coverage,latency,incidents,attempts,deliveryRows]=await Promise.all([
-    periodAvailability(env.DB,row.id,period),periodLatency(env.DB,row.id,period,{bucket:'1d',location:'all'}),
+  const batch=await Promise.all(rows.slice(offset,offset+2).map(async (row,index)=>{
+   const {coverage,latency,lastCheckAt}=reports[offset+index]
+   const [incidents,attempts,deliveryRows]=await Promise.all([
     periodIncidents(env.DB,row.id,period,now),attemptSnapshot(env,row.id,row.revision,row.definition,now,undefined,true),
     env.DB.prepare(`SELECT CASE WHEN j.state<>'queued' THEN j.state ELSE COALESCE(d.state,j.state) END state,COUNT(*) count
      FROM notification_jobs j LEFT JOIN integration_deliveries d ON d.namespace='uptime-notifications' AND d.id=j.id
      WHERE json_extract(j.event,'$.monitorId')=? AND j.created_at>=? AND j.created_at<? GROUP BY 1`).bind(row.id,period.from,period.to).all<{state:string;count:number}>(),
    ])
-   const locationIds=[...new Set([...row.definition.probes,...latency.availableLocations])] as string[]
-   if(locationIds.length>METRICS_LOCATION_LIMIT)throw new ReportInputError('Metrics supports at most 3 locations per monitor')
-   const locations=await Promise.all(locationIds.sort().map(async id=>({id,statistics:(await periodLatency(env.DB,row.id,period,{bucket:'1d',location:id})).statistics})))
+   if(latency.locations.length>METRICS_LOCATION_LIMIT)throw new ReportInputError('Metrics supports at most 3 locations per monitor')
    const projection=projectRecentAttempts(row.definition,attempts.slots,attempts.observations,now,attempts.checkpoint)
    let state=projection.state
    if(row.storedState.notificationOpen&&projection.targetState==='Healthy'&&projection.recoveryStreak<row.definition.recoverSlots&&!projection.maintenance)state='Recovering'
@@ -59,8 +55,8 @@ export async function metricsSnapshot(env:Bindings,params:URLSearchParams,now=Da
    })
    const deliveries=DELIVERY_STATES.map(state=>({state,count:0}))
    for(const entry of deliveryRows.results){const state:DeliveryState=DELIVERY_STATES.includes(entry.state as DeliveryState)?entry.state as DeliveryState:'other';deliveries.find(value=>value.state===state)!.count+=entry.count}
-   return {id:row.id,availability:coverage,latency:{statistics:latency.statistics,locations},incidents:{count:incidents.length,durationInPeriodMs:incidents.reduce((sum,incident)=>sum+incident.durationInPeriodMs,0)},deliveries,
-    current:{state,lastCheckAt:availability.get(row.id)!.lastCheckAt,coverage:{expected:row.definition.probes.length,observed:probes.filter((probe:any)=>probe.evidenceFresh).length},probes}} as MetricsMonitor
+   return {id:row.id,availability:coverage,latency,incidents:{count:incidents.length,durationInPeriodMs:incidents.reduce((sum,incident)=>sum+incident.durationInPeriodMs,0)},deliveries,
+    current:{state,lastCheckAt,coverage:{expected:row.definition.probes.length,observed:probes.filter((probe:any)=>probe.evidenceFresh).length},probes}} as MetricsMonitor
   }))
   monitors.push(...batch)
  }

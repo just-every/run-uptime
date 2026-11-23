@@ -19,7 +19,8 @@ export async function proveArchiveSelection(installation){
   const ok=async(path,body,options={})=>{const result=await f.request(path,{...options,...(body===undefined?{}:{body})});assert.ok(result.status>=200&&result.status<300,`${path}: ${result.status} ${JSON.stringify(result.data)}`);return result.data};
   const snapshot=async(db=f.DB)=>{
    const names=(await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all()).results;
-   return Object.fromEntries(await Promise.all(names.map(async({name})=>[name,(await db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results])));
+   const snapshot=await db.batch(names.map(({name})=>db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`)));
+   return Object.fromEntries(names.map(({name},index)=>[name,snapshot[index].results]));
   };
   const [receiverPort]=await availablePorts(1);receiver=await acceptanceReceiver(receiverPort,record=>assert.equal(record.path,'/receiver'));
   const endpoint='https://archive.example.com/receiver';

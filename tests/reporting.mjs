@@ -92,6 +92,15 @@ try{
  assert.equal((await (await get('uptime')).json()).availability.upMs,report.availability.upMs);
  const latency=await (await get('response-times')).json();
  assert.deepEqual(latency.statistics,report.latency.statistics);
+ const metricsParams=new URLSearchParams(params);
+ metricsParams.delete('bucket');
+ metricsParams.set('monitor',id);
+ metricsParams.set('format','json');
+ const metricsResponse=await fetch(origin+'/api/v1/metrics?'+metricsParams,{headers:{cookie}});
+ assert.equal(metricsResponse.status,200,await metricsResponse.clone().text());
+ const [rolledUp]=(await metricsResponse.json()).monitors;
+ assert.deepEqual(rolledUp.availability,report.availability,'the scrape rollup matches the slot scan through outage, maintenance and pause');
+ assert.deepEqual(rolledUp.latency.statistics,report.latency.statistics,'the scrape rollup preserves the exact latency distribution');
  const oneLocation=new URLSearchParams(params);oneLocation.set('location','local-b');oneLocation.set('bucket','5m');
  const location=await (await get('response-times',oneLocation)).json();
  assert.deepEqual(location.statistics,{count:139,minMs:200,meanMs:200,p50Ms:200,p95Ms:200,p99Ms:200,maxMs:200});

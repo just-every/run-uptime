@@ -11,7 +11,7 @@ export async function retentionCleanup({worker,DB,port,persist,bindings,owner,ru
  const ok=async(path,method='GET',body,headers)=>{const r=await api(path,method,body,headers);assert.ok(r.status>=200&&r.status<300,`${method} ${path}: ${r.status}`);return r.data};
  const rpc=input=>ok('/api/runner/notifications','POST',input,{'x-runner-key':bindings.UPTIME_RUNNER_KEY});
  const rows=async table=>(await DB.prepare(`SELECT rowid AS _rowid,* FROM "${table}" ORDER BY rowid`).all()).results;
- const snapshot=async()=>{const tables=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'_cf_METADATA' ORDER BY name").all()).results;return Object.fromEntries(await Promise.all(tables.map(async({name})=>[name,await rows(name)])))};
+ const snapshot=async()=>{const tables=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'_cf_METADATA' ORDER BY name").all()).results;const snapshot=await DB.batch(tables.map(({name})=>DB.prepare(`SELECT rowid AS _rowid,* FROM "${name}" ORDER BY rowid`)));return Object.fromEntries(tables.map(({name},index)=>[name,snapshot[index].results]))};
  // Existing retained legacy captures have no creation door anymore. Their
  // authentic historical shape is populated directly, never by app fallback.
  const capture=randomUUID();await DB.prepare('INSERT INTO rer_mail_development_outbox(id,created_at,message) VALUES(?,?,?)').bind(capture,1,JSON.stringify({deliveryId:capture,to:['legacy-owner@example.test'],subject:'Historical sign-in record',text:'Historical capture'})).run();
