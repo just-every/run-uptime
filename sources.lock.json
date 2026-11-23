@@ -9060,7 +9060,7 @@
       "executable": false
     },
     "tests/access-matrix.mjs": {
-      "sha256": "c4b77d80f992f25a503fe96243496654f0a75912d4ede5457dce3bf4cb2ab7d3",
+      "sha256": "67d0e2f60e07096ad873fe3f904239652073952792e692c4e0a181184c4b2601",
       "executable": false
     },
     "tests/access-member-controls-browser-support.mjs": {
