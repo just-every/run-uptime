@@ -1,4 +1,4 @@
-// Whole owner/business journeys, balanced from local public-door timings.
+// Whole owner/business journeys, balanced from CI wall-clock timings.
 import {readFile} from 'node:fs/promises';
 const {scripts}=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
 const groups=['runtime','delivery','protocols','data','transactions','console','identity','operations'];
@@ -12,50 +12,58 @@ export const tasks={push:commands.map(command=>{
 // A standalone local suite builds before opening its first Worker.
 tasks.push.sort((a,b)=>Number(Boolean(b.hosted))-Number(Boolean(a.hosted)));
 export const allTasks=tasks.push;
-// Scheduling weights calibrated to push run 40737989176; these are estimates, not assertions.
+// Rounded command timings from scheduled Verify 45127930682 and manual Verify
+// 45136475059. Keep the 270 s archive budget from push Verify 43714780460.
+// The browser-suites weight includes its hosted verification checks.
 const seconds={
- "control-runtime": 196,
- "signed-runner": 57,
- "probe-native-evidence": 18,
- "private-network": 83,
- "notify-delivery": 85,
- "notification-recovery": 335,
- "notification-fallback": 189,
- "hosted-alerts": 10,
- "webhook-custom": 14,
- "protocol-monitors": 128,
- "udp-monitors": 54,
- "mail-journey": 114,
- "ping-monitors": 56,
- "tls-auth": 34,
- "archive-roundtrip": 19,
- "definitions-import": 60,
- "erasure-audit": 39,
- "catalog": 39,
- "alert-routes": 51,
- "incident-work": 114,
- "read-api": 14,
- "flow-journey": 438,
+ "control-runtime": 250,
+ "signed-runner": 85,
+ "probe-native-evidence": 25,
+ "network-mixed-dns": 10,
+ "private-network": 55,
+ "notify-delivery": 140,
+ "notification-recovery": 325,
+ "notification-fallback": 150,
+ "hosted-alerts": 40,
+ "webhook-custom": 20,
+ "protocol-monitors": 240,
+ "udp-monitors": 45,
+ "mail-journey": 105,
+ "ping-monitors": 55,
+ "tls-auth": 120,
+ "archive-roundtrip": 270,
+ "definitions-import": 105,
+ "erasure-audit": 35,
+ "agent-erasure": 10,
+ "roster-erasure": 10,
+ "catalog": 40,
+ "alert-routes": 70,
+ "incident-work": 120,
+ "read-api": 25,
+ "flow-journey": 355,
  "api-transaction-journey": 45,
- "browser-suites": 134,
- "hosted-auth-browser": 14,
- "command-journey": 286,
- "operator-security": 37,
- "access-matrix": 29,
- "resilience/watches": 46,
- "maintenance-windows": 35,
- "slow-responses": 132,
- "reporting": 76,
- "metrics": 12,
- "failure-page-journey": 27,
- "discovery-jobs": 140,
- "alert-drill": 29,
- "contact-schedules": 142,
- "public-paths": 28,
- "owner-deploy-lifecycle": 81,
- "run-site-deploy": 2,
- "business-provisioned": 11,
- "owner-editor-browser": 52
+ "browser-suites": 330,
+ "hosted-auth-browser": 80,
+ "command-journey": 250,
+ "operator-security": 135,
+ "access-matrix": 45,
+ "agent-door": 555,
+ "agent-rate-overrun": 55,
+ "agent-query-token": 10,
+ "resilience/watches": 105,
+ "maintenance-windows": 60,
+ "slow-responses": 135,
+ "reporting": 80,
+ "metrics": 65,
+ "failure-page-journey": 30,
+ "discovery-jobs": 180,
+ "alert-drill": 105,
+ "contact-schedules": 130,
+ "public-paths": 65,
+ "owner-deploy-lifecycle": 75,
+ "run-site-deploy": 5,
+ "business-provisioned": 10,
+ "owner-editor-browser": 50
 };
 function shards(weights){
 const bins=Array.from({length:8},(_,index)=>({name:'push-'+(index+1),seconds:0,tasks:[]}));
@@ -65,12 +73,6 @@ for(const task of [...tasks.push].sort((a,b)=>(weights[b.name]??60)-(weights[a.n
 }
 return bins.map(bin=>({...bin,browser:true,engines:bin.tasks.some(task=>task.name==='flow-journey')?'all':'chromium',evidence:bin.tasks.some(task=>task.name==='browser-suites')}));
 }
-// Keep the nightly allocation separate so its existing schedule is unchanged.
-const nightlyShards=shards(seconds);
-// Push run 43714780460 outgrew the old fallback (60 s) for agent-door and
-// archive-roundtrip's 19 s estimate. Budget their observed whole-file times;
-// keep the journeys intact and the job limit unchanged.
-// Branch pushes and releases share one allocation. All-tier matrices select
-// these same-named shards once, rather than running the journeys twice.
-export const allShards=shards({...seconds,'agent-door':555,'archive-roundtrip':270});
-export const plan={push:allShards,nightly:nightlyShards};
+// All Verify events run the same allocation of public-door journeys.
+export const allShards=shards(seconds);
+export const plan={push:allShards,nightly:allShards};

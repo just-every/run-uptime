@@ -26,8 +26,7 @@ const [mode, tier, ...extra] = process.argv.slice(2);
 if (extra.length) throw Error('Too many verification arguments');
 if (mode === '--plan' && !tier) {
  const decision = await planVerification({plan, readers: reviewedReaders});
- // Release tags reuse the balanced push allocation; nightly keeps its own.
- // An all-tier run schedules each same-named shard once.
+ // An all-tier run schedules each shared push/nightly shard once.
  decision.matrix.include = [...new Map(decision.matrix.include.map(shard => [shard.name, shard])).values()];
  decision.matrix.include = decision.matrix.include.map(({name}) => {
   const {browser, engines, evidence} = (decision.tier === 'nightly' ? plan.nightly : allShards).find(shard => shard.name === name);
