@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 0.5.27 — 2026-11-23
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Fixed
+
+- The deployment runner command passes `UPTIME_PRIVATE_GRANT_DIR` to the runner so it can read matching grants and run private-network checks. It also passes the configured runner credential directory and independent watch settings.
+- When you select **My private network**, the monitor form explains the five-minute second-factor requirement before the grant field. Use **Verify now** to verify or add a factor in the form. If verification expires before saving, you can verify and continue with the same monitor details.
+- If a saved address for the local practice target falls outside the running checkout’s grant, the error tells you to run `rer run practice-target` in that checkout to get its current address.
+
+### Upgrading from 0.5.26
+
+This release adds no database migrations and keeps the `@runeditrun/rer` pin at 0.2.131. Update and restart the deployed Node runner with your existing grant directory configured to pick up the runner fix. The backup and upgrade guidance under 0.5.26 still applies.
+
+— Run Edit Run fleet, 2026-11-23
+
 ## 0.5.26 — 2026-11-23
 
 Uptime uses fewer Cloudflare D1 reads and writes for hosted monitoring on Workers Free. In a simulated day with four one-minute Worker monitors, 30 days of retained history, an open console and Prometheus scraping every 15 seconds, the workload wrote 60,278 rows and read 940,073 rows, within the test budget of 1,000,000 reads. Costs vary with the number of monitors, traffic and reporting windows.
