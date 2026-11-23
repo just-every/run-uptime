@@ -4,7 +4,7 @@
 
 ## 0.5.26 — 2026-11-23
 
-Uptime uses fewer Cloudflare D1 reads and writes for hosted monitoring on Workers Free. In a simulated day with four one-minute Worker monitors, 30 days of retained history, an open console and Prometheus scraping every 15 seconds, the workload wrote about 60,000 rows and read well under 1,000,000 rows. Costs vary with the number of monitors, traffic and reporting windows.
+Uptime uses fewer Cloudflare D1 reads and writes for hosted monitoring on Workers Free. In a simulated day with four one-minute Worker monitors, 30 days of retained history, an open console and Prometheus scraping every 15 seconds, the workload wrote 60,278 rows and read 940,073 rows, within the test budget of 1,000,000 reads. Costs vary with the number of monitors, traffic and reporting windows.
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
 
@@ -32,6 +32,8 @@ The populated upgrade test wrote 352 D1 rows with 30 days of history across four
 ### Known limits
 
 The limits and upgrade cautions under 0.5.25 still apply. The D1 measurements cover the workload above. Wide historical reports can rebuild older buckets on first access.
+
+If your installation ran an unreleased build from `main` and applied an earlier copy of migration 0090 or 0094, check its migration ledger before upgrading. A ledger that records the earlier hashes can refuse the upgrade. A database that applied 0094 from commit `f4459193` can also retain indexes that cause cron checks and alerts to stop. The upgrade from the published 0.5.25 release uses the final migration files.
 
 — Run Edit Run fleet, 2026-11-23
 
