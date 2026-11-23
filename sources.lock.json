@@ -452,7 +452,7 @@
       "executable": false
     },
     ".github/scripts/verify-ci.mjs": {
-      "sha256": "81f2e01a3035c24d2324e8466756db40854f7ef27e280987fb64bff2ec562297",
+      "sha256": "25cf613dc6b7154d852e50ad0e85dc78581462cb783ff54137b77b93f241cdec",
       "executable": false
     },
     ".github/scripts/verify-readers.mjs": {
@@ -4544,7 +4544,7 @@
       "executable": false
     },
     "scripts/verification-plan.mjs": {
-      "sha256": "7b4bfccaf08ab9f8a7ce748f83e1149fabf2699056e1b0d8d41c38036b10e4a7",
+      "sha256": "8c1a4cbd6cbaead059932fce4680dd14e3b53e37d34b2ba2371e5d2883b018d8",
       "executable": false
     },
     "scripts/verify-app.mjs": {
