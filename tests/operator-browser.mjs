@@ -36,6 +36,7 @@ async function audit(page,label,{state,reason}={}){
  assert.deepEqual(result.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)})),[],label+' accessibility');
  assert.ok(extent.scroll<=extent.width+1,label+' document overflow '+JSON.stringify(extent));
  checks.push({label,violations:0,documentWidth:extent.width,accessibilityNodes:accessible.length,...(state?{state}:{}),textInspected:Boolean(text)});
+ console.log(`Operator browser passed ${label}`);
 }
 async function tabTo(page,locator){
  for(let i=0;i<100;i++){await page.keyboard.press('Tab');if(await locator.evaluate(element=>document.activeElement===element))return}
@@ -137,14 +138,24 @@ async function repeatConsoleLoads(page){
 }
 async function actionErrorJourney(page,monitor,width,status=503){
  let attempts=0;
- const actionGate=deferred(),actionStarted=deferred(),readGate=deferred(),readStarted=deferred();
+ const actionGate=deferred(),readGate=deferred();
  const runURL=origin+`/api/monitors/${monitor.id}/run`;
- const failAction=async route=>{attempts++;actionStarted.resolve();await actionGate.promise;await route.fulfill({status,...(status===429?{headers:{'retry-after':'8'}}:{}),contentType:'application/json',body:JSON.stringify({error:'Manual check could not be queued'})})};
- const holdRead=async route=>{readStarted.resolve();await readGate.promise;await route.continue()};
+ const actionRequest=request=>request.url()===runURL&&request.method()==='POST';
+ const reconciliation=request=>{
+  const url=new URL(request.url());
+  return overviewRead(url)&&request.method()==='GET'&&url.searchParams.get('monitor')===monitor.id&&!request.headers()['if-none-match'];
+ };
+ const failAction=async route=>{attempts++;await actionGate.promise;await route.fulfill({status,...(status===429?{headers:{'retry-after':'8'}}:{}),contentType:'application/json',body:JSON.stringify({error:'Manual check could not be queued'})})};
+ const holdRead=async route=>{
+  if(!reconciliation(route.request()))return route.fallback();
+  await readGate.promise;
+  await route.continue();
+ };
  await page.route(runURL,failAction);
  try{
+  await page.locator('#run-monitor:enabled').waitFor({timeout:12000});
   await tabTo(page,page.getByRole('button',{name:'Run now',exact:true}));
-  await page.keyboard.press('Enter');await actionStarted.promise;
+  await Promise.all([page.waitForRequest(actionRequest,{timeout:12000}),page.keyboard.press('Enter')]);
   await page.route(overviewRead,holdRead);
   async function locked(){
    assert.equal(await page.locator('#content-area').getAttribute('aria-busy'),'true');
@@ -153,7 +164,8 @@ async function actionErrorJourney(page,monitor,width,status=503){
   }
   await locked();const url=page.url();
   await tabTo(page,page.getByRole('link',{name:'Monitors',exact:true}));await page.keyboard.press('Enter');assert.equal(page.url(),url,'keyboard navigation is blocked during the action');
-  actionGate.resolve();await readStarted.promise;await locked();
+  const reconciliationStarted=page.waitForRequest(reconciliation,{timeout:12000});
+  actionGate.resolve();await reconciliationStarted;await locked();
   readGate.resolve();await page.locator('#action-notice[data-state=error]').waitFor();
   await page.waitForFunction(()=>document.querySelector('#content-area')?.getAttribute('aria-busy')==='false');
   assert.equal(await page.locator('#run-monitor').isEnabled(),true);
@@ -307,7 +319,7 @@ try{
    await page.getByRole('link',{name:'Sign out',exact:true}).click();assert.equal((await signedOut).status(),200,'sign-out completes through the native door');
    try{await page.getByLabel('Email address').waitFor()}catch(error){console.error('Sign-out destination '+JSON.stringify({path:new URL(page.url()).pathname,title:await page.title(),text:await page.locator('body').innerText().then(text=>text.slice(0,160))}));throw error}
    assert.equal((await page.request.get(origin+'/api/overview')).status(),401);assert.deepEqual(errors,[],'browser exceptions');
-  }finally{await context.close()}
+  }finally{if(browser.isConnected())await context.close()}
  }
  // One phone smoke: sign in, inspect retained monitoring, navigate, and sign out at 390.
  {
@@ -322,7 +334,7 @@ try{
    await page.getByRole('link',{name:/^Settings(, \d+ to fix)?$/}).click();await page.waitForURL(origin+'/app/settings/alerts');await ready(page);await audit(page,'phone-notifications-390');
    await page.getByRole('link',{name:'Sign out',exact:true}).click();await page.getByLabel('Email address').waitFor();
    assert.equal((await page.request.get(origin+'/api/overview')).status(),401);
-  }finally{await context.close()}
+ }finally{if(browser.isConnected())await context.close()}
  }
  await writeFile(resolve(out,'RESULTS.json'),JSON.stringify({checks,workflow:'Desktop owner monitoring and one 390 phone smoke; real healthy and naturally stale scheduled evidence; failed reads show Unknown with historical time; keyboard actions/navigation; failed actions survive polling; controls excluded through reconciliation; assertion edits preserve checks and reject overrides without writes; immutable history/focus retained; native export and signout; six cold document loads within one minute, real API overrun and Retry-After read recovery; computed accessibility trees, axe and reflow',externalNetwork:false},null,2));
  console.log(`INTERFACE-001 operator passed: ${checks.length} local accessibility/reflow checks and real owner journeys at 1440 plus one 390 phone smoke. Evidence ${out}`);

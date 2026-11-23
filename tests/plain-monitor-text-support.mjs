@@ -8,20 +8,30 @@ export async function assertPlainMonitorText(region){
  assert.doesNotMatch(visible,/\blocal-[a-z]\b|\bself-[0-9a-f-]{36}\b|\b[A-Z][A-Z0-9]*(?:-[A-Z]+)*-\d{3}\b|\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b|[{}]/,'visible monitor text has no internal location/clause IDs or JSON payload');
 }
 
-const overviewResponse=response=>new URL(response.url()).pathname==='/api/overview'&&response.request().method()==='GET';
+const overviewRequest=request=>new URL(request.url()).pathname==='/api/overview'&&request.method()==='GET';
+const overviewFinished=(page,predicate)=>page.waitForEvent('requestfinished',{predicate,timeout:15000});
 export async function nextOverviewPoll(page){
- const received=page.waitForResponse(overviewResponse,{timeout:12000});
- const [response]=await Promise.all([received,page.clock.fastForward('01:05').then(()=>page.clock.setSystemTime(Date.now()))]);
- await response.finished();
- return response;
+ const [request]=await Promise.all([
+  overviewFinished(page,overviewRequest),
+  page.clock.fastForward('01:05').then(()=>page.clock.setSystemTime(Date.now())),
+ ]);
+ return request.response();
 }
 export async function refreshVisibleOverview(page){
- const [response]=await Promise.all([
-  page.waitForResponse(response=>overviewResponse(response)&&!response.request().headers()['if-none-match']),
-  page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange'))),
+ const [request]=await Promise.all([
+  overviewFinished(page,request=>overviewRequest(request)&&!request.headers()['if-none-match']),
+  (async()=>{
+   await page.bringToFront();
+   const visible=await page.evaluate(()=>{
+    if(document.hidden)return false;
+    document.dispatchEvent(new Event('visibilitychange'));
+    return true;
+   });
+   assert.ok(visible,'the console is visible before requesting a refresh');
+  })(),
  ]);
+ const response=await request.response();
  assert.ok(response.ok(),'returning to the visible console reads fresh data');
- await response.finished();
 }
 export async function waitForMonitorState(page,state,{timeout=30000}={}){
  const status=page.locator('#monitor-state').filter({hasText:state}),end=Date.now()+timeout;

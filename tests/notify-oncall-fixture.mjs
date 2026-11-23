@@ -15,6 +15,7 @@ const require=createRequire(import.meta.url);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,Math.max(0,ms)));
 
 const WIDTHS=[1440,390];
+const overviewTimeout=75000;
 const UNKNOWN_ACK='Unknown · no valid Oncall receipt',UNKNOWN_OTHER="Unknown · Oncall doesn't report it";
 // The owner's console for this journey (Settings › Alerts), signed in with a fresh second factor. Screenshots and notes are kept
 // only when UPTIME_ONCALL_EVIDENCE names a folder; nothing captured shows the token, endpoint or a signing secret.
@@ -26,7 +27,7 @@ async function openConsole(f){
   await browserSignIn(page,f.origin,{bindings:f.bindings});
   const ui={browser,page,
    async width(width){await page.setViewportSize({width,height:width>480?1600:2400})},
-   // The page is loaded once and then left to the console's own five-second refresh: the public asset limiter is per minute.
+   // Keep the document open and let its regular overview checks surface new deliveries.
    async alerts(){
     if(!await page.evaluate(()=>location.pathname==='/app/settings/alerts'&&document.documentElement.classList.contains('signed-in')))await page.goto(f.origin+'/app/settings/alerts');
     await page.locator('html.signed-in').waitFor({timeout:60000});await page.locator('#sent-alerts-heading').waitFor()
@@ -43,8 +44,10 @@ async function openConsole(f){
     if(evidence){await mkdir(evidence,{recursive:true});await page.screenshot({path:join(evidence,`${name}-${width}.png`)});await writeFile(join(evidence,`${name}-${width}.json`),JSON.stringify({width,...result},null,2))}
    },
    async open(id){
+    const row=page.locator(`[data-key="delivery-${id}"]`);
+    await row.waitFor({state:'attached',timeout:overviewTimeout});
     const all=page.locator('#all-sent-alerts');if(await all.count()&&!await all.evaluate(d=>d.open))await all.locator(':scope > summary').click();
-    const row=page.locator(`[data-key="delivery-${id}"]`),details=row.locator('details');if(!await details.evaluate(d=>d.open))await details.locator(':scope > summary').click();
+    const details=row.locator('details');if(!await details.evaluate(d=>d.open))await details.locator(':scope > summary').click();
     await row.locator('.sent-body').waitFor();return row;
    },
    // The three facts as written: [dt, dd text, whether the dd holds a <time>].
@@ -200,7 +203,7 @@ export async function proveOncallHandoff(){
   const ack=delivery.handoff.acknowledged;assert.equal(ack.state,'acknowledged');assert.ok(ack.at);assert.ok(ack.receiptId);assert.ok(ack.receiverAcceptedAt);
   for(const name of ['received','responded'])assert.deepEqual([delivery.handoff[name].state,delivery.handoff[name].source,delivery.handoff[name].at],['unknown',null,null]);
   // The open row on the page that was showing Unknown is patched in place by the overview refresh, and stays open.
-  await ui.page.waitForFunction(id=>document.querySelector(`[data-key="delivery-${id}"] dl.drill-lines time`),delivery.id,{timeout:20000});
+  await ui.page.waitForFunction(id=>document.querySelector(`[data-key="delivery-${id}"] dl.drill-lines time`),delivery.id,{timeout:overviewTimeout});
   assert.equal(await ui.page.locator(`[data-key="delivery-${delivery.id}"] details`).evaluate(d=>d.open),true);
   assert.equal(ack.deliveryId,delivery.id);await expectAcknowledged(ui,delivery,ack);
   const incidentId=delivery.eventId;

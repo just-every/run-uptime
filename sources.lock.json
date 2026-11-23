@@ -10500,7 +10500,7 @@
       "executable": false
     },
     "tests/notify-oncall-fixture.mjs": {
-      "sha256": "1a54bcfced50a824fd53623e3a81e839796d0a0547276228e88103135c015cfb",
+      "sha256": "52f5e15d2b96c00562a734cf7cabbb67c2c6147cc9695a436a62e085b408d7a1",
       "executable": false
     },
     "tests/notify-quiet-fixture.mjs": {
@@ -10512,7 +10512,7 @@
       "executable": false
     },
     "tests/operator-browser.mjs": {
-      "sha256": "459cfe9bf361becc0cf3ec68870ec29a904699e26637c45a4ce68ea08b7eaccd",
+      "sha256": "31b756d636bbc3c540c4aa3bb9ec992b32e1d2ca83679a682a5a7926f4bd5f47",
       "executable": false
     },
     "tests/operator-security.mjs": {
@@ -10588,7 +10588,7 @@
       "executable": false
     },
     "tests/plain-monitor-text-support.mjs": {
-      "sha256": "d270ddf35efcd028c5ed4fba55334e0afd3eec0702df320246fa2a413d828b72",
+      "sha256": "54cb5eaa1ae7d0c274a310698100568c5d1c58301b360758d950c1caeecd9276",
       "executable": false
     },
     "tests/playwright-custody-support.mjs": {
