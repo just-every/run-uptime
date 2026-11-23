@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+## 0.5.26 — 2026-11-23
+
+Uptime uses fewer Cloudflare D1 reads and writes for hosted monitoring on Workers Free. In a simulated day with four one-minute Worker monitors, 30 days of retained history, an open console and Prometheus scraping every 15 seconds, the workload wrote about 60,000 rows and read well under 1,000,000 rows. Costs vary with the number of monitors, traffic and reporting windows.
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Hosted monitoring and reporting
+
+- **Keep the minute cron focused on current state.** The monitoring watch checks current monitor evidence and recovery state without loading the seven-day availability aggregate. Scheduled schema checks are cached, and expired leases are swept through the partial index of running slots, including hosted slots whose monitor has moved on.
+- **Bound dashboard and Prometheus reads.** Availability reports read compact time buckets in bounded pages and build older days on first request. Stable slot IDs survive backup and restore, and smaller buckets keep dense check schedules and canary evidence within D1 row-size limits. The console uses conditional overview requests and polls less often while the overview is unchanged. Prometheus scrapes reuse a short-lived snapshot and still check credentials and rate limits on every request.
+- **Batch hosted writes and preserve check evidence.** Worker-owned slots retain full attempts and receipt times. Checkpoints fold expired attempt windows into current state, and pending availability results are visible to reports immediately and written to buckets in batches.
+- **Balance nightly verification.** Scheduled Verify now uses the same eight shards as push CI, rebalanced from observed CI timings. Browser tests exercise the console with adaptive polling, and the D1 budget test measures a populated upgrade and a full simulated day.
+
+### Upgrading from 0.5.25
+
+Back up before upgrading. In the console, use **Settings › Backup and files › Download backup** with a second factor verified within the last five minutes. Keep private settings, `.rer/deploy`, and any hosted database backup separately. For a local CLI backup, verify the native session while dev is running, stop dev and run `rer export --output exports/uptime.rer` within five minutes with the verified `UPTIME_ACCESS_COOKIE`. Keep it private.
+
+Run `pnpm install --frozen-lockfile` in the updated checkout. Stop dev or preview before deploying. Keep your deployment receipt and existing installation keys. The exact `@runeditrun/rer` pin is 0.2.131, and the mail configuration guidance under 0.5.16 still applies.
+
+The eight new SQL files span migrations 0090–0096. All 91 SQL migration files from 0.5.25 are byte-identical, and the upgrade requires no new settings.
+
+- **0090–0091** skip the full-history lease index and add targeted partial indexes for running leases, queued manual slots and active outbox entries. The superseded lease index and redundant observation index are removed.
+- **0091_z–0093** defer the original backfill, add the availability bucket and history tables, then build the bounded projection from recent evidence. Older history remains available for reports.
+- **0094–0096** add hosted evidence and checkpoint columns and compatibility views, add two tables for scrape authorization receipts and rate-limit counts, and add a pending availability column for batched bucket writes. The existing slot projection index is preserved.
+
+The populated upgrade test wrote 352 D1 rows with 30 days of history across four one-minute monitors. Existing monitors, history, incidents, destinations and private settings are carried forward.
+
+### Known limits
+
+The limits and upgrade cautions under 0.5.25 still apply. The D1 measurements cover the workload above. Wide historical reports can rebuild older buckets on first access.
+
+— Run Edit Run fleet, 2026-11-23
+
 ## 0.5.25 — 2026-11-22
 
 First local starts now report progress while Uptime gets ready. New hosted public HTTP monitors select the Cloudflare Worker by default, and the deployment guide backs up D1 using the installer’s Node runtime.
