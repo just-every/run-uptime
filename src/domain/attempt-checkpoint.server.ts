@@ -16,12 +16,11 @@ type EvidenceClock={generation:number;hostedGeneration:number};
 const sameClock=(a:EvidenceClock,b:EvidenceClock|undefined)=>a.generation===b?.generation&&a.hostedGeneration===b.hostedGeneration;
 const tail=`WITH t AS (
  SELECT id,due_at,manual,lease_until,monitor_id,hosted,status FROM slots INDEXED BY slots_projection
- WHERE monitor_id=?1 AND revision=?2 AND manual=0 AND hosted IS NULL AND due_at>=?3 AND (due_at,id)>(?3,?4)
- UNION ALL
- SELECT id,due_at,manual,lease_until,monitor_id,hosted,status FROM slots INDEXED BY slots_monitor
- WHERE monitor_id=?1 AND revision=?2 AND manual=0 AND hosted IS NOT NULL AND (due_at,id)>(?3,?4)
-   AND due_at>=MAX(?3,COALESCE((SELECT created_at FROM revisions WHERE monitor_id=?1 AND revision=?2),0))
-   AND due_at<=COALESCE((SELECT MIN(created_at) FROM revisions WHERE monitor_id=?1 AND revision>?2),9223372036854775807)
+ WHERE monitor_id=?1 AND revision=?2 AND manual=0 AND due_at>=?3 AND (due_at,id)>(?3,?4)
+   AND (hosted IS NULL OR (
+     due_at>=COALESCE((SELECT created_at FROM revisions WHERE monitor_id=?1 AND revision=?2),0)
+     AND due_at<=COALESCE((SELECT MIN(created_at) FROM revisions WHERE monitor_id=?1 AND revision>?2),9223372036854775807)
+   ))
  ORDER BY due_at,id LIMIT ${PAGE}
  ) SELECT t.id,t.due_at,t.manual,t.lease_until,(t.hosted IS NOT NULL AND t.status='complete') AS sealed,
  CASE WHEN t.hosted IS NOT NULL THEN (

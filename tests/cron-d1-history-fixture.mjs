@@ -5,7 +5,9 @@ import {dirname, join, parse, relative, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Miniflare, convertV4MiniflareOptions} from 'miniflare';
 import {observationsAt} from '../src/domain/check-evidence-query.ts';
-import {validateDefinition} from '../src/domain/policy.mjs';
+import {HOSTED_RUNNER_ID} from '../src/domain/hosted-runner.ts';
+import {acceptanceMs} from '../src/domain/schedule.ts';
+import {evaluate, validateDefinition} from '../src/domain/policy.mjs';
 import {signInOwner, testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 
@@ -63,7 +65,7 @@ export async function dispatchCron(service, time) {
 
 export async function migrationPlan() {
  const all = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
- const forward = all.findIndex(name => name.endsWith('_slots_running_lease.sql'));
+ const forward = all.findIndex(name => name.endsWith('_slots_status_lease.sql'));
  const packed = all.findIndex(name => name.endsWith('_hosted_check_storage.sql'));
  assert.ok(forward > 0 && packed > forward, 'bounded buckets upgrade before compact hosted storage');
  return {initial:all.slice(0, forward), buckets:all.slice(forward, packed), compact:all.slice(packed)};
@@ -85,6 +87,7 @@ async function retainedEvidence(db) {
 }
 
 export async function migrate(db, files, {profile=false}={}) {
+ let writes = 0;
  for (const name of files) {
   const changesStorage = /(?:bounded_availability_buckets|hosted_check_storage|scrape_writes|hosted_availability)\.sql$/.test(name);
   const before = changesStorage ? await retainedEvidence(db) : undefined;
@@ -96,84 +99,58 @@ export async function migrate(db, files, {profile=false}={}) {
   if (!profile) continue;
   console.log(`${name}: ${Math.round(elapsed)} ms batch wall time`);
   for (const [index, {meta}] of results.entries()) {
-   const label = sql[index].trim().split('\n').find(line => !line.startsWith('--')).slice(0, 100);
+   assert.ok(Number.isSafeInteger(meta.rows_written) && meta.rows_written >= 0, `${name} reports D1 writes for every statement`);
+   writes += meta.rows_written;
+   const label = sql[index].split('\n').map(line => line.trim()).find(line => line && !line.startsWith('--')).slice(0, 100);
    console.log(`  ${label} (${meta.duration} ms, ${meta.rows_read} reads, ${meta.rows_written} writes)`);
   }
  }
+ return writes;
 }
 
-export async function seedHistory(db, service, firstMinute, historyMinutes) {
- // SQLite's authorization clock is real. Only the historical copies predate it.
+export async function seedHistory(db, firstMinute, historyMinutes) {
  const start = firstMinute - historyMinutes * minute;
- const sample = firstMinute - 2 * minute;
- await dispatchCron(service, sample - minute);
- const runner = await db.prepare('SELECT runner_id,network_label FROM runners WHERE legacy_key=0').first();
- assert.ok(runner, 'the emitted handler prepared its hosted assignment');
-
+ const lastDue = firstMinute - minute;
+ const networkLabel = 'Cloudflare Worker';
+ await db.prepare('INSERT INTO runners(runner_id,registered_at,network_label) VALUES(?,?,?)')
+  .bind(HOSTED_RUNNER_ID, start, networkLabel).run();
  for (let index = 1; index <= monitorCount; index++) {
-  const definition = JSON.stringify({
-   ...validateDefinition({name:`Cron monitor ${index}`, url:`${target}/health/${index}`, intervalMs:minute, retries:0}, []),
-   assignments:{'local-a':{runnerId:runner.runner_id, networkLabel:runner.network_label}},
-  });
+  const definition = validateDefinition({
+   name:`Cron monitor ${index}`, url:`${target}/health/${index}`, intervalMs:minute, retries:0,
+   assignments:{'local-a':{runnerId:HOSTED_RUNNER_ID, networkLabel}},
+  }, []);
   const id = randomUUID();
-  await db.batch([
-   db.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,1,?,?,?)').bind(id, definition, sample, '{"state":"Unknown"}'),
-   db.prepare('INSERT INTO revisions(monitor_id,revision,definition,created_at) VALUES(?,1,?,?)').bind(id, definition, start),
+  const encoded = JSON.stringify(definition);
+  const attemptPrefix = randomUUID().slice(0, 24);
+  const evidence = {probe:'local-a', attempt:0, outcome:'pass', durationMs:20, status:200,
+   checks:[{assertion:'status', pass:true, reason:'HTTP 200'}]};
+  const last = {...evidence, id:attemptPrefix+lastDue.toString(16).padStart(12,'0'), startedAt:lastDue,
+   completedAt:lastDue+20, receivedAt:lastDue+20, retryComplete:true};
+  // For uninterrupted passes the native checkpoint's only accumulated state
+  // is the recovery streak. The observed state and last evidence come from the same slot.
+  const state = evaluate(definition, [last], {recoveryStreak:historyMinutes-1}, last.completedAt);
+  const results = await db.batch([
+   db.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,1,?,?,?)')
+    .bind(id, encoded, firstMinute, JSON.stringify(state)),
+   db.prepare('INSERT INTO revisions(monitor_id,revision,definition,created_at) VALUES(?,1,?,?)').bind(id, encoded, start),
    db.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind(id),
+   db.prepare(`WITH RECURSIVE times(due) AS (SELECT CAST(?2 AS INTEGER) UNION ALL SELECT due+?4 FROM times WHERE due<?3)
+     INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until)
+     SELECT ?1||':1:'||due,?1,1,due,'complete',?5,'',due+?6 FROM times`)
+    .bind(id, start, lastDue, minute, encoded, acceptanceMs(definition)),
+   db.prepare(`INSERT INTO runner_assignments(slot_id,probe,runner_id,delivered_at,received_times)
+     SELECT id,'local-a',?2,due_at,json_object('0',due_at+20) FROM slots WHERE monitor_id=?1`).bind(id, HOSTED_RUNNER_ID),
+   db.prepare(`WITH attempts AS (
+     SELECT id AS slot_id,?2||printf('%012x',due_at) AS id,due_at FROM slots WHERE monitor_id=?1
+    ) INSERT INTO observations(id,slot_id,probe,attempt,evidence)
+    SELECT id,slot_id,'local-a',0,json_set(?3,'$.id',id,'$.startedAt',due_at,'$.completedAt',due_at+20)
+    FROM attempts`).bind(id, attemptPrefix, JSON.stringify(evidence)),
+   db.prepare(`INSERT INTO attempt_checkpoints(monitor_id,revision,due_at,slot_id,state,last_observations)
+     VALUES(?,1,?,?,?,?)`).bind(id, lastDue, `${id}:1:${lastDue}`, JSON.stringify(state), JSON.stringify([last])),
   ]);
+  for (const {meta} of results.slice(3,6)) assert.equal(meta.changes, historyMinutes, 'full native slot, assignment and observation history');
  }
- await dispatchCron(service, sample);
- await assertHealthyTick(db, sample);
-
- // Clone genuine hosted evidence into the retained native format, preserving
- // recorded offsets and giving each new observation its own identity.
- // As in archive restore, suppress the native trigger during the bulk copy
- // and build the rolling projection from the current bucket view.
- const [, ...copied] = await db.batch([
-  db.prepare("INSERT INTO availability_bucket_history(monitor_id,day) VALUES('',-1)"),
-  db.prepare(`WITH RECURSIVE minutes(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM minutes WHERE i<?1)
-    INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual)
-    SELECT monitor_id||':'||revision||':'||CAST(due_at-i*?2 AS INTEGER),monitor_id,revision,due_at-i*?2,status,definition,lease_owner,lease_until-i*?2,missed_count,manual
-    FROM slots CROSS JOIN minutes WHERE due_at=?3`).bind(historyMinutes - 2, minute, sample),
-  db.prepare(`INSERT INTO runner_assignments(slot_id,probe,runner_id,delivered_at,received_times,external_check_url)
-    SELECT s.id,a.probe,a.runner_id,a.delivered_at+s.due_at-?1,
-      json_set(a.received_times,'$."0"',json_extract(a.received_times,'$."0"')+s.due_at-?1),a.external_check_url
-    FROM slots s JOIN slots exemplar ON exemplar.monitor_id=s.monitor_id AND exemplar.due_at=?1
-    JOIN check_assignments a ON a.slot_id=exemplar.id WHERE s.due_at<?1`).bind(sample),
-  db.prepare(`WITH copied AS (
-    SELECT substr(o.id,1,24)||printf('%012x',s.due_at) AS id,s.id AS slot_id,o.probe,o.attempt,o.evidence,s.due_at-?1 AS offset_ms
-    FROM slots s JOIN slots exemplar ON exemplar.monitor_id=s.monitor_id AND exemplar.due_at=?1
-    JOIN check_observations o ON o.slot_id=exemplar.id WHERE s.due_at<?1)
-    INSERT INTO observations(id,slot_id,probe,attempt,evidence)
-    SELECT id,slot_id,probe,attempt,json_set(evidence,'$.id',id,'$.startedAt',json_extract(evidence,'$.startedAt')+offset_ms,
-      '$.completedAt',json_extract(evidence,'$.completedAt')+offset_ms) FROM copied`).bind(sample),
-  db.prepare("DELETE FROM availability_bucket_history WHERE monitor_id='' AND day=-1"),
-  db.prepare(`INSERT INTO availability_buckets(monitor_id,starts_at,slots)
-    SELECT monitor_id,starts_at,jsonb_group_object(slot_key,record) FROM availability_bucket_slots
-    WHERE monitor_id IN (SELECT id FROM monitors) AND due_at<?
-      AND due_at>=(SELECT day FROM availability_bucket_history WHERE monitor_id='' AND day>=0)
-    GROUP BY monitor_id,starts_at
-    ON CONFLICT(monitor_id,starts_at) DO UPDATE SET slots=jsonb_patch(slots,excluded.slots),version=excluded.version`).bind(sample),
- ]);
- for (const [index, kind] of ['slot', 'assignment', 'observation'].entries()) {
-  assert.equal(copied[index].meta.changes, (historyMinutes - 2) * monitorCount, `full historical ${kind} copy`);
- }
- // Rewind the fixture-only cursor so acceptance folds the copied evidence.
- await db.prepare('UPDATE monitors SET hosted_checkpoint=NULL').run();
- // The ordinary result acceptance path constructs real projection checkpoints.
- await dispatchCron(service, firstMinute - minute);
- await assertHealthyTick(db, firstMinute - minute);
- const checkpoint = await db.prepare("SELECT COUNT(*) AS count FROM monitors WHERE json_extract(hosted_checkpoint,'$.dueAt')>=?").bind(sample).first();
- assert.equal(checkpoint.count, monitorCount, 'all four checkpoints have folded every settled historical slot');
- const history = (await db.prepare(`SELECT COUNT(*) AS count, MIN(s.due_at) AS first, MAX(s.due_at) AS last
-   FROM slots s JOIN check_observations o ON o.slot_id=s.id WHERE s.manual=0 GROUP BY s.monitor_id`).all()).results;
- assert.equal(history.length, monitorCount);
- for (const {count, first, last} of history) {
-  assert.equal(count, historyMinutes);
-  assert.equal(first, start);
-  assert.equal(last, firstMinute - minute);
- }
- console.log(`Seeded ${historyMinutes * monitorCount} retained slots and observations with settled checkpoints`);
+ console.log(`Seeded ${historyMinutes * monitorCount} retained native slots and observations with settled checkpoints`);
 }
 
 export async function authorizeRequests(worker) {

@@ -12,14 +12,16 @@ import {proveCanaryBucketBudget, proveAvailabilityDumpRoundTrip} from './cron-d1
 const {values} = parseArgs({options:{
  dist:{type:'string', default:'dist'},
  'history-days':{type:'string', default:'30'},
- 'profile-upgrade':{type:'boolean'},
 }});
 const historyMinutes = Number(values['history-days']) * minutesPerDay;
 assert.ok(Number.isSafeInteger(historyMinutes) && historyMinutes >= minutesPerDay, 'history-days must be at least one day');
 
 const day = minutesPerDay * minute;
 const dailyBudget = 1_000_000;
-const dailyWriteBudget = 50_000;
+const dailyWriteBudget = 70_000;
+const migrationWriteBudget = 20_000;
+const freeDailyWriteLimit = 100_000;
+const cronWriteBudget = 56;
 const cronBudget = 300_000;
 const coldReadBudget = 1_000;
 const activePollInterval = 5_000;
@@ -66,18 +68,19 @@ async function scrapeMetrics(request, time, authorization, ids) {
  for (const id of ids) assert.ok(metrics.includes(`uptime_availability_observed_seconds{monitor_id="${id}"}`));
 }
 
-async function measureDay(worker, {cookie, authorization}, firstMinute) {
+async function measureDay(worker, {cookie, authorization}, firstMinute, migrationWrites) {
  // Miniflare's dispatchFetch closes each connection. Pool loopback requests
  // to workerd's real HTTP listener so a full day can run on a shared host.
  const listener = await worker.ready;
  const request = (path, init) => fetch(new URL(path, listener), init);
  const usage = new Map();
  function record(kind, {rows, writes}) {
-  const total = usage.get(kind) ?? {rows:0, writes:0, calls:0, max:0};
+  const total = usage.get(kind) ?? {rows:0, writes:0, calls:0, max:0, maxWrites:0};
   total.rows += rows;
   total.writes += writes;
   total.calls++;
   total.max = Math.max(total.max, rows);
+  total.maxWrites = Math.max(total.maxWrites, writes);
   usage.set(kind, total);
  }
  const service = await worker.getWorker();
@@ -93,8 +96,9 @@ async function measureDay(worker, {cookie, authorization}, firstMinute) {
    assert.ok(cost.rows > 0, 'scheduled checks exercised metered D1 reads');
    if (coldCron === undefined) {
     coldCron = cost.rows;
-    console.log(`Cold cron: ${cost.rows} D1 rows read`);
+    console.log(`Cold cron: ${cost.rows} D1 rows read, ${cost.writes} written`);
    }
+   assert.ok(cost.writes < cronWriteBudget, `cron at ${new Date(time).toISOString()} wrote ${cost.writes} rows; expected under ${cronWriteBudget}`);
    record('cron', cost);
    await assertHealthyTick(db, time);
    nextCron += minute;
@@ -130,7 +134,7 @@ async function measureDay(worker, {cookie, authorization}, firstMinute) {
  const combined = [...usage.values()].reduce((rows, total) => rows + total.rows, 0);
  const written = [...usage.values()].reduce((rows, total) => rows + total.writes, 0);
  console.log(`${monitorCount} active monitors with ${historyMinutes / minutesPerDay} days of retained history`);
- for (const [kind, {rows, writes, calls, max}] of usage) console.log(`${kind}: ${rows} D1 rows read, ${writes} written in ${calls} calls, max ${max} reads`);
+ for (const [kind, {rows, writes, calls, max, maxWrites}] of usage) console.log(`${kind}: ${rows} D1 rows read, ${writes} written in ${calls} calls, max ${max} reads and ${maxWrites} writes`);
  console.log(`Combined: ${combined} D1 rows read, ${written} written across one simulated day`);
  assert.equal(usage.get('cron').calls, minutesPerDay);
  assert.equal(usage.get('metrics').calls, day / scrapeInterval);
@@ -139,6 +143,7 @@ async function measureDay(worker, {cookie, authorization}, firstMinute) {
  assert.ok(usage.get('cron').rows < cronBudget, `cron read ${usage.get('cron').rows} rows; expected under ${cronBudget} per day`);
  assert.ok(combined < dailyBudget, `combined read ${combined} rows; expected under ${dailyBudget} per day`);
  assert.ok(written < dailyWriteBudget, `combined wrote ${written} rows; expected under ${dailyWriteBudget} per day`);
+ assert.ok(migrationWrites + written < freeDailyWriteLimit, `upgrade day wrote ${migrationWrites + written} rows; expected under ${freeDailyWriteLimit}`);
 }
 
 const migrations = await migrationPlan();
@@ -161,12 +166,17 @@ try {
  } finally {
   await canaryWorker.dispose();
  }
- await migrate(fixtureDB, [...migrations.initial, ...migrations.buckets, ...migrations.compact], {profile:values['profile-upgrade']});
+ await migrate(fixtureDB, migrations.initial);
+ await seedHistory(fixtureDB, firstMinute, historyMinutes);
+ const preCompactWrites = await migrate(fixtureDB, migrations.buckets, {profile:true});
+ const compactWrites = await migrate(fixtureDB, migrations.compact, {profile:true});
+ const migrationWrites = preCompactWrites + compactWrites;
+ console.log(`Populated upgrade: ${migrationWrites} D1 rows written (${compactWrites} from compact hosted storage onward)`);
+ assert.ok(migrationWrites < migrationWriteBudget, `upgrade wrote ${migrationWrites} rows; expected under ${migrationWriteBudget}`);
  const auth = await authorizeRequests(worker);
- await seedHistory(fixtureDB, await worker.getWorker(), firstMinute, historyMinutes);
  await worker.dispose();
  worker = await runtime(values.dist, directory);
- await measureDay(worker, auth, firstMinute);
+ await measureDay(worker, auth, firstMinute, migrationWrites);
 } finally {
  try { await worker?.dispose(); }
  finally { await rm(directory, {recursive:true, force:true}); }

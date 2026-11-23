@@ -44,7 +44,7 @@ export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}
 export async function claimAdmittedAttempt(env:Bindings,runnerId:string,{monitorId=null}:{monitorId?:string|null}={}){return nativeClaimAttempt(env,runnerId,monitorId,true)}
 async function nativeClaimAttempt(env:Bindings,runnerId:string,monitorId:string|null,admitted:boolean){
  const now=Date.now();
- await env.DB.batch(expireCheckLeases(env.DB,now));
+ await expireCheckLeases(env.DB,now).run();
  const pendingRows=(await env.DB.prepare(`SELECT s.*,m.definition AS current_definition FROM slots s JOIN monitors m ON m.id=s.monitor_id JOIN runner_assignments a ON a.slot_id=s.id WHERE a.runner_id=?2 AND a.delivered_at IS NULL AND s.status='running' AND s.hosted IS NULL AND s.lease_until>?3 AND (?4 IS NULL OR s.monitor_id=?4) AND ${newest('s.id')} ORDER BY s.manual,s.due_at`).bind(null,runnerId,now,monitorId).all<any>()).results;
  const allowed=async(row:any)=>admitted||!await env.DB.prepare('SELECT 1 FROM uptime_agent_revisions WHERE monitor_id=? AND revision=? UNION ALL SELECT 1 FROM uptime_agent_manual WHERE slot_id=?').bind(row.monitor_id??row.id,row.current_revision??row.revision,row.id).first();
  const admittedPending=[];for(const row of pendingRows)if(await allowed(row))admittedPending.push(row);

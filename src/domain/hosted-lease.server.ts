@@ -1,10 +1,5 @@
-/** A compact lease is reachable from its monitor even after a revision edit.
- * Sweep these pointers and the indexed native leases without scanning history. */
+// The partial lease index covers only running slots, even after a monitor's
+// hosted pointer moves to a newer check or its revision changes.
 export function expireCheckLeases(db:D1Database,now:number){
- return [
-  db.prepare("UPDATE slots SET status='interrupted' WHERE status='running' AND lease_until<=? AND hosted IS NULL").bind(now),
-  db.prepare(`UPDATE slots SET status='interrupted' WHERE id IN (
-   SELECT hosted_slot FROM monitors WHERE hosted_slot IS NOT NULL
-  ) AND status='running' AND lease_until<=?`).bind(now),
- ]
+ return db.prepare("UPDATE slots INDEXED BY slots_running_lease SET status='interrupted' WHERE status='running' AND lease_until<=?").bind(now)
 }

@@ -76,6 +76,23 @@ try{
  assert.deepEqual(notes.deliveries.map(d=>d.state),['accepted','accepted','accepted','accepted']);
  assert.equal(notes.runnerContact.state,'Never seen','Worker checks and sends are not runner contact');
 
+ // Model an eviction after claim followed by a newer claim moving the monitor's
+ // pointer. A later Cron invocation must still find the expired slot in history.
+ const latest=await db.prepare('SELECT id,due_at FROM slots WHERE monitor_id=? ORDER BY due_at DESC LIMIT 1').bind(down.id).first();
+ const abandonedDue=latest.due_at-60000,abandoned=`${down.id}:${down.revision}:${abandonedDue}`;
+ await db.batch([
+  db.prepare(`INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,hosted)
+   SELECT ?1,id,revision,?3,'running',definition,'',?3+30000,
+    json_object('runnerId',json_extract(definition,'$.assignments."local-a".runnerId'),
+      'deliveredAt',?3,'assignments',json_extract(definition,'$.assignments'))
+   FROM monitors WHERE id=?2`).bind(abandoned,down.id,abandonedDue),
+  db.prepare('UPDATE monitors SET hosted_slot=? WHERE id=?').bind(latest.id,down.id),
+ ]);
+ await scheduled();
+ const expiredSlot=(await json(await call(`/api/monitors/${down.id}/history`,undefined,cookie))).find(slot=>slot.id===abandoned);
+ assert.equal(expiredSlot?.status,'interrupted','Cron retires an expired hosted slot after the pointer has advanced');
+ assert.equal(expiredSlot.observations.length,0,'lease expiry does not manufacture evidence');
+
  // Nothing is sent twice: a later run finds no queued work.
  await scheduled();assert.equal(received.length,4);
 

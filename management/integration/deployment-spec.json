@@ -556,8 +556,8 @@
     {
       "binding": "DB",
       "name": "0090_slots_status_lease.sql",
-      "sha256": "459d6e7d0c35ae79d28d22009a225103993e055efac65cdbbaf09b13e9c693ee",
-      "sql": "CREATE INDEX IF NOT EXISTS slots_status_lease ON slots(status,lease_until);\n"
+      "sha256": "6358013a7e8883aee7a585fdcc998bf12a3e0d1234857e37edffa00c4d5f62c1",
+      "sql": "-- Keep the migration position without building a full-history index that\n-- 0091 immediately drops. 0091 creates the bounded live-lease index.\nDROP INDEX IF EXISTS slots_status_lease;\n"
     },
     {
       "binding": "DB",
@@ -586,8 +586,8 @@
     {
       "binding": "DB",
       "name": "0094_hosted_check_storage.sql",
-      "sha256": "3248276b517a8f678eea7c17d297bd8b87372a4c690cd10dfd89c11daf39a6d6",
-      "sql": "-- A Worker-owned scheduled slot has a single producer. Keep its delivery\n-- envelope and exact attempts together on that slot, including receipt clocks.\n-- Signed, delegated, manual and pre-upgrade submissions retain their tables.\nALTER TABLE slots ADD COLUMN hosted TEXT;\nALTER TABLE monitors ADD COLUMN hosted_slot TEXT;\nALTER TABLE monitors ADD COLUMN hosted_generation INTEGER NOT NULL DEFAULT 0;\nALTER TABLE monitors ADD COLUMN hosted_checkpoint TEXT;\n\n-- Retain the original access paths for every native writer. The compact slot's\n-- active lease is addressed by the monitor's pointer instead of a second index.\nDROP INDEX IF EXISTS slots_running_lease;\nCREATE INDEX IF NOT EXISTS slots_running_lease ON slots(lease_until,monitor_id)\n  WHERE status='running' AND hosted IS NULL;\nDROP INDEX IF EXISTS slots_projection;\nCREATE INDEX IF NOT EXISTS slots_projection ON slots(monitor_id,revision,manual,due_at,id)\n  WHERE hosted IS NULL;\n\nCREATE VIEW IF NOT EXISTS check_observations AS\n  SELECT id,slot_id,probe,attempt,evidence,rowid AS storage_order,0 AS packed FROM observations\n  UNION ALL\n  SELECT json_extract(o.value,'$.id'),s.id,json_extract(o.value,'$.probe'),\n    json_extract(o.value,'$.attempt'),o.value,s.rowid,1\n  FROM slots s CROSS JOIN json_each(s.hosted,'$.attempts') o;\n\nCREATE VIEW IF NOT EXISTS check_assignments AS\n  SELECT slot_id,probe,runner_id,delivered_at,received_times,external_check_url FROM runner_assignments\n  UNION ALL\n  SELECT s.id,a.key,json_extract(s.hosted,'$.runnerId'),json_extract(s.hosted,'$.deliveredAt'),\n    COALESCE(json_extract(s.hosted,'$.receivedTimes.\"'||a.key||'\"'), '{}'),json_extract(a.value,'$.canaryUrl')\n  FROM slots s CROSS JOIN json_each(s.hosted,'$.assignments') a;\n"
+      "sha256": "2143ad844329d1482f3dbff875830253edf98fcfd2799d30b36863ff90569b79",
+      "sql": "-- A Worker-owned scheduled slot has a single producer. Keep its delivery\n-- envelope and exact attempts together on that slot, including receipt clocks.\n-- Signed, delegated, manual and pre-upgrade submissions retain their tables.\nALTER TABLE slots ADD COLUMN hosted TEXT;\nALTER TABLE monitors ADD COLUMN hosted_slot TEXT;\nALTER TABLE monitors ADD COLUMN hosted_generation INTEGER NOT NULL DEFAULT 0;\nALTER TABLE monitors ADD COLUMN hosted_checkpoint TEXT;\n\n-- Keep the indexes from 0025 and 0091. Rebuilding the projection would\n-- write one row per retained slot, and the live-lease index also covers hosted slots.\n\nCREATE VIEW IF NOT EXISTS check_observations AS\n  SELECT id,slot_id,probe,attempt,evidence,rowid AS storage_order,0 AS packed FROM observations\n  UNION ALL\n  SELECT json_extract(o.value,'$.id'),s.id,json_extract(o.value,'$.probe'),\n    json_extract(o.value,'$.attempt'),o.value,s.rowid,1\n  FROM slots s CROSS JOIN json_each(s.hosted,'$.attempts') o;\n\nCREATE VIEW IF NOT EXISTS check_assignments AS\n  SELECT slot_id,probe,runner_id,delivered_at,received_times,external_check_url FROM runner_assignments\n  UNION ALL\n  SELECT s.id,a.key,json_extract(s.hosted,'$.runnerId'),json_extract(s.hosted,'$.deliveredAt'),\n    COALESCE(json_extract(s.hosted,'$.receivedTimes.\"'||a.key||'\"'), '{}'),json_extract(a.value,'$.canaryUrl')\n  FROM slots s CROSS JOIN json_each(s.hosted,'$.assignments') a;\n"
     },
     {
       "binding": "DB",

@@ -6,14 +6,8 @@ ALTER TABLE monitors ADD COLUMN hosted_slot TEXT;
 ALTER TABLE monitors ADD COLUMN hosted_generation INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE monitors ADD COLUMN hosted_checkpoint TEXT;
 
--- Retain the original access paths for every native writer. The compact slot's
--- active lease is addressed by the monitor's pointer instead of a second index.
-DROP INDEX IF EXISTS slots_running_lease;
-CREATE INDEX IF NOT EXISTS slots_running_lease ON slots(lease_until,monitor_id)
-  WHERE status='running' AND hosted IS NULL;
-DROP INDEX IF EXISTS slots_projection;
-CREATE INDEX IF NOT EXISTS slots_projection ON slots(monitor_id,revision,manual,due_at,id)
-  WHERE hosted IS NULL;
+-- Keep the indexes from 0025 and 0091. Rebuilding the projection would
+-- write one row per retained slot, and the live-lease index also covers hosted slots.
 
 CREATE VIEW IF NOT EXISTS check_observations AS
   SELECT id,slot_id,probe,attempt,evidence,rowid AS storage_order,0 AS packed FROM observations
