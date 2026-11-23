@@ -27,7 +27,7 @@ const pathOf=({view,area})=>view==='settings'?`/app/settings/${area}`:`/app/${vi
 const TITLES={monitors:'Monitors',locations:'Locations',signout:'Sign out'};
 function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname),entry=routeOf(location.pathname);let data=null,view=pageId!==null?'monitor':entry?.view??(location.pathname.split('/')[2]||'monitors'),settingsArea=entry?.area??null,feedback,readUnavailable=false,redirecting=false,closed=false,retryReadAt=0,retryTimer,shown=null;const $=s=>document.querySelector(s);
 const overviewPath=pageId===null?'/api/overview':`/api/overview?monitor=${encodeURIComponent(pageId)}`;
-let overviewTag=null,overviewUnchanged=false,pollTimer;
+let overviewTag=null,overviewUnchanged=false,overviewRefreshAt=Infinity,pollTimer;
 // /app/settings, or an area Settings does not have, opens Alerts at its own path.
 if(entry&&location.pathname!==pathOf(entry))history.replaceState(history.state,'',pathOf(entry)+location.search+location.hash);
 // A monitor's page started its first reads while the document parsed (src/ui/console-prefetch.ts); each is used once.
@@ -66,7 +66,8 @@ async function loadOverview({conditional}){
  const overview=unchanged?previous:await response.json();
  // Keep the server's snapshot on a 304 and separately record when it was confirmed.
  const now=unchanged?Date.parse(response.headers.get('date')??''):overview.now;
- return {overview,unchanged,etag:response.headers.get('etag')??(unchanged?ifNoneMatch:null),now:Number.isFinite(now)?now:Date.now()};
+ const ttl=Number(response.headers.get('x-uptime-overview-ttl')??Infinity);
+ return {overview,unchanged,etag:response.headers.get('etag')??(unchanged?ifNoneMatch:null),refreshAt:Number.isFinite(ttl)?Date.now()+ttl:Infinity,now:Number.isFinite(now)?now:Date.now()};
 }
 const notice=text=>feedback?.announceBackground(text);
 const catalog=createCatalog({api,action});
@@ -95,7 +96,9 @@ window.addEventListener('pageshow',restored);
 function scheduleOverview(){
  clearTimeout(pollTimer);
  if(closed||view==='signout')return;
- pollTimer=setTimeout(()=>void refresh({conditional:true}),document.hidden||overviewUnchanged?60000:5000);
+ const interval=overviewUnchanged?60000:5000;
+ const delay=document.hidden?60000:Math.max(1000,Math.min(interval,overviewRefreshAt-Date.now()));
+ pollTimer=setTimeout(()=>void refresh({conditional:true}),delay);
 }
 async function refresh({conditional=false}={}){
  try{
@@ -180,6 +183,7 @@ function renderOverview(next,state){
  if(closed)return;
  if(state.error?.status===401){navigateToLogin();return}
  overviewUnchanged=!state.readUnavailable&&next?.unchanged===true;
+ overviewRefreshAt=state.readUnavailable?Infinity:next?.refreshAt??Infinity;
  if(!next){if(state.readUnavailable)firstReadFailed();return}
  data=next.overview;overviewTag=next.etag;rememberZone(data);readUnavailable=state.readUnavailable;
  const drawn=render();

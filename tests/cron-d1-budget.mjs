@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdtemp, rm} from 'node:fs/promises';
+import {mkdir, mkdtemp, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {parseArgs} from 'node:util';
@@ -7,6 +7,7 @@ import {
  assertHealthyTick, authorizeRequests, clientHeaders, dispatchCron, migrate, migrationPlan,
  minute, minutesPerDay, monitorCount, runtime, seedHistory, upgradeHistory,
 } from './cron-d1-history-fixture.mjs';
+import {proveCanaryBucketBudget, proveAvailabilityDumpRoundTrip} from './cron-d1-bucket-fixture.mjs';
 
 const {values} = parseArgs({options:{
  dist:{type:'string', default:'dist'},
@@ -38,10 +39,12 @@ async function pollOverview(request, time, cookie, etag) {
  const response = await request('/api/overview', {headers:{
   ...clientHeaders, cookie, 'x-uptime-time-zone':'Australia/Brisbane', 'x-d1-meter-time':String(time), ...(etag ? {'if-none-match':etag} : {}),
  }});
+ const ttl = Number(response.headers.get('x-uptime-overview-ttl'));
+ assert.ok(response.headers.has('x-uptime-overview-ttl') && Number.isFinite(ttl) && ttl >= 0, 'poll advertises its next clock deadline');
  if (response.status === 304) {
   assert.ok(etag, 'unchanged response follows a successful poll');
   assert.equal(await response.text(), '', 'unchanged overview has no body');
-  return {etag, unchanged:true};
+  return {etag, unchanged:true, ttl};
  }
  assert.equal(response.status, 200, 'signed-in overview poll succeeds');
  const {monitors} = await response.json();
@@ -50,7 +53,7 @@ async function pollOverview(request, time, cookie, etag) {
  const updated = response.headers.get('etag');
  assert.ok(updated, 'overview advertises an ETag');
  assert.notEqual(updated, etag, 'a conditional 200 returns a changed overview');
- return {etag:updated, unchanged:false};
+ return {etag:updated, unchanged:false, ttl};
 }
 
 async function scrapeMetrics(request, time, authorization, ids) {
@@ -104,7 +107,7 @@ async function measureDay(worker, {cookie, authorization}, firstMinute) {
    }
    etag = result.etag;
    record(result.unchanged ? 'unchanged overview' : 'changed overview', cost);
-   nextPoll += result.unchanged ? unchangedPollInterval : activePollInterval;
+   nextPoll += Math.max(1000,Math.min(result.unchanged ? unchangedPollInterval : activePollInterval,result.ttl));
   }
   if (time === nextScrape) {
    await scrapeMetrics(request, time, authorization, ids);
@@ -136,6 +139,7 @@ async function measureDay(worker, {cookie, authorization}, firstMinute) {
 }
 
 const migrations = await migrationPlan();
+await proveAvailabilityDumpRoundTrip([...migrations.initial,...migrations.afterHistory]);
 const directory = await mkdtemp(join(tmpdir(), 'uptime-cron-d1-budget-'));
 // Cron's scheduled clock must stay ahead of SQLite's unmodified authorization clock.
 const firstMinute = Math.ceil(Date.now() / minute) * minute + 20 * minute;
@@ -143,6 +147,14 @@ let worker;
 try {
  worker = await runtime(values.dist, directory);
  const fixtureDB = await worker.getD1Database('DB');
+ const canaryDirectory=join(directory,'canary');
+ await mkdir(canaryDirectory);
+ const canaryWorker=await runtime(values.dist,canaryDirectory);
+ try {
+  const canaryDB=await canaryWorker.getD1Database('DB');
+  await migrate(canaryDB,migrations.initial);
+  await proveCanaryBucketBudget(canaryWorker,canaryDB,migrations.afterHistory,await authorizeRequests(canaryWorker),firstMinute);
+ }finally{await canaryWorker.dispose()}
  await migrate(fixtureDB, migrations.initial);
  const auth = await authorizeRequests(worker);
  await seedHistory(fixtureDB, await worker.getWorker(), firstMinute, historyMinutes);

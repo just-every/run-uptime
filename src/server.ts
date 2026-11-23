@@ -210,13 +210,12 @@ api.get('/api/overview',async c=>{
  const monitorId=c.req.query('monitor'),person=actor.session.operator
  const key=JSON.stringify([person.id,person.version,actor.role,actor.scopes,actor.revision,monitorId,zone])
  const validator=await overviewValidator(c.env.DB,key,c.req.header('if-none-match'),monitorId)
- if(validator.unchanged)return c.body(null,304,{'etag':validator.etag})
+ if(validator.unchanged)return c.body(null,304,validator.headers)
  if(zone&&!readOnly)await initializeNotificationTimeZone(c.env,zone)
- const snapshot=await overview(c.env,{monitorId,readOnly})
+ const {snapshot,expiresAt}=await overview(c.env,{monitorId,readOnly})
  // An owner can start work while Cloudflare is still activating Cron.
  if(!readOnly&&!snapshot.runner.cronStarted)c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))
- c.header('etag',validator.remember())
- return c.json({...snapshot,operator:{displayName:person.displayName},access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}})
+ return c.json({...snapshot,operator:{displayName:person.displayName},access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}},200,validator.remember(snapshot.now,expiresAt))
 })
 for(const [path,preview,apply] of [
  ['/api/catalog/routes',previewCatalogRoutes,applyCatalogRoutes],['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],

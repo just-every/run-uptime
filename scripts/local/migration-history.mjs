@@ -25,7 +25,17 @@ export async function migrationHistory(db, root, { upgrade = false } = {}) {
   names = applied.map(row => row.name);
  } else {
   names = tables.includes('d1_migrations') ? (await db.prepare('SELECT name FROM d1_migrations ORDER BY id').all()).results.map(row => row.name) : [];
-  if (!names.every((name, index) => name === plan[index]?.name)) throw Error('changed-or-uncertain-migration-history');
+  // Wrangler applies by name, so a checkout that already ran 0092 can append
+  // the backfill guard later. Every other migration must still be a prefix.
+  const guard = '0091_z_defer_availability_backfill.sql';
+  const ordinaryNames = names.filter(name => name !== guard);
+  const ordinaryPlan = plan.filter(row => row.name !== guard);
+  if (new Set(names).size !== names.length ||
+      !ordinaryNames.every((name, index) => name === ordinaryPlan[index]?.name) ||
+      (names.includes(guard) && !plan.some(row => row.name === guard))) {
+   throw Error('changed-or-uncertain-migration-history');
+  }
  }
- return { tracked, plan: plan.filter(row => names.includes(row.name)) };
+ const byName = new Map(plan.map(row => [row.name, row]));
+ return { tracked, plan: names.map(name => byName.get(name)) };
 }

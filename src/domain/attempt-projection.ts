@@ -59,13 +59,14 @@ export function foldAttempts(definition:any,slots:any[],observations:any[],check
  return {state,last}
 }
 /** Read-time freshness never consumes a scheduled slot or overwrites the fold. */
-export function projectAttempts(definition:any,slots:any[],observations:any[],now:number,checkpoint?:ProjectionCheckpoint){
+export function projectAttempts(definition:any,slots:any[],observations:any[],now:number,checkpoint?:ProjectionCheckpoint,watchEvidence?:(visible:any[])=>void){
  const {state,last}=foldAttempts(definition,slots,observations,checkpoint);
  // Pending classification bounds counters, not visible coverage. Show the
  // newest non-skipped slot's actual observations while historical eligibility
  // waits for a runner to advance or the fixed classification deadline to pass.
  const latest=slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>b.due_at-a.due_at||b.id.localeCompare(a.id))[0];
  const visible=latest?finalAttempts(definition,observationsBySlot(observations).get(latest.id)??[]):last;
+ watchEvidence?.(visible);
  // Every visible observation has passed completion admission. Keep accepted
  // target and canary clocks visible on later arrivals and reads, even when a
  // runner is slightly ahead. They cannot advance maintenance or evidence age.
@@ -76,11 +77,12 @@ export function projectAttempts(definition:any,slots:any[],observations:any[],no
  * Any returned attempt or an expired window replaces it, even if incomplete.
  * This is owner-read visibility only; result admission and incident folding
  * continue to include every scheduled slot through projectAttempts. */
-export function projectRecentAttempts(definition:any,slots:any[],observations:any[],now:number,checkpoint?:ProjectionCheckpoint){
+export function projectRecentAttempts(definition:any,slots:any[],observations:any[],now:number,checkpoint?:ProjectionCheckpoint,clock?:{at:(deadline:number)=>void;evidence:(visible:any[])=>void}){
  const grouped=observationsBySlot(observations),waiting=new Set<string>();
  for(const slot of slots.filter(s=>!s.manual&&!s.skipped).sort((a,b)=>b.due_at-a.due_at||b.id.localeCompare(a.id))){
   if(slot.lease_until<=now||grouped.get(slot.id)?.length)break;
   waiting.add(slot.id);
+  clock?.at(slot.lease_until);
  }
- return projectAttempts(definition,slots.filter(s=>!waiting.has(s.id)),observations,now,checkpoint)
+ return projectAttempts(definition,slots.filter(s=>!waiting.has(s.id)),observations,now,checkpoint,clock?.evidence)
 }

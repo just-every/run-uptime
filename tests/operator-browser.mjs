@@ -201,7 +201,7 @@ async function editJourney(page,monitor,width){
  await page.getByRole('button',{name:'Edit',exact:true}).click();await page.locator('.editor-ready').waitFor();
  assert.equal(await page.locator('[name=jsonEquals]:visible').inputValue(),'true');assert.equal(await page.locator('[name=latencyMs]:visible').inputValue(),'10');
  await page.locator('.editor-cancel:visible').click();await ready(page);
- await waitForMonitorState(page,'Unknown',{timeout:22000});
+ await page.locator('#monitor-state').filter({hasText:'Unknown'}).waitFor({timeout:22000});
  await audit(page,`stale-${width}`,{state:'Unknown',reason:/recent result|waiting/i});
  assert.ok(await page.locator('#recent-rows time').count(),'stale state retains the last real check time');
  const history=await (await page.request.get(origin+`/api/monitors/${monitor.id}/history`)).json();

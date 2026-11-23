@@ -41,21 +41,22 @@ export async function summarizeAvailability(buckets:AvailabilityBuckets,from:num
   const pauses=buckets.revisions.filter(r=>r.definition.enabled===false)
   let nextCompleted=Infinity,lastCheckAt:number|null=null,responseDurationMs:number|null=null
   const allSamples:Histogram=new Map(),byProbe=new Map<string,Histogram>()
-  for await(const page of buckets.pages)for(const slot of page){
-    const revision=revisions.get(slot.revision)
+  for await(const page of buckets.pages)for(const [id,dueAt,revisionNumber,status,enabled,interval,evidence,canaryLimit] of page){
+    const revision=revisions.get(revisionNumber)
     if(!revision)continue
-    const completion=slot.completedAt
-    const valid=slot.valid&&completion>=slot.dueAt&&completion<=to&&slot.latestAttempt<=Math.min(to,revision.endsAt)&&
-      slot.latestHeartbeat<=to&&slot.canaryAt<=to
-    if(slot.id===buckets.latest){
+    const [completedAt,duration,expiresAt,latestHeartbeat,latestAttempt,passing,isValid,heartbeatExpires,canaryAt,probes]=evidence
+    const completion=completedAt??-Infinity
+    const valid=isValid&&completion>=dueAt&&completion<=to&&(latestAttempt??-Infinity)<=Math.min(to,revision.endsAt)&&
+      (latestHeartbeat??-Infinity)<=to&&(canaryAt??-Infinity)<=to
+    if(id===buckets.latest){
       if(Number.isSafeInteger(completion)&&completion<=to)lastCheckAt=completion
-      if(valid&&Number.isSafeInteger(slot.duration)&&slot.duration>=0)responseDurationMs=slot.duration
+      if(valid&&duration!==null&&Number.isSafeInteger(duration)&&duration>=0)responseDurationMs=duration
     }
-    const activeFrom=slot.enabled?revision.startsAt:revision.endsAt
+    const activeFrom=enabled!==0?revision.startsAt:revision.endsAt
     const coverageStart=Math.max(completion,activeFrom)
-    const coverageEnd=Math.min(to,revision.endsAt,completion+slot.interval,nextCompleted,slot.expiresAt,slot.passing?slot.heartbeatExpires:Infinity)
-    if(completion!==-Infinity)nextCompleted=Math.min(nextCompleted,completion)
-    if(!valid||!slot.complete||slot.canaryAt>slot.canaryLimit)continue
+    const coverageEnd=Math.min(to,revision.endsAt,completion+interval,nextCompleted,expiresAt??Infinity,passing?heartbeatExpires??Infinity:Infinity)
+    if(completedAt!==null)nextCompleted=Math.min(nextCompleted,completion)
+    if(!valid||status!=='complete'||(canaryAt??-Infinity)>canaryLimit)continue
     if(coverageEnd>coverageStart){
       for(const [index,start]of starts.entries()){
         const clipped=Math.max(coverageStart,start)
@@ -63,16 +64,15 @@ export async function summarizeAvailability(buckets:AvailabilityBuckets,from:num
         // underlying span before clipping. Overview clips both at its edge.
         const excluded=overlap(recent?clipped:coverageStart,coverageEnd,maintenance)
         const duration=Math.max(0,coverageEnd-clipped-excluded)
-        totals[index][slot.passing?'up':'notPassing']+=duration
+        totals[index][passing?'up':'notPassing']+=duration
       }
     }
     if(recent)continue
-    for(const probe of slot.probes){
-      const at=probe[12]
+    for(const [probe,at,elapsed] of probes){
       if(at<from||at>=to||at<activeFrom||maintenance.some(span=>at>=span.startsAt&&at<span.endsAt))continue
-      let values=byProbe.get(probe[0])
-      if(!values){values=new Map();byProbe.set(probe[0],values)}
-      addSample(values,probe[13]);addSample(allSamples,probe[13])
+      let values=byProbe.get(probe)
+      if(!values){values=new Map();byProbe.set(probe,values)}
+      addSample(values,elapsed);addSample(allSamples,elapsed)
     }
   }
   for(const [index,start]of starts.entries()){

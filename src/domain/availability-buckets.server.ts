@@ -1,74 +1,54 @@
 import { maintenanceReportSnapshots } from './planned-maintenance/report.server.ts'
 
 import { dayMs, hydrateAvailabilityDays, utcDay } from './availability-backfill.server.ts'
-type SlotDefinition = {
-  enabled: number; intervalMs: number; freshnessMs: number; timeoutMs: number; retries: number
-  probes: string[]; type: string | null; heartbeat: { maxAgeMs: number | null }
-  assigned: number; assignments: Record<string, {canaryUrl: string | null}> | null
-}
-type Probe = [
-  probe: string, attempts: number, first: number, last: number, failures: number, runnerErrors: number,
-  invalid: number, latestCompletion: number, latestHeartbeat: number | null, failedCanaries: number,
-  outcome: string, startedAt: number, completedAt: number, duration: number,
-  heartbeatAt: number | null, canaryOutcome: string | null, canaryAt: number | null,
-]
-type BucketSlot = [id: string, dueAt: number, revision: number, status: string, definition: SlotDefinition, probes: Probe[]]
 type Span = { startsAt:number; endsAt:number }
 type Revision = Span & { revision:number; definition:{enabled:boolean; intervalMs:number; probes:string[]; retries:number; timeoutMs:number}; maintenance:Span[] }
-export type SlotRollup = {
-  id:string; dueAt:number; revision:number; complete:boolean; enabled:boolean; interval:number
-  completedAt:number; duration:number; expiresAt:number; latestHeartbeat:number; latestAttempt:number
-  passing:boolean; valid:boolean; heartbeatExpires:number; canaryAt:number; canaryLimit:number; probes:Probe[]
-}
+export type SlotRollup = [
+  id:string, dueAt:number, revision:number, status:string, enabled:number, interval:number,
+  evidence:[completedAt:number|null, duration:number|null, expiresAt:number|null, latestHeartbeat:number|null,
+    latestAttempt:number|null, passing:number, valid:number, heartbeatExpires:number|null, canaryAt:number|null,
+    probes:[name:string, completedAt:number, duration:number][]],
+  canaryLimit:number,
+]
 
-function summarize([id,dueAt,revision,status,definition,probes]:BucketSlot):SlotRollup {
-  let completedAt=-Infinity,duration=-Infinity,expiresAt=Infinity,latestHeartbeat=-Infinity,latestAttempt=-Infinity
-  let heartbeatExpires=Infinity
-  let passing=probes.length===definition.probes.length,valid=passing,canaryAt=-Infinity
-  const heartbeat=definition.type==='heartbeat',age=definition.heartbeat.maxAgeMs??0
-  for (const [name,count,first,last,failures,runnerErrors,invalid,maxAt,maxHeartbeat,canaryFailures,outcome,started,completed,elapsed,received,canaryOutcome,canaryCompleted] of probes) {
-    const selected=definition.probes.includes(name)
-    completedAt=Math.max(completedAt,completed??-Infinity)
-    duration=Math.max(duration,elapsed??-Infinity)
-    latestAttempt=Math.max(latestAttempt,maxAt??-Infinity)
-    if(heartbeat)latestHeartbeat=Math.max(latestHeartbeat,maxHeartbeat??-Infinity)
-    passing&&=outcome==='pass'&&failures===0
-    valid&&=selected&&runnerErrors===0&&invalid===0&&
-      (definition.assigned!==0||count===last+1&&first===0)&&['pass','target_failure','runner_error'].includes(outcome)
-    if(heartbeat&&outcome==='pass'){
-      valid&&=received!==null&&started!==null&&completed!==null&&received<=started&&completed-received<=age
-      if(selected&&received!==null)heartbeatExpires=Math.min(heartbeatExpires,received+age)
-    }
-    if(definition.assignments?.[name]?.canaryUrl!=null){
-      valid&&=canaryFailures===0&&canaryOutcome==='pass'&&canaryCompleted!==null
-      canaryAt=Math.max(canaryAt,canaryCompleted??-Infinity)
-    }
-    if(selected&&completed!==null)expiresAt=Math.min(expiresAt,Math.min(completed,canaryCompleted??completed)+definition.freshnessMs)
+type CachedBucket = {at:number; monitor:string; version:string; slots:SlotRollup[]}
+
+// A slot carries one compact evidence tuple and at most three latency tuples.
+// Keep enough for four minute-cadence overviews, across all request ranges.
+const maxCachedSlots=50_000
+class BucketCache {
+  readonly monitors=new Map<string,Map<number,CachedBucket>>()
+  private readonly lru=new Set<CachedBucket>()
+  private slots=0
+
+  touch(bucket:CachedBucket){
+    if(this.lru.delete(bucket))this.lru.add(bucket)
   }
-  const canaries=Object.values(definition.assignments??{}).filter(assignment=>assignment.canaryUrl!==null).length
-  const canaryLimit=dueAt+definition.intervalMs+Math.max(30000,
-    (definition.probes.length*(definition.retries+1)+canaries)*definition.timeoutMs+10000)+1000
-  return {id,dueAt,revision,complete:status==='complete',enabled:definition.enabled!==0,interval:definition.intervalMs,
-    completedAt,duration,expiresAt,latestHeartbeat,latestAttempt,passing,valid,heartbeatExpires,canaryAt,canaryLimit,probes}
-}
 
-type CachedBucket = {version:string; slots:SlotRollup[]}
-const bucketCache = new WeakMap<D1Database,Map<string,Map<number,CachedBucket>>>()
+  put(bucket:CachedBucket){
+    const current=this.monitors.get(bucket.monitor)?.get(bucket.at)
+    if(current)this.remove(current)
+    if(bucket.slots.length>maxCachedSlots)return
+    let monitor=this.monitors.get(bucket.monitor)
+    if(!monitor){monitor=new Map();this.monitors.set(bucket.monitor,monitor)}
+    monitor.set(bucket.at,bucket)
+    this.lru.add(bucket)
+    this.slots+=bucket.slots.length
+    while(this.slots>maxCachedSlots)this.remove(this.lru.values().next().value!)
+  }
+
+  private remove(bucket:CachedBucket){
+    const monitor=this.monitors.get(bucket.monitor)!
+    monitor.delete(bucket.at)
+    if(!monitor.size)this.monitors.delete(bucket.monitor)
+    this.lru.delete(bucket)
+    this.slots-=bucket.slots.length
+  }
+}
+const bucketCaches=new WeakMap<D1Database,BucketCache>()
 
 type LatestSlot={id:string;due_at:number}
 type StoredBucket={starts_at:number;version:string;payload:string|null}
-
-function caches(db:D1Database,id:string){
-  let monitors=bucketCache.get(db)
-  if(!monitors){monitors=new Map();bucketCache.set(db,monitors)}
-  let buckets=monitors.get(id)
-  if(!buckets){
-    if(monitors.size>=8)monitors.delete(monitors.keys().next().value!)
-    buckets=new Map();monitors.set(id,buckets)
-  }
-  monitors.delete(id);monitors.set(id,buckets)
-  return buckets
-}
 
 async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,revisions:Revision[],includeLatest:boolean){
   const reach=revisions.reduce((max,{definition:d})=>Math.max(max,d.intervalMs+
@@ -90,10 +70,13 @@ async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,
   const bucketFloor=utcDay(lower)
   const extraDays=[...new Set(anchors.map(utcDay).filter(day=>day>=0&&day<bucketFloor))].sort((a,b)=>b-a)
   const keep=to-from<=8*dayMs&&((to-from)/interval)<12000
-  const buckets=caches(db,id)
+  let cache=bucketCaches.get(db)
+  if(!cache){cache=new BucketCache();bucketCaches.set(db,cache)}
+  const buckets=cache
 
   async function readRange(start:number,end:number){
-    const cachedBuckets=new Map(buckets)
+    const cachedBuckets=new Map<number,CachedBucket>()
+    for(const [at,bucket] of buckets.monitors.get(id)??[])if(at>=start&&at<=end)cachedBuckets.set(at,bucket)
     const versions=JSON.stringify(Object.fromEntries([...cachedBuckets].map(([at,bucket])=>[at,bucket.version])))
     const {results}=await db.prepare(`SELECT starts_at,version,
       CASE WHEN version IS NOT json_extract(?1,'$."'||starts_at||'"') THEN json(slots) END AS payload
@@ -102,13 +85,12 @@ async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,
     const slots:SlotRollup[]=[]
     for(const row of results){
       const cached=cachedBuckets.get(row.starts_at)
-      const records=row.payload===null&&cached?.version===row.version?cached.slots:
-        Object.values(JSON.parse(row.payload!) as Record<string,BucketSlot>).map(summarize)
-      if(keep)buckets.set(row.starts_at,{version:row.version,slots:records})
-      for(const slot of records)if((slot.dueAt>=floor&&slot.dueAt<=to)||slot.id===latest?.id)slots.push(slot)
+      const records=row.payload===null?cached!.slots:Object.values(JSON.parse(row.payload) as Record<string,SlotRollup>)
+      if(row.payload===null)buckets.touch(cached!)
+      else if(keep)buckets.put({at:row.starts_at,monitor:id,version:row.version,slots:records})
+      for(const slot of records)if((slot[1]>=floor&&slot[1]<=to)||slot[0]===latest?.id)slots.push(slot)
     }
-    slots.sort((a,b)=>b.dueAt-a.dueAt||(a.id===b.id?0:a.id<b.id?1:-1))
-    return slots
+    return slots.sort((a,b)=>b[1]-a[1]||(a[0]===b[0]?0:a[0]<b[0]?1:-1))
   }
 
   async function* pages(){
@@ -118,7 +100,6 @@ async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,
       end=start-1
     }
     for(const day of extraDays)yield await readRange(day,day+dayMs-1)
-    for(const at of buckets.keys())if(at<bucketFloor&&!extraDays.includes(utcDay(at))||at>to||!keep)buckets.delete(at)
   }
   return {pages:pages(),latest:latest?.id,revisions}
 }

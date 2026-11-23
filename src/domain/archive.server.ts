@@ -11,6 +11,7 @@ import {ARCHIVE_ROWS,TABLES,columns,assertBytes,digest,portableArchive,type Tabl
 import {validateArchive} from './archive-validation.ts'
 import {projectRestore} from './archive-restore-projection.ts'
 import {doorBatchArchive} from './business-import/archive.server.ts'
+import {dayMs} from './availability-backfill.server.ts'
 /** Explicit projections prevent future credential columns silently becoming portable. */
 export async function archive(env:Bindings,selection?:ArchiveSelection,options:{transfer?:boolean}={}){
  const rowLimit=options.transfer?TRANSFER_ROWS:ARCHIVE_ROWS;
@@ -89,7 +90,22 @@ export async function restore(env:Bindings,input:any,receipt?:{id:string;sha256:
   }
   collect(name,row);
  }
+ // Suppress the observation trigger only within this atomic restore batch.
+ if(t.observations.length)statements.push(env.DB.prepare("INSERT INTO availability_bucket_history(monitor_id,day) VALUES('',-1)"));
  statements.push(...archiveInserts(env,groups));
+ if(t.observations.length){
+  statements.push(env.DB.prepare("DELETE FROM availability_bucket_history WHERE monitor_id='' AND day=-1"));
+  for(const {id} of t.monitors)statements.push(env.DB.prepare(`INSERT INTO availability_buckets(monitor_id,starts_at,slots)
+   SELECT monitor_id,starts_at,jsonb_group_object(slot_key,record)
+   FROM availability_bucket_slots s WHERE monitor_id=?
+     AND EXISTS(SELECT 1 FROM observations WHERE slot_id=s.slot_key)
+   GROUP BY starts_at
+   ON CONFLICT(monitor_id,starts_at) DO UPDATE SET slots=excluded.slots,version=excluded.version`).bind(id));
+  // Read hydration can skip days whose restored projection is already complete.
+  statements.push(env.DB.prepare(`INSERT OR IGNORE INTO availability_bucket_history(monitor_id,day)
+   SELECT DISTINCT monitor_id,starts_at-starts_at%? FROM availability_buckets
+   WHERE starts_at<(SELECT day FROM availability_bucket_history WHERE monitor_id='' AND day>=0)`).bind(dayMs));
+ }
  statements.push(auditStatement(env,actor,'archive_restore','archive',auditReceipt,'1',[],now));
  // Guard inside the transaction as well: a concurrent product insertion must
  // make the entire restore fail rather than combine two installations.
