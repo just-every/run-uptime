@@ -6,7 +6,7 @@ const lifetime=60_000
 async function overviewVersion(db:D1Database,monitorId?:string){
  const filter=monitorId===undefined?'':' WHERE m.id=?'
  const monitors=db.prepare(`SELECT COUNT(*) AS count,MAX(m.rowid) AS newest,
-    SUM(m.revision) AS revision,SUM(g.generation) AS evidence
+    SUM(m.revision) AS revision,SUM(g.generation+m.hosted_generation) AS evidence
     FROM monitors m LEFT JOIN evidence_generation g ON g.monitor_id=m.id${filter}`)
  const [versions,contacts]=await db.batch([
   monitorId===undefined?monitors:monitors.bind(monitorId),

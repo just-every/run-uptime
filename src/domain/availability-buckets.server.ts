@@ -56,7 +56,7 @@ type CachedBucket = {version:string; slots:SlotRollup[]}
 const bucketCache = new WeakMap<D1Database,Map<string,Map<number,CachedBucket>>>()
 
 type LatestSlot={id:string;due_at:number}
-type StoredBucket={starts_at:number;version:string;payload:string|null}
+type StoredBucket={starts_at:number;version:string|null;payload:string|null}
 
 function caches(db:D1Database,id:string){
   let monitors=bucketCache.get(db)
@@ -97,18 +97,33 @@ async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,
     const versions=JSON.stringify(Object.fromEntries([...cachedBuckets].map(([at,bucket])=>[at,bucket.version])))
     const {results}=await db.prepare(`SELECT starts_at,version,
       CASE WHEN version IS NOT json_extract(?1,'$."'||starts_at||'"') THEN json(slots) END AS payload
-      FROM availability_buckets WHERE monitor_id=?2 AND starts_at BETWEEN ?3 AND ?4`)
+      FROM availability_buckets WHERE monitor_id=?2 AND starts_at BETWEEN ?3 AND ?4
+      UNION ALL
+      SELECT b.starts_at,NULL,json(b.record)
+      FROM monitors m CROSS JOIN json_each(m.hosted_availability_tail) pending
+      CROSS JOIN availability_bucket_slots b ON b.slot_key=pending.value
+      WHERE m.id=?2 AND b.starts_at BETWEEN ?3 AND ?4`)
       .bind(versions,id,start,end).all<StoredBucket>()
-    const slots:SlotRollup[]=[]
+    // A previously folded slot can receive a late attempt. Its exact pending
+    // record supersedes the older bucket record until the next flush.
+    const pending=new Map<string,SlotRollup>()
     for(const row of results){
+      if(row.version!==null)continue
+      const slot=summarize(JSON.parse(row.payload!) as BucketSlot)
+      pending.set(slot.id,slot)
+    }
+    const slots:SlotRollup[]=[]
+    const inRange=(slot:SlotRollup)=>(slot.dueAt>=floor&&slot.dueAt<=to)||slot.id===latest?.id
+    for(const row of results){
+      if(row.version===null)continue
       const cached=cachedBuckets.get(row.starts_at)
       const records=row.payload===null&&cached?.version===row.version?cached.slots:
         Object.values(JSON.parse(row.payload!) as Record<string,BucketSlot>).map(summarize)
       if(keep)buckets.set(row.starts_at,{version:row.version,slots:records})
-      for(const slot of records)if((slot.dueAt>=floor&&slot.dueAt<=to)||slot.id===latest?.id)slots.push(slot)
+      for(const slot of records)if(!pending.has(slot.id)&&inRange(slot))slots.push(slot)
     }
-    slots.sort((a,b)=>b.dueAt-a.dueAt||(a.id===b.id?0:a.id<b.id?1:-1))
-    return slots
+    for(const slot of pending.values())if(inRange(slot))slots.push(slot)
+    return slots.sort((a,b)=>b.dueAt-a.dueAt||(a.id===b.id?0:a.id<b.id?1:-1))
   }
 
   async function* pages(){

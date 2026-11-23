@@ -55,10 +55,12 @@ export const installationLocalTables:Record<string,string>={
  availability_buckets:'Rebuildable availability and latency projection derived from portable scheduled evidence.',
  attempt_checkpoints:'Rebuildable installation-local scheduled evidence checkpoints.',
  runners:'Installation runner identities and encrypted per-runner keys.',runner_assignments:'Installation execution assignments; revisions retain their selected configuration.',evidence_generation:'Installation atomic evidence projection generations.',monitoring_watch:'Installation watch dispatch state; never portable authority.',
- cron_runs:'Installation record of the latest Cron invocation; a receiving installation records its own.',
+ cron_runs:'Installation record that Cron has started; a receiving installation records its own.',
  heartbeat_authority:'Installation heartbeat token and receipt authority.',heartbeat_claims:'Installation heartbeat execution snapshots.',heartbeat_limits:'Installation ingress rate limits.',
  notification_credentials:'Installation destination ciphertext, webhook/Slack URLs and signing keys; email definition is separately exported.',
  notification_claim_custody:'Installation dispatch reservation hashes and claim authorization; product attempts and outcomes are retained separately.',
+ metrics_scrape_usage:'Installation metrics authorization receipts, including allowed and refused token use.',
+ metrics_rate_hours:'Transient installation metrics request counters keyed by irreversible client digest and UTC hour.',
  integration_tokens:'Installation integration token authority.',integration_token_usage:'Installation token authorization audit.',integration_token_events:'Installation token administration audit.',
  rer_mail_development_outbox:'Retired pre-v2 development-capture table; excluded from product archives. Current local sign-in uses automatic owner entry, with no captured-mail inbox.',
  oc_owner_claims:'Installation signed owner admission ledger; retain permanently, never export credentials or authority.',
@@ -83,7 +85,9 @@ export async function assertArchiveInventory(db:D1Database){
  await checkAgentArtifacts(db,uptimeAgentArtifacts);
  const rows=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all<{name:string}>();
  for(const {name} of rows.results)if(!name.startsWith('rer_portability_')&&!TABLES.includes(name)&&!Object.hasOwn(installationLocalTables,name)&&!Object.hasOwn(installationArchiveTables,name))throw Error(`Archive unclassified table: ${name}`);
- const sourceColumns:Record<string,string[]>={...columns,notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at','webhook_template'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};
+ const sourceColumns:Record<string,string[]>={...columns,
+  monitors:[...columns.monitors,'hosted_slot','hosted_generation','hosted_checkpoint','hosted_availability_tail'],
+  slots:[...columns.slots,'hosted'],notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at','webhook_template'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};
  const schemas=await db.batch(TABLES.map(name=>db.prepare(`PRAGMA table_info(${name})`)));
  for(let i=0;i<TABLES.length;i++){const name=TABLES[i],actual=schemas[i].results.map((r:any)=>r.name).sort().join(',');if(actual!==sourceColumns[name].slice().sort().join(','))throw Error(`Archive unsupported table columns: ${name}`)}
  for(const name of TABLES.filter(n=>n.startsWith('integration_'))){const row=await db.prepare(`SELECT COUNT(*) n FROM ${name} WHERE namespace <> 'uptime-notifications'`).first<{n:number}>();if(row?.n)throw Error(`Archive unsupported product namespace: ${name}`)}

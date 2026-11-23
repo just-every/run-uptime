@@ -30,7 +30,7 @@ export async function snapshotSettings(env:Bindings,id:string){return settingsOf
 export async function readSnapshots(env:Bindings,id:string,before?:string){
  const [monitor,rows,settings]=await env.DB.batch<any>([
  env.DB.prepare('SELECT id FROM monitors WHERE id=?').bind(id),
- env.DB.prepare(`SELECT f.*,o.probe,o.attempt,o.evidence,s.revision FROM failure_snapshots f JOIN observations o ON o.id=f.observation_id JOIN slots s ON s.id=f.slot_id
+ env.DB.prepare(`SELECT f.*,o.probe,o.attempt,o.evidence,s.revision FROM failure_snapshots f JOIN check_observations o ON o.slot_id=f.slot_id AND o.id=f.observation_id JOIN slots s ON s.id=f.slot_id
  WHERE f.monitor_id=? AND f.expires_at>? ${before?'AND f.rowid < (SELECT rowid FROM failure_snapshots WHERE observation_id=? AND monitor_id=?)':''} ORDER BY f.rowid DESC LIMIT 21`).bind(id,Date.now(),...(before?[before,id]:[])),env.DB.prepare(settingsQuery).bind(id)]);
  if(!monitor.results.length)throw missing();
  return {settings:settingsOf(settings.results[0]),items:await withDiagnosticPeers(env,await Promise.all(rows.results.slice(0,20).map(async row=>snapshotRow(row,await openSnapshot(env,row))))),next:rows.results.length>20?rows.results[19].observation_id:null}
@@ -71,7 +71,7 @@ export async function snapshotStatements(env:Bindings,id:string,slotId:string,fr
 
 export async function incidentSnapshots(env:Bindings,id:string,all=false){
  const incident=await findIncident(env,id),end=incident.recovery?.observedAt??Date.now();
- const rows=await env.DB.prepare('SELECT f.*,o.probe,o.attempt,o.evidence,s.revision FROM failure_snapshots f JOIN observations o ON o.id=f.observation_id JOIN slots s ON s.id=f.slot_id WHERE f.monitor_id=? AND f.expires_at>? AND (f.slot_id=? OR f.captured_at BETWEEN ? AND ?) ORDER BY f.captured_at,f.observation_id LIMIT ?').bind(incident.monitor_id,Date.now(),incident.trigger.slotId,incident.trigger.observedAt,end,all?10001:21).all<any>();
+ const rows=await env.DB.prepare('SELECT f.*,o.probe,o.attempt,o.evidence,s.revision FROM failure_snapshots f JOIN check_observations o ON o.slot_id=f.slot_id AND o.id=f.observation_id JOIN slots s ON s.id=f.slot_id WHERE f.monitor_id=? AND f.expires_at>? AND (f.slot_id=? OR f.captured_at BETWEEN ? AND ?) ORDER BY f.captured_at,f.observation_id LIMIT ?').bind(incident.monitor_id,Date.now(),incident.trigger.slotId,incident.trigger.observedAt,end,all?10001:21).all<any>();
  if(all&&rows.results.length>10000)throw Error('Incident report exceeds 10,000 snapshots; export a bounded selection');
  return {items:await withDiagnosticPeers(env,await Promise.all((all?rows.results:rows.results.slice(0,20)).map(async row=>snapshotRow(row,await openSnapshot(env,row))))),more:!all&&rows.results.length>20};
 }

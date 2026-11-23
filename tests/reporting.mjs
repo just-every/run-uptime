@@ -29,7 +29,7 @@ try{
  const maintenance={...definition,maintenanceUntil:from+75*minute},paused={...definition,enabled:false};
  const run=async statements=>{for(let index=0;index<statements.length;index+=80)await db.batch(statements.slice(index,index+80))};
  await run([
-  db.prepare('INSERT INTO monitors VALUES(?,?,?,?,?)').bind(id,3,JSON.stringify(paused),end+minute,JSON.stringify({state:'Unknown'})),
+  db.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,?,?,?,?)').bind(id,3,JSON.stringify(paused),end+minute,JSON.stringify({state:'Unknown'})),
   db.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind(id),
   db.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(id,1,JSON.stringify(definition),from-day),
   db.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(id,2,JSON.stringify(maintenance),from+65*minute),
@@ -143,7 +143,7 @@ try{
  // refused in full rather than returning an apparently complete first page.
  const capFrom=end-7*day,capDefinition=JSON.stringify({...definition,retries:0});
  await run([
-  db.prepare('INSERT INTO monitors VALUES(?,?,?,?,?)').bind(capId,2,JSON.stringify(paused),end+minute,'{"state":"Unknown"}'),
+  db.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,?,?,?,?)').bind(capId,2,JSON.stringify(paused),end+minute,'{"state":"Unknown"}'),
   db.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind(capId),
   db.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(capId,1,capDefinition,capFrom-minute),
   db.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(capId,2,JSON.stringify(paused),end),

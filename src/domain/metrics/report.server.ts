@@ -28,8 +28,8 @@ async function lastScheduledChecks(db:D1Database,ids:string[],now:number) {
       WHERE monitor_id=? AND manual=0 AND status='complete' AND due_at<=?
       ORDER BY due_at DESC,rowid DESC LIMIT 1) s
     JOIN revisions r ON r.monitor_id=? AND r.revision=s.revision AND r.created_at<=?
-    JOIN observations o ON o.slot_id=s.id
-    WHERE o.attempt=(SELECT MAX(x.attempt) FROM observations x WHERE x.slot_id=o.slot_id AND x.probe=o.probe)`).bind(id,now,id,now))
+    JOIN check_observations o ON o.slot_id=s.id
+    WHERE o.attempt=(SELECT MAX(x.attempt) FROM check_observations x WHERE x.slot_id=o.slot_id AND x.probe=o.probe)`).bind(id,now,id,now))
   return (await db.batch(statements)).map(row=>{
     const at=(row.results[0] as {at?:unknown}|undefined)?.at
     return typeof at==='number'&&Number.isSafeInteger(at)&&at<=now?at:null

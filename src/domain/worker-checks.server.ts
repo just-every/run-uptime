@@ -26,7 +26,7 @@ export async function scheduledPublicChecks(env:Bindings,budget:SubrequestBudget
  // retained monitor-history index; CROSS JOIN keeps the assignment lookup second.
  const rows=(await env.DB.prepare(`SELECT id,revision,next_due,definition FROM monitors WHERE json_extract(definition,'$.enabled')=1 AND
   (next_due<=? OR EXISTS(SELECT 1 FROM slots WHERE monitor_id=monitors.id AND manual=1 AND status='queued') OR
-   EXISTS(SELECT 1 FROM slots s CROSS JOIN runner_assignments a ON a.slot_id=s.id WHERE +s.monitor_id=monitors.id AND s.status='running' AND s.lease_until>? AND a.runner_id=? AND a.delivered_at IS NULL)) ORDER BY next_due LIMIT 100`).bind(Date.now(),Date.now(),HOSTED_RUNNER_ID).all<{id:string;revision:number;next_due:number;definition:string}>()).results;
+   EXISTS(SELECT 1 FROM slots s CROSS JOIN runner_assignments a ON a.slot_id=s.id WHERE +s.monitor_id=monitors.id AND s.status='running' AND s.hosted IS NULL AND s.lease_until>? AND a.runner_id=? AND a.delivered_at IS NULL)) ORDER BY next_due LIMIT 100`).bind(Date.now(),Date.now(),HOSTED_RUNNER_ID).all<{id:string;revision:number;next_due:number;definition:string}>()).results;
  const due=rows.map(row=>({...row,definition:JSON.parse(row.definition)})).filter(({definition})=>hostedHttp(definition)&&Object.values(definition.assignments??{}).some((assignment:any)=>assignment.runnerId===HOSTED_RUNNER_ID));
  const dns=dnsCache();let deferred=0,contactAt=0;
  // Two outbound probes at a time, within Workers' connection limit even with A+AAAA lookups.

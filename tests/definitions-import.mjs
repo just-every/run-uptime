@@ -132,7 +132,7 @@ try{
   for(const path of ['/api/definitions/export','/api/definitions/plans/'+view.planId])assert.equal((await fetch(origin+path)).status,401)});
  await unchanged('a CSV log export',async()=>{const r=await preview(uptimeRobotLog);assert.equal(r.status,200);assert.equal(r.body.kind,'history');assert.equal(r.body.rows,3);assert.equal(r.body.stored,false);assert.equal(r.body.counts,undefined,'a log export offers nothing to apply')});
  const stalePreview=(await preview(valid)).body;
- await DB.prepare("INSERT INTO monitors VALUES('elsewhere',1,?,0,'{\"state\":\"Unknown\"}')").bind(JSON.stringify({name:'Door check',type:'http',network:'public',url:'https://elsewhere.example.test/',method:'GET',probes:['local-a'],assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:false,maintenanceUntil:0})).run();
+ await DB.prepare("INSERT INTO monitors(id,revision,definition,next_due,state) VALUES('elsewhere',1,?,0,'{\"state\":\"Unknown\"}')").bind(JSON.stringify({name:'Door check',type:'http',network:'public',url:'https://elsewhere.example.test/',method:'GET',probes:['local-a'],assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:false,maintenanceUntil:0})).run();
  await unchanged('a plan the installation changed under',async()=>{const r=await apply(stalePreview);assert.equal(r.status,409);assert.match(r.body.error,/^import_door_apply/)});
  await DB.prepare("DELETE FROM monitors WHERE id='elsewhere'").run();
 
@@ -240,7 +240,7 @@ try{
  const toHttp=(await preview(file([{name:'Nightly job',url:'https://job.example.test/'}]))).body.entries[0];assert.equal(toHttp.action,'change');assert.equal(toHttp.differences.length,1,'the preview says when the token would be retired');
  // A batch the importer wrote before the import door keeps its read and its undo, beside the door's imports.
  const legacyDefinition=JSON.stringify({name:'Legacy import',type:'http',network:'public',url:'https://legacy.example.test/',method:'GET',probes:['local-a'],assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:1,failureQuorum:1,confirmSlots:2,recoverSlots:2,freshnessMs:180000,enabled:false,maintenanceUntil:0});
- await DB.batch([DB.prepare("INSERT INTO monitors VALUES('legacy-import',1,?,0,'{\"state\":\"Unknown\"}')").bind(legacyDefinition),DB.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind('legacy-import',1,legacyDefinition,Date.now()),
+ await DB.batch([DB.prepare("INSERT INTO monitors(id,revision,definition,next_due,state) VALUES('legacy-import',1,?,0,'{\"state\":\"Unknown\"}')").bind(legacyDefinition),DB.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind('legacy-import',1,legacyDefinition,Date.now()),
   DB.prepare("INSERT INTO definition_batches(id,created_at,actor_kind,actor_ref,source,plan_digest,counts) VALUES('legacy-batch',?,'feature','local-cli','uptime.monitors',?,?)").bind(Date.now(),'0'.repeat(64),JSON.stringify({create:1,unchanged:0,change:0,refused:0,unsupported:0})),
   DB.prepare("INSERT INTO definition_batch_entries(batch_id,monitor_id,action,revision,previous_revision) VALUES('legacy-batch','legacy-import','create',1,NULL)")]);
  const listed=(await json(await send('/api/definitions/batches',undefined,{method:'GET'}))).body;

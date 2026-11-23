@@ -436,7 +436,7 @@ export async function proveRumUpgrade() {
     const apply = async name => { if (name.endsWith('_resilient_monitoring.sql')) { await DB.prepare('INSERT INTO runner_registration(id,runner_id,registered_at) VALUES(1,?,?)').bind(legacyId, Date.now()).run(); await DB.prepare('INSERT INTO runner_contact(id,last_contact_at) VALUES(1,?)').bind(Date.now() - 5).run(); } for (const sql of splitSql(await readFile(join('migrations', name), 'utf8'))) await DB.prepare(sql).run(); };
     for (const name of names.filter(n => n < rum)) await apply(name);
     const now = Date.now(), definition = JSON.stringify(validateDefinition({name: 'Shop', url: 'https://shop.example.test/', enabled: true}, []));
-    await DB.batch([DB.prepare('INSERT INTO monitors VALUES(?,?,?,?,?)').bind('shop-one', 1, definition, now, JSON.stringify({state: 'Unknown'})), DB.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind('shop-one', 1, definition, now), DB.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind('shop-one')]);
+    await DB.batch([DB.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,?,?,?,?)').bind('shop-one', 1, definition, now, JSON.stringify({state: 'Unknown'})), DB.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind('shop-one', 1, definition, now), DB.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind('shop-one')]);
     const read = async () => ({monitors: (await DB.prepare('SELECT * FROM monitors ORDER BY rowid').all()).results, revisions: (await DB.prepare('SELECT * FROM revisions ORDER BY rowid').all()).results});
     const before = await read();
     await apply(rum);

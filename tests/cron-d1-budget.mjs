@@ -18,6 +18,7 @@ assert.ok(Number.isSafeInteger(historyMinutes) && historyMinutes >= minutesPerDa
 
 const day = minutesPerDay * minute;
 const dailyBudget = 1_000_000;
+const dailyWriteBudget = 50_000;
 const cronBudget = 300_000;
 const coldReadBudget = 1_000;
 const activePollInterval = 5_000;
@@ -124,14 +125,16 @@ async function measureDay(worker, {cookie, authorization}, firstMinute) {
   }
  }
  const combined = [...usage.values()].reduce((rows, total) => rows + total.rows, 0);
+ const written = [...usage.values()].reduce((rows, total) => rows + total.writes, 0);
  console.log(`${monitorCount} active monitors with ${historyMinutes / minutesPerDay} days of retained history`);
  for (const [kind, {rows, writes, calls, max}] of usage) console.log(`${kind}: ${rows} D1 rows read, ${writes} written in ${calls} calls, max ${max} reads`);
- console.log(`Combined: ${combined} D1 rows read across one simulated day`);
+ console.log(`Combined: ${combined} D1 rows read, ${written} written across one simulated day`);
  assert.equal(usage.get('cron').calls, minutesPerDay);
  assert.equal(usage.get('metrics').calls, day / scrapeInterval);
  assert.ok(usage.get('changed overview')?.calls > 1, 'a live overview changes as scheduled checks complete');
  assert.ok(usage.get('unchanged overview')?.calls > 0, 'unchanged polls exercise conditional responses and the slower cadence');
  assert.ok(usage.get('cron').rows < cronBudget, `cron read ${usage.get('cron').rows} rows; expected under ${cronBudget} per day`);
+ assert.ok(written < dailyWriteBudget, `combined wrote ${written} rows; expected under ${dailyWriteBudget} per day`);
  assert.ok(combined < dailyBudget, `combined read ${combined} rows; expected under ${dailyBudget} per day`);
 }
 
@@ -143,10 +146,10 @@ let worker;
 try {
  worker = await runtime(values.dist, directory);
  const fixtureDB = await worker.getD1Database('DB');
- await migrate(fixtureDB, migrations.initial);
+ await migrate(fixtureDB, [...migrations.initial,...migrations.buckets,...migrations.compact]);
  const auth = await authorizeRequests(worker);
  await seedHistory(fixtureDB, await worker.getWorker(), firstMinute, historyMinutes);
- await upgradeHistory(fixtureDB, migrations.afterHistory, firstMinute, historyMinutes, {profile:values['profile-upgrade']});
+ await upgradeHistory(fixtureDB, migrations.buckets, firstMinute, historyMinutes, {profile:values['profile-upgrade']});
  await worker.dispose();
  worker = await runtime(values.dist, directory);
  await measureDay(worker, auth, firstMinute);

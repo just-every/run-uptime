@@ -21,6 +21,7 @@ export async function archive(env:Bindings,selection?:ArchiveSelection,options:{
   const where=[filter.sql,...(name.startsWith('integration_')?["namespace='uptime-notifications'"]:[])].join(' AND ');
   if(name==='failure_snapshots')return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM failure_snapshots WHERE expires_at>? AND (${where}) ORDER BY rowid LIMIT ${rowLimit+1}`).bind(Date.now(),...filter.params);
   if(name==='notification_destinations')return env.DB.prepare(`SELECT d.id,d.name,d.kind,d.enabled,d.created_at,d.deleted_at,d.webhook_template,c.id credential_id,c.destination_id,c.created_at credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_destinations d LEFT JOIN notification_credentials c ON c.id=d.credential_id ORDER BY d.rowid LIMIT ${rowLimit+1}`);
+  if(name==='observations')return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM check_observations WHERE ${where} ORDER BY packed,storage_order,attempt LIMIT ${rowLimit+1}`).bind(...filter.params);
   return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM ${name} WHERE ${where} ORDER BY rowid LIMIT ${rowLimit+1}`).bind(...filter.params);
  });
  const results=await env.DB.batch(queries),t:Tables={};

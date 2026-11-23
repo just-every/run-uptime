@@ -64,7 +64,8 @@ export async function migrationPlan() {
  const all = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
  const at = all.findIndex(name => name.startsWith('0091_'));
  assert.ok(at > 0, 'the forward migration follows the retained installation schema');
- return {initial:all.slice(0, at), afterHistory:all.slice(at)};
+ const packed = all.findIndex(name => name.startsWith('0093_'));
+ return {initial:all.slice(0, at), buckets:all.slice(at,packed), compact:all.slice(packed)};
 }
 
 export async function migrate(db, files, {profile=false}={}) {
@@ -106,6 +107,9 @@ export async function seedHistory(db, service, firstMinute, historyMinutes) {
 
  // Clone genuine slot, assignment and observation rows, preserving their
  // recorded offsets and giving each new observation its own identity.
+ // Seed retained native history without rewriting the same bucket for
+ // every copied row. Rebuild it through the normal upgrade immediately after.
+ await db.prepare('DROP TRIGGER availability_observation_insert').run();
  const copied = await db.batch([
   db.prepare(`WITH RECURSIVE minutes(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM minutes WHERE i<?1)
     INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual)
@@ -115,11 +119,11 @@ export async function seedHistory(db, service, firstMinute, historyMinutes) {
     SELECT s.id,a.probe,a.runner_id,a.delivered_at+s.due_at-?1,
       json_set(a.received_times,'$."0"',json_extract(a.received_times,'$."0"')+s.due_at-?1),a.external_check_url
     FROM slots s JOIN slots exemplar ON exemplar.monitor_id=s.monitor_id AND exemplar.due_at=?1
-    JOIN runner_assignments a ON a.slot_id=exemplar.id WHERE s.due_at<?1`).bind(sample),
+    JOIN check_assignments a ON a.slot_id=exemplar.id WHERE s.due_at<?1`).bind(sample),
   db.prepare(`WITH copied AS (
     SELECT substr(o.id,1,24)||printf('%012x',s.due_at) AS id,s.id AS slot_id,o.probe,o.attempt,o.evidence,s.due_at-?1 AS offset_ms
     FROM slots s JOIN slots exemplar ON exemplar.monitor_id=s.monitor_id AND exemplar.due_at=?1
-    JOIN observations o ON o.slot_id=exemplar.id WHERE s.due_at<?1)
+    JOIN check_observations o ON o.slot_id=exemplar.id WHERE s.due_at<?1)
     INSERT INTO observations(id,slot_id,probe,attempt,evidence)
     SELECT id,slot_id,probe,attempt,json_set(evidence,'$.id',id,'$.startedAt',json_extract(evidence,'$.startedAt')+offset_ms,
       '$.completedAt',json_extract(evidence,'$.completedAt')+offset_ms) FROM copied`).bind(sample),
@@ -127,13 +131,15 @@ export async function seedHistory(db, service, firstMinute, historyMinutes) {
  for (const [index, kind] of ['slot', 'assignment', 'observation'].entries()) {
   assert.equal(copied[index].meta.changes, (historyMinutes - 2) * monitorCount, `full historical ${kind} copy`);
  }
+ // Rewind the fixture-only cursor so acceptance folds the copied evidence.
+ await db.prepare('UPDATE monitors SET hosted_checkpoint=NULL').run();
  // The ordinary result acceptance path constructs real projection checkpoints.
  await dispatchCron(service, firstMinute - minute);
  await assertHealthyTick(db, firstMinute - minute);
- const checkpoint = await db.prepare('SELECT COUNT(*) AS count FROM attempt_checkpoints WHERE due_at=?').bind(sample).first();
+ const checkpoint = await db.prepare("SELECT COUNT(*) AS count FROM monitors WHERE json_extract(hosted_checkpoint,'$.dueAt')>=?").bind(sample).first();
  assert.equal(checkpoint.count, monitorCount, 'all four checkpoints have folded every settled historical slot');
  const history = (await db.prepare(`SELECT COUNT(*) AS count, MIN(s.due_at) AS first, MAX(s.due_at) AS last
-   FROM slots s JOIN observations o ON o.slot_id=s.id WHERE s.manual=0 GROUP BY s.monitor_id`).all()).results;
+   FROM slots s JOIN check_observations o ON o.slot_id=s.id WHERE s.manual=0 GROUP BY s.monitor_id`).all()).results;
  assert.equal(history.length, monitorCount);
  for (const {count, first, last} of history) {
   assert.equal(count, historyMinutes);
@@ -147,10 +153,10 @@ export async function upgradeHistory(db, files, firstMinute, historyMinutes, {pr
  const snapshot = async () => {
   const counts = await db.prepare(`SELECT
    (SELECT COUNT(*) FROM slots) AS slots,
-   (SELECT COUNT(*) FROM observations) AS observations,
-   (SELECT COUNT(*) FROM runner_assignments) AS assignments`).first();
+   (SELECT COUNT(*) FROM check_observations) AS observations,
+   (SELECT COUNT(*) FROM check_assignments) AS assignments`).first();
   const {results:oldestEvidence} = await db.prepare(`SELECT s.id,o.evidence,a.received_times
-   FROM monitors m CROSS JOIN slots s JOIN observations o ON o.slot_id=s.id JOIN runner_assignments a ON a.slot_id=s.id AND a.probe=o.probe
+   FROM monitors m CROSS JOIN slots s JOIN check_observations o ON o.slot_id=s.id JOIN check_assignments a ON a.slot_id=s.id AND a.probe=o.probe
    WHERE s.monitor_id=m.id AND s.due_at=? ORDER BY s.id`).bind(oldest).all();
   return {counts, oldestEvidence};
  };
@@ -185,7 +191,7 @@ export async function authorizeRequests(worker) {
 export async function assertHealthyTick(db, time) {
  const {results} = await db.prepare(`SELECT s.monitor_id,s.status,json_extract(o.evidence,'$.outcome') AS outcome,
    json_extract(m.state,'$.targetState') AS health
-   FROM monitors m CROSS JOIN slots s JOIN observations o ON o.slot_id=s.id
+   FROM monitors m CROSS JOIN slots s JOIN check_observations o ON o.slot_id=s.id
    WHERE s.monitor_id=m.id AND s.due_at=? AND s.manual=0`).bind(time).all();
  assert.equal(new Set(results.map(row => row.monitor_id)).size, monitorCount, `every monitor ran at ${new Date(time).toISOString()}`);
  assert.equal(results.length, monitorCount, 'one observation per scheduled monitor');

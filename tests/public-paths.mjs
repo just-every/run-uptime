@@ -85,7 +85,7 @@ try{
  }
  for(const {path,declaration,source} of probes.values()){
   if(declaration.environment==='local')continue;
-  await DB.prepare('DELETE FROM public_rate_limits').run();
+  await DB.batch([DB.prepare('DELETE FROM public_rate_limits'),DB.prepare('DELETE FROM metrics_rate_hours')]);
   const check=(options={})=>call(path,{...(declaration.kind==='credentialed'?{method:'POST',body:'{}'}:{}),...options});
   const initial=await check(),status=initial.status;await initial.arrayBuffer();
   assert.notEqual(status,429,`${path}: baseline is not limited`);
@@ -154,7 +154,7 @@ try{
  await healthVersion(call);
  for(const {path,declaration:item} of probes.values()){
   if(item.environment!=='local')continue;
-  await DB.prepare('DELETE FROM public_rate_limits').run();
+  await DB.batch([DB.prepare('DELETE FROM public_rate_limits'),DB.prepare('DELETE FROM metrics_rate_hours')]);
   const initial=await call(path,{headers:keyHeader()}),status=initial.status;await initial.arrayBuffer();
   await prefill(DB,item.class,limits[item.class]);
   assert.equal((await call(path,{headers:keyHeader()})).status,status);
