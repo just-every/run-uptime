@@ -2563,6 +2563,10 @@
       "sha256": "f4191e16de2873d86af749cfa2f80d09be6870d211be21249ef2d6640eddebc3",
       "executable": false
     },
+    "migrations/0090_slots_status_lease.sql": {
+      "sha256": "459d6e7d0c35ae79d28d22009a225103993e055efac65cdbbaf09b13e9c693ee",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "1d0d8857c00d9b84210c7a1a284fcf0688fbf9a3bb05f29fc8c4f531c73e214b",
       "executable": false
@@ -9281,6 +9285,18 @@
     },
     "tests/control-state-support.mjs": {
       "sha256": "2d022ac48115f97a1fe0414ea2d61282fe05f1287ec6e9c5ac301764af114e20",
+      "executable": false
+    },
+    "tests/cron-d1-budget.mjs": {
+      "sha256": "753a0c7c618d2390661628f7709104eda1dacc4d5a6a5d4a26d682b3f2633d1d",
+      "executable": false
+    },
+    "tests/cron-d1-history-fixture.mjs": {
+      "sha256": "45ef6b4361652f8b005905d1459e8c49be054ef15a2eea2bfa0d6f5d32d9b5c9",
+      "executable": false
+    },
+    "tests/cron-d1-meter-worker.mjs": {
+      "sha256": "19edbeaf4ece9053431280b0967259cae1fb4dfe6ea514b6cca5e5557db2113b",
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {
