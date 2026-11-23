@@ -1,3 +1,4 @@
+import {observationsAt} from './check-evidence-query.ts'
 import type {Bindings} from './control.server.ts'
 import type {NotificationEvent} from './notification-content.ts'
 import {eventWebhookContext} from './notification-webhook-context.ts'
@@ -14,7 +15,10 @@ export async function slowNotice(env:Bindings,monitor:any,slot:any,fresh:any[],n
  if(!policy)return null;
  const rows=(await env.DB.prepare('SELECT id,due_at,manual,missed_count FROM slots WHERE monitor_id=? AND revision=? AND manual=0 ORDER BY due_at DESC LIMIT 100').bind(monitor.id,monitor.revision).all<any>()).results;
  if(rows[0]?.id!==slot.id)return null; // late historical arrivals cannot regress current degradation
- const stored=(await env.DB.prepare('SELECT slot_id,probe,evidence FROM observations WHERE slot_id IN(SELECT value FROM json_each(?))').bind(JSON.stringify(rows.map(s=>s.id))).all<any>()).results;
+ const stored=(await env.DB.prepare(`SELECT selected.value AS slot_id,json_extract(o.value,'$.probe') AS probe,o.value AS evidence
+  FROM json_each(?) selected CROSS JOIN json_each((
+   SELECT json_group_array(json(evidence)) FROM (${observationsAt('selected.value')})
+  )) o`).bind(JSON.stringify(rows.map(s=>s.id))).all<any>()).results;
  const observations=[...stored,...fresh.map(o=>({slot_id:slot.id,probe:o.probe,evidence:o}))];
  const result=slowEvaluation({...monitor.definition,slow:policy},rows,observations,now);if(!result)return null;
  if(result.slow===open)return null;

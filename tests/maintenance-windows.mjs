@@ -126,7 +126,7 @@ try{
  const definitions=[{...base,maintenanceWindows:[one('overlap-a',60000,180000),one('overlap-b',120000,240000)]},
   {...base,maintenanceUntil:start+330000,maintenanceWindows:[{id:'weekly',name:'Weekly report window',timeZone:'UTC',mode:'pause',weekly:{weekdays:[weeklyAt.getUTCDay()],localTime:weeklyAt.toISOString().slice(11,16),durationMinutes:1,fromDate:date,untilDate:date}}]},
   {...base,enabled:false,maintenanceWindows:[one('paused-overlap',450000,600000)]}];
- await db.batch([db.prepare('INSERT INTO monitors VALUES(?,?,?,?,?)').bind(fixtureId,3,JSON.stringify(definitions[2]),end+60000,'{"state":"Unknown"}'),db.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind(fixtureId)]);
+ await db.batch([db.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,?,?,?,?)').bind(fixtureId,3,JSON.stringify(definitions[2]),end+60000,'{"state":"Unknown"}'),db.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind(fixtureId)]);
  for(let index=0;index<3;index++)await db.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(fixtureId,index+1,JSON.stringify(definitions[index]),start+[0,300000,450000][index]).run();
  for(let offset=0;offset<450000;offset+=60000){
   const revision=offset<300000?1:2,slotId=randomUUID(),at=start+offset;

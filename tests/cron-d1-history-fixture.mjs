@@ -4,6 +4,7 @@ import {readFile, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join, parse, relative, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Miniflare, convertV4MiniflareOptions} from 'miniflare';
+import {observationsAt} from '../src/domain/check-evidence-query.ts';
 import {validateDefinition} from '../src/domain/policy.mjs';
 import {signInOwner, testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
@@ -62,18 +63,38 @@ export async function dispatchCron(service, time) {
 
 export async function migrationPlan() {
  const all = (await readdir(migrations)).filter(name => name.endsWith('.sql')).sort();
- const at = all.findIndex(name => name.startsWith('0091_'));
- assert.ok(at > 0, 'the forward migration follows the retained installation schema');
- return {initial:all.slice(0, at), afterHistory:all.slice(at)};
+ const forward = all.findIndex(name => name.endsWith('_slots_running_lease.sql'));
+ const packed = all.findIndex(name => name.endsWith('_hosted_check_storage.sql'));
+ assert.ok(forward > 0 && packed > forward, 'bounded buckets upgrade before compact hosted storage');
+ return {initial:all.slice(0, forward), buckets:all.slice(forward, packed), compact:all.slice(packed)};
+}
+
+async function retainedEvidence(db) {
+ const [counts, oldest] = await db.batch([
+  db.prepare(`SELECT (SELECT COUNT(*) FROM slots) AS slots,
+    (SELECT COUNT(*) FROM observations) AS observations,
+    (SELECT COUNT(*) FROM runner_assignments) AS assignments`),
+  db.prepare(`SELECT s.id,o.evidence,a.received_times
+    FROM monitors m CROSS JOIN slots s ON s.monitor_id=m.id
+    JOIN observations o ON o.slot_id=s.id
+    LEFT JOIN runner_assignments a ON a.slot_id=s.id AND a.probe=o.probe
+    WHERE s.manual=0 AND s.due_at=(SELECT MIN(due_at) FROM slots WHERE monitor_id=m.id AND manual=0)
+    ORDER BY s.id,o.probe,o.attempt,o.id`),
+ ]);
+ return {counts:counts.results[0], oldest:oldest.results};
 }
 
 export async function migrate(db, files, {profile=false}={}) {
  for (const name of files) {
+  const changesStorage = /(?:bounded_availability_buckets|hosted_check_storage|scrape_writes|hosted_availability)\.sql$/.test(name);
+  const before = changesStorage ? await retainedEvidence(db) : undefined;
   const sql = splitSql(await readFile(join(migrations, name), 'utf8'));
   const started = performance.now();
   const results = await db.batch(sql.map(statement => db.prepare(statement)));
+  const elapsed = performance.now() - started;
+  if (before) assert.deepEqual(await retainedEvidence(db), before, `${name} preserves native records and oldest evidence`);
   if (!profile) continue;
-  console.log(`${name}: ${Math.round(performance.now()-started)} ms batch wall time`);
+  console.log(`${name}: ${Math.round(elapsed)} ms batch wall time`);
   for (const [index, {meta}] of results.entries()) {
    const label = sql[index].trim().split('\n').find(line => !line.startsWith('--')).slice(0, 100);
    console.log(`  ${label} (${meta.duration} ms, ${meta.rows_read} reads, ${meta.rows_written} writes)`);
@@ -104,9 +125,12 @@ export async function seedHistory(db, service, firstMinute, historyMinutes) {
  await dispatchCron(service, sample);
  await assertHealthyTick(db, sample);
 
- // Clone genuine slot, assignment and observation rows, preserving their
+ // Clone genuine hosted evidence into the retained native format, preserving
  // recorded offsets and giving each new observation its own identity.
- const copied = await db.batch([
+ // As in archive restore, suppress the native trigger during the bulk copy
+ // and build the rolling projection from the current bucket view.
+ const [, ...copied] = await db.batch([
+  db.prepare("INSERT INTO availability_bucket_history(monitor_id,day) VALUES('',-1)"),
   db.prepare(`WITH RECURSIVE minutes(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM minutes WHERE i<?1)
     INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual)
     SELECT monitor_id||':'||revision||':'||CAST(due_at-i*?2 AS INTEGER),monitor_id,revision,due_at-i*?2,status,definition,lease_owner,lease_until-i*?2,missed_count,manual
@@ -115,52 +139,41 @@ export async function seedHistory(db, service, firstMinute, historyMinutes) {
     SELECT s.id,a.probe,a.runner_id,a.delivered_at+s.due_at-?1,
       json_set(a.received_times,'$."0"',json_extract(a.received_times,'$."0"')+s.due_at-?1),a.external_check_url
     FROM slots s JOIN slots exemplar ON exemplar.monitor_id=s.monitor_id AND exemplar.due_at=?1
-    JOIN runner_assignments a ON a.slot_id=exemplar.id WHERE s.due_at<?1`).bind(sample),
+    JOIN check_assignments a ON a.slot_id=exemplar.id WHERE s.due_at<?1`).bind(sample),
   db.prepare(`WITH copied AS (
     SELECT substr(o.id,1,24)||printf('%012x',s.due_at) AS id,s.id AS slot_id,o.probe,o.attempt,o.evidence,s.due_at-?1 AS offset_ms
     FROM slots s JOIN slots exemplar ON exemplar.monitor_id=s.monitor_id AND exemplar.due_at=?1
-    JOIN observations o ON o.slot_id=exemplar.id WHERE s.due_at<?1)
+    JOIN check_observations o ON o.slot_id=exemplar.id WHERE s.due_at<?1)
     INSERT INTO observations(id,slot_id,probe,attempt,evidence)
     SELECT id,slot_id,probe,attempt,json_set(evidence,'$.id',id,'$.startedAt',json_extract(evidence,'$.startedAt')+offset_ms,
       '$.completedAt',json_extract(evidence,'$.completedAt')+offset_ms) FROM copied`).bind(sample),
+  db.prepare("DELETE FROM availability_bucket_history WHERE monitor_id='' AND day=-1"),
+  db.prepare(`INSERT INTO availability_buckets(monitor_id,starts_at,slots)
+    SELECT monitor_id,starts_at,jsonb_group_object(slot_key,record) FROM availability_bucket_slots
+    WHERE monitor_id IN (SELECT id FROM monitors) AND due_at<?
+      AND due_at>=(SELECT day FROM availability_bucket_history WHERE monitor_id='' AND day>=0)
+    GROUP BY monitor_id,starts_at
+    ON CONFLICT(monitor_id,starts_at) DO UPDATE SET slots=jsonb_patch(slots,excluded.slots),version=excluded.version`).bind(sample),
  ]);
  for (const [index, kind] of ['slot', 'assignment', 'observation'].entries()) {
   assert.equal(copied[index].meta.changes, (historyMinutes - 2) * monitorCount, `full historical ${kind} copy`);
  }
+ // Rewind the fixture-only cursor so acceptance folds the copied evidence.
+ await db.prepare('UPDATE monitors SET hosted_checkpoint=NULL').run();
  // The ordinary result acceptance path constructs real projection checkpoints.
  await dispatchCron(service, firstMinute - minute);
  await assertHealthyTick(db, firstMinute - minute);
- const checkpoint = await db.prepare('SELECT COUNT(*) AS count FROM attempt_checkpoints WHERE due_at=?').bind(sample).first();
+ const checkpoint = await db.prepare("SELECT COUNT(*) AS count FROM monitors WHERE json_extract(hosted_checkpoint,'$.dueAt')>=?").bind(sample).first();
  assert.equal(checkpoint.count, monitorCount, 'all four checkpoints have folded every settled historical slot');
  const history = (await db.prepare(`SELECT COUNT(*) AS count, MIN(s.due_at) AS first, MAX(s.due_at) AS last
-   FROM slots s JOIN observations o ON o.slot_id=s.id WHERE s.manual=0 GROUP BY s.monitor_id`).all()).results;
+   FROM slots s JOIN check_observations o ON o.slot_id=s.id WHERE s.manual=0 GROUP BY s.monitor_id`).all()).results;
  assert.equal(history.length, monitorCount);
  for (const {count, first, last} of history) {
   assert.equal(count, historyMinutes);
   assert.equal(first, start);
   assert.equal(last, firstMinute - minute);
  }
-}
-
-export async function upgradeHistory(db, files, firstMinute, historyMinutes, {profile=false}={}) {
- const oldest = firstMinute - historyMinutes * minute;
- const snapshot = async () => {
-  const counts = await db.prepare(`SELECT
-   (SELECT COUNT(*) FROM slots) AS slots,
-   (SELECT COUNT(*) FROM observations) AS observations,
-   (SELECT COUNT(*) FROM runner_assignments) AS assignments`).first();
-  const {results:oldestEvidence} = await db.prepare(`SELECT s.id,o.evidence,a.received_times
-   FROM monitors m CROSS JOIN slots s JOIN observations o ON o.slot_id=s.id JOIN runner_assignments a ON a.slot_id=s.id AND a.probe=o.probe
-   WHERE s.monitor_id=m.id AND s.due_at=? ORDER BY s.id`).bind(oldest).all();
-  return {counts, oldestEvidence};
- };
- const before = await snapshot();
- assert.equal(before.oldestEvidence.length, monitorCount);
- await migrate(db, files, {profile});
- assert.deepEqual(await snapshot(), before, 'forward upgrade preserves retained records and oldest evidence');
- await migrate(db, files);
- assert.deepEqual(await snapshot(), before, 'replaying the upgrade preserves retained records and evidence');
- console.log(`Applied and replayed the forward migrations with ${before.counts.slots} retained slots and ${before.counts.observations} observations`);
+ console.log(`Seeded ${historyMinutes * monitorCount} retained slots and observations with settled checkpoints`);
 }
 
 export async function authorizeRequests(worker) {
@@ -183,15 +196,16 @@ export async function authorizeRequests(worker) {
 }
 
 export async function assertHealthyTick(db, time) {
- const {results} = await db.prepare(`SELECT s.monitor_id,s.status,json_extract(o.evidence,'$.outcome') AS outcome,
+ const {results} = await db.prepare(`SELECT s.monitor_id,s.status,
+   (SELECT json_group_array(json_extract(evidence,'$.outcome')) FROM (${observationsAt('s.id')})) AS outcomes,
    json_extract(m.state,'$.targetState') AS health
-   FROM monitors m CROSS JOIN slots s JOIN observations o ON o.slot_id=s.id
-   WHERE s.monitor_id=m.id AND s.due_at=? AND s.manual=0`).bind(time).all();
+   FROM monitors m CROSS JOIN slots s ON s.monitor_id=m.id
+   WHERE s.due_at=? AND s.manual=0`).bind(time).all();
  assert.equal(new Set(results.map(row => row.monitor_id)).size, monitorCount, `every monitor ran at ${new Date(time).toISOString()}`);
- assert.equal(results.length, monitorCount, 'one observation per scheduled monitor');
+ assert.equal(results.length, monitorCount, 'one slot per scheduled monitor');
  for (const row of results) {
   assert.equal(row.status, 'complete');
-  assert.equal(row.outcome, 'pass');
+  assert.deepEqual(JSON.parse(row.outcomes), ['pass'], 'one passing observation in the scheduled slot');
   assert.equal(row.health, 'Healthy');
  }
 }

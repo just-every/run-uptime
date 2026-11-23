@@ -108,7 +108,19 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   const info=(await env.DB.prepare(`PRAGMA table_info(${plan.table})`).all<any>()).results.filter(r=>r.pk).sort((a,b)=>a.pk-b.pk);
   statements.push(mutationGuard(env,`(SELECT COUNT(*) FROM ${plan.table} WHERE ${plan.where})=?`,[...plan.args,rows.length]));
   counts[plan.table]=(counts[plan.table]??0)+rows.length;
-  for(const row of rows){const key=info.length?Object.fromEntries(info.map(c=>[c.name,row[c.name]])):{rowid:row._rowid_};statements.push(mutationGuard(env,`EXISTS(SELECT 1 FROM ${plan.table} WHERE ${Object.keys(key).map(column=>`"${column}"=?`).join(" AND ")})`,Object.values(key)),...await service.erasureStatements(plan.table,key));}
+  for(const row of rows){
+   if(plan.table==='slots'&&row.hosted){
+    const hosted=JSON.parse(row.hosted);
+    for(const o of hosted.attempts??[]){
+     counts.observations=(counts.observations??0)+1;
+     statements.push(...await service.erasureStatements('observations',{id:o.id}));
+    }
+    for(const probe of Object.keys(hosted.assignments)){
+     counts.runner_assignments=(counts.runner_assignments??0)+1;
+     statements.push(...await service.erasureStatements('runner_assignments',{slot_id:row.id,probe}));
+    }
+   }
+   const key=info.length?Object.fromEntries(info.map(c=>[c.name,row[c.name]])):{rowid:row._rowid_};statements.push(mutationGuard(env,`EXISTS(SELECT 1 FROM ${plan.table} WHERE ${Object.keys(key).map(column=>`"${column}"=?`).join(" AND ")})`,Object.values(key)),...await service.erasureStatements(plan.table,key));}
  }
  // Keep the permanent claimed marker, but remove its original owner's identity.
  // Fence the source row without deleting or transferring bootstrap authority.

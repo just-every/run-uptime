@@ -48,7 +48,7 @@ class BucketCache {
 const bucketCaches=new WeakMap<D1Database,BucketCache>()
 
 type LatestSlot={id:string;due_at:number}
-type StoredBucket={starts_at:number;version:string;payload:string|null}
+type StoredBucket={starts_at:number;version:string|null;payload:string|null}
 
 async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,revisions:Revision[],includeLatest:boolean){
   const reach=revisions.reduce((max,{definition:d})=>Math.max(max,d.intervalMs+
@@ -80,16 +80,31 @@ async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,
     const versions=JSON.stringify(Object.fromEntries([...cachedBuckets].map(([at,bucket])=>[at,bucket.version])))
     const {results}=await db.prepare(`SELECT starts_at,version,
       CASE WHEN version IS NOT json_extract(?1,'$."'||starts_at||'"') THEN json(slots) END AS payload
-      FROM availability_buckets WHERE monitor_id=?2 AND starts_at BETWEEN ?3 AND ?4`)
+      FROM availability_buckets WHERE monitor_id=?2 AND starts_at BETWEEN ?3 AND ?4
+      UNION ALL
+      SELECT json_extract(tail.value,'$[1]'),NULL,tail.value
+      FROM monitors m CROSS JOIN json_each(m.hosted_availability_tail) tail
+      WHERE m.id=?2 AND json_extract(tail.value,'$[1]') BETWEEN ?3 AND ?4`)
       .bind(versions,id,start,end).all<StoredBucket>()
-    const slots:SlotRollup[]=[]
+    // Page starts are UTC-day aligned, so a pending slot falls in the same
+    // page as its bucket. A late retry can supersede the stored record.
+    const pending=new Map<string,SlotRollup>()
     for(const row of results){
+      if(row.version!==null)continue
+      const slot=JSON.parse(row.payload!) as SlotRollup
+      pending.set(slot[0],slot)
+    }
+    const slots:SlotRollup[]=[]
+    const inRange=(slot:SlotRollup)=>(slot[1]>=floor&&slot[1]<=to)||slot[0]===latest?.id
+    for(const row of results){
+      if(row.version===null)continue
       const cached=cachedBuckets.get(row.starts_at)
       const records=row.payload===null?cached!.slots:Object.values(JSON.parse(row.payload) as Record<string,SlotRollup>)
       if(row.payload===null)buckets.touch(cached!)
       else if(keep)buckets.put({at:row.starts_at,monitor:id,version:row.version,slots:records})
-      for(const slot of records)if((slot[1]>=floor&&slot[1]<=to)||slot[0]===latest?.id)slots.push(slot)
+      for(const slot of records)if(!pending.has(slot[0])&&inRange(slot))slots.push(slot)
     }
+    for(const slot of pending.values())if(inRange(slot))slots.push(slot)
     return slots.sort((a,b)=>b[1]-a[1]||(a[0]===b[0]?0:a[0]<b[0]?1:-1))
   }
 

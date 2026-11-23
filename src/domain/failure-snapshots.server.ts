@@ -1,3 +1,4 @@
+import {observationsAt} from './check-evidence-query.ts'
 import {withDiagnosticPeers} from './network-diagnostic-peers.server.ts'
 import {discardFlowArtifacts} from './flow-artifacts.mjs'
 import {storeSnapshot,openSnapshot} from './failure-page-custody.server.ts'
@@ -27,10 +28,16 @@ function settingsOf(row:any){
  return {version:row?.version??0,retentionDays:row?.retention_days??90,masks:row?JSON.parse(row.masks):[],safeValues:row?normalizeSafeValues(JSON.parse(row.safe_values)):normalizeSafeValues(undefined),screenshot:Boolean(row?.screenshot)}
 }
 export async function snapshotSettings(env:Bindings,id:string){return settingsOf(await env.DB.prepare(settingsQuery).bind(id).first<any>())}
+// Select matching evidence by slot and observation key before unpacking it.
+const snapshotEvidence=`SELECT f.*,s.revision,o.value AS evidence,
+ json_extract(o.value,'$.probe') AS probe,json_extract(o.value,'$.attempt') AS attempt
+ FROM failure_snapshots f JOIN slots s ON s.id=f.slot_id CROSS JOIN json_each((
+  SELECT json_group_array(json(evidence)) FROM (${observationsAt('f.slot_id','f.observation_id')})
+ )) o`;
 export async function readSnapshots(env:Bindings,id:string,before?:string){
  const [monitor,rows,settings]=await env.DB.batch<any>([
  env.DB.prepare('SELECT id FROM monitors WHERE id=?').bind(id),
- env.DB.prepare(`SELECT f.*,o.probe,o.attempt,o.evidence,s.revision FROM failure_snapshots f JOIN observations o ON o.id=f.observation_id JOIN slots s ON s.id=f.slot_id
+ env.DB.prepare(`${snapshotEvidence}
  WHERE f.monitor_id=? AND f.expires_at>? ${before?'AND f.rowid < (SELECT rowid FROM failure_snapshots WHERE observation_id=? AND monitor_id=?)':''} ORDER BY f.rowid DESC LIMIT 21`).bind(id,Date.now(),...(before?[before,id]:[])),env.DB.prepare(settingsQuery).bind(id)]);
  if(!monitor.results.length)throw missing();
  return {settings:settingsOf(settings.results[0]),items:await withDiagnosticPeers(env,await Promise.all(rows.results.slice(0,20).map(async row=>snapshotRow(row,await openSnapshot(env,row))))),next:rows.results.length>20?rows.results[19].observation_id:null}
@@ -71,7 +78,7 @@ export async function snapshotStatements(env:Bindings,id:string,slotId:string,fr
 
 export async function incidentSnapshots(env:Bindings,id:string,all=false){
  const incident=await findIncident(env,id),end=incident.recovery?.observedAt??Date.now();
- const rows=await env.DB.prepare('SELECT f.*,o.probe,o.attempt,o.evidence,s.revision FROM failure_snapshots f JOIN observations o ON o.id=f.observation_id JOIN slots s ON s.id=f.slot_id WHERE f.monitor_id=? AND f.expires_at>? AND (f.slot_id=? OR f.captured_at BETWEEN ? AND ?) ORDER BY f.captured_at,f.observation_id LIMIT ?').bind(incident.monitor_id,Date.now(),incident.trigger.slotId,incident.trigger.observedAt,end,all?10001:21).all<any>();
+ const rows=await env.DB.prepare(`${snapshotEvidence} WHERE f.monitor_id=? AND f.expires_at>? AND (f.slot_id=? OR f.captured_at BETWEEN ? AND ?) ORDER BY f.captured_at,f.observation_id LIMIT ?`).bind(incident.monitor_id,Date.now(),incident.trigger.slotId,incident.trigger.observedAt,end,all?10001:21).all<any>();
  if(all&&rows.results.length>10000)throw Error('Incident report exceeds 10,000 snapshots; export a bounded selection');
  return {items:await withDiagnosticPeers(env,await Promise.all((all?rows.results:rows.results.slice(0,20)).map(async row=>snapshotRow(row,await openSnapshot(env,row))))),more:!all&&rows.results.length>20};
 }

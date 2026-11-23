@@ -6,7 +6,7 @@ export async function metricsFixture(db,origin){
  for(const [name,state] of [['Checkout API','stale'],['Payment API','healthy'],['Search API','degraded']]){
   const id=randomUUID();ids.push(id);
   const definition={name,type:'http',network:'public',url:'https://shop.example.test/checkout',method:'GET',probes:['local-a','local-b'],assignments:{'local-a':{runnerId:runner,networkLabel:'us-east-test'},'local-b':{runnerId:runner,networkLabel:'us-east-test'}},assertions:{status:200},intervalMs:60000,timeoutMs:2000,retries:0,failureQuorum:2,confirmSlots:2,recoverSlots:1,freshnessMs:30000,enabled:true,maintenanceUntil:0};
-  await db.batch([db.prepare('INSERT INTO monitors VALUES(?,?,?,?,?)').bind(id,1,JSON.stringify(definition),now+3600000,JSON.stringify({state:'Unknown'})),db.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind(id),db.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(id,1,JSON.stringify(definition),from-60000)]);
+  await db.batch([db.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,?,?,?,?)').bind(id,1,JSON.stringify(definition),now+3600000,JSON.stringify({state:'Unknown'})),db.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind(id),db.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind(id,1,JSON.stringify(definition),from-60000)]);
   for(let index=0;index<6;index++){
    const due=index===5&&state!=='stale'?now-1000:from+index*60000,slot=randomUUID();
    await db.prepare('INSERT INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual) VALUES(?,?,1,?,?,?,?,?,0,0)').bind(slot,id,due,'complete',JSON.stringify(definition),'fixture',due+10000).run();

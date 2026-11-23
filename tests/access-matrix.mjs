@@ -18,7 +18,7 @@ const ownerRoutes=apiRoutes.filter(route=>route.path!=='/api/v1/openapi.json'&&!
 const reads=ownerRoutes.filter(([method])=>method==='GET').map(([,path])=>path),writes=ownerRoutes.filter(([method])=>method!=='GET');
 // Every durable table but the request counters a refused request may still advance.
 async function everything(DB){
- const tables=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT GLOB '_cf*' AND name NOT IN ('public_rate_limits','oa_limits') ORDER BY name").all()).results;
+ const tables=(await DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT GLOB '_cf*' AND name NOT IN ('public_rate_limits','metrics_rate_hours','oa_limits') ORDER BY name").all()).results;
  return Promise.all(tables.map(async({name})=>[name,(await DB.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()).results]));
 }
 async function snapshot(DB){

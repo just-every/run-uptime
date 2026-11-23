@@ -49,7 +49,8 @@ export async function publicRuntime(directory,bindings,port){
  }catch(error){await worker.dispose();throw error}
 }
 export async function prefill(DB,classification,limit){
- const row=await DB.prepare('SELECT client_hash FROM public_rate_limits WHERE class=? LIMIT 1').bind(classification).first();
+ const row=classification==='metrics'?await DB.prepare('SELECT client_hash FROM metrics_rate_hours LIMIT 1').first():
+  await DB.prepare('SELECT client_hash FROM public_rate_limits WHERE class=? LIMIT 1').bind(classification).first();
  assert.ok(row,`public request created a durable ${classification} counter`);
  // The limit-th request and the refused one after it must share one fixed
  // window: a rollover between them admits the refused one into the next
@@ -59,7 +60,14 @@ export async function prefill(DB,classification,limit){
  // Populate the current and next real window so wall-clock rollover between
  // two HTTP requests cannot invalidate the boundary fixture. No app test hook.
  const start=Math.floor(Date.now()/60_000)*60_000;
- for(const time of [start,start+60_000])await DB.prepare(`INSERT INTO public_rate_limits(class,client_hash,window_start,request_count,expires_at) VALUES(?,?,?,?,?) ON CONFLICT(class,client_hash,window_start) DO UPDATE SET request_count=excluded.request_count`).bind(classification,row.client_hash,time,limit-1,time+60_000).run();
+ for(const time of [start,start+60_000]){
+  if(classification==='metrics'){
+   const hour=Math.floor(time/3_600_000)*3_600_000,key='$.m'+(time-hour)/60_000;
+   await DB.prepare(`INSERT INTO metrics_rate_hours(hour_start,client_hash,minute_counts,request_limit)
+    VALUES(?,?,json_set('{}',?,?),?) ON CONFLICT(hour_start,client_hash)
+    DO UPDATE SET minute_counts=json_set(minute_counts,?,?)`).bind(hour,row.client_hash,key,limit-1,limit,key,limit-1).run();
+  }else await DB.prepare(`INSERT INTO public_rate_limits(class,client_hash,window_start,request_count,expires_at) VALUES(?,?,?,?,?) ON CONFLICT(class,client_hash,window_start) DO UPDATE SET request_count=excluded.request_count`).bind(classification,row.client_hash,time,limit-1,time+60_000).run();
+ }
 }
 export async function limited(response,label){
  assert.equal(response.status,429,label);

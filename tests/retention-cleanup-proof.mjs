@@ -73,7 +73,7 @@ export async function retentionCleanup({worker,DB,port,persist,bindings,owner,ru
  ({worker,DB}=await migratedWorker({port,persist,bindings}));
  try{
   const after=await snapshot();
-  const transient=new Set(['oa_sessions','oa_limits','login_attempts','public_rate_limits','failure_snapshots']);
+  const transient=new Set(['oa_sessions','oa_limits','login_attempts','public_rate_limits','metrics_rate_hours','failure_snapshots']);
   for(const [table,records]of Object.entries(before)){
    if(transient.has(table))continue;
    const surviving=new Set((after[table]??[]).map(r=>r._rowid));

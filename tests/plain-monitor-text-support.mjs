@@ -11,10 +11,18 @@ export async function assertPlainMonitorText(region){
 const overviewRequest=request=>new URL(request.url()).pathname==='/api/overview'&&request.method()==='GET';
 const overviewFinished=(page,predicate)=>page.waitForEvent('requestfinished',{predicate,timeout:15000});
 export async function nextOverviewPoll(page){
- const [request]=await Promise.all([
-  overviewFinished(page,overviewRequest),
-  page.clock.fastForward('01:05').then(()=>page.clock.setSystemTime(Date.now())),
- ]);
+ const finished=overviewFinished(page,overviewRequest);
+ const advance=async()=>{
+  // A refresh can be rescheduled after the first timer fires while an
+  // action's reconciliation is finishing. Let the real request settle
+  // between clock advances, under the same wall-clock timeout.
+  for(;;){
+   await page.clock.fastForward('01:05');
+   await page.clock.setSystemTime(Date.now());
+   if(await Promise.race([finished,new Promise(resolve=>setTimeout(resolve,100))]))return;
+  }
+ };
+ const [request]=await Promise.all([finished,advance()]);
  return request.response();
 }
 export async function refreshVisibleOverview(page){

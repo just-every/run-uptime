@@ -2,7 +2,7 @@ import {publicLimits,publicPath,type PublicPath} from './public-paths.ts'
 import type {AuthBindings} from './operator-auth.server.ts'
 import {storageOperation,classifyStorage,storageLogLine} from './storage-error.ts'
 
-const windowMs=60_000
+const windowMs=60_000,hourMs=60*windowMs
 // Only Cloudflare's trusted edge header supplies hosted client identity. A
 // missing/malformed header cannot mint unlimited buckets. Never trust XFF.
 export function publicClientIdentity(env:Pick<AuthBindings,'UPTIME_LOCAL_REVIEW'>,request:Request):string {
@@ -20,6 +20,22 @@ async function clientHash(env:AuthBindings,request:Request){
  const bytes=await crypto.subtle.sign('HMAC',key,encoder.encode(`uptime-public-rate-limit:v1:${publicClientIdentity(env,request)}`))
  return Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('')
 }
+// Keep each minute independent, even if concurrent requests reach D1 out of
+// order across a minute boundary. Include any counter from before the upgrade.
+function metricsCounter(db:AuthBindings['DB'],hash:string,windowStart:number,limit:number){
+ const hourStart=Math.floor(windowStart/hourMs)*hourMs
+ const minutePath='$.m'+(windowStart-hourStart)/windowMs
+ return db.prepare(`WITH quota(remaining) AS (
+   SELECT ?5-COALESCE((SELECT request_count FROM public_rate_limits
+    WHERE class='metrics' AND client_hash=?2 AND window_start=?4),0)
+  )
+  INSERT INTO metrics_rate_hours(hour_start,client_hash,minute_counts,request_limit)
+  SELECT ?1,?2,json_set('{}',?3,1),?5 FROM quota WHERE remaining>0
+  ON CONFLICT(hour_start,client_hash) DO UPDATE SET request_limit=excluded.request_limit,
+   minute_counts=json_set(minute_counts,?3,COALESCE(json_extract(minute_counts,?3),0)+1)
+  WHERE COALESCE(json_extract(minute_counts,?3),0)<(SELECT remaining FROM quota)
+  RETURNING 1 AS admitted`).bind(hourStart,hash,minutePath,windowStart,limit)
+}
 /** Returns 429 at the class limit, 503 if counting is unavailable, else null. */
 export async function limitPublicRequest(env:AuthBindings,request:Request,declaration:PublicPath|undefined=publicPath(new URL(request.url).pathname,env.UPTIME_LOCAL_REVIEW==='true')):Promise<Response|null>{
  if(!declaration)return null
@@ -29,9 +45,10 @@ export async function limitPublicRequest(env:AuthBindings,request:Request,declar
  const hash=await clientHash(env,request)
  let admitted:unknown
  try{
-  admitted=await storageOperation('publicRateLimit.count',()=>env.DB.prepare(`INSERT INTO public_rate_limits(class,client_hash,window_start,request_count,expires_at)
+  const counter=declaration.class==='metrics'?metricsCounter(env.DB,hash,windowStart,limit):env.DB.prepare(`INSERT INTO public_rate_limits(class,client_hash,window_start,request_count,expires_at)
   VALUES(?,?,?,1,?) ON CONFLICT(class,client_hash,window_start) DO UPDATE SET request_count=request_count+1
-  WHERE public_rate_limits.request_count<? RETURNING request_count`).bind(declaration.class,hash,windowStart,expiresAt,limit).first())
+  WHERE public_rate_limits.request_count<? RETURNING request_count`).bind(declaration.class,hash,windowStart,expiresAt,limit)
+  admitted=await storageOperation('publicRateLimit.count',()=>counter.first())
  }catch(error){
   // A missing migration or unavailable D1 must close the public boundary,
   // including health; never admit an uncounted request or expose DB details.
@@ -44,5 +61,8 @@ export async function limitPublicRequest(env:AuthBindings,request:Request,declar
 }
 /** Cron may expire only these request counters, never product or audit data. */
 export async function cleanupPublicRateLimits(env:Pick<AuthBindings,'DB'>,now=Date.now()){
- return env.DB.prepare('DELETE FROM public_rate_limits WHERE expires_at<=?').bind(now).run()
+ return env.DB.batch([
+  env.DB.prepare('DELETE FROM public_rate_limits WHERE expires_at<=?').bind(now),
+  env.DB.prepare('DELETE FROM metrics_rate_hours WHERE hour_start<=?').bind(now-hourMs),
+ ])
 }

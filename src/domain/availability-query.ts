@@ -45,6 +45,12 @@ WITH params AS (
       json_array_length(s.definition,'$.probes') * (json_extract(s.definition,'$.retries')+1) * json_extract(s.definition,'$.timeoutMs') +
       (SELECT COUNT(*) FROM json_each(s.definition,'$.assignments') WHERE json_extract(value,'$.canaryUrl') IS NOT NULL) * json_extract(s.definition,'$.timeoutMs') + 10000) + 1000 AS coverage_reach_ms
   FROM scheduled_slots s JOIN revision_windows r ON r.revision=s.revision CROSS JOIN params q
+), bounded_observations AS (
+  SELECT o.id,o.slot_id,o.probe,o.attempt,o.evidence
+  FROM scheduled_slots s CROSS JOIN observations o ON o.slot_id=s.id
+  UNION ALL
+  SELECT json_extract(o.value,'$.id'),s.id,json_extract(o.value,'$.probe'),json_extract(o.value,'$.attempt'),o.value
+  FROM scheduled_slots s CROSS JOIN json_each(s.hosted,'$.attempts') o
 ), ranked AS (
   SELECT s.id AS slot_id, s.due_at, s.status, o.id AS observation_id,
     o.probe, o.attempt,
@@ -91,7 +97,7 @@ WITH params AS (
     CASE WHEN o.probe IN (SELECT value FROM json_each(p.probes_json)) THEN 1 ELSE 0 END AS selected_probe
   FROM scheduled_slots s
   JOIN slot_params p ON p.id=s.id
-  LEFT JOIN observations o ON o.slot_id=s.id
+  LEFT JOIN bounded_observations o ON o.slot_id=s.id
 ), per_probe AS (
   SELECT slot_id, probe,
     MAX(attempt_count) AS attempt_count,

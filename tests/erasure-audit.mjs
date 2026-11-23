@@ -14,7 +14,7 @@ import {testAuthBindings,authRequest,deliveredLink,sessionCookie} from './auth-t
 import {restore,archive} from '../src/domain/archive.server.ts';
 import {productPolicy} from '../scripts/local/transfer-policy.mjs';
 import {createPortability,readArchive} from '@runeditrun/rer/modules/portability';
-import {digest} from '../src/domain/archive-schema.ts';
+import {columns,digest} from '../src/domain/archive-schema.ts';
 import {assertRunnerAdmissionOnly} from './signed-runner-result-proof.mjs';
 import {erasureRaceProof} from './erasure-race-support.mjs';
 
@@ -68,7 +68,7 @@ try{
  const testDelivery=await DB.prepare("SELECT d.* FROM integration_deliveries d JOIN notification_jobs j ON j.id=d.id WHERE json_extract(j.event,'$.kind')='test' AND j.destination_id=? LIMIT 1").bind(destination.id).first();
  for(const [label,row]of [['monitor',incidentDelivery],['destination',testDelivery]]){assert.ok(row);const id=randomUUID();await DB.prepare('INSERT INTO integration_replays VALUES(?,?,?,?,?)').bind('uptime-notifications',id,row.fingerprint,JSON.stringify({...JSON.parse(row.envelope),id}),Date.now()).run()}
  await DB.prepare('INSERT INTO integration_resolutions VALUES(?,?,?,?,?)').bind('uptime-notifications',randomUUID(),incidentDelivery.id,Date.now(),JSON.stringify({kind:'accepted',code:'owner_confirmed'})).run();
- const historicalRecord=JSON.stringify(await DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitor.id).first());
+ const historicalRecord=JSON.stringify(await DB.prepare(`SELECT ${columns.monitors.join(',')} FROM monitors WHERE id=?`).bind(monitor.id).first());
  await DB.prepare('INSERT INTO archive_history VALUES(?,?,?)').bind(await digest(`monitors\n${historicalRecord}`),'monitors',historicalRecord).run();
  const beforeAudit=(await DB.prepare('SELECT * FROM uptime_audit').all()).results;
  const securityNotices=mail.filter(message=>message.subject==='Uptime second-factor security change');assert.ok(securityNotices.length);assert.equal((await DB.prepare("SELECT COUNT(*) n FROM uptime_mfa_notices WHERE outcome='accepted'").first()).n,securityNotices.length,'every real security notice retains its separate delivery outcome');
