@@ -9412,7 +9412,7 @@
       "executable": false
     },
     "tests/erasure-audit.mjs": {
-      "sha256": "eb8775156c8b24237bdecdf13e27befc374890970f645e437645899fd835ab65",
+      "sha256": "844cad95dedc293f8922498e14e4974caefd0d9785f83b48a7963948ea80677c",
       "executable": false
     },
     "tests/erasure-race-support.mjs": {
