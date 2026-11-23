@@ -1,3 +1,4 @@
+import {observationsAt,assignmentsAt} from './check-evidence-query.ts'
 import {checkerStatus} from './checker-status.ts'
 import {MONITOR_LIMIT} from './monitor-cap.ts'
 import {definitionTimeline} from './incident-work/definition-timeline.server.ts'
@@ -99,8 +100,8 @@ export async function withinMonitorCap<T>(env:Bindings,adding:number,batch:Promi
 // first attempt, whichever is latest. Slots restored from an archive ran elsewhere and never set this installation's schedule.
 export async function lastScheduledStart(env:Bindings,id:string){
  const slot=await env.DB.prepare("SELECT id,lease_until,definition FROM slots WHERE monitor_id=? AND manual=0 AND lease_owner<>'restored-inactive' ORDER BY due_at DESC,rowid DESC LIMIT 1").bind(id).first<any>();if(!slot)return null;
- const started=await env.DB.prepare("SELECT MAX(json_extract(evidence,'$.startedAt')) AS at FROM check_observations WHERE slot_id=? AND attempt=0").bind(slot.id).first<any>();
- const delivered=await env.DB.prepare('SELECT MAX(delivered_at) AS at FROM check_assignments WHERE slot_id=?').bind(slot.id).first<any>();
+ const started=await env.DB.prepare(`SELECT MAX(json_extract(evidence,'$.startedAt')) AS at FROM (${observationsAt('?1')}) WHERE attempt=0`).bind(slot.id).first<any>();
+ const delivered=await env.DB.prepare(`SELECT MAX(delivered_at) AS at FROM (${assignmentsAt('?1')})`).bind(slot.id).first<any>();
  const claimed=slot.lease_until>0?slot.lease_until-acceptanceMs(JSON.parse(slot.definition)):null;
  const values=[claimed,delivered?.at,started?.at].filter(v=>Number.isSafeInteger(v));return values.length?Math.max(...values):null;
 }

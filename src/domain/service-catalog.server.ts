@@ -1,3 +1,4 @@
+import {observationsAt} from './check-evidence-query.ts'
 import {MONITOR_LIMIT,get,grants,revisionStatements,save,withinMonitorCap,type Bindings} from './control.server.ts'
 // @ts-ignore Shared reviewed Auth0 source-check validation.
 import {validateCatalogCheck} from './service-catalog/source-check.mjs'
@@ -35,7 +36,11 @@ export async function recentNotices(env:Bindings,limit=50){
 }
 // What the latest scheduled evidence of a followed monitor says about its source, without opening any provider.
 async function sourceState(env:Bindings,monitorId:string,reviewedAt:number|null){
- const rows=(await env.DB.prepare("SELECT o.evidence FROM check_observations o WHERE o.slot_id=(SELECT id FROM slots WHERE monitor_id=? AND manual=0 AND lease_owner<>'restored-inactive' AND EXISTS(SELECT 1 FROM check_observations x WHERE x.slot_id=slots.id) ORDER BY due_at DESC LIMIT 1) ORDER BY o.attempt DESC").bind(monitorId).all<{evidence:string}>()).results.map(row=>JSON.parse(row.evidence))
+ const rows=(await env.DB.prepare(`WITH latest AS MATERIALIZED (
+  SELECT id FROM slots WHERE monitor_id=? AND manual=0 AND lease_owner<>'restored-inactive'
+   AND (json_array_length(hosted,'$.attempts')>0 OR EXISTS(SELECT 1 FROM observations WHERE slot_id=slots.id))
+  ORDER BY due_at DESC LIMIT 1
+ ) SELECT evidence FROM (${observationsAt('(SELECT id FROM latest)')}) ORDER BY attempt DESC`).bind(monitorId).all<{evidence:string}>()).results.map(row=>JSON.parse(row.evidence))
  if(!rows.length)return {state:'waiting',readable:true,needsReview:reviewedAt===null}
  const readable=rows.every(o=>['pass','target_failure'].includes(o.outcome)&&!o.checks?.some((c:any)=>c.assertion==='dependency'))
  return {state:!readable?'unknown':rows.every(o=>o.outcome==='pass')?'operational':'issue',readable,needsReview:reviewedAt===null||!readable}

@@ -1,3 +1,4 @@
+import {observationsAt} from '../src/domain/check-evidence-query.ts';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFile, readdir, writeFile} from 'node:fs/promises';
@@ -189,15 +190,16 @@ export async function authorizeRequests(worker) {
 }
 
 export async function assertHealthyTick(db, time) {
- const {results} = await db.prepare(`SELECT s.monitor_id,s.status,json_extract(o.evidence,'$.outcome') AS outcome,
+ const {results} = await db.prepare(`SELECT s.monitor_id,s.status,
+   (SELECT json_group_array(json_extract(evidence,'$.outcome')) FROM (${observationsAt('s.id')})) AS outcomes,
    json_extract(m.state,'$.targetState') AS health
-   FROM monitors m CROSS JOIN slots s JOIN check_observations o ON o.slot_id=s.id
-   WHERE s.monitor_id=m.id AND s.due_at=? AND s.manual=0`).bind(time).all();
+   FROM monitors m CROSS JOIN slots s ON s.monitor_id=m.id
+   WHERE s.due_at=? AND s.manual=0`).bind(time).all();
  assert.equal(new Set(results.map(row => row.monitor_id)).size, monitorCount, `every monitor ran at ${new Date(time).toISOString()}`);
- assert.equal(results.length, monitorCount, 'one observation per scheduled monitor');
+ assert.equal(results.length, monitorCount, 'one slot per scheduled monitor');
  for (const row of results) {
   assert.equal(row.status, 'complete');
-  assert.equal(row.outcome, 'pass');
+  assert.deepEqual(JSON.parse(row.outcomes), ['pass'], 'one passing observation in the scheduled slot');
   assert.equal(row.health, 'Healthy');
  }
 }

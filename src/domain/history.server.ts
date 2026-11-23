@@ -1,3 +1,4 @@
+import {observationsAt,assignmentsAt} from './check-evidence-query.ts'
 import {openSnapshot} from './failure-page-custody.server.ts'
 import type {Bindings} from './control.server.ts'
 
@@ -9,9 +10,9 @@ export async function history(env:Bindings,id:string){
   ORDER BY due_at DESC,rowid DESC LIMIT 100
  ) SELECT recent.*,
   (SELECT json_group_array(json(evidence)) FROM (
-   SELECT evidence FROM check_observations o WHERE o.slot_id=recent.id ORDER BY o.probe,o.attempt
+   SELECT evidence FROM (${observationsAt('recent.id')}) o ORDER BY o.probe,o.attempt
   )) AS observations,
-  (SELECT json_group_object(probe,external_check_url) FROM check_assignments a WHERE a.slot_id=recent.id AND a.external_check_url IS NOT NULL) AS external_checks
+  (SELECT json_group_object(probe,external_check_url) FROM (${assignmentsAt('recent.id')}) a WHERE a.external_check_url IS NOT NULL) AS external_checks
  FROM recent ORDER BY due_at DESC,history_order DESC`).bind(id),
  env.DB.prepare("SELECT observation_id,monitor_id,captured_at,json_remove(snapshot,'$.screenshot','$.artifacts') AS snapshot FROM failure_snapshots WHERE monitor_id=? AND expires_at>? AND slot_id IN(SELECT id FROM slots WHERE monitor_id=? ORDER BY due_at DESC,rowid DESC LIMIT 100)").bind(id,Date.now(),id)]);
  const snapshots=snapshotRows.results;

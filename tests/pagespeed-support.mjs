@@ -437,7 +437,7 @@ export async function proveRumUpgrade() {
     for (const name of names.filter(n => n < rum)) await apply(name);
     const now = Date.now(), definition = JSON.stringify(validateDefinition({name: 'Shop', url: 'https://shop.example.test/', enabled: true}, []));
     await DB.batch([DB.prepare('INSERT INTO monitors(id,revision,definition,next_due,state) VALUES(?,?,?,?,?)').bind('shop-one', 1, definition, now, JSON.stringify({state: 'Unknown'})), DB.prepare('INSERT INTO revisions VALUES(?,?,?,?)').bind('shop-one', 1, definition, now), DB.prepare('INSERT INTO evidence_generation(monitor_id) VALUES(?)').bind('shop-one')]);
-    const read = async () => ({monitors: (await DB.prepare('SELECT * FROM monitors ORDER BY rowid').all()).results, revisions: (await DB.prepare('SELECT * FROM revisions ORDER BY rowid').all()).results});
+    const read = async () => ({monitors: (await DB.prepare('SELECT id,revision,definition,next_due,state FROM monitors ORDER BY rowid').all()).results, revisions: (await DB.prepare('SELECT * FROM revisions ORDER BY rowid').all()).results});
     const before = await read();
     await apply(rum);
     assert.deepEqual(await read(), before, 'the beacon migration rewrites no monitor or revision');
