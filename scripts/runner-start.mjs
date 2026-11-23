@@ -5,7 +5,11 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { controlOrigin } from '../runners/src/control-origin.mjs';
 
-const processVariables = ['PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'TZ'];
+const inheritedVariables = [
+  'PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'TZ',
+  'UPTIME_PRIVATE_GRANT_DIR', 'UPTIME_CREDENTIAL_DIR',
+  'UPTIME_WATCH_WEBHOOK_URL', 'UPTIME_WATCH_SLACK_URL', 'UPTIME_WATCH_AFTER_MS', 'UPTIME_WATCH_REPEAT_MS',
+];
 const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
 // rer keeps deployment authority separately for each environment.
 const settingsPath = environment => ['.rer', 'deploy', `${environment}.secrets.env`];
@@ -71,7 +75,7 @@ export async function launchRunner({ root = process.cwd(), env = process.env,
   catch { throw Error('UPTIME_CONTROL_ORIGIN must be an exact HTTPS origin.'); }
   const directory = await realpath(root);
   const key = await runnerKey(directory, environment);
-  const childEnvironment = Object.fromEntries(processVariables
+  const childEnvironment = Object.fromEntries(inheritedVariables
     .filter(name => typeof env[name] === 'string').map(name => [name, env[name]]));
   // Suppress Node's implicit coverage inheritance as well as the explicit env.
   childEnvironment.NODE_V8_COVERAGE = undefined;

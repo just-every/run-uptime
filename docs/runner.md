@@ -197,7 +197,9 @@ A private location uses an enrolled Node runner inside your network, with outbou
 
 Start the runner with `UPTIME_PRIVATE_GRANT_DIR` set to an absolute, real directory you own, with permissions `0700`. Keep it outside your checkout. Grant files must be regular files you own, mode `0600`, with no symlinks or hard links. No grant is inferred from a network label or from enrollment.
 
-In **New monitor**, open **Advanced** and set **Reachable from** to **My private network**, then enter a grant reference such as `warehouse-local`. Save the monitor to obtain its ID and assigned runner ID. Coverage stays Unknown until its matching grant exists. On that runner, create `warehouse-local.json` in the protected grant directory:
+1. In **New monitor**, open **Advanced** and set **Reachable from** to **My private network**. Choose **Verify now** to verify or add a second factor without leaving the form. Saving requires verification within the last five minutes.
+2. Enter a grant reference such as `warehouse-local`. Save the monitor to obtain its ID and assigned runner ID. Coverage stays Unknown until its matching grant exists.
+3. On that runner, create `warehouse-local.json` in the protected grant directory:
 
 ```json
 {

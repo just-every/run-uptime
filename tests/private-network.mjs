@@ -10,6 +10,7 @@ import {join,resolve} from 'node:path';
 import {testAuthBindings} from './auth-test-support.mjs';
 import {availablePorts,migratedWorker,runtimeDirectory,cleanupDirectory,ownerAPI} from './notify-acceptance-runtime.mjs';
 import {certificates,listen,close} from './protocol-fixtures.mjs';
+import {runDeploymentRunner} from './deployment-runner-support.mjs';
 const directory=await runtimeDirectory(),[port]=await availablePorts(1),origin=`http://127.0.0.1:${port}`;
 let worker,web,tcp,canary,grants,runnerId,mode=200,requests=0,connections=0,forbiddenConnections=0,revokeFile;
 try{
@@ -34,11 +35,13 @@ try{
  const create=async extra=>post('/api/monitors',{name:'US warehouse checkout',...base,...extra});
  const permission=m=>({runnerId,monitorId:m.id,hosts:['checkout.internal.test'],cidrs:['10.24.3.10/32'],ports:[8080,5432],expiresAt:Date.now()+600000});
  const grant=async(m,changes={},options={})=>{const path=join(grants,'warehouse.json');await writeFile(path,JSON.stringify({...permission(m),...changes}),{mode:0o600,...options});return path};
- const step=async(m,extra)=>{const current=(await api(`/api/overview?monitor=${m.id}`)).data.monitors[0],delay=current.nextDue-Date.now()+20;if(delay>0)await new Promise(r=>setTimeout(r,delay));await run(extra);const history=(await api(`/api/monitors/${m.id}/history`)).data;const slot=history.find(s=>!s.manual);assert.equal(slot.status,'complete');assert.equal(slot.observations[0].canary.outcome,'pass',JSON.stringify(slot.observations[0].canary));return slot.observations[0]};
+ const step=async(m,extra,runCheck=run)=>{const current=(await api(`/api/overview?monitor=${m.id}`)).data.monitors[0],delay=current.nextDue-Date.now()+20;if(delay>0)await new Promise(r=>setTimeout(r,delay));await runCheck(extra);const history=(await api(`/api/monitors/${m.id}/history`)).data;const slot=history.find(s=>!s.manual);assert.equal(slot.status,'complete');assert.equal(slot.observations[0].canary.outcome,'pass',JSON.stringify(slot.observations[0].canary));return slot.observations[0]};
  const pause=async m=>post(`/api/monitors/${m.id}`,{...m.definition,enabled:false},'PATCH');
  for(const bad of [{url:'http://169.254.169.254/latest/meta-data/'},{url:'http://127.0.0.1:8080/'},{url:'http://metadata.google.internal/'},{url:'http://checkout.internal.test:2375/'},{privateGrantRef:undefined},{network:'public',privateGrantRef:'warehouse'}])assert.equal((await api('/api/monitors','POST',{name:'Refused private target',...base,...bad},{origin})).status,400);
  let m=await create({});let o=await step(m);assert.equal(o.outcome,'runner_error');assert.equal(o.checks[0].assertion,'grant');assert.equal(requests,0);
- await grant(m);o=await step(m);assert.equal(o.outcome,'pass');assert.equal((await api(`/api/overview?monitor=${m.id}`)).data.monitors[0].state.targetState,'Healthy');
+ await grant(m);o=await step(m,undefined,()=>runDeploymentRunner(directory,{origin,key:testAuthBindings.UPTIME_RUNNER_KEY,grants,httpPort,canaryPort,caPath:certs.caPath}));
+ const state=(await api(`/api/overview?monitor=${m.id}`)).data.monitors[0].state.targetState;
+ assert.deepEqual({outcome:o.outcome,state},{outcome:'pass',state:'Healthy'},'documented deployment command checks the monitor using its private grant');
  mode=503;o=await step(m);assert.equal(o.outcome,'target_failure');assert.equal((await api(`/api/overview?monitor=${m.id}`)).data.monitors[0].state.targetState,'Failing',JSON.stringify(o));mode=200;o=await step(m);assert.equal(o.outcome,'pass');await pause(m);const sourceHTTP=m;
  for(const [name,changes,edge] of [['neighbor CIDR',{cidrs:['10.24.3.11/32']}],['foreign runner',{runnerId:'self-11111111-1111-4111-8111-111111111111'}],['foreign monitor',{monitorId:'another-monitor'}],['expired',{expiresAt:Date.now()-1}],['ungranted port',{ports:[8081]}],['mixed DNS',{}, {PRIVATE_DNS_MODE:'mixed'}],['metadata DNS',{}, {PRIVATE_DNS_MODE:'metadata'}]]){
   m=await create({name:`Private refusal: ${name}`});await grant(m,changes);const before=requests;o=await step(m,edge);assert.equal(o.outcome,'runner_error',name);assert.equal(o.checks[0].assertion,'grant',name);assert.equal(requests,before,name);await pause(m);

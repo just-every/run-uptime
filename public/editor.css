@@ -126,6 +126,10 @@
 .advanced-body > .type-fields:not(.advanced-wide):not([hidden]) { display: contents; }
 .advanced-body .advanced-wide { grid-column: 1 / -1; }
 .advanced-body .advanced-wide > .helper { margin-top: 8px; }
+.private-verification { margin-bottom: 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; }
+.private-verification button, [data-private-verification-status]:not(:empty) { margin-top: 8px; }
+.stepup-dialog .notification-form { display: grid; gap: 12px; margin-block: 12px; }
+.stepup-dialog .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .advanced-body > details { padding-top: 4px; border-top: 1px solid var(--line); }
 .advanced-body > details > summary { min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; }
 .advanced-body > details .editor-fields { padding-top: 6px; }

@@ -3,11 +3,12 @@ import {showRecoveryCodes} from './recovery-codes.js';
 import {authenticatorEnrollment} from './authenticator-enrollment.js';
 import {containModalKeyboard} from '../notification-dialogs.js';
 export const needsStepUp=result=>['fresh_second_factor_required','second_factor_required'].includes(result.code);
-// Only a server refusal opens this flow. The caller retains its original request,
-// and retries it once after real verification; the server rechecks every rule.
-export async function recoverStepUp(refusal,{destination=false}={}){
+// A protected action can open this on refusal or verify before it submits.
+export async function recoverStepUp(refusal,{destination=false,onlyIfStale=false}={}){
+ const state=await securityRequest('/api/access/mfa/status');
+ if(onlyIfStale&&state.fresh)return;
  if(!document.querySelector('link[href="/assets/security-controls.css"]')){const style=document.createElement('link');style.rel='stylesheet';style.href='/assets/security-controls.css';document.head.append(style)}
- const state=await securityRequest('/api/access/mfa/status'),guidance=refusal.stepUp??state.stepUp;
+ const guidance=refusal.stepUp??state.stepUp;
  const opener=document.activeElement,dialog=document.createElement('dialog');dialog.className='editor notification-dialog stepup-dialog';dialog.dataset.stepupDialog='';
  dialog.innerHTML='<h2 id="stepup-heading">Verify to continue</h2><p data-stepup-guidance></p><div data-stepup-controls></div><p role="status" data-stepup-status></p><div class="buttons"><button type="button" class="secondary" data-stepup-cancel>Cancel</button></div>';
  if(destination)dialog.querySelector('h2').textContent='Confirm saving this alert destination';

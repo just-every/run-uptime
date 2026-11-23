@@ -18,6 +18,7 @@ import {validateJsonPath} from './http-assertions/json.mjs';
 export {ASSERTION_FIELDS} from './http-assertions/config.mjs';
 export const RUNNER_VERSION = 'uptime-node/0.1.0';
 export const MAX_BODY = 65536;
+const LOCAL_GRANT_REFUSAL = 'Target outside the local practice grant. The practice target address belongs to the running checkout. Run rer run practice-target there to read it again.';
 const integer = (v, min, max, label) => { if (!Number.isInteger(v) || v < min || v > max) throw Error(`Invalid ${label}`); return v; };
 export function validateDefinition(input, grants) {
   if (!input || typeof input !== 'object') throw Error('Definition required');
@@ -55,7 +56,7 @@ export function validateDefinition(input, grants) {
     if(network==='synthetic'){
       if(typeof url!=='string'||url.length>2048||!/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(url))throw Error('Invalid URL');
       u=new URL(url);
-      if(u.protocol!=='http:'||u.hostname!=='127.0.0.1'||u.username||u.password||u.hash||u.search||!grants.includes(Number(u.port)))throw Error('Target outside local synthetic grants');
+      if(u.protocol!=='http:'||u.hostname!=='127.0.0.1'||u.username||u.password||u.hash||u.search||!grants.includes(Number(u.port)))throw Error(LOCAL_GRANT_REFUSAL);
     }else u=network==='private'?privateTarget(url):publicTarget(url);
   }else if(type==='heartbeat'&&url!==undefined&&url!=='')throw Error('Heartbeat has no outgoing URL');
   const tlsTrust=normalizeTlsTrust(input.tlsTrust,{type,network,url:u?.href});
@@ -111,7 +112,7 @@ export function validateDefinition(input, grants) {
   if(type==='flow'){
     if(input.flow===undefined)throw Error('A flow monitor needs its flow: intent, steps and required outcomes');
     // A synthetic flow may only visit granted local addresses; a public flow only public targets.
-    const synthetic=value=>{if(typeof value!=='string'||value.length>2048||!/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(value))throw Error('Invalid URL');const v=new URL(value);if(v.hostname!=='127.0.0.1'||v.username||v.password||v.hash||v.search||!grants.includes(Number(v.port)))throw Error('Target outside local synthetic grants');return v.href};
+    const synthetic=value=>{if(typeof value!=='string'||value.length>2048||!/^http:\/\/127\.0\.0\.1:[0-9]+\//.test(value))throw Error('Invalid URL');const v=new URL(value);if(v.hostname!=='127.0.0.1'||v.username||v.password||v.hash||v.search||!grants.includes(Number(v.port)))throw Error(LOCAL_GRANT_REFUSAL);return v.href};
     flow=validateFlow(input.flow,{network,startUrl:u.href,synthetic});
     if(probes.length>2)throw Error('A flow runs on at most two probes');
   }

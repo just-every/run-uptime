@@ -1,4 +1,4 @@
-import {api} from './api.mjs';
+import {api,verifyFreshSecondFactor} from './api.mjs';
 import {fillFields,readFields} from './fields.mjs';
 import {mountCheckFrom,assignmentsFor} from './check-from.mjs';
 import {setDependencyChoices} from './metadata-fields.mjs';
@@ -14,6 +14,14 @@ export function prepareManualForm(form,definition){
  // A new monitor takes each type's usual timing when the type changes; an existing monitor keeps its own.
  form.elements.checkType.onchange=()=>{const type=form.elements.checkType.value;showType(form,type);if(!definition.name)for(const [name,value] of Object.entries(TYPE_TIMING[type]))form.elements.namedItem(name).value=String(value)};
  form.elements.networkScope.onchange=()=>showType(form,form.elements.checkType.value);
+ const verify=form.querySelector('[data-private-verify]'),verification=form.querySelector('[data-private-verification-status]');
+ verify.onclick=async()=>{
+  if(verify.hasAttribute('aria-disabled'))return;
+  verify.setAttribute('aria-disabled','true');verification.textContent='';
+  try{await verifyFreshSecondFactor();verification.textContent='Second factor verified. You can save now.'}
+  catch(error){verification.textContent=error.readable?error.message:'Verification could not start. Try again.'}
+  finally{verify.removeAttribute('aria-disabled')}
+ };
  form.querySelector('button[type=submit]').disabled=true;
  form.onsubmit=event=>event.preventDefault();
 }
@@ -31,7 +39,7 @@ export function mountManualForm({form,overview,definition,id,returnTo,message,mo
    // The server decides whether the monitor follows Settings: it does unless it has its own External check URL.
    const result={...readFields(form,definition),...(!heartbeat?assignmentsFor(definition,runnerIds):{}),...(own?{canaryUrl:own}:{})};
    delete result.externalCheck;result.failureQuorum=Math.min(result.failureQuorum??1,result.probes.length);
-   const saved=await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result);
+   const saved=await api(id?`/api/monitors/${id}`:'/api/monitors',id?'PATCH':'POST',result,{stepUp:result.network==='private'});
    // Only a successful explicit creation requests the one-time URL on the next page. No secret enters storage.
    if(!id&&heartbeat&&saved?.id)sessionStorage.setItem('uptime-heartbeat-created',saved.id);
    location.href=id||!saved?.id?returnTo:`/app/monitors/${encodeURIComponent(saved.id)}`;

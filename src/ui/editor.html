@@ -128,7 +128,15 @@
        <div class="advanced-body">
         <div class="type-fields" data-types="http tcp" data-form-only><label>Reachable from<select disabled name="networkScope"><option value="public">The public internet</option><option value="private">My private network</option></select></label></div>
         <div class="type-fields" data-types="http"><label>Request method<select disabled name="method"><option>GET</option><option>HEAD</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>OPTIONS</option></select></label></div>
-        <div class="type-fields advanced-wide" data-types="http tcp" data-form-only data-private-network hidden><label>Private grant reference<input disabled name="privateGrantRef" maxlength="80" pattern="[A-Za-z0-9_-]+" aria-describedby="private-grant-help"></label><p id="private-grant-help" class="helper ui-helper">Coverage stays Unknown until the grant is installed on your runner. <a href="/docs/runner#private-network-grants">Set up a private grant</a></p></div>
+        <div class="type-fields advanced-wide" data-types="http tcp" data-form-only data-private-network hidden>
+         <div class="private-verification">
+          <p id="private-verification-help" class="helper ui-helper">Saving a private-network monitor requires a second factor verified within the last five minutes.</p>
+          <button type="button" data-private-verify aria-describedby="private-verification-help">Verify now</button>
+          <p class="helper ui-helper" role="status" data-private-verification-status></p>
+         </div>
+         <label>Private grant reference<input disabled name="privateGrantRef" maxlength="80" pattern="[A-Za-z0-9_-]+" aria-describedby="private-grant-help"></label>
+         <p id="private-grant-help" class="helper ui-helper">Coverage stays Unknown until the grant is installed on your runner. <a href="/docs/runner#private-network-grants">Set up a private grant</a></p>
+        </div>
         <label>Wait for a response (seconds)<input disabled name="timeoutSeconds" type="number" step="0.001" min="0.05" max="10" required></label>
         <label>Extra attempts after a failure<input disabled name="retries" type="number" min="0" max="2" required></label>
         <label>Unknown after (minutes)<input disabled name="freshnessMinutes" type="number" step="any" min="0.08333333333333333" max="1440" required></label>
