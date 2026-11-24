@@ -13,7 +13,8 @@ import {splitSql} from './migration-support.mjs';
 
 export const minute = 60_000;
 export const minutesPerDay = 24 * 60;
-export const monitorCount = 4;
+// The write budgets fit four one-minute monitors; UPTIME_BUDGET_MONITORS measures other counts.
+export const monitorCount = Number(process.env.UPTIME_BUDGET_MONITORS ?? 4);
 export const origin = 'https://uptime-cron-budget.test';
 export const clientHeaders = {'cf-connecting-ip':'192.0.2.10'};
 const target = 'https://target.cron-budget.test';
@@ -185,4 +186,52 @@ export async function assertHealthyTick(db, time) {
   assert.deepEqual(JSON.parse(row.outcomes), ['pass'], 'one passing observation in the scheduled slot');
   assert.equal(row.health, 'Healthy');
  }
+}
+
+// One incident every two hours across the retained history, as alerting leaves
+// it: the trigger and recovery events, one webhook delivery of each, the
+// trigger's contact schedule and its recovery match. All of it is retained.
+export async function seedNotificationHistory(worker, {cookie}, firstMinute, historyMinutes) {
+ const response = await worker.dispatchFetch(origin + '/api/notifications/destinations', {
+  method:'POST', headers:{...clientHeaders, origin, cookie, 'content-type':'application/json'},
+  body:JSON.stringify({name:'On-call receiver', kind:'webhook', url:'https://hooks.example.com/uptime'}),
+ });
+ assert.equal(response.status, 201, `owner routed alerts to a webhook: ${await response.clone().text()}`);
+ const {id} = await response.json();
+ const db = await worker.getD1Database('DB');
+ const every = 120 * minute, start = firstMinute - historyMinutes * minute + every;
+ await db.batch([
+  db.prepare(`WITH RECURSIVE times(n,at) AS (SELECT 0,CAST(?1 AS INTEGER) UNION ALL SELECT n+1,at+?2 FROM times WHERE at+?2<?3),
+    ordered AS (SELECT id,ROW_NUMBER() OVER (ORDER BY rowid)-1 AS position FROM monitors),
+    incidents AS (SELECT n,at,ordered.id AS monitor FROM times JOIN ordered ON ordered.position=n%(SELECT COUNT(*) FROM monitors)),
+    events(kind,observed,monitor,incident) AS (SELECT 'trigger',at,monitor,'incident:'||n FROM incidents UNION ALL SELECT 'recovery',at+5*60000,monitor,'incident:'||n FROM incidents)
+    INSERT INTO outbox(id,monitor_id,slot_id,kind,event)
+    SELECT incident||':'||kind,monitor,monitor||':1:'||observed,kind,json_object('schemaVersion',2,'id',incident||':'||kind,'kind',kind,'incidentKey',incident,
+     'eventType',CASE kind WHEN 'trigger' THEN 'uptime.incident.firing' ELSE 'uptime.incident.recovered' END,'monitorId',monitor,'monitorRevision',1,
+     'observedAt',observed,'slotId',monitor||':1:'||observed,'title','Target unavailable','explanation','HTTP 503','probes',json_array())
+    FROM events`).bind(start, every, firstMinute - 10 * minute),
+  db.prepare(`INSERT INTO notification_jobs(id,event_id,destination_id,destination_name,kind,credential_id,event,created_at,state,code,finished_at,attempts)
+    SELECT o.id||':'||d.id,o.id,d.id,d.name,d.kind,d.credential_id,o.event,json_extract(o.event,'$.observedAt')+400,'accepted','webhook_accepted',json_extract(o.event,'$.observedAt')+800,1
+    FROM outbox o CROSS JOIN notification_destinations d WHERE d.id=?`).bind(id),
+  db.prepare(`INSERT INTO alert_contact_schedules(trigger_job_id,monitor_id,incident_key,due_at,repeat_ms,max_repeats,next_at,recovery,stop_on_ack)
+    SELECT j.id,json_extract(j.event,'$.monitorId'),json_extract(j.event,'$.incidentKey'),json_extract(j.event,'$.observedAt'),0,NULL,NULL,1,0
+    FROM notification_jobs j WHERE json_extract(j.event,'$.kind')='trigger'`),
+  db.prepare(`INSERT INTO alert_recovery_matches(recovery_job_id,trigger_job_id)
+    SELECT r.id,t.id FROM notification_jobs r JOIN notification_jobs t ON t.event_id=json_extract(r.event,'$.incidentKey')||':trigger'
+    WHERE json_extract(r.event,'$.kind')='recovery'`),
+  db.prepare(`INSERT INTO integration_deliveries(namespace,id,fingerprint,destination_hash,envelope,state,attempts,created_at,next_at,max_attempts,retry_delays)
+    SELECT 'uptime-notifications',id,'history','hmac-v1:'||hex(id),'{}','accepted',1,created_at,created_at,3,'[]' FROM notification_jobs`),
+  db.prepare(`INSERT INTO integration_attempts(namespace,id,delivery_id,number,started_at,finished_at,outcome)
+    SELECT 'uptime-notifications','attempt:'||id,id,1,created_at,created_at+400,json_object('kind','accepted','code','webhook_accepted','status',200)
+    FROM notification_jobs`),
+  db.prepare(`UPDATE notification_delivery_attempts SET started_at=scheduled_at,finished_at=scheduled_at+400,outcome_category='accepted',code='webhook_accepted',status=200`),
+ ]);
+ const incidents = Math.ceil((firstMinute - 10 * minute - start) / every);
+ const counts = await db.prepare(`SELECT (SELECT COUNT(*) FROM outbox) AS events,(SELECT COUNT(*) FROM notification_jobs) AS jobs,
+   (SELECT COUNT(*) FROM integration_deliveries) AS deliveries,(SELECT COUNT(*) FROM alert_contact_schedules) AS schedules,
+   (SELECT COUNT(*) FROM alert_recovery_matches) AS matches,
+   (SELECT COUNT(*) FROM notification_delivery_attempts WHERE finished_at IS NOT NULL) AS attempts`).first();
+ assert.deepEqual(counts, {events:2 * incidents, jobs:2 * incidents, deliveries:2 * incidents, schedules:incidents, matches:incidents, attempts:2 * incidents},
+  'every historical incident has its events, deliveries, attempts, schedule and recovery match');
+ console.log(`Seeded ${incidents} resolved incidents with ${2 * incidents} delivered webhook alerts`);
 }

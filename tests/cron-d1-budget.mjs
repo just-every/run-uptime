@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {parseArgs} from 'node:util';
 import {
  assertHealthyTick, authorizeRequests, clientHeaders, dispatchCron, migrate, migrationPlan,
- minute, minutesPerDay, monitorCount, origin, runtime, seedHistory,
+ minute, minutesPerDay, monitorCount, origin, runtime, seedHistory, seedNotificationHistory,
 } from './cron-d1-history-fixture.mjs';
 import {proveCanaryBucketBudget, proveAvailabilityDumpRoundTrip} from './cron-d1-bucket-fixture.mjs';
 import {proveNotificationIndexUpgrade} from './cron-d1-notification-fixture.mjs';
@@ -18,14 +18,20 @@ const historyMinutes = Number(values['history-days']) * minutesPerDay;
 assert.ok(Number.isSafeInteger(historyMinutes) && historyMinutes >= minutesPerDay, 'history-days must be at least one day');
 
 const day = minutesPerDay * minute;
-const dailyBudget = 1_000_000;
+// Every invocation runs on a cold isolate, as live Cron does, against 30 days of
+// checks and alerts (a routed webhook, one incident every two hours). Uptime
+// 0.5.27 read over 500 million rows a day here; Workers Free allows 5 million.
+const dailyBudget = 1_500_000;
 const dailyWriteBudget = 70_000;
 const migrationWriteBudget = 20_000;
 const freeDailyWriteLimit = 100_000;
 const cronWriteBudget = 56;
-const cronBudget = 300_000;
+const cronBudget = 400_000;
+// Every run is metered on a fresh instance; none may read at a pace of 500,000 rows a day.
 const coldCronBudget = 500_000 / minutesPerDay;
 const coldReadBudget = 1_000;
+// A console's first load lists the newest 200 retained alert deliveries.
+const coldOverviewBudget = 6_000;
 const activePollInterval = 5_000;
 const unchangedPollInterval = minute;
 const scrapeInterval = 15_000;
@@ -40,9 +46,12 @@ async function readMeter(request, door, time) {
  return report;
 }
 
-async function pollOverview(request, time, cookie, etag) {
+// Poll as the console does: conditionally, naming the retained alert and
+// delivery lists it holds for their history generation.
+async function pollOverview(request, time, cookie, {etag, history}) {
  const response = await request('/api/overview', {headers:{
   ...clientHeaders, cookie, 'x-uptime-time-zone':'Australia/Brisbane', 'x-d1-meter-time':String(time), ...(etag ? {'if-none-match':etag} : {}),
+  ...(history ? {'x-uptime-history':`${history} alerts deliveries`} : {}),
  }});
  const ttl = Number(response.headers.get('x-uptime-overview-ttl'));
  assert.ok(response.headers.has('x-uptime-overview-ttl') && Number.isFinite(ttl) && ttl >= 0, 'poll advertises its next clock deadline');
@@ -50,21 +59,27 @@ async function pollOverview(request, time, cookie, etag) {
   assert.ok(etag, 'unchanged response follows a successful poll');
   assert.equal(response.headers.get('etag'), etag, '304 preserves the validator');
   assert.equal(await response.text(), '', 'unchanged overview has no body');
-  return {etag, unchanged:true, ttl};
+  return {etag, history, unchanged:true, ttl};
  }
  assert.equal(response.status, 200, 'signed-in overview poll succeeds');
- const {monitors} = await response.json();
+ const overview = await response.json(), {monitors, notifications} = overview;
  assert.equal(monitors.length, monitorCount);
  assert.ok(monitors.every(({availability}) => availability.lastCheckAt >= time - minute), 'overview reports the latest scheduled evidence');
+ const reused = overview.historyGeneration !== undefined && overview.historyGeneration === history;
+ assert.equal(Boolean(overview.alertsReused), reused, 'held alerts are reused exactly while their generation holds');
+ assert.equal(Boolean(notifications.deliveriesReused), reused, 'held deliveries are reused exactly while their generation holds');
+ if (!reused) assert.ok(overview.alerts.length > 0 && notifications.deliveries.length > 0, 'the overview lists retained alerts and deliveries');
  const updated = response.headers.get('etag');
  assert.ok(updated, 'overview advertises an ETag');
  assert.notEqual(updated, etag, 'a conditional 200 returns a changed overview');
- return {etag:updated, unchanged:false, ttl};
+ return {etag:updated, history:overview.historyGeneration, unchanged:false, ttl};
 }
 
+// The default scrape reuses its isolate's 55 s snapshot. One Prometheus every
+// 15 s is modelled on a warm isolate; the cold scrape is held to its own ceiling.
 async function scrapeMetrics(request, time, authorization, ids) {
  const response = await request('/api/v1/metrics', {headers:{
-  ...clientHeaders, authorization, 'x-d1-meter-time':String(time),
+  ...clientHeaders, authorization, 'x-d1-meter-time':String(time), 'x-d1-meter-isolate':'warm',
  }});
  assert.equal(response.status, 200, 'authenticated Prometheus scrape succeeds');
  const metrics = await response.text();
@@ -90,7 +105,7 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
  const db = await worker.getD1Database('DB');
  const ids = (await db.prepare('SELECT id FROM monitors').all()).results.map(({id}) => id);
  let nextCron = firstMinute, nextPoll = firstMinute, nextScrape = firstMinute;
- let etag, coldCron, coldOverview, coldScrape;
+ let held = {}, coldCron, coldOverview, coldScrape;
  const end = firstMinute + day;
  for (let time = firstMinute; time < end; time = Math.min(nextCron, nextPoll, nextScrape)) {
   if (time === nextCron) {
@@ -100,21 +115,19 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
    if (coldCron === undefined) {
     coldCron = cost.rows;
     console.log(`Cold cron: ${cost.rows} D1 rows read, ${cost.writes} written`);
-    assert.ok(coldCron < coldCronBudget, `fresh Workers on a minute schedule would read ${coldCron * minutesPerDay} rows per day`);
    }
-   assert.ok(cost.writes < cronWriteBudget, `cron at ${new Date(time).toISOString()} wrote ${cost.writes} rows; expected under ${cronWriteBudget}`);
    record('cron', cost);
    await assertHealthyTick(db, time);
    nextCron += minute;
   }
   if (time === nextPoll) {
-   const result = await pollOverview(request, time, cookie, etag);
+   const result = await pollOverview(request, time, cookie, held);
    const cost = await readMeter(request, '/api/overview', time);
    if (coldOverview === undefined) {
     coldOverview = cost.rows;
     console.log(`Cold overview: ${cost.rows} D1 rows read`);
    }
-   etag = result.etag;
+   held = result;
    record(result.unchanged ? 'unchanged overview' : 'changed overview', cost);
    nextPoll += Math.max(1000,Math.min(result.unchanged ? unchangedPollInterval : activePollInterval,result.ttl));
   }
@@ -131,8 +144,6 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
   if (time === firstMinute + 10 * minute - scrapeInterval) {
    console.log('First ten minutes: ' + [...usage].map(([kind, {rows, calls, max}]) =>
     `${kind} ${rows} reads in ${calls} calls (max ${max})`).join(', '));
-   assert.ok(coldOverview < coldReadBudget, `cold overview read ${coldOverview} rows; expected under ${coldReadBudget}`);
-   assert.ok(coldScrape < coldReadBudget, `cold scrape read ${coldScrape} rows; expected under ${coldReadBudget}`);
   }
  }
  const combined = [...usage.values()].reduce((rows, total) => rows + total.rows, 0);
@@ -140,6 +151,14 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
  console.log(`${monitorCount} active monitors with ${historyMinutes / minutesPerDay} days of retained history`);
  for (const [kind, {rows, writes, calls, max, maxWrites}] of usage) console.log(`${kind}: ${rows} D1 rows read, ${writes} written in ${calls} calls, max ${max} reads and ${maxWrites} writes`);
  console.log(`Combined: ${combined} D1 rows read, ${written} written across one simulated day`);
+ for (const [door, queries] of Object.entries(await (await request('/__d1_meter?totals=5')).json())) {
+  console.log(`Top readers, ${door}:`);
+  for (const {calls, rows, writes, sql} of queries) console.log(`  ${rows} read, ${writes} written in ${calls} calls: ${sql}`);
+ }
+ assert.ok(coldOverview < coldOverviewBudget, `cold overview read ${coldOverview} rows; expected under ${coldOverviewBudget}`);
+ assert.ok(coldScrape < coldReadBudget, `cold scrape read ${coldScrape} rows; expected under ${coldReadBudget}`);
+ assert.ok(usage.get('cron').max < coldCronBudget, `a cron run on a fresh instance read ${usage.get('cron').max} rows, a pace of ${usage.get('cron').max * minutesPerDay} a day`);
+ assert.ok(usage.get('cron').maxWrites < cronWriteBudget, `a cron run wrote ${usage.get('cron').maxWrites} rows; expected under ${cronWriteBudget}`);
  assert.equal(usage.get('cron').calls, minutesPerDay);
  assert.equal(usage.get('metrics').calls, day / scrapeInterval);
  assert.ok(usage.get('changed overview')?.calls > 1, 'a live overview changes as scheduled checks complete');
@@ -181,22 +200,23 @@ try {
  console.log(`Populated upgrade: ${migrationWrites} D1 rows written (${compactWrites} from compact hosted storage onward)`);
  assert.ok(migrationWrites < migrationWriteBudget, `upgrade wrote ${migrationWrites} rows; expected under ${migrationWriteBudget}`);
  const auth = await authorizeRequests(worker);
+ await seedNotificationHistory(worker, auth, firstMinute, historyMinutes);
  // Warm the persisted data first. A first overview can initialize the time
  // zone and runner rows, which should invalidate an earlier validator.
  await dispatchCron(await worker.getWorker(), firstMinute - minute);
  const firstRequest = (path, init) => worker.dispatchFetch(origin + path, init);
- await pollOverview(firstRequest, firstMinute - minute + 5_000, auth.cookie);
- const original = await pollOverview(firstRequest, firstMinute - minute + 6_000, auth.cookie);
+ await pollOverview(firstRequest, firstMinute - minute + 5_000, auth.cookie, {});
+ const original = await pollOverview(firstRequest, firstMinute - minute + 6_000, auth.cookie, {});
  await worker.dispose();
  worker = await runtime(values.dist, directory);
  const restartedRequest = (path, init) => worker.dispatchFetch(origin + path, init);
  // The first request in the new workerd process carries a tag minted by
  // the old process, with only the persisted D1 state in common.
- const revalidated = await pollOverview(restartedRequest, firstMinute - minute + 7_000, auth.cookie, original.etag);
+ const revalidated = await pollOverview(restartedRequest, firstMinute - minute + 7_000, auth.cookie, {etag:original.etag});
  assert.equal(revalidated.unchanged, true, 'unchanged state revalidates from a fresh Worker');
  const coldPoll = await readMeter(restartedRequest, '/api/overview', firstMinute - minute + 7_000);
  assert.ok(coldPoll.rows * day / activePollInterval < dailyBudget, 'a fresh Worker revalidates within the polling budget');
- const independentlyIssued = await pollOverview(restartedRequest, firstMinute - minute + 8_000, auth.cookie);
+ const independentlyIssued = await pollOverview(restartedRequest, firstMinute - minute + 8_000, auth.cookie, {});
  assert.equal(independentlyIssued.etag, original.etag, 'Workers independently issue the same validator');
  console.log(`Cross-instance overview: 304 with ${coldPoll.rows} D1 rows read`);
  // Restart again so day metering includes a truly cold scheduled run.
