@@ -93,6 +93,24 @@ rer run --script scripts/runner-start.mjs --environment production
 
 For a named environment, replace `production` with its name and use its own hosted origin. The wrapper reads the environment's saved runner key privately. An added runner instead uses the complete command from its console dialog, including its own ID, key and network label.
 
+## Pick the Cron schedule
+
+`rer deploy` creates one Cron trigger, `* * * * *` (every minute), and Uptime has no setting for another schedule: a different one is set on the Worker's Cron trigger in Cloudflare after deployment, and read back there. The schedule is the company manager's choice. This is what a run costs, so the choice can be made on numbers.
+
+Each run takes at most one check for each monitor that is due. A run with nothing due reads 42 D1 rows with one monitor and 51 with four, and writes none; each check it takes adds about 35 rows read and about 8 rows written. Measured with the hosted Worker's own budget test on Uptime 0.5.27 (public HTTP monitors, healthy, no retries or external check; the 0.5.26 release record, 190 rows read and 34 written per run for four one-minute monitors, matches):
+
+| Monitors and interval | Rows read per run | Rows written per run | Rows read per day | Rows written per day |
+| --- | --- | --- | --- | --- |
+| 4 every 1 minute | 190 | 34 | 273,000 | 48,700 |
+| 4 every 5 minutes | 77 | 6.5 | 111,000 | 9,400 |
+| 10 every 5 minutes | 137 | 16 | 197,000 | 23,600 |
+| 20 every 5 minutes | 235 | 33 | 338,000 | 46,900 |
+| 10 every 1 minute | 417 | 83 | 600,000 | 119,500 |
+
+The figures are for a run every minute; a failing check, an incident or a notification adds more. Rows written are the limit on Workers Free, which allows 100,000 D1 rows written a day (Cloudflare's published limit; check it before relying on it). Rows read are far below their limit. Prometheus scraping every 15 seconds adds about 11,500 rows written a day, and an open console adds reads. With four one-minute monitors, the console open and that scrape, a simulated day wrote 60,278 rows and read 940,073. Ten one-minute monitors alone write more than the free day allows.
+
+Recommendation: keep the one-minute Cron and set the monitors' own **Check every (minutes)**. A day then takes about 8 rows written for each check taken, so aim for no more than about 6,000 checks a day (60,000 rows written) to leave headroom: four monitors every minute, or twenty every five minutes. A slower Cron saves nothing a longer interval does not: each run still takes one check per due monitor, so a five-minute Cron checks a one-minute monitor every five minutes, delays alerts and recovery by up to five minutes, and has only the 35 outbound requests of its run (about seven healthy checks at the defaults, see [Limits](/docs/limits)) for every monitor due at once.
+
 ## Update an existing deployment
 
 Use the checkout that owns the existing deployment. Start with a clean tracked tree and preserve `.rer/deploy/<environment>.json`, the private `.rer/deploy/<environment>.secrets.env` and backups. If the checkout still has legacy JSON settings, preserve those too until deployment migrates them. Resolve local changes before updating; do not delete deployment records or replace private settings.

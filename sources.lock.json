@@ -508,7 +508,7 @@
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "87cd27b615fd70b356349c01cd204a516042cc91543220ea87558cc6c3797321",
+      "sha256": "eff5ef16c468bf4b8eb459d14e4362544d02e524302523b4b15b255c09867f33",
       "executable": false
     },
     "base-copies.json": {
@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "accc2c48c0a482a563bece7801f2c5ac72fb6cfd8a5531bfc89028884c9e21ec",
+      "sha256": "4990b9bf52b126eeb2ee7a44538f422e6772ff8497d7a25505bb0f8428dda1b3",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -3140,7 +3140,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "15f2f76eec9929b1c69b37af4ad1237f51f3665d88c4277c3eff300845123238",
+      "sha256": "d8b4f897f93c3e6444aadd1d7cd1e37ad7c7e4f32270303ffe5bcad2a56db731",
       "executable": false
     },
     "RELEASE.json": {

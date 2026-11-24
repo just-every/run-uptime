@@ -53,6 +53,10 @@ Stop dev or preview before any deployment command, including a dry run. An autho
 
 After hosted setup with mail off, `rer signin` prints the one-time HTTPS owner sign-in link on its own line. Pass the hosted link to the business harness as `sign_in` in Uptime’s `tools[i]` entry in `session.report`. Keep the link out of chat and files.
 
+Set Uptime up first, before the tools it will watch: it needs none of them. Wait for the owner's real email before running setup (`--owner-email`; a hosted deploy needs the same address as `OWNER_EMAIL`): setup refuses a different owner address afterwards instead of replacing it. Once it is set up, give it the company's old monitor targets. Use the company's public website as `UPTIME_START_URL`, **New monitor › Paste many URLs or a CSV**, or a file from the old service under **Settings › Backup and files**: an `uptime.monitors.json` definition file, or saved UptimeRobot, Pingdom, Better Stack or Site24x7 responses (imported monitors arrive paused until someone starts them).
+
+Its first check after a new install: a monitor on the company's own domain reads **Healthy** once its first scheduled check passes; until a scheduled result arrives it reads Unknown. The console's state words are Healthy, Degraded, Failing and Unknown, and Healthy needs a passing check, never a missing one. A hosted installation cannot watch its own address from the Worker, but the company's domain is not that address. For the hosted Cron schedule, see [Pick the Cron schedule](docs/deploy.md#pick-the-cron-schedule). In short: keep the one-minute Cron, which costs about 8 D1 rows written for each check taken against Workers Free's 100,000 a day, and set monitor intervals to fit (four one-minute monitors, or twenty at five minutes); the schedule itself is the company manager's choice.
+
 # Uptime contributor guidance
 
 Read README.md, CONTRACT.md, BASELINE.md, ACCEPTANCE.md, OPERATIONS.md and HANDOVER.md before changing the application. The console uses TanStack Start documents, Hono private APIs, additive D1 migrations and a separately scoped signed Node runner.

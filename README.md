@@ -84,6 +84,12 @@ After installing `rer` and cloning with `~/.local/bin/rer install just-every/run
 
 Replace the example address with the owner's address. To start with monitors already proposed, also give setup the website to monitor in a private, mode-0600 JSON file, `answers.json` containing `{"UPTIME_START_URL":"https://example.com"}`, and add `--answers answers.json` to the command. The address must be a public HTTP(S) address. It is optional: without it, `/setup` offers the same field, and leaving it empty changes nothing. When the owner opens `/setup`, Uptime asks the owner's runner to look at that site, and finishing setup opens the console on the monitors it proposes. Nothing is created until the owner chooses it. Setup builds, migrates, prepares private settings and creates the first owner, then prints `RER_SETUP_READY` and stops its temporary processes. Repeating setup preserves the owner, data and exact private settings; conflicting owner or origin answers refuse. Setup checks its generated or saved settings before opening its temporary runtime. The Worker validates configuration before handling requests or scheduled work; app, preview, deployment and runner entry points check their own configuration before serving or starting operational work. A missing or malformed required value is named without printing its value; the Worker returns 503, including at `/health`, until configuration is complete. `SETUP_TOKEN` is required until permanent owner admission is recorded; after admission, retiring it does not interrupt sign-in, routes or scheduled work, even before `/setup` is finished. Then start the app with `~/.local/bin/rer dev`.
 
+### Set up Uptime for a company
+
+Set Uptime up first, before the tools it will watch: it needs none of them. Wait for the owner's real email before running setup (`--owner-email`; a hosted deploy needs the same address as `OWNER_EMAIL`): setup refuses a different owner address afterwards instead of replacing it. Once it is set up, give it the company's old monitor targets. Use the company's public website as `UPTIME_START_URL`, **New monitor › Paste many URLs or a CSV**, or a file from the old service under **Settings › Backup and files**: an `uptime.monitors.json` definition file, or saved UptimeRobot, Pingdom, Better Stack or Site24x7 responses (imported monitors arrive paused until someone starts them).
+
+Its first check after a new install: a monitor on the company's own domain reads **Healthy** once its first scheduled check passes; until a scheduled result arrives it reads Unknown. The console's state words are Healthy, Degraded, Failing and Unknown, and Healthy needs a passing check, never a missing one. A hosted installation cannot watch its own address from the Worker, but the company's domain is not that address. For the hosted Cron schedule, see [Pick the Cron schedule](#pick-the-cron-schedule).
+
 ## Verify
 
 Run `~/.local/bin/rer verify` for the complete product checks. Push and pull-request CI run parallel shards; installer and README clone journeys run nightly and on version tags. The aggregate Verify job requires every selected shard. Browser prerequisites are in [OPERATIONS.md](OPERATIONS.md). Sessionless public routes and assets are declared in `seed.json` and limited by client and path class; excess requests receive 429 with `Retry-After`, and unavailable counter storage returns 503. These source limits are marked estimated and not load-tested. A local passing result establishes neither hosted operation nor recipient acceptance.
@@ -192,6 +198,24 @@ Public website checks and notifications run automatically in the hosted Cloudfla
 To monitor this Uptime installation's own address, assign a private runner. Cloudflare does not route the Worker's fetch of its own origin back to the app, so saving an active self-monitor with a Worker assignment is refused. An internal handler call would not test public routing, TLS or network reachability. Existing self-monitor assignments and redirects back to the app produce runner errors and Unknown coverage; their earlier history stays intact. The same restriction applies to a Worker's external check URL.
 
 Keep a private runner under a supervisor. A healthy Worker does not establish that a separately operated runner is working: check its contact and actual results. See [the runner guide](docs/runner.md) and [ACCEPTANCE.md](ACCEPTANCE.md) for hosted acceptance requirements.
+
+### Pick the Cron schedule
+
+`rer deploy` creates one Cron trigger, `* * * * *` (every minute), and Uptime has no setting for another schedule: a different one is set on the Worker's Cron trigger in Cloudflare after deployment, and read back there. The schedule is the company manager's choice. This is what a run costs, so the choice can be made on numbers.
+
+Each run takes at most one check for each monitor that is due. A run with nothing due reads 42 D1 rows with one monitor and 51 with four, and writes none; each check it takes adds about 35 rows read and about 8 rows written. Measured with the hosted Worker's own budget test on Uptime 0.5.27 (public HTTP monitors, healthy, no retries or external check; the 0.5.26 release record, 190 rows read and 34 written per run for four one-minute monitors, matches):
+
+| Monitors and interval | Rows read per run | Rows written per run | Rows read per day | Rows written per day |
+| --- | --- | --- | --- | --- |
+| 4 every 1 minute | 190 | 34 | 273,000 | 48,700 |
+| 4 every 5 minutes | 77 | 6.5 | 111,000 | 9,400 |
+| 10 every 5 minutes | 137 | 16 | 197,000 | 23,600 |
+| 20 every 5 minutes | 235 | 33 | 338,000 | 46,900 |
+| 10 every 1 minute | 417 | 83 | 600,000 | 119,500 |
+
+The figures are for a run every minute; a failing check, an incident or a notification adds more. Rows written are the limit on Workers Free, which allows 100,000 D1 rows written a day (Cloudflare's published limit; check it before relying on it). Rows read are far below their limit. Prometheus scraping every 15 seconds adds about 11,500 rows written a day, and an open console adds reads. With four one-minute monitors, the console open and that scrape, a simulated day wrote 60,278 rows and read 940,073. Ten one-minute monitors alone write more than the free day allows.
+
+Recommendation: keep the one-minute Cron and set the monitors' own **Check every (minutes)**. A day then takes about 8 rows written for each check taken, so aim for no more than about 6,000 checks a day (60,000 rows written) to leave headroom: four monitors every minute, or twenty every five minutes. A slower Cron saves nothing a longer interval does not: each run still takes one check per due monitor, so a five-minute Cron checks a one-minute monitor every five minutes, delays alerts and recovery by up to five minutes, and has only the 35 outbound requests of its run (about seven healthy checks at the defaults, see [Limits](docs/limits.md)) for every monitor due at once.
 
 ### Update or remove a hosted installation
 
