@@ -34,11 +34,12 @@ if(entry&&location.pathname!==pathOf(entry))history.replaceState(history.state,'
 function takePrefetched(path){const early=window.uptimePrefetch?.[path];if(!early)return null;delete window.uptimePrefetch[path];return Date.now()-early.at<15000?early.response:null}
 // A 429 is a refusal, never a reason to replay a write. Reads share a cooldown
 // so normal polling and user-triggered refreshes cannot beat Retry-After.
-async function request(path,method,body,{ifNoneMatch,retried=false}={}){
+async function request(path,method,body,{ifNoneMatch,history,retried=false}={}){
  if(closed)throw Error('The console is closed. Sign in again to continue.');
  if(method==='GET'&&Date.now()<retryReadAt)throw Object.assign(Error('Too many requests. Waiting before trying again.'),{status:429,retryAt:retryReadAt});
  const headers={'content-type':'application/json','x-uptime-time-zone':Intl.DateTimeFormat().resolvedOptions().timeZone};
  if(ifNoneMatch)headers['if-none-match']=ifNoneMatch;
+ if(history)headers['x-uptime-history']=history;
  const response=await((method==='GET'&&!ifNoneMatch?takePrefetched(path):null)??fetch(path,{
   method,headers,body:body===undefined?undefined:JSON.stringify(body),
   ...(method==='GET'?{signal:AbortSignal.timeout(10000)}:{}),
@@ -54,16 +55,25 @@ async function request(path,method,body,{ifNoneMatch,retried=false}={}){
  }
  if(response.ok||ifNoneMatch&&response.status===304)return response;
  const result=await response.json();
- if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result,{destination:path==='/api/notifications/destinations'&&method==='POST'});return request(path,method,body,{ifNoneMatch,retried:true})}
+ if(response.status===403&&needsStepUp(result)&&!retried){await recoverStepUp(result,{destination:path==='/api/notifications/destinations'&&method==='POST'});return request(path,method,body,{ifNoneMatch,history,retried:true})}
  if([401,403].includes(response.status)&&!needsStepUp(result))window.dispatchEvent(new Event('uptime:auth-lost'));
  throw Object.assign(Error(result.error??`Request ${response.status}`),{status:response.status,code:result.code});
 }
 async function api(path,method='GET',body){return (await request(path,method,body)).json()}
 async function loadOverview({conditional}){
  const previous=data,ifNoneMatch=conditional?overviewTag:null;
- const response=await request(overviewPath,'GET',undefined,{ifNoneMatch});
+ // Name the retained alert and delivery lists this console holds; the server
+ // omits a held list while its history generation is unchanged.
+ const lists=[...(previous?.alerts?['alerts']:[]),...(previous?.notifications?.deliveries?['deliveries']:[])];
+ const history=previous?.historyGeneration&&lists.length?[previous.historyGeneration,...lists].join(' '):undefined;
+ const response=await request(overviewPath,'GET',undefined,{ifNoneMatch,history});
  const unchanged=response.status===304;
  const overview=unchanged?previous:await response.json();
+ if(!unchanged&&overview.alertsReused){delete overview.alertsReused;overview.alerts=previous.alerts}
+ if(!unchanged&&overview.notifications?.deliveriesReused){
+  const {deliveriesReused,...notifications}=overview.notifications;
+  overview.notifications={...notifications,deliveries:previous.notifications.deliveries};
+ }
  // Keep the server's snapshot on a 304 and separately record when it was confirmed.
  const now=unchanged?Date.parse(response.headers.get('date')??''):overview.now;
  const ttl=Number(response.headers.get('x-uptime-overview-ttl')??Infinity);

@@ -99,19 +99,19 @@ export async function ensureNotificationCustody(env:Bindings,{validate=true}:{va
  }
  return validated;
 }
-const readySchemas=new WeakSet<D1Database>();
-/** Schema readiness remains distinct from individual destination availability. */
+/** Schema readiness remains distinct from individual destination availability.
+ * Cron and /health ask on every run, so the check reads no rows: each probe
+ * names the upgraded columns and tables in a clause that matches nothing, and
+ * fails to prepare until the upgrade has run. A sqlite_master scan reads every
+ * schema object instead. */
 export async function notificationReadiness(env:Bindings){
- if(readySchemas.has(env.DB))return;
- const row=await env.DB.prepare(`SELECT
-  EXISTS(SELECT 1 FROM pragma_table_list('notification_credentials_legacy')
-    WHERE schema='main' AND name='notification_credentials_legacy' AND type IN ('table','virtual','shadow')) AS legacy,
-  (SELECT COUNT(*) FROM pragma_table_info('notification_credentials') WHERE name IN ('ciphertext','retired_at','unavailable_at')) AS columns,
-  EXISTS(SELECT 1 FROM pragma_table_list('notification_claim_custody')
-    WHERE schema='main' AND name='notification_claim_custody' AND type IN ('table','virtual','shadow')) AS custody,
-  EXISTS(SELECT 1 FROM pragma_table_info('notification_destinations') WHERE name='webhook_template') AS template
- `).first<{legacy:number;columns:number;custody:number;template:number}>();
- if(!row||row.legacy||row.columns!==3||!row.custody||!row.template)throw unavailable();
- // Cache successful observations only. A storage failure or incomplete upgrade can recover.
- readySchemas.add(env.DB);
+ let row;
+ try{
+  row=await env.DB.prepare(`SELECT
+   NOT EXISTS(SELECT ciphertext,retired_at,unavailable_at FROM notification_credentials WHERE 0)
+   AND NOT EXISTS(SELECT 1 FROM notification_claim_custody WHERE 0)
+   AND NOT EXISTS(SELECT webhook_template FROM notification_destinations WHERE 0)
+   AND NOT EXISTS(SELECT 1 FROM pragma_table_info('notification_credentials_legacy')) AS ready`).first<{ready:number}>();
+ }catch{throw unavailable()}
+ if(row?.ready!==1)throw unavailable();
 }

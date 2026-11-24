@@ -212,7 +212,7 @@ api.get('/api/overview',async c=>{
  const validator=await overviewValidator(c.env,key,c.req.header('if-none-match'),monitorId)
  if(validator.unchanged)return c.body(null,304,validator.headers)
  if(zone&&!readOnly)await initializeNotificationTimeZone(c.env,zone)
- const {snapshot,validFrom,expiresAt}=await overview(c.env,{monitorId,readOnly})
+ const {snapshot,validFrom,expiresAt}=await overview(c.env,{monitorId,readOnly,knownHistory:c.req.header('x-uptime-history')})
  // An owner can start work while Cloudflare is still activating Cron.
  if(!readOnly&&!snapshot.runner.cronStarted)c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))
  return c.json({...snapshot,operator:{displayName:person.displayName},access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}},200,await validator.issue(validFrom,expiresAt))
@@ -458,7 +458,7 @@ const handler={async fetch(request,env,execution){
  }
  const response=await dispatch(request,()=>api.fetch(request,bindings,execution),()=>start.fetch(request));
  return noTransform(isConsoleDocument(path)?editorDocument(response,bindings):response)
-},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);await scheduledDrills(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings)),()=>currentTargetsHealthy(bindings));await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)))}} satisfies ExportedHandler
+},async scheduled(_controller,env){env=await demoBindings(env as Bindings);await validateWorkerConfiguration(env as Bindings);const bindings=env as Bindings;await recordCronRun(bindings);await expireReplayCalls({options:{db:bindings.DB},now:Date.now});await maintenance(bindings);await scheduledDrills(bindings);const checks=new SubrequestBudget(CHECK_SUBREQUESTS);await scheduledPublicChecks(bindings,checks);await monitoringWatch(bindings,()=>boundedHealth(()=>health(bindings,{custody:false})),()=>currentTargetsHealthy(bindings));await scheduledNotifications(bindings,new SubrequestBudget(RUN_SUBREQUESTS-WATCH_SUBREQUESTS-(CHECK_SUBREQUESTS-checks.remaining)))}} satisfies ExportedHandler
 export default withDemo({...handler,fetch(request,env,execution){
  return new URL(request.url).pathname==='/health'?boundedHealth(()=>handler.fetch(request,env,execution)):handler.fetch(request,env,execution).then(response=>installationDocument(env as Bindings,response,{reactDocument:new URL(request.url).pathname.startsWith('/app')||new URL(request.url).pathname.startsWith('/docs')}))
 }} satisfies ExportedHandler,{seed:seedDemo})

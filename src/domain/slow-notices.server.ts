@@ -4,11 +4,12 @@ import type {NotificationEvent} from './notification-content.ts'
 import {eventWebhookContext} from './notification-webhook-context.ts'
 // @ts-ignore Shared bounded slow evaluation.
 import {slowEvaluation} from './slow-evaluation.mjs'
+import {latestOutboxEvent} from './outbox-latest.server.ts'
 /** Called before the observation transaction; its generation guard is shared
  * with the observations, derived state and notices, so concurrent results cannot
  * each open a degradation. Current scheduled evidence alone can change it. */
 export async function slowNotice(env:Bindings,monitor:any,slot:any,fresh:any[],now:number):Promise<NotificationEvent|null>{
- const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND kind IN ('slow','slow_recovery') AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(monitor.id).first<any>();
+ const last=await latestOutboxEvent<any>(env.DB,monitor.id,['slow','slow_recovery']);
  const open=last?.kind==='slow',previous=open?JSON.parse(last.event):null;
  let policy=monitor.definition.slow;
  if(open){const original=await env.DB.prepare('SELECT definition FROM revisions WHERE monitor_id=? AND revision=?').bind(monitor.id,previous.monitorRevision).first<{definition:string}>();const saved=original?JSON.parse(original.definition):null;policy=saved?.slow?{...saved.slow,locations:saved.slow.locations==='all'?saved.probes:saved.slow.locations}:null;}

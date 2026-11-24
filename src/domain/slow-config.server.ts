@@ -6,9 +6,10 @@ import {validateDefinition} from './policy.mjs'
 import {auditStatement,type AuditActor} from './audit.server.ts'
 // @ts-ignore Shared pure policy validation.
 import {normalizeSlow} from './slow-policy.mjs'
+import {latestOutboxEvent} from './outbox-latest.server.ts'
 export async function readSlowPolicy(env:Bindings,id:string){
  const monitor=await get(env,id);if(!monitor)throw Object.assign(Error('Monitor not found'),{status:404});
- const [latest,contacts]=await Promise.all([env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND kind IN ('slow','slow_recovery') AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(id).first<{kind:string;event:string}>(),destinations(env)]);
+ const [latest,contacts]=await Promise.all([latestOutboxEvent<{kind:string;event:string}>(env.DB,id,['slow','slow_recovery']),destinations(env)]);
  return {definition:monitor.definition,revision:monitor.revision,slow:monitor.definition.slow??null,destinations:contacts,status:latest?{kind:latest.kind,...JSON.parse(latest.event),acknowledgedAt:(await env.DB.prepare('SELECT acknowledged_at FROM slow_acknowledgements WHERE opening_event_id=?').bind(JSON.parse(latest.event).id).first<{acknowledged_at:number}>())?.acknowledged_at??null}:null};
 }
 export async function saveSlowPolicy(env:Bindings,id:string,input:any,actor:AuditActor){

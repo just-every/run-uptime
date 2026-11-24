@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Hosted monitoring on Workers Free
+
+- **Cron no longer rereads and rewrites every past incident.** Each alert leaves a contact schedule, which Uptime keeps. Uptime 0.5.28 revisited every one on every Cron run: on a local D1 with 30 days of history for four one-minute monitors and 359 resolved incidents, one run read 102,687 rows and wrote 1,469, so a few dozen past incidents use up the Workers Free day of 100,000 rows written. Only schedules with a reminder still due are revisited and stopped now, and the same run reads about 210 rows and writes 33.
+- Prometheus scrapes and reports read the incidents that overlap their period, not every past incident: a scrape on that installation reads about 345 rows, down from 100,099. Each check reads its monitor's latest incident and slow events by kind, not the monitor's whole event history.
+- The notification schema check reads no rows. `/health` reads 11.
+- A console that holds the current alert and delivery lists is not sent them again on every poll (`x-uptime-history`, see [Private overview](docs/private-overview.md)): a changed poll on that installation reads 281 rows instead of 2,637.
+
+### Upgrading from 0.5.28
+
+Back up before upgrading. Migrations 0098–0100 add indexes for incident reads, a change counter for alert history and a table of incidents still without a recovery; each reads the existing alert history once.
+
 ## 0.5.28 — 2026-11-24
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).

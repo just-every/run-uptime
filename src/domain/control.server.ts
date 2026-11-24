@@ -1,4 +1,5 @@
 import {observationsAt,assignmentsAt} from './check-evidence-query.ts'
+import {heldHistory,settledHistoryGeneration} from './history-generation.server.ts'
 import {checkerStatus} from './checker-status.ts'
 import {MONITOR_LIMIT} from './monitor-cap.ts'
 import {definitionTimeline} from './incident-work/definition-timeline.server.ts'
@@ -73,16 +74,18 @@ async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:num
 // notification history, so opening one monitor costs one monitor's reads however many the installation has. Both carry the
 // installation's one time zone (Settings › General), which the console's report, maintenance and job forms start from. Reads that do
 // not depend on each other run together: each is a D1 round trip, and a hosted console waits for the slowest chain.
-export async function overview(env:Bindings,{monitorId,readOnly=false}:{monitorId?:string;readOnly?:boolean}={}){
+export async function overview(env:Bindings,{monitorId,readOnly=false,knownHistory}:{monitorId?:string;readOnly?:boolean;knownHistory?:string}={}){
  const now=Date.now(),staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
  const clock=overviewClock(now);
  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
  // The first runner rows exist after the first overview; only an installation still missing one writes them, then reads again.
  const present=async()=>{const [runners,legacy]=await Promise.all([listRunners(env),runnerIdentity(env)]);return legacy&&(!hostedInstallation(env)||runners.some((r:any)=>r.hosted))?{runners,legacy}:null};
+ // The installation-wide console is sent its retained alert and delivery lists only when they changed.
+ const history=monitorId===undefined?await settledHistoryGeneration(env.DB):null,held=heldHistory(knownHistory,history);
  const [found,rows,alerts,started,contact,external,notifications,preferences,name]=await Promise.all([present(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
-  (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
-  cronStarted(env),readContact(env.DB,now),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env),installationName(env)]);
+  held.alerts?null:(monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
+  cronStarted(env),readContact(env.DB,now),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env,{reuseDeliveries:held.deliveries}):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env),installationName(env)]);
  const {runners,legacy}=found??(readOnly?{runners:await listRunners(env),legacy:await runnerIdentity(env)}:(await ensureFirstRunner(env),(await present())!));
  if(!readOnly)clock.contact(contact.lastContactAt,CONTACT_FRESHNESS_MS);
  for(const runner of runners)if(runner.revokedAt===null){
@@ -91,9 +94,9 @@ export async function overview(env:Bindings,{monitorId,readOnly=false}:{monitorI
  }
  const basics=rows.results.map(monitorRow);
  const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs,readOnly,clock))),availabilityOverview(env.DB,basics,now)]);
- const snapshot={monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
+ const snapshot={monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),...(alerts?{alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)}))}:{}),
   runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,...(readOnly?{}:{grants:grants(env),contact,externalCheckUrl:external.url})},
-  installationName:name,timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
+  installationName:name,...(history===null?{}:{historyGeneration:history}),...(held.alerts?{alertsReused:true}:{}),timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
  return {snapshot,...clock.interval()};
 }
 export {MONITOR_LIMIT} from './monitor-cap.ts'

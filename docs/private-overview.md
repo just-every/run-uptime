@@ -1,3 +1,5 @@
 # Private monitor overview
 
 The authenticated console reads `GET /api/overview` (or `?monitor=<id>` for one monitor). Each monitor may include the read-only `maintenanceEndsAt` number: the UTC Unix timestamp in milliseconds of the latest end among its currently active planned windows, weekly occurrences and quick `definition.maintenanceUntil` period. The field is absent when none is active. It uses the response's `now`; it does not change a definition, revision, health or alerting.
+
+The installation-wide overview carries `historyGeneration` while no alert delivery is queued or sending. A caller that already holds that generation's `alerts` and `notifications.deliveries` names them in the `x-uptime-history` request header, for example `x-uptime-history: 4308 alerts deliveries`. The response then omits each named list and marks it `alertsReused: true` or `notifications.deliveriesReused: true`, and the caller keeps its copy. Without the header, or after the generation changes, both lists are sent in full. Conditional requests with `If-None-Match` are answered from stored data on any Worker instance.

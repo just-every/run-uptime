@@ -33,8 +33,18 @@ export async function queueTestEvent(env:Bindings,id:string,event:NotificationEv
  SELECT ?,?,id,name,kind,credential_id,?,? FROM notification_destinations WHERE id=? AND credential_id=? AND deleted_at IS NULL`).bind(deliveryId,event.id,JSON.stringify(event),event.observedAt,id,credential.id),...await extra(deliveryId,credential.id)]);
  if(!result.meta.changes)throw Error('Destination not found');return {deliveryId,credentialId:credential.id as string}}
 export async function testDestination(env:Bindings,id:string,initiator?:import('../agent-door/work.server.ts').SavedPrincipal){const event={...testEvent(env.UPTIME_ORIGIN??''),...(initiator?.attribution?{preparedBy:initiator.attribution}: {})},{deliveryId}=await queueTestEvent(env,id,event,async deliveryId=>initiator?[env.DB.prepare('INSERT INTO uptime_agent_notifications(delivery_id,principal) VALUES(?,?)').bind(deliveryId,JSON.stringify(initiator))]:[]);return {queued:true,eventId:event.id,deliveryId}}
-export async function notificationOverview(env:Bindings){
+/** With `reuseDeliveries` the caller already holds the current delivery list
+ * (history-generation.server.ts): it is omitted and marked reused. */
+export async function notificationOverview(env:Bindings,{reuseDeliveries=false}:{reuseDeliveries?:boolean}={}){
  await refreshContactQuiet(env);
+ const common=async()=>{
+  const owner=await ownerAccount(env);
+  return {ownerEmail:owner?.email,mailSuppressed:env.MAIL_PROVIDER==='development',...(env.MAIL_PROVIDER==='none'?{mailOff:true}:{}),preferences:await notificationPreferences(env),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB)};
+ };
+ if(reuseDeliveries){
+  const drills=await drillOverview(env);
+  return {...await common(),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),deliveriesReused:true as const};
+ }
  const rows=await env.DB.prepare(`SELECT j.id,j.event_id,j.destination_id,j.destination_name,j.kind,j.created_at,j.event,
  CASE WHEN j.state<>'queued' THEN j.state ELSE COALESCE(d.state,j.state) END state,
  CASE WHEN j.state='queued' AND NOT ${recoveryAccepted()} THEN 'waiting_for_trigger_acceptance' WHEN j.state='queued' AND NOT ${contactQuietReady()} THEN 'waiting_for_contact_quiet' WHEN j.state='queued' AND NOT ${contactReady()} THEN 'waiting_for_contact_delay' WHEN j.code='waiting_for_contact_quiet' THEN 'waiting_for_runner' ELSE j.code END code,COALESCE(d.attempts,j.attempts) attempts,
@@ -50,6 +60,5 @@ export async function notificationOverview(env:Bindings){
  const attempts=new Map<string,any[]>();for(const a of history)attempts.set(a.delivery_id,[...(attempts.get(a.delivery_id)??[]),a]);
  const handoffs=await handoffFacts(env,ids);
  const drills=await drillOverview(env),chain=await fallbackOverview(env,rows.results);
- const owner=await ownerAccount(env);
- return {ownerEmail:owner?.email,mailSuppressed:env.MAIL_PROVIDER==='development',...(env.MAIL_PROVIDER==='none'?{mailOff:true}:{}),preferences:await notificationPreferences(env),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),mailConfigured:mailConfigured(env),workerSends:hostedInstallation(env),demo:env.RER_DEMO==='1',cronStarted:await cronStarted(env),runnerContact:await readContact(env.DB),deliveries:rows.results.map(r=>({id:r.id,...(handoffs.has(r.id)?{handoff:handoffs.get(r.id)}:{}),eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.state==='queued'&&r.code==='waiting_for_contact_quiet'?r.code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,...(r.quiet_until!==null&&r.state==='queued'?{quietUntil:r.quiet_until}:{}),attempts:r.attempts,attemptHistory:attempts.get(r.id)??[],...((view=>view?{chain:view}:{})(chain(r))),...(r.outcome&&JSON.parse(r.outcome).status!=null?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!=null?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
+ return {...await common(),destinations:(await destinations(env)).map(d=>({...d,...drills(d.id)})),deliveries:rows.results.map(r=>({id:r.id,...(handoffs.has(r.id)?{handoff:handoffs.get(r.id)}:{}),eventId:r.event_id,destinationId:r.destination_id,destinationName:r.destination_name,kind:r.kind,createdAt:r.created_at,event:JSON.parse(r.event),state:r.state,code:r.state==='queued'&&r.code==='waiting_for_contact_quiet'?r.code:r.outcome?JSON.parse(r.outcome).code:r.state==='sending'?'delivery_sending':r.code,...(r.quiet_until!==null&&r.state==='queued'?{quietUntil:r.quiet_until}:{}),attempts:r.attempts,attemptHistory:attempts.get(r.id)??[],...((view=>view?{chain:view}:{})(chain(r))),...(r.outcome&&JSON.parse(r.outcome).status!=null?{status:JSON.parse(r.outcome).status}:{}),...(r.outcome&&JSON.parse(r.outcome).responseExcerpt!=null?{responseExcerpt:JSON.parse(r.outcome).responseExcerpt}:{})}))}
 }

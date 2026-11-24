@@ -30,6 +30,7 @@ import {expiryNotices,openExpiryWarnings} from './expiry-notices.server.ts'
 import {flowDigest} from './flow.mjs'
 import {claimDebt,debtStatements} from './cleanup-debt.server.ts'
 import {claimGrants} from './effect-grants.server.ts'
+import {latestOutboxEvent} from './outbox-latest.server.ts'
 // A vantage only ever runs its newest scheduled slot of a monitor. Once a newer scheduled slot is assigned to its runner (the runner
 // fell behind: a long flow on its machine, a stalled machine), its part of an older slot is never delivered, and that slot keeps the
 // part as missing evidence (coverage incomplete) rather than running it moments before the next one. Every scheduled slot is created
@@ -131,7 +132,7 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
   const state=projectAttempts(definition,classified,combined,now,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
   // DEPENDENCY-002: a followed catalog service raises dependency notices on the same confirmed transitions, never incidents.
   const followed=await env.DB.prepare('SELECT entry_id,catalog_version,scope FROM followed_services WHERE monitor_id=?').bind(m.id).first<any>(),openKind=followed?'dependency':'trigger',closeKind=followed?'dependency_recovery':'recovery';
-  const last=await env.DB.prepare("SELECT kind,event FROM outbox WHERE monitor_id=? AND kind IN (?,?) AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1").bind(m.id,openKind,closeKind).first<any>();
+  const last=await latestOutboxEvent<any>(env.DB,m.id,[openKind,closeKind]);
   const open=last?.kind===openKind;if(open&&state.targetState==='Healthy'&&state.recoveryStreak<definition.recoverSlots){state.targetState=state.underlyingState='Recovering';if(!state.maintenance)state.state='Recovering';state.confirmedFailure=true}state.notificationOpen=open;state.incidentKey=open?JSON.parse(last.event).incidentKey:null;state.incidentRevision=open?JSON.parse(last.event).monitorRevision??null:null;const changed=open?await definitionChange(env,m.id,state.incidentRevision,slot.revision,definition):null;if(changed){state.definitionChange=changed;state.reason+=definitionChangeNote(changed)}
   const kind=current&&!state.maintenance?(state.targetState==='Failing'&&!open?openKind:state.targetState==='Healthy'&&open?closeKind:null):null;
   if(kind){state.notificationOpen=kind===openKind;if(kind===openKind){state.incidentKey=`${followed?'dependency':'incident'}:${slot.id}`;state.incidentRevision=slot.revision}}

@@ -52,6 +52,8 @@ export const installationLocalTables:Record<string,string>={
  oa_step_up_challenges:'Installation session-bound step-up token authority; never portable.',
  runner_contact:'Installation runner contact, not product target evidence.',
  availability_bucket_history:'Installation-local record of backfilled evidence days.',
+ notification_history_generation:'Installation-local change counter of retained alert delivery history.',
+ incident_unrecovered:'Rebuildable installation-local index of incidents still without a recovery event.',
  availability_buckets:'Rebuildable availability and latency projection derived from portable scheduled evidence.',
  attempt_checkpoints:'Rebuildable installation-local scheduled evidence checkpoints.',
  runners:'Installation runner identities and encrypted per-runner keys.',runner_assignments:'Installation execution assignments; revisions retain their selected configuration.',evidence_generation:'Installation atomic evidence projection generations.',monitoring_watch:'Installation watch dispatch state; never portable authority.',

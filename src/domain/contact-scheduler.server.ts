@@ -32,10 +32,18 @@ export function contactReady(job='j',now=databaseNow){
  * claims cannot reuse an earlier poll on the other side of a quiet boundary. */
 export async function refreshContactQuiet(env:Bindings,id?:string){
  const now=Date.now();
- const rows=(await env.DB.prepare(`SELECT s.trigger_job_id,s.quiet_rules,s.route_quiet_rules,s.quiet_until FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
-  WHERE (s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL) AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=?)
-  AND (EXISTS(SELECT 1 FROM notification_jobs j WHERE ${contactMatch('j')} AND j.state IN ('queued','sending')
-   ${id===undefined?'':'AND j.id=?'} AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state NOT IN ('queued','sending'))) ${id===undefined?`OR (s.next_at IS NOT NULL AND ${active})`:''})`)
+ // Start from what is still live, a queued or sending job or a repeating
+ // schedule, so the retained schedules of settled incidents are never read.
+ const due='(s.quiet_rules IS NOT NULL OR s.route_quiet_rules IS NOT NULL) AND (s.quiet_checked_until IS NULL OR s.quiet_checked_until<=?1)';
+ const columns='s.trigger_job_id,s.quiet_rules,s.route_quiet_rules,s.quiet_until';
+ const pending=`SELECT ${columns} FROM notification_jobs j INDEXED BY notification_jobs_queued
+  JOIN alert_contact_schedules s ON s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey')
+  JOIN notification_jobs t ON t.id=s.trigger_job_id AND t.destination_id=j.destination_id
+  WHERE j.state IN ('queued','sending') ${id===undefined?'':'AND j.id=?2'} AND ${due}
+   AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state NOT IN ('queued','sending'))`;
+ const repeating=`SELECT ${columns} FROM alert_contact_schedules s INDEXED BY alert_contact_schedules_due CROSS JOIN notification_jobs t ON t.id=s.trigger_job_id
+  WHERE s.next_at IS NOT NULL AND ${due} AND ${active}`;
+ const rows=(await env.DB.prepare(id===undefined?`${pending} UNION ${repeating}`:pending)
   .bind(now,...(id===undefined?[]:[id])).all<{trigger_job_id:string;quiet_rules:string|null;route_quiet_rules:string|null;quiet_until:number|null}>()).results;
  if(!rows.length)return;
  const checkedUntil=Math.floor(now/60000)*60000+60000,ends=new Map<string,number|null>();
@@ -58,7 +66,8 @@ export async function advanceContactSchedules(env:Bindings){
    AND EXISTS(SELECT 1 FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id WHERE t.destination_id=j.destination_id AND s.monitor_id=json_extract(j.event,'$.monitorId') AND s.incident_key=json_extract(j.event,'$.incidentKey') AND (${closed} OR ${dependencyPrimaryAccepted('j')} OR (json_extract(j.event,'$.kind') IN ('reminder','slow_reminder') AND NOT (${active}))))
    AND NOT EXISTS(SELECT 1 FROM integration_deliveries d WHERE d.namespace='uptime-notifications' AND d.id=j.id AND d.state<>'queued')`).bind(now),
   env.DB.prepare(`UPDATE integration_deliveries SET state='rejected',next_at=? WHERE namespace='uptime-notifications' AND state='queued' AND id IN(SELECT id FROM notification_jobs WHERE code='contact_schedule_stopped')`).bind(now),
-  env.DB.prepare(`UPDATE alert_contact_schedules AS s SET next_at=NULL WHERE NOT EXISTS(SELECT 1 FROM notification_jobs t WHERE t.id=s.trigger_job_id AND ${active})`),
+  // Only a repeating schedule can stop; settled ones are not rewritten every run.
+  env.DB.prepare(`UPDATE alert_contact_schedules AS s SET next_at=NULL WHERE s.next_at IS NOT NULL AND NOT EXISTS(SELECT 1 FROM notification_jobs t WHERE t.id=s.trigger_job_id AND ${active})`),
  ]);
  const rows=await env.DB.prepare(`SELECT s.*,t.event,t.event_id,t.destination_id,t.destination_name,t.kind,t.credential_id FROM alert_contact_schedules s JOIN notification_jobs t ON t.id=s.trigger_job_id
   WHERE s.next_at<=? AND s.repeat_ms>0 AND ((s.quiet_rules IS NULL AND s.route_quiet_rules IS NULL) OR (s.quiet_checked_until>? AND (s.quiet_until IS NULL OR s.quiet_until<=?))) AND ${active} AND t.state<>'imported-inactive'

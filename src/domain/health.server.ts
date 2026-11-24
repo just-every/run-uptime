@@ -18,7 +18,9 @@ export async function boundedHealth(operation:()=>Promise<Response>):Promise<Res
 
 // This installation depends on D1 and emitted static assets. It has no R2 or
 // queue binding. Runner contact and external providers have separate evidence.
-export async function health(env:Bindings){
+// Cron's self-check passes `custody:false`: its maintenance step sealed custody
+// earlier in the same run, and a storage failure there fails the run.
+export async function health(env:Bindings,{custody=true}:{custody?:boolean}={}){
  try{
  const [schema,,assets]=await Promise.all([
   notificationReadiness(env).then(()=>true,()=>false),
@@ -29,7 +31,7 @@ export async function health(env:Bindings){
  if(!assets)return unavailable()
  // Preserve the first-health upgrade seal. Individual unavailable credentials
  // stay isolated; a storage failure must not be reported as healthy.
- await ensureNotificationCustody(env,{validate:false})
+ if(custody)await ensureNotificationCustody(env,{validate:false})
  return Response.json({status:'ok',buildVersion,...deploymentHealth(env)},{headers:{'cache-control':'no-store'}})
  }catch{return unavailable()}
 }
