@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## 0.5.28 — 2026-11-24
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Fixed
+
+- The cron health check uses targeted notification schema checks instead of scanning `sqlite_master` on each cold run. With four one-minute monitors and 30 days of history, a cold run read about 193 D1 rows, down from 1,113.
+- The console overview reads less notification history. A full request on a fixture with 300 retained deliveries read 690 D1 rows, down from 69,872. Worker instances share conditional-request validators, so a second instance returned HTTP 304 for an unchanged overview in about 26 D1 reads.
+
+### Documentation
+
+- The company setup guide covers when to install Uptime, how to bring over existing monitor targets, when the first scheduled check shows Healthy, and how to choose a hosted cron schedule around D1 usage.
+
+### Upgrading from 0.5.27
+
+- `0097_bound_notification_reads.sql` adds indexes for notification and outbox queries. The upgrade wrote 605 D1 rows on the populated fixture and zero on replay. Earlier migrations are byte-identical.
+- The `@runeditrun/rer` pin stays at 0.2.131. The backup and upgrade guidance under 0.5.26 still applies.
+
+— Run Edit Run fleet, 2026-11-24
+
 ## 0.5.27 — 2026-11-23
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
