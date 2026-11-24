@@ -4,12 +4,17 @@ import {oncallReceipt} from '../webhook-template.mjs'
 const unknown=(reason:string)=>({state:'unknown',source:null,at:null,reason})
 export async function handoffFacts(env:Bindings,deliveryIds:string[]){
  if(!deliveryIds.length)return new Map<string,any>()
- const rows=(await env.DB.prepare(`SELECT j.id,j.destination_id,j.credential_id,j.event,j.webhook_template,a.id attempt_id,a.finished_at,a.outcome
-  FROM notification_jobs j LEFT JOIN integration_attempts a ON a.namespace='uptime-notifications' AND a.delivery_id=j.id
-  WHERE json_extract(j.webhook_template,'$.mode')='oncall' AND EXISTS(
-   SELECT 1 FROM notification_jobs target WHERE target.id IN(SELECT value FROM json_each(?))
-   AND target.destination_id=j.destination_id AND target.credential_id=j.credential_id
-   AND json_extract(target.event,'$.incidentKey')=json_extract(j.event,'$.incidentKey'))
+ const rows=(await env.DB.prepare(`WITH targets AS MATERIALIZED (
+  SELECT DISTINCT destination_id,credential_id,json_extract(event,'$.incidentKey') AS incident_key
+  FROM notification_jobs WHERE id IN(SELECT value FROM json_each(CASE WHEN EXISTS(
+   SELECT 1 FROM notification_jobs WHERE json_extract(webhook_template,'$.mode')='oncall'
+  ) THEN ? ELSE '[]' END))
+  AND json_extract(event,'$.incidentKey') IS NOT NULL
+ ) SELECT j.id,j.destination_id,j.credential_id,j.event,j.webhook_template,a.id attempt_id,a.finished_at,a.outcome
+  FROM targets t CROSS JOIN notification_jobs j ON j.destination_id=t.destination_id AND j.credential_id=t.credential_id
+   AND json_extract(j.event,'$.incidentKey')=t.incident_key
+  LEFT JOIN integration_attempts a ON a.namespace='uptime-notifications' AND a.delivery_id=j.id
+  WHERE json_extract(j.webhook_template,'$.mode')='oncall'
   ORDER BY a.finished_at,a.id`).bind(JSON.stringify(deliveryIds)).all<any>()).results
  const acknowledgments=new Map<string,any>(),key=(r:any)=>JSON.stringify([r.destination_id,r.credential_id,JSON.parse(r.event).incidentKey])
  for(const r of rows){

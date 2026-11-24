@@ -2196,7 +2196,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "d1d45874f5f9c10a69cc458c82a9afcd33a556504c89e0daf7228170688dcec3",
+      "sha256": "6d0f731f76cc4550b9b6c699af03cec8bdcba01143296077911c04cf6dd2f333",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -2593,6 +2593,10 @@
     },
     "migrations/0096_hosted_availability.sql": {
       "sha256": "ebea7112297fec4faf7a2504d20ef0256141447ead34db60035f53daec13bf10",
+      "executable": false
+    },
+    "migrations/0097_bound_notification_reads.sql": {
+      "sha256": "9b6d530f051c31c7676ef905dc7786441b399e858bc379354a45cb6d0f6fbe05",
       "executable": false
     },
     "OPERATIONS.json": {
@@ -7428,7 +7432,7 @@
       "executable": false
     },
     "src/domain/control.server.ts": {
-      "sha256": "6f8653e0641e23f4ffd9d3b75e35fc9485ed1f9373c574f5105d39202c1b1b0a",
+      "sha256": "88b66dd100a073a02f869adb6e7a10ba70f2f73b7b96efe4d4030d7926965c93",
       "executable": false
     },
     "src/domain/credential-binding.mjs": {
@@ -7792,7 +7796,7 @@
       "executable": false
     },
     "src/domain/incident-work/handoff.server.ts": {
-      "sha256": "ac6b4a3ec5883497a1ae791967a60a0856fa3077c01b1622ae55d565b71ac5a7",
+      "sha256": "be297d2d386c81293bc7bf8f5a412239336ca45f2612a10a6f4e18379ae16eae",
       "executable": false
     },
     "src/domain/incident-work/mention-archive.ts": {
@@ -7984,7 +7988,7 @@
       "executable": false
     },
     "src/domain/notification-credentials.server.ts": {
-      "sha256": "3fe426a4f78e11404a0781116b8b03005a80aa033788270a237eba402b2353a4",
+      "sha256": "64bcef0716f494ff749d2ad9e9fc107497702af9ba72e835bf93bda74ff42dba",
       "executable": false
     },
     "src/domain/notification-destinations.server.ts": {
@@ -7992,7 +7996,7 @@
       "executable": false
     },
     "src/domain/notification-fallback.server.ts": {
-      "sha256": "66322f8a37de55c00101dcd9f7f3dcaba0964bdfa720338e221c2aa925579497",
+      "sha256": "cfd9193eb3b17301951e30564c3a9b6c404cccfc336fd81b0c27fb2a0cca9ea4",
       "executable": false
     },
     "src/domain/notification-mail.server.ts": {
@@ -8028,7 +8032,7 @@
       "executable": false
     },
     "src/domain/notifications.server.ts": {
-      "sha256": "c183b987c0bd686ac405a7470b9b6e668050982e203d9c1510478f18915c2f03",
+      "sha256": "d27813b33933dc2173b743b98a1d6dc4c9c89e86277857cfbae784847dee08de",
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
@@ -8044,11 +8048,11 @@
       "executable": false
     },
     "src/domain/overview-etag.server.ts": {
-      "sha256": "4988a477f52c7abed20d96fa519436fd2d4843c660276723ade049ed445e5e18",
+      "sha256": "9d24be3db6cdedb8bd5b7a2f94f2b51b93126eb068985f05f301000bd9966075",
       "executable": false
     },
     "src/domain/overview-refresh.server.ts": {
-      "sha256": "5903a78459e050311fcc455a645dda6be525ac1bf766255f13369b97ab3ca7cc",
+      "sha256": "bcf4e35108b4f4abbef9603a39da0a7823f616548001c45c000e7ad6c170c27b",
       "executable": false
     },
     "src/domain/owner-account.server.ts": {
@@ -8720,7 +8724,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "c5ad162d06560bb16979aeb67361280aa3fa15e722e6c57e2aad39e054dd8bf5",
+      "sha256": "2daeabc07a561c7909d811f6254d0fb942eb6213491a46a13f78a609b9c2b1d0",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -9368,7 +9372,7 @@
       "executable": false
     },
     "tests/cron-d1-budget.mjs": {
-      "sha256": "0220a90edd528ce303d9be1091eeb0e3464cb8a86fcc5c9e661e9e30e526f814",
+      "sha256": "07507f0f4ed368753875164787c4afab3cba6979dbaffdffc8b4c61389b0895a",
       "executable": false
     },
     "tests/cron-d1-history-fixture.mjs": {
@@ -9377,6 +9381,10 @@
     },
     "tests/cron-d1-meter-worker.mjs": {
       "sha256": "3380981b2b123babe02cd3284166bc9218660af101bec845dc3db0109c272a0f",
+      "executable": false
+    },
+    "tests/cron-d1-notification-fixture.mjs": {
+      "sha256": "fa13107c1439795ee4c5858fe9d87c6fc53726394223649dfa1655e86c233dae",
       "executable": false
     },
     "tests/definitions-ci-support.mjs": {

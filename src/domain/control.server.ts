@@ -94,7 +94,7 @@ export async function overview(env:Bindings,{monitorId,readOnly=false}:{monitorI
  const snapshot={monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
   runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,...(readOnly?{}:{grants:grants(env),contact,externalCheckUrl:external.url})},
   installationName:name,timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
- return {snapshot,expiresAt:clock.expiresAt()};
+ return {snapshot,...clock.interval()};
 }
 export {MONITOR_LIMIT} from './monitor-cap.ts'
 // The revision guard runs in the write transaction. A racing create returns the same useful capacity error as preflight.

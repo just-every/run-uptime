@@ -70,7 +70,10 @@ export async function ensureNotificationCustody(env:Bindings,{validate=true}:{va
  if(!present)return validated;
  await retireObsoleteCredentials(env);
  const [rows,hashes]=await Promise.all([env.DB.prepare('SELECT * FROM notification_credentials WHERE retired_at IS NULL').all<CredentialRow>(),
-  env.DB.prepare("SELECT id,destination_hash,envelope,max_attempts,retry_delays FROM integration_deliveries WHERE namespace='uptime-notifications' AND destination_hash NOT LIKE 'hmac-v1:%' AND destination_hash NOT LIKE 'unavailable:%'").all<any>()]);
+  env.DB.prepare(`SELECT id,destination_hash,envelope,max_attempts,retry_delays
+   FROM integration_deliveries
+   WHERE namespace='uptime-notifications' AND lower(substr(destination_hash,1,8))<>'hmac-v1:'
+   AND lower(substr(destination_hash,1,12))<>'unavailable:'`).all<any>()]);
  await Promise.all(rows.results.map(async row=>{
   if(row.ciphertext&&!validate)return;
   if(row.unavailable_at!=null&&!row.ciphertext)return;
@@ -101,13 +104,14 @@ const readySchemas=new WeakSet<D1Database>();
 export async function notificationReadiness(env:Bindings){
  if(readySchemas.has(env.DB))return;
  const row=await env.DB.prepare(`SELECT
-  EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='notification_credentials_legacy') AS legacy,
+  EXISTS(SELECT 1 FROM pragma_table_list('notification_credentials_legacy')
+    WHERE schema='main' AND name='notification_credentials_legacy' AND type IN ('table','virtual','shadow')) AS legacy,
   (SELECT COUNT(*) FROM pragma_table_info('notification_credentials') WHERE name IN ('ciphertext','retired_at','unavailable_at')) AS columns,
-  EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='notification_claim_custody') AS custody
- `).first<{legacy:number;columns:number;custody:number}>();
- if(!row||row.legacy||row.columns!==3||!row.custody)throw unavailable();
- const template=await env.DB.prepare("SELECT COUNT(*) AS n FROM pragma_table_info('notification_destinations') WHERE name='webhook_template'").first<{n:number}>();
- if(template?.n!==1)throw unavailable();
+  EXISTS(SELECT 1 FROM pragma_table_list('notification_claim_custody')
+    WHERE schema='main' AND name='notification_claim_custody' AND type IN ('table','virtual','shadow')) AS custody,
+  EXISTS(SELECT 1 FROM pragma_table_info('notification_destinations') WHERE name='webhook_template') AS template
+ `).first<{legacy:number;columns:number;custody:number;template:number}>();
+ if(!row||row.legacy||row.columns!==3||!row.custody||!row.template)throw unavailable();
  // Cache successful observations only. A storage failure or incomplete upgrade can recover.
  readySchemas.add(env.DB);
 }

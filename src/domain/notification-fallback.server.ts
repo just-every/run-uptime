@@ -68,7 +68,9 @@ export async function advanceFallbackChains(env:Bindings){
  * extra query when no listed delivery belongs to a chain. */
 export async function fallbackOverview(env:Bindings,deliveries:{id:string;event_id:string;destination_id:string;event:string}[]){
  const events=[...new Set(deliveries.map(d=>d.event_id))];
- const chains=new Map((await env.DB.prepare('SELECT event_id,destination_ids,step,ended_at,end_reason FROM alert_fallback_chains WHERE event_id IN(SELECT value FROM json_each(?))').bind(JSON.stringify(events)).all<any>()).results.map(c=>[c.event_id,c]));
+ const chains=new Map((await env.DB.prepare(`SELECT event_id,destination_ids,step,ended_at,end_reason FROM alert_fallback_chains WHERE event_id IN(
+  SELECT value FROM json_each(CASE WHEN EXISTS(SELECT 1 FROM alert_fallback_chains) THEN ? ELSE '[]' END)
+ )`).bind(JSON.stringify(events)).all<any>()).results.map(c=>[c.event_id,c]));
  if(!chains.size&&!deliveries.some(d=>d.event.includes('"fallbackContext"')))return ()=>undefined;
  const chained=events.filter(id=>chains.has(id)||deliveries.some(d=>d.event_id===id&&d.event.includes('"fallbackContext"')));
  const related=(await env.DB.prepare(`${jobRows} WHERE j.event_id IN(SELECT value FROM json_each(?))`).bind(JSON.stringify(chained)).all<Job>()).results;

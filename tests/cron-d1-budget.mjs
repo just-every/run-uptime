@@ -5,9 +5,10 @@ import {join} from 'node:path';
 import {parseArgs} from 'node:util';
 import {
  assertHealthyTick, authorizeRequests, clientHeaders, dispatchCron, migrate, migrationPlan,
- minute, minutesPerDay, monitorCount, runtime, seedHistory,
+ minute, minutesPerDay, monitorCount, origin, runtime, seedHistory,
 } from './cron-d1-history-fixture.mjs';
 import {proveCanaryBucketBudget, proveAvailabilityDumpRoundTrip} from './cron-d1-bucket-fixture.mjs';
+import {proveNotificationIndexUpgrade} from './cron-d1-notification-fixture.mjs';
 
 const {values} = parseArgs({options:{
  dist:{type:'string', default:'dist'},
@@ -23,6 +24,7 @@ const migrationWriteBudget = 20_000;
 const freeDailyWriteLimit = 100_000;
 const cronWriteBudget = 56;
 const cronBudget = 300_000;
+const coldCronBudget = 500_000 / minutesPerDay;
 const coldReadBudget = 1_000;
 const activePollInterval = 5_000;
 const unchangedPollInterval = minute;
@@ -46,6 +48,7 @@ async function pollOverview(request, time, cookie, etag) {
  assert.ok(response.headers.has('x-uptime-overview-ttl') && Number.isFinite(ttl) && ttl >= 0, 'poll advertises its next clock deadline');
  if (response.status === 304) {
   assert.ok(etag, 'unchanged response follows a successful poll');
+  assert.equal(response.headers.get('etag'), etag, '304 preserves the validator');
   assert.equal(await response.text(), '', 'unchanged overview has no body');
   return {etag, unchanged:true, ttl};
  }
@@ -97,6 +100,7 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
    if (coldCron === undefined) {
     coldCron = cost.rows;
     console.log(`Cold cron: ${cost.rows} D1 rows read, ${cost.writes} written`);
+    assert.ok(coldCron < coldCronBudget, `fresh Workers on a minute schedule would read ${coldCron * minutesPerDay} rows per day`);
    }
    assert.ok(cost.writes < cronWriteBudget, `cron at ${new Date(time).toISOString()} wrote ${cost.writes} rows; expected under ${cronWriteBudget}`);
    record('cron', cost);
@@ -162,7 +166,10 @@ try {
   const canaryDB = await canaryWorker.getD1Database('DB');
   await migrate(canaryDB, migrations.initial);
   const canaryAuth = await authorizeRequests(canaryWorker);
-  await proveCanaryBucketBudget(canaryWorker, canaryDB, [...migrations.buckets, ...migrations.compact], canaryAuth, firstMinute);
+  const notificationIndexes = migrations.compact.find(name => name.endsWith('_bound_notification_reads.sql'));
+  const canaryMigrations = [...migrations.buckets, ...migrations.compact.filter(name => name !== notificationIndexes)];
+  await proveCanaryBucketBudget(canaryWorker, canaryDB, canaryMigrations, canaryAuth, firstMinute);
+  await proveNotificationIndexUpgrade(canaryWorker, canaryDB, notificationIndexes, canaryAuth, firstMinute);
  } finally {
   await canaryWorker.dispose();
  }
@@ -174,6 +181,25 @@ try {
  console.log(`Populated upgrade: ${migrationWrites} D1 rows written (${compactWrites} from compact hosted storage onward)`);
  assert.ok(migrationWrites < migrationWriteBudget, `upgrade wrote ${migrationWrites} rows; expected under ${migrationWriteBudget}`);
  const auth = await authorizeRequests(worker);
+ // Warm the persisted data first. A first overview can initialize the time
+ // zone and runner rows, which should invalidate an earlier validator.
+ await dispatchCron(await worker.getWorker(), firstMinute - minute);
+ const firstRequest = (path, init) => worker.dispatchFetch(origin + path, init);
+ await pollOverview(firstRequest, firstMinute - minute + 5_000, auth.cookie);
+ const original = await pollOverview(firstRequest, firstMinute - minute + 6_000, auth.cookie);
+ await worker.dispose();
+ worker = await runtime(values.dist, directory);
+ const restartedRequest = (path, init) => worker.dispatchFetch(origin + path, init);
+ // The first request in the new workerd process carries a tag minted by
+ // the old process, with only the persisted D1 state in common.
+ const revalidated = await pollOverview(restartedRequest, firstMinute - minute + 7_000, auth.cookie, original.etag);
+ assert.equal(revalidated.unchanged, true, 'unchanged state revalidates from a fresh Worker');
+ const coldPoll = await readMeter(restartedRequest, '/api/overview', firstMinute - minute + 7_000);
+ assert.ok(coldPoll.rows * day / activePollInterval < dailyBudget, 'a fresh Worker revalidates within the polling budget');
+ const independentlyIssued = await pollOverview(restartedRequest, firstMinute - minute + 8_000, auth.cookie);
+ assert.equal(independentlyIssued.etag, original.etag, 'Workers independently issue the same validator');
+ console.log(`Cross-instance overview: 304 with ${coldPoll.rows} D1 rows read`);
+ // Restart again so day metering includes a truly cold scheduled run.
  await worker.dispose();
  worker = await runtime(values.dist, directory);
  await measureDay(worker, auth, firstMinute, migrationWrites);

@@ -4,12 +4,18 @@ import {maintenanceOccurrences} from './planned-maintenance.mjs'
 // @ts-ignore Shared heartbeat policy.
 import {heartbeatDeadline} from './heartbeat-job.mjs'
 
+export const overviewRefreshMs=60_000;
 export function overviewClock(now:number){
  // Rolling availability and other continuous values are read at least once
- // per minute. Categorical state expires at its own next clock boundary.
- const horizon=now+60_000;
- let deadline=horizon;
- const at=(edge:number)=>{if(edge>now&&edge<deadline)deadline=edge};
+ // per minute. Align the interval across Workers, and split it at categorical
+ // state boundaries so a validator cannot straddle a known transition.
+ const minuteStart=Math.floor(now/overviewRefreshMs)*overviewRefreshMs;
+ const horizon=minuteStart+overviewRefreshMs;
+ let validFrom=minuteStart,expiresAt=horizon;
+ const at=(edge:number)=>{
+  if(edge>now&&edge<expiresAt)expiresAt=edge;
+  if(edge<=now&&edge>validFrom)validFrom=edge;
+ };
  const contact=(received:number|null,staleMs:number)=>{
   if(received===null)return;
   at(received);
@@ -18,7 +24,7 @@ export function overviewClock(now:number){
  function maintenance(definition:any){
   at(definition.maintenanceUntil);
   for(const window of definition.maintenanceWindows??[]){
-   for(const {startsAt,endsAt} of maintenanceOccurrences(window,now,horizon)){
+   for(const {startsAt,endsAt} of maintenanceOccurrences(window,minuteStart,horizon)){
     if(startsAt!==null){at(startsAt);at(endsAt)}
    }
   }
@@ -26,7 +32,7 @@ export function overviewClock(now:number){
  function attempts(definition:any,slots:any[]){
   for(const slot of slots){
    if(slot.pending)at(slot.lease_until+CONTACT_FRESHNESS_MS);
-   else if(slot.lease_until>now&&JSON.parse(slot.assignments).some((assignment:any)=>assignment.delivered_at===null&&assignment.advanced_at===null))at(slot.lease_until);
+   else if(slot.lease_until>minuteStart&&JSON.parse(slot.assignments).some((assignment:any)=>assignment.delivered_at===null&&assignment.advanced_at===null))at(slot.lease_until);
   }
   return {at,evidence(visible:any[]){
    for(const observation of visible){
@@ -43,7 +49,7 @@ export function overviewClock(now:number){
    }
   }};
  }
- return {contact,maintenance,attempts,expiresAt:()=>deadline};
+ return {contact,maintenance,attempts,interval:()=>({validFrom,expiresAt})};
 }
 
 export type OverviewClock=ReturnType<typeof overviewClock>;
