@@ -1,7 +1,7 @@
 import { keepSecrets, savedInputs } from './secret-custody.mjs';
 
 export const secretNames = ['SESSION_SECRET', 'SETUP_TOKEN', 'OWNER_EMAIL', 'MAIL_FROM', 'SENDGRID_API_KEY', 'UPTIME_RUNNER_KEY'];
-const allowedNames = [...secretNames, 'MAIL_PROVIDER', 'MAIL_API_KEY', 'MAIL_RELAY_URL', 'MAIL_PROVIDER_API_KEY', 'CLOUDFLARE_MAIL_API_KEY', 'MAIL_ACCOUNT_ID', 'UPTIME_HEARTBEAT_URL', 'UPTIME_START_URL'];
+const allowedNames = [...secretNames, 'MAIL_PROVIDER', 'MAIL_RECIPIENTS', 'MAIL_API_KEY', 'MAIL_RELAY_URL', 'MAIL_PROVIDER_API_KEY', 'CLOUDFLARE_MAIL_API_KEY', 'MAIL_ACCOUNT_ID', 'UPTIME_HEARTBEAT_URL', 'UPTIME_START_URL'];
 const string = value => typeof value === 'string' && value.trim() && !/[\r\n\0]/.test(value);
 const missing = names => Object.assign(new Error('missing-input'), { inputs: names });
 export function validateAccount(env, store) {

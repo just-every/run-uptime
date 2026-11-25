@@ -138,6 +138,25 @@
       "default": "auth@localhost.test"
     },
     {
+      "name": "MAIL_RECIPIENTS",
+      "label": "Who email may reach",
+      "kind": "select",
+      "required": false,
+      "default": "any",
+      "options": [
+        {
+          "value": "any",
+          "label": "Anyone Uptime is told to email"
+        },
+        {
+          "value": "owner",
+          "label": "Only the owner email"
+        }
+      ],
+      "group": "mail",
+      "help": "Choose Only the owner email for a tool that must never email anyone else: every message to another address is refused before it reaches the provider, including invitations and other alert destinations."
+    },
+    {
       "name": "MAIL_RELAY_URL",
       "label": "Managed mail relay URL",
       "kind": "url",

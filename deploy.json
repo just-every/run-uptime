@@ -31,6 +31,12 @@
       "verifyStandIn": "sendgrid"
     },
     {
+      "binding": "MAIL_RECIPIENTS",
+      "environment": "MAIL_RECIPIENTS",
+      "optional": true,
+      "verifyStandIn": "any"
+    },
+    {
       "binding": "MAIL_FROM",
       "environment": "MAIL_FROM",
       "optional": true,
@@ -72,9 +78,11 @@
     }
   },
   "publicSettings": [
-    "MAIL_PROVIDER"
+    "MAIL_PROVIDER",
+    "MAIL_RECIPIENTS"
   ],
   "vars": {
-    "MAIL_PROVIDER": "none"
+    "MAIL_PROVIDER": "none",
+    "MAIL_RECIPIENTS": "any"
   }
 }

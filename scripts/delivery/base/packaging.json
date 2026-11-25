@@ -98,7 +98,8 @@
         "RER_OWNER_CLAIM_PUBLIC_KEYS",
         "MAIL_ACCOUNT_ID",
         "UPTIME_START_URL",
-        "MAIL_RELAY_URL"
+        "MAIL_RELAY_URL",
+        "MAIL_RECIPIENTS"
       ],
       "secretNames": [
         "SESSION_SECRET",

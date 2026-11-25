@@ -31,6 +31,7 @@ export const configurationTable = Object.freeze([
  { name: 'SETUP_TOKEN', scopes: app, required: 'always', valid: secret(32) },
  { name: 'UPTIME_RUNNER_KEY', scopes: [...app, 'runner'], required: 'always', valid: secret(24) },
  { name: 'MAIL_FROM', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER !== 'none', valid: (value, env) => env.MAIL_PROVIDER === 'none' && value === '' || sender(value) },
+ { name: 'MAIL_RECIPIENTS', scopes: app, required: 'optional', valid: value => ['any','owner'].includes(value) },
  { name: 'MAIL_API_KEY', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER === 'rer', valid: value => text(value) && !/\s/.test(value) },
  { name: 'MAIL_RELAY_URL', scopes: app, required: 'conditional', when: env => env.MAIL_PROVIDER === 'rer', valid: (value, env) => {if(env.MAIL_PROVIDER!=='rer'&&value==='')return true;try{const url=new URL(value);return text(value)&&url.protocol==='https:'&&!url.username&&!url.password&&!value.includes('?')&&!value.includes('#')&&url.href===value}catch{return false}} },
  { name: 'SENDGRID_API_KEY', scopes: app, required: 'conditional', when: env => !local(env) && (env.MAIL_PROVIDER ?? 'sendgrid') === 'sendgrid', valid: value => text(value) && !/\s/.test(value) },

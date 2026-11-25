@@ -508,7 +508,7 @@
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "eff5ef16c468bf4b8eb459d14e4362544d02e524302523b4b15b255c09867f33",
+      "sha256": "de837506dc5d5291045baa43eb8ce14678c8fb5e4374c3fa201fe22907ddd02f",
       "executable": false
     },
     "base-copies.json": {
@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "de1fbbb9b510f5fcae3c3b829fbc6176c64c6d7160bbc1f6ace14c0c2f6e7009",
+      "sha256": "16e2bf8090220eb62281966f7f71c8ecbd033a6e5cb1ff807a39cab74d4251dc",
       "executable": false
     },
     "CLAUDE.md": {
@@ -544,7 +544,7 @@
       "executable": false
     },
     "deploy.json": {
-      "sha256": "7b51674d2785f722f191b43b7989a04f9f5e8d58a627602ac8f01b9cffa3f57c",
+      "sha256": "9ffaf0b91008c56342fd7e151efb2ea595ef19d0f1b66053f8451e3f40749c40",
       "executable": false
     },
     "docs/access.md": {
@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "85d0f2e7f9d8cdf7f53454cb625b7aa2393828b1ca71f5897db2ea4875d7c4b4",
+      "sha256": "31676ea108764ecc2e640b504dae4df12f81e57d86677314da930ceb1095802c",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2188,7 +2188,7 @@
       "executable": false
     },
     "management/integration/deployment-spec.json": {
-      "sha256": "6d0f731f76cc4550b9b6c699af03cec8bdcba01143296077911c04cf6dd2f333",
+      "sha256": "b5ab75c25dd43efe5310d03fa7027f46662f36c98f6e05339e89f687c975785d",
       "executable": false
     },
     "migrations/0001_uptime.sql": {
@@ -3148,15 +3148,15 @@
       "executable": false
     },
     "rer-local-setup.json": {
-      "sha256": "2931aa2fc0c6e985c09208356df9ed32d7a2e640599422010b8a92cbd55c3678",
+      "sha256": "0d1768c49a75f74d911dbd93c3dbc9c8e6ef385a84a4d3a1e5996fa545d2f23d",
       "executable": false
     },
     "rer-project.json": {
-      "sha256": "cafe01ebd2fd070e3f6454acebb2af9ed116216fb291cb70ca2aa5907918607a",
+      "sha256": "086a348917e5adb59effa23b96033daebe3061ff1f03fea7129133d4b5ab5945",
       "executable": false
     },
     "rer-setup.json": {
-      "sha256": "81aef96872569eb67d3dbaa2f2f561dca54aca2c32ded8021b153d3b818d6181",
+      "sha256": "ad4b96bc2072830c03d513692d4085ee5bcb6306754a2dd82a8dc2d99572ff7e",
       "executable": false
     },
     "RULINGS.md": {
@@ -3720,7 +3720,7 @@
       "executable": false
     },
     "scripts/delivery/base/packaging.json": {
-      "sha256": "edd1fdeaff03c1731934db261b432d04d4d7d8ad921e3229d4e620ce858221ec",
+      "sha256": "7079c08cb2d86243a257e914cec21727233f3170e237b172983a9d3c42e5552a",
       "executable": false
     },
     "scripts/delivery/base/paths.mjs": {
@@ -3792,7 +3792,7 @@
       "executable": false
     },
     "scripts/deployment/mail-config.mjs": {
-      "sha256": "9ec8307dcf0fe267f3f5c36d9c73756918efc8c0c4ae48afc98c0fd6dbdc851f",
+      "sha256": "469b92f65ec00304abecd72bdd10d51d861de88db80a5066712b4bebd2d2ba1f",
       "executable": false
     },
     "scripts/deployment/ops-config.mjs": {
@@ -3808,7 +3808,7 @@
       "executable": false
     },
     "scripts/deployment/owner-settings.mjs": {
-      "sha256": "b0a0d924132540f3c415458ea0659d893c6e035ec3d9115fd2e5ff576d4b9fe4",
+      "sha256": "065e1d5c4f72c5d3ef3f960e1ad433dd09f22963ebadbf3b01f44d631fbbdfbf",
       "executable": false
     },
     "scripts/deployment/plan.mjs": {
@@ -7868,7 +7868,7 @@
       "executable": false
     },
     "src/domain/mail.server.ts": {
-      "sha256": "c48c745997ff92e9dc1ce33735b42036f9fef123f52b371576681d0c6de79673",
+      "sha256": "9fa028944b85f8076655f2a9f7d4e7a24269cdae60625516930dd951ed8095ef",
       "executable": false
     },
     "src/domain/maintenance.server.ts": {
@@ -8036,7 +8036,7 @@
       "executable": false
     },
     "src/domain/operator-auth.server.ts": {
-      "sha256": "4fc0b0dc6aa1608780daf025295b1bc7caece71c767df8f704cf98e34553e05b",
+      "sha256": "322c137de8b7072f22f265e464a3a275800b09c98bf6d8aa15a3edeb9a6d6d0f",
       "executable": false
     },
     "src/domain/operator-mail-authority.ts": {
@@ -8456,7 +8456,7 @@
       "executable": false
     },
     "src/domain/startup-config.mjs": {
-      "sha256": "bd82b81edbb3e08a2f06bcd242d000643f1b7f5cbd8979f6f45edbf894597874",
+      "sha256": "b364c729f07b9d6901bdbccd9ccdaf8e51ba26aa2d451b72cf0301f0bdb31862",
       "executable": false
     },
     "src/domain/storage-error.ts": {
@@ -10364,7 +10364,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "f3c93d2dcdaea81f18185ec3f8f14551d10431d7736701396d26c9f5f15a7887",
+      "sha256": "e7e318fe21b4664ce2074beb0e234eac59e2574a1942513e093f8790399c962a",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -10621,6 +10621,10 @@
     },
     "tests/owner-editor-browser.mjs": {
       "sha256": "c30cd00372a45298d28fc5398bb6401f9e60710dfea0f68a4cadb03dd18b973f",
+      "executable": false
+    },
+    "tests/owner-only-mail-support.mjs": {
+      "sha256": "bc1d70a5c72a04212af5285cf4c355d148fdad1fa66a97cde19d1484de52911c",
       "executable": false
     },
     "tests/owner-profile-browser-support.mjs": {
@@ -10932,7 +10936,7 @@
       "executable": false
     },
     "wrangler.jsonc": {
-      "sha256": "a432c36912bee3533e8eb1edfab4fe3e75abb9101d203c19015acc98218c126b",
+      "sha256": "b19d6d5713bf60210751efa12a9d9a1d3178ff7438c17884de1a3e38bf53a1e6",
       "executable": false
     }
   }

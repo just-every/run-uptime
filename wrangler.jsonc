@@ -25,6 +25,7 @@
   "vars": {
     "MAIL_PROVIDER": "none",
     "MAIL_FROM": "",
-    "MAIL_RELAY_URL": ""
+    "MAIL_RELAY_URL": "",
+    "MAIL_RECIPIENTS": "any"
   }
 }

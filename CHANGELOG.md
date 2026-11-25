@@ -7,6 +7,10 @@
 - An owner can add an email alert destination for their own sign-in address without enrolling a second factor, so a new installation can alert its owner with nothing to set up first. Alerts to it give nobody new access; any other address, webhook or Slack URL still asks for a second factor verified in the last five minutes.
 - Changing an alert destination's email address or URL now asks for a second factor verified in the last five minutes, like creating one. Renaming, enabling or disabling a destination does not.
 
+### Added
+
+- `MAIL_RECIPIENTS=owner`, a public deploy input: every email the installation sends goes to `OWNER_EMAIL` alone and any other address is refused before the provider is called. Default `any` is unchanged. See [Send alerts to the owner only](docs/deploy.md#send-alerts-to-the-owner-only).
+
 ## 0.5.30 — 2026-11-25
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
