@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.5.32 — 2026-11-26
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Fixed
+
+- Cron D1 reads stay flat as incidents accumulate. Cron used to scan every alert contact schedule row and every outbox row of a monitor on each run, so reads grew with every incident ever opened. On a fixture with 0, 50 and 500 past incidents, a Cron run read 186, 6,092 and 508,742 D1 rows before, and 190, 191 and 191 after (F6). Finished schedules keep their rows as history.
+- A late kick no longer re-probes every monitor: a console check that fills a Cron minute that never arrived, late in its minute, no longer leaves the next Cron probe 12 seconds behind it (F5).
+- A Cron delivered up to 30 seconds early still probes, waiting for its minute instead of skipping it (F7).
+
+### Upgrading from 0.5.31
+
+- `0098_bound_contact_schedule_reads.sql` adds four indexes on alert contact schedules and the outbox. Earlier migrations are byte-identical. The latest migration is now `0098_bound_contact_schedule_reads.sql`.
+- The `@runeditrun/rer` pin stays at 0.2.131. The backup and upgrade guidance under 0.5.26 still applies.
+
+— Run Edit Run fleet, 2026-11-26
+
 ## 0.5.31 — 2026-11-26
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
