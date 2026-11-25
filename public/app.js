@@ -27,7 +27,7 @@ const pathOf=({view,area})=>view==='settings'?`/app/settings/${area}`:`/app/${vi
 const TITLES={monitors:'Monitors',locations:'Locations',signout:'Sign out'};
 function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname),entry=routeOf(location.pathname);let data=null,view=pageId!==null?'monitor':entry?.view??(location.pathname.split('/')[2]||'monitors'),settingsArea=entry?.area??null,feedback,readUnavailable=false,redirecting=false,closed=false,retryReadAt=0,retryTimer,shown=null;const $=s=>document.querySelector(s);
 const overviewPath=pageId===null?'/api/overview':`/api/overview?monitor=${encodeURIComponent(pageId)}`;
-let overviewTag=null,overviewUnchanged=false,overviewRefreshAt=Infinity,pollTimer;
+let overviewTag=null,unchangedPolls=0,overviewRefreshAt=Infinity,pollTimer;
 // /app/settings, or an area Settings does not have, opens Alerts at its own path.
 if(entry&&location.pathname!==pathOf(entry))history.replaceState(history.state,'',pathOf(entry)+location.search+location.hash);
 // A monitor's page started its first reads while the document parsed (src/ui/console-prefetch.ts); each is used once.
@@ -75,7 +75,7 @@ if(!document.querySelector('link[href="/catalog.css"]')){const style=document.cr
 function disposeConsole(){
  if(closed)return;closed=true;feedback?.dispose();clearTimeout(pollTimer);clearTimeout(retryTimer);data=null;
  window.uptimeBooted=false;
- window.removeEventListener('pagehide',closeConsole);window.removeEventListener('pageshow',restored);window.removeEventListener('popstate',followHistory);window.removeEventListener('uptime:console-unmount',disposeConsole);window.removeEventListener('beforeunload',holdUnsaved);
+ window.removeEventListener('pagehide',closeConsole);window.removeEventListener('pageshow',restored);window.removeEventListener('popstate',followHistory);window.removeEventListener('uptime:console-unmount',disposeConsole);window.removeEventListener('beforeunload',holdUnsaved);window.removeEventListener('focus',refreshVisible);
  document.removeEventListener('click',guardBusyNavigation,true);document.removeEventListener('click',followSection);document.removeEventListener('visibilitychange',visibilityChanged);
  controlsObserver.disconnect();lockedControls.clear();lockedLinks.clear();
  document.documentElement.classList.remove('signed-in');
@@ -96,19 +96,19 @@ window.addEventListener('pageshow',restored);
 function scheduleOverview(){
  clearTimeout(pollTimer);
  if(closed||view==='signout')return;
- const interval=overviewUnchanged?60000:5000;
+ const interval=unchangedPolls===0?5000:unchangedPolls===1?30000:60000;
  const delay=document.hidden?60000:Math.max(1000,Math.min(interval,overviewRefreshAt-Date.now()));
  pollTimer=setTimeout(()=>void refresh({conditional:true}),delay);
 }
-async function refresh({conditional=false}={}){
+async function refresh({conditional=false,supersede=!conditional}={}){
  try{
-  if(!closed&&Date.now()>=retryReadAt&&!document.querySelector('dialog[open]'))return await feedback.refresh({conditional,supersede:!conditional});
+  if(!closed&&Date.now()>=retryReadAt&&!document.querySelector('dialog[open]'))return await feedback.refresh({conditional,supersede});
  }finally{scheduleOverview()}
 }
+function refreshVisible(){if(!document.hidden)void refresh({supersede:false})}
 function visibilityChanged(){
  if(document.hidden){scheduleOverview();return}
- overviewUnchanged=false;
- void refresh();
+ refreshVisible();
 }
 async function action(fn,options){
  const focusId=document.activeElement?.id,result=await feedback.run(fn,options);
@@ -182,11 +182,11 @@ const signedIn=()=>{if(!closed)document.documentElement.classList.add('signed-in
 function renderOverview(next,state){
  if(closed)return;
  if(state.error?.status===401){navigateToLogin();return}
- overviewUnchanged=!state.readUnavailable&&next?.unchanged===true;
+ unchangedPolls=!state.readUnavailable&&next?.unchanged?unchangedPolls+1:0;
  overviewRefreshAt=state.readUnavailable?Infinity:next?.refreshAt??Infinity;
  if(!next){if(state.readUnavailable)firstReadFailed();return}
  data=next.overview;overviewTag=next.etag;rememberZone(data);readUnavailable=state.readUnavailable;
- const drawn=render();
+ const drawn=render(!state.readUnavailable&&!next.unchanged);
  if(!state.readUnavailable){if(drawn)void drawn.then(signedIn);else signedIn()}
 }
 feedback=createActionFeedback({load:loadOverview,lock:lockControls,render:renderOverview,publish:state=>{if(closed)return;for(const [name,channel]of Object.entries({action:state.action,read:state.read,background:state.background})){const host=$('#'+name+'-notice'),lead=channel.state==='unavailable'?channel.message.indexOf(': ')+1:0;if(lead>0){const body=document.createElement('span');body.append(Object.assign(document.createElement('strong'),{textContent:channel.message.slice(0,lead)}),channel.message.slice(lead));host.replaceChildren(body)}else host.textContent=channel.message;host.hidden=!channel.message;if(channel.state)host.dataset.state=channel.state}n.hidden=![state.action.message,state.read.message,state.background.message].some(Boolean)}});
@@ -200,7 +200,7 @@ function renderLocations(){patch(area,locationsMarkup(data));patch(right,addPane
 // Each view patches its markup into the page (public/dom-patch.js), so a refresh changes only what changed: open
 // disclosures, focus, typed values and scroll stay. Switching views starts the new view from empty hosts. Returns the
 // pending draw of a Settings area whose module is still loading.
-function render(){if(!data||document.querySelector('dialog[open]'))return;
+function render(refreshDetail=false){if(!data||document.querySelector('dialog[open]'))return;
  const identity=$('.console-identity'),roles={owner:'Owner',admin:'Admin',editor:'Editor',responder:'Responder','read-only':'Read-only'};
  identity.textContent=data.operator?.displayName?`Signed in as ${data.operator.displayName} (${roles[data.access?.role]??'Member'})`:'';identity.hidden=!identity.textContent;
  // With no monitors yet, the list opens the new-monitor form instead of an empty table.
@@ -214,7 +214,7 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  markCurrent();showAlertCount();let drawn;
  installationNote.hidden=!['monitors','locations'].includes(view);
  patch(installationNote,`${data.runner.hosted===false?'This copy runs only on this computer. Checks run only while this computer is on and Uptime is running. <a href="/docs/deploy">Put it online</a>. ':''}Uptime checks your site and tells you when it’s down. It does not publish a page for your customers.`);
- if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable,lockControls});
+ if(view==='monitor')renderMonitorPage({header,actions,area,data,id:pageId,api,action,readUnavailable,lockControls,refreshDetail});
  else{if(view!=='settings'){const buttons=view==='monitors'&&data.access?.monitoringOnly?'':viewActions[view]?.()??'';patch(actions,buttons);actions.hidden=!buttons}summary.hidden=view!=='monitors';
   setHeading();
   area.setAttribute('aria-label',view==='settings'?AREAS[settingsArea]:{locations:'Locations'}[view]??'Monitor list');
@@ -223,6 +223,6 @@ function render(){if(!data||document.querySelector('dialog[open]'))return;
  if(feedback.busy)lockControls(true);
  return drawn}
 {const flash=sessionStorage.getItem('uptime-notice');if(flash){sessionStorage.removeItem('uptime-notice');notice(flash)}}
-if(view==='signout')void signOut();else{document.addEventListener('visibilitychange',visibilityChanged);void refresh()}
+if(view==='signout')void signOut();else{document.addEventListener('visibilitychange',visibilityChanged);window.addEventListener('focus',refreshVisible);void refresh()}
 }
 window.addEventListener('uptime:console-mount',mountConsole);

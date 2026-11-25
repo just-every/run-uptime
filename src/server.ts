@@ -164,8 +164,9 @@ api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(!a
  const family=m[1]==='notifications/destinations'?'destinations':m[1],person=access.session.operator;
  await uptimeAgentDoor(c.get('systemBindings')??c.env).emit({type:family.slice(0,-1)+'.updated',uri:`uptime://${family}/${decodeURIComponent(m[2])}`,person:{id:person.id,name:person.displayName,email:person.email,role:access.role,active:true}})
 })
-// Only authenticated owner requests can kick hosted work; public traffic and private runners cannot.
-api.use('/api/*',async(c,next)=>{await next();if(c.res.ok&&c.get('access')?.role!=='read-only'&&/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path)){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
+// Monitor and notification actions can start work immediately. Passive reads
+// leave scheduling to Cron, with the overview covering initial activation.
+api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(c.res.ok&&['POST','PATCH','DELETE'].includes(c.req.method)&&access&&access.role!=='read-only'&&/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path)){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
 api.get('/api/routing/named-routes',async c=>c.json(await namedAlertRoutes(c.env)))
 api.post('/api/routing/named-routes',async c=>c.json(await saveNamedAlertRoute(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id}),201))
 api.post('/api/catalog/routes/undo',async c=>c.json(await undoCatalogRoutes(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id})))

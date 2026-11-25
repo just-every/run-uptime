@@ -132,7 +132,7 @@ function renderMissing({header,actions,area,id}){
 }
 // header: the page header's title block (.top > div); actions: .actions; area: #content-area. While it shows a monitor the
 // console's header carries the page's header root, .monitor-page-header (public/monitor-page.css).
-export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable,lockControls}){
+export function renderMonitorPage({header,actions,area,data,id,api,action,readUnavailable,lockControls,refreshDetail}){
  header.parentElement.classList.add('monitor-page-header');
  const m=data.monitors.find(m=>m.id===id);
  if(!m){renderMissing({header,actions,area,id});return}
@@ -149,7 +149,7 @@ export function renderMonitorPage({header,actions,area,data,id,api,action,readUn
  patch(actions,data.access?.monitoringOnly?'':actionButtons(m));
  draw(page);
  mountFolds(area,page.folds,page.ui.mounted,deps(page));
- loadPage(page);page.ui.started=true;
+ if(!page.ui.started||refreshDetail){loadPage(page);page.ui.started=true}
  if(data.access?.monitoringOnly)return;
  const d=m.definition,where=joinNames([...new Set((d.probes??[]).map(page.name))])||'your locations';
  actions.querySelector('#run-monitor').onclick=()=>action(async()=>{const queued=await api(`/api/monitors/${m.id}/run`,'POST',{});return await waitForCheck({api,id:m.id,slotId:queued.slotId,name:page.name})},{pending:`Checking from ${where}…`,success:outcome=>outcome??'Check queued. Its result will appear in Recent checks.'});

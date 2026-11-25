@@ -92,6 +92,7 @@
 .locations-table th:nth-child(3) { width: 12%; }
 .locations-table th:nth-child(4) { width: 32%; }
 .locations-table td { vertical-align: middle; }
+.locations-table td code { overflow-wrap: anywhere; }
 .location-name { color: var(--ink); font-size: 15px; font-weight: 700; }
 .location-badge { display: inline-block; margin-left: 10px; padding: 2px 10px; border-radius: 999px; background: var(--lavender); color: var(--body); font-size: 13px; font-weight: 600; vertical-align: 1px; }
 .location-badge.new { background: #fdebdc; color: #9a4b16; }
@@ -108,6 +109,7 @@
   .locations-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
   .locations-table td { padding: 0; }
   .locations-table td[data-label="Location"], .location-actions { grid-column: 1 / -1; }
+  .locations-table td[data-label="Last seen"]:has(code) { grid-column: 1 / -1; }
   .location-actions { text-align: left; }
   .location-actions .ui-link { min-height: 44px; }
 }

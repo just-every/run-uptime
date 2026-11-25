@@ -11,15 +11,18 @@ const FRESH_MS=120000;
 let adding=null;
 const monitorsUsing=(data,runnerId)=>data.monitors.filter(m=>Object.values(m.definition.assignments??{}).some(a=>a.runnerId===runnerId)).length;
 export const activeLocations=data=>(data.runner.runners??[]).filter(r=>!r.revokedAt);
-function lastSeen(runner,now){
+function lastSeen(runner,{now,runner:runtime}){
  if(runner.hosted)return '<span class="ui-pill fresh">Hosted</span>';
  if(runner.lastContactAt===null)return '<span class="ui-pill never">Waiting to join</span>';
  const fresh=Number.isFinite(runner.lastContactAt)&&runner.lastContactAt<=now&&now-runner.lastContactAt<=FRESH_MS;
- return `<span class="ui-pill ${fresh?'fresh':'stale'}">${fresh?escape(ago(runner.lastContactAt)):'Stopped checking'}</span>${fresh?'':`<p>${escape(checkerRestart([{thisComputer:runner.builtIn}]))} Last seen ${escape(ago(runner.lastContactAt))}.</p>`}`;
+ const restart=runner.builtIn&&runtime.hosted
+  ?`From the checkout that deployed this environment, run <code>${escape(runtime.privateRunnerCommand)}</code>.`
+  :escape(checkerRestart([{thisComputer:runner.builtIn}]));
+ return `<span class="ui-pill ${fresh?'fresh':'stale'}">${fresh?escape(ago(runner.lastContactAt)):'Stopped checking'}</span>${fresh?'':`<p>${restart} Last seen ${escape(ago(runner.lastContactAt))}.</p>`}`;
 }
 export function locationsMarkup(data){
  const badge=runner=>runner.builtIn&&!data.runner.hosted?'<span class="location-badge">This computer</span>':runner.runnerId===adding?.runnerId&&runner.lastContactAt!==null?'<span class="location-badge new">Just joined</span>':'';
- const row=runner=>`<tr data-key="location-${escape(runner.runnerId)}"><td data-label="Location"><span class="location-name">${escape(runner.networkLabel)}</span>${badge(runner)}</td><td data-label="Last seen">${lastSeen(runner,data.now)}</td><td data-label="Monitors">${monitorsUsing(data,runner.runnerId)}</td><td class="location-actions"><button type="button" class="ui-link" data-rename="${escape(runner.runnerId)}">Rename<span class="ui-visually-hidden"> ${escape(runner.networkLabel)}</span></button>${runner.lastContactAt===null&&!runner.hosted&&!runner.builtIn&&runner.runnerId!==adding?.runnerId?`<button type="button" class="ui-link" data-join="${escape(runner.runnerId)}">Show join command<span class="ui-visually-hidden"> for ${escape(runner.networkLabel)}</span></button>`:''}${runner.hosted?'':`<button type="button" class="ui-link" data-remove="${escape(runner.runnerId)}">Remove<span class="ui-visually-hidden"> ${escape(runner.networkLabel)}</span></button>`}</td></tr>`;
+ const row=runner=>`<tr data-key="location-${escape(runner.runnerId)}"><td data-label="Location"><span class="location-name">${escape(runner.networkLabel)}</span>${badge(runner)}</td><td data-label="Last seen">${lastSeen(runner,data)}</td><td data-label="Monitors">${monitorsUsing(data,runner.runnerId)}</td><td class="location-actions"><button type="button" class="ui-link" data-rename="${escape(runner.runnerId)}">Rename<span class="ui-visually-hidden"> ${escape(runner.networkLabel)}</span></button>${runner.lastContactAt===null&&!runner.hosted&&!runner.builtIn&&runner.runnerId!==adding?.runnerId?`<button type="button" class="ui-link" data-join="${escape(runner.runnerId)}">Show join command<span class="ui-visually-hidden"> for ${escape(runner.networkLabel)}</span></button>`:''}${runner.hosted?'':`<button type="button" class="ui-link" data-remove="${escape(runner.runnerId)}">Remove<span class="ui-visually-hidden"> ${escape(runner.networkLabel)}</span></button>`}</td></tr>`;
  return `<div class="monitor-list"><table class="ui-table ui-table--stack-md locations-table" id="locations-table" aria-label="Locations"><thead><tr><th scope="col">Location</th><th scope="col">Last seen</th><th scope="col">Monitors</th><th scope="col"><span class="ui-visually-hidden">Actions</span></th></tr></thead><tbody>${activeLocations(data).map(row).join('')}</tbody></table></div>`;
 }
 // The three steps while a location is being added; once it joins, what it joined as and the offer. Empty otherwise, which

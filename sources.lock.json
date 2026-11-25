@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "4990b9bf52b126eeb2ee7a44538f422e6772ff8497d7a25505bb0f8428dda1b3",
+      "sha256": "04578ac5582210dddb9c79d23ddf34f3025ac2baf6f92e23dea577387694f0bb",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2144,7 +2144,7 @@
       "executable": false
     },
     "docs/runner.md": {
-      "sha256": "e85d60979f460ce588180002ee2beb200900ec898186d2844eed5269215c3a03",
+      "sha256": "f116eab9dbbae67968e77c5c49546da6577628fda86868ea32211fafaf81f36f",
       "executable": false
     },
     "docs/same-account-checks.md": {
@@ -2656,7 +2656,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "db3a4c6d4409dd27fdb1298749beaf8c7b967116279dea6f22a6da12e7d67640",
+      "sha256": "39ed46c12c00240be51d6be72b66366bc22a319d8f1fbc9202a3fa34cafa2506",
       "executable": false
     },
     "public/archive-view.js": {
@@ -2944,7 +2944,7 @@
       "executable": false
     },
     "public/locations.js": {
-      "sha256": "fc230b4f09e966af879ceff8a0c1c1e381702b12c4375aa84284f62584b5eabb",
+      "sha256": "0724ce08b5fb60d4207e647b606905c85d1a71dcc5ccdc0773399a0b26f283f9",
       "executable": false
     },
     "public/mail-panel.js": {
@@ -2988,7 +2988,7 @@
       "executable": false
     },
     "public/monitor-page.js": {
-      "sha256": "46dbadb50c7660788bcca82302964085a3d6403bd3d124b11cfee4d48d9f373e",
+      "sha256": "4892eb7c7e3694ea0083f6fc4751235d8cc892987fa00c6af878f89f4a48cccf",
       "executable": false
     },
     "public/monitor-reads.js": {
@@ -3088,7 +3088,7 @@
       "executable": false
     },
     "public/sections.css": {
-      "sha256": "9011382bc92d3fb2453aa81bca4293ef26dac5f251874d34d09757f441e81577",
+      "sha256": "02f0adf92bc4f6552f0d14c8a5b642a5cc6a9ac06d74e437019a7187e2980466",
       "executable": false
     },
     "public/sent-alerts.js": {
@@ -8096,7 +8096,7 @@
       "executable": false
     },
     "src/domain/private-runner.ts": {
-      "sha256": "41ea453a23e1dd254bf5ff934811465fd24f5c9f1b9d2ae5d70b9cadd7f4cd40",
+      "sha256": "40ec66b68d2523339ce9bcbc765aa86a92af12a3e3ef0a8efa6eb3fd667a28cb",
       "executable": false
     },
     "src/domain/private-target.mjs": {
@@ -8724,7 +8724,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "2daeabc07a561c7909d811f6254d0fb942eb6213491a46a13f78a609b9c2b1d0",
+      "sha256": "f9d839b82911b136926704d245a632e3dfaddf6d475c524848c0c56b3bf304e3",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -9372,7 +9372,7 @@
       "executable": false
     },
     "tests/cron-d1-budget.mjs": {
-      "sha256": "07507f0f4ed368753875164787c4afab3cba6979dbaffdffc8b4c61389b0895a",
+      "sha256": "6fd35c823b8e20786697accc9b27befb3dc7f0539124864a103d0076c00b71a2",
       "executable": false
     },
     "tests/cron-d1-history-fixture.mjs": {

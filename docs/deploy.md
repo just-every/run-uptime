@@ -80,9 +80,9 @@ Run this from the installed deployment checkout with `CLOUDFLARE_ACCOUNT_ID` and
 
 ## Hosted checks and the private runner
 
-Public website checks and notifications (email, signed JSON and Slack) run automatically in the deployed Cloudflare Worker. In the monitor form, choose at least **1** for **Check every (minutes)** whenever the Worker is selected under **Check from**. For the local walkthrough's six-second interval, select only private runners. While the owner console is open, its requests prompt due checks and sends. The one-minute Cron schedule continues work without the console, but Cloudflare can take up to about two hours to activate the trigger after deployment; this is not a promise of delivery within a minute.
+Public website checks and notifications (email, signed JSON and Slack) run automatically in the deployed Cloudflare Worker. In the monitor form, choose at least **1** for **Check every (minutes)** whenever the Worker is selected under **Check from**. For the local walkthrough's six-second interval, select only private runners. The owner console prompts due checks and sends while Cron is activating. Once active, Cron runs every minute even when the console is closed. Cloudflare can take up to about two hours to activate the trigger after deployment.
 
-A private runner is required for heartbeats and website discovery, as well as private targets and runner-local credentials. Before using **Website to monitor** on a hosted installation, start that runner; otherwise choose **Fill in the form yourself** and create public monitors for the Worker. Add a runner when checks need a network you control or browser execution. In **Runner / Archive**, create a runner for its independent network and save the complete one-time command; paste it into a shell from an installed Uptime checkout on that network. Keep it under a supervisor and inspect its contact and actual results. Deployment does not start or supervise that separate process. Follow [The private runner](/docs/runner).
+A private runner is required for heartbeats and website discovery, as well as private targets and runner-local credentials. Before using **Website to monitor** on a hosted installation, start that runner; otherwise choose **Fill in the form yourself** and create public monitors for the Worker. When checks need a network you control or browser execution, open **Locations**, choose **Add location**, and run the complete one-time command on the machine that will run the checks. Keep the runner under a supervisor and check its contact in **Locations** and its results in the monitor's history. Follow [The private runner](/docs/runner).
 
 To start the original deployment runner from the checkout holding that environment's private settings, use the exact HTTPS origin printed by deployment, without a path or trailing slash:
 
@@ -141,7 +141,7 @@ Compare the recorded Worker and D1 identities before and after; an update retain
 
 ## Remove a deployment
 
-Export a hosted product archive from the owner console and back up D1 before removal. Keep both backups and the private settings somewhere private. Run this in the checkout that deployed the environment, with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` available. Replace `NAME` with the environment (`production` for the default):
+Export a hosted product archive from **Settings › Backup and files** and back up D1 before removal. Keep both backups and the private settings somewhere private. Run this in the checkout that deployed the environment, with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` available. Replace `NAME` with the environment (`production` for the default):
 
 ```sh
 (

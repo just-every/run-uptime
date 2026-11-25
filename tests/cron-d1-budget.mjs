@@ -48,9 +48,9 @@ async function pollOverview(request, time, cookie, etag) {
  assert.ok(response.headers.has('x-uptime-overview-ttl') && Number.isFinite(ttl) && ttl >= 0, 'poll advertises its next clock deadline');
  if (response.status === 304) {
   assert.ok(etag, 'unchanged response follows a successful poll');
-  assert.equal(response.headers.get('etag'), etag, '304 preserves the validator');
+  assert.equal(response.headers.get('etag')?.replace(/^W\//,''), etag.replace(/^W\//,''), '304 preserves the opaque validator');
   assert.equal(await response.text(), '', 'unchanged overview has no body');
-  return {etag, unchanged:true, ttl};
+  return {etag:response.headers.get('etag'), unchanged:true, ttl};
  }
  assert.equal(response.status, 200, 'signed-in overview poll succeeds');
  const {monitors} = await response.json();
@@ -187,12 +187,19 @@ try {
  const firstRequest = (path, init) => worker.dispatchFetch(origin + path, init);
  await pollOverview(firstRequest, firstMinute - minute + 5_000, auth.cookie);
  const original = await pollOverview(firstRequest, firstMinute - minute + 6_000, auth.cookie);
+ const {id} = await fixtureDB.prepare('SELECT id FROM monitors ORDER BY rowid LIMIT 1').first();
+ const historyPath = `/api/monitors/${id}/history`;
+ const historyAt = firstMinute - minute + 6_500;
+ const recent = await firstRequest(historyPath, {headers:{...clientHeaders, cookie:auth.cookie, 'x-d1-meter-time':String(historyAt)}});
+ assert.equal(recent.status, 200, 'the signed-in monitor detail can read recent checks');
+ assert.ok((await recent.json()).length, 'recent scheduled evidence is available');
+ assert.equal((await readMeter(firstRequest, historyPath, historyAt)).writes, 0, 'reading details leaves scheduling to Cron');
  await worker.dispose();
  worker = await runtime(values.dist, directory);
  const restartedRequest = (path, init) => worker.dispatchFetch(origin + path, init);
  // The first request in the new workerd process carries a tag minted by
  // the old process, with only the persisted D1 state in common.
- const revalidated = await pollOverview(restartedRequest, firstMinute - minute + 7_000, auth.cookie, original.etag);
+ const revalidated = await pollOverview(restartedRequest, firstMinute - minute + 7_000, auth.cookie, original.etag.replace(/^W\//,''));
  assert.equal(revalidated.unchanged, true, 'unchanged state revalidates from a fresh Worker');
  const coldPoll = await readMeter(restartedRequest, '/api/overview', firstMinute - minute + 7_000);
  assert.ok(coldPoll.rows * day / activePollInterval < dailyBudget, 'a fresh Worker revalidates within the polling budget');
