@@ -1,5 +1,6 @@
 // Scheduled cadence and acceptance bounds shared by claiming and availability.
 type AcceptanceDefinition = { probes: string[]; retries: number; timeoutMs: number; assignments?: Record<string,{canaryUrl?:string}> }
+export const CRON_MINUTE = 60_000
 
 /** The acceptance window covers selected attempts and configured canaries plus a fixed margin. */
 export function acceptanceMs(definition: AcceptanceDefinition): number {

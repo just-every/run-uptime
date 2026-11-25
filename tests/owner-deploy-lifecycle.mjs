@@ -16,10 +16,24 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.equal(provider.state.databases.length, 0);
   assert.equal(provider.uploads.length, 0);
   provider.delayCreatedDatabaseListing();
+  const retirement = provider.holdTokenRetirement();
+  const health = () => deploy(root, provider, t.signal,
+    ['--script', 'scripts/deployment/owner-cli.mjs', 'health', '--environment', 'production'], {verb:'run', inputs:false});
   // An enabled provider is selected explicitly; an omitted selector now means none.
-  const first = await deploy(root, provider, t.signal, [], {inputs: {
+  const firstDeploy = deploy(root, provider, t.signal, [], {inputs: {
     OWNER_EMAIL: 'owner@example.test', MAIL_PROVIDER: 'sendgrid', MAIL_FROM: 'sender@synthetic-uptime.dev', SENDGRID_API_KEY: 'test-only-sendgrid-key',
   }});
+  let duringDeploy;
+  try {
+    await Promise.race([retirement.started, firstDeploy.then(result=>assert.fail(`deploy ended before token retirement (exit ${result.code})`))]);
+    const writes = provider.state.writes.length;
+    duringDeploy = await health();
+    assert.equal(provider.state.writes.length, writes, 'health makes no provider writes during deploy');
+  } finally { retirement.release(); }
+  const first = await firstDeploy;
+  assert.equal(duringDeploy.code, 1);
+  assert.equal(duringDeploy.result?.code, 'owner-state-locked');
+  assert.match(duringDeploy.result.message, /wait.*rer deploy.*repeat/i);
   assert.equal(first.code, 0, JSON.stringify(first));
   assert.equal(first.result?.ok, true);
   assert.equal(first.result.deployed, true);
@@ -40,6 +54,11 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
     { headers: { Authorization: `Bearer ${fixture.token}` } }).then(response => response.json()).then(({ result }) => result);
   assert.deepEqual((await settings(provider, first.result.worker)).limits, configuredLimits, 'Paid deployment reads back the configured Worker limits');
   assert.ok(provider.healthRequests > 0, 'successful deployment verifies the served deployment identity');
+  const writesAfterDeploy = provider.state.writes.length;
+  const ready = await health();
+  assert.equal(ready.code, 0, JSON.stringify(ready));
+  assert.equal(ready.result?.origin, first.result.origin);
+  assert.equal(provider.state.writes.length, writesAfterDeploy, 'health makes no provider writes after deploy');
   assert.ok(provider.state.assetRequests.length > 0, 'the package verifies an uploaded static asset');
   assert.ok(provider.state.schedules.some(schedule=>schedule.cron),'deployed monitoring has a scheduled trigger');
   const uploaded = provider.state.secrets.find(item => item.name === 'SENDGRID_API_KEY');

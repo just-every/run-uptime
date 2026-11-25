@@ -54,16 +54,18 @@ export function mountCheckFrom(fieldset,{overview,definition,externalCheck,isNew
  own.placeholder=overview.runner.externalCheckUrl?`${overview.runner.externalCheckUrl} (from Settings)`:'';own.value=externalCheck?.own??'';
  fieldset.append(list,note,rule,more);
  const boxes=[...list.querySelectorAll('input[name=locations]')];
- const worker=isNew?runners.find(row=>row.hosted):undefined;
+ const worker=runners.find(row=>row.hosted),workerBox=boxes.find(box=>box.value===worker?.runnerId);
  let locationsEdited=false;
  const update=()=>{
-  if(worker&&!locationsEdited){
-   const {checkType,networkScope,tlsTrustMode,credentialRef,url}=form.elements;
+  const {checkType,networkScope,tlsTrustMode,credentialRef,url}=form.elements;
+  const privateNetwork=networkScope.value==='private'&&['http','tcp'].includes(checkType.value);
+  if(worker&&isNew&&!locationsEdited){
    const target=url.value.trim(),selfCheck=URL.canParse(target)&&new URL(target).origin===location.origin;
    const publicHttp=checkType.value==='http'&&networkScope.value==='public'&&tlsTrustMode.value==='default'&&!credentialRef.value.trim()&&!selfCheck;
-   const defaults=publicHttp?[worker]:live.slice(0,limit);
+   const defaults=publicHttp?[worker]:live.filter(row=>!privateNetwork||!row.hosted).slice(0,limit);
    for(const box of boxes)box.checked=defaults.some(row=>row.runnerId===box.value);
   }
+  if(privateNetwork&&workerBox)workerBox.checked=false;
   const chosen=boxes.filter(box=>box.checked),full=chosen.length>=limit;
   const locations=chosen.map(box=>shown.find(row=>row.runnerId===box.value));
   const includesWorker=locations.some(row=>row.hosted);
@@ -71,7 +73,7 @@ export function mountCheckFrom(fieldset,{overview,definition,externalCheck,isNew
   workerInterval.hidden=!includesWorker;
   if(includesWorker)interval.setAttribute('aria-describedby',workerInterval.id);
   else interval.removeAttribute('aria-describedby');
-  for(const box of boxes)box.disabled=!box.checked&&full;
+  for(const box of boxes)box.disabled=(privateNetwork&&box===workerBox)||(!box.checked&&full);
   note.classList.toggle('is-full',full);
   rule.textContent=agreementText(locations.map(row=>row.networkLabel),hostOf(own.value.trim()||overview.runner.externalCheckUrl),Boolean(own.value.trim()));
  };

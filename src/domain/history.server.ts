@@ -23,7 +23,7 @@ export async function history(env:Bindings,id:string){
   const handed=packed?Object.fromEntries(Object.entries(packed.assignments).flatMap(([probe,assignment]:[string,any])=>
    assignment.canaryUrl==null?[]:[[probe,assignment.canaryUrl]])):JSON.parse(external_checks);
   const attempts=packed?(packed.attempts??[]).sort((a:any,b:any)=>a.probe===b.probe?a.attempt-b.attempt:a.probe<b.probe?-1:1):JSON.parse(observations);
-  return {...row,definition:JSON.parse(row.definition),observations:attempts,...(Object.keys(handed).length?{externalChecks:handed}:{})};
+  return {...row,definition:JSON.parse(row.definition),observations:attempts,...(packed?.cronNextDueAt!=null?{cronNextDueAt:packed.cronNextDueAt}:{}),...(Object.keys(handed).length?{externalChecks:handed}:{})};
  });
  const wanted=new Set(selected.flatMap(row=>row.observations.map((o:any)=>o.id)));const byId=new Map(await Promise.all(snapshots.filter(row=>wanted.has(row.observation_id)).map(async row=>[row.observation_id,await openSnapshot(env,row)] as const)));
  return selected.map(row=>({...row,observations:row.observations.map((o:any)=>byId.has(o.id)?{...o,failureSnapshot:byId.get(o.id)}:o)}))

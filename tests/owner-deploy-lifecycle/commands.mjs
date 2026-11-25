@@ -48,7 +48,8 @@ export async function deploy(root, provider, signal, flags = [], { inputs = true
     ...(inputs && typeof inputs === 'object' ? inputs : inputs ? { OWNER_EMAIL: 'owner@example.test', MAIL_FROM: 'sender@synthetic-uptime.dev', MAIL_PROVIDER: 'sendgrid', MAIL_API_KEY: 'test-only-sendgrid-key' } : {}),
   };
   return new Promise((resolveResult, reject) => {
-    const child = spawn('rer', [verb, '--json', ...(verb==='deploy'&&ownerName?['--owner-name',ownerName]:[]), ...flags], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    const args = verb==='run' ? flags : ['--json', ...(verb==='deploy'&&ownerName?['--owner-name',ownerName]:[]), ...flags];
+    const child = spawn('rer', [verb, ...args], { cwd: root, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
     const stop = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* Already reaped. */ } };
     signal.addEventListener('abort', stop, { once: true });
     let output = '', errors = '';
@@ -59,6 +60,7 @@ export async function deploy(root, provider, signal, flags = [], { inputs = true
       signal.removeEventListener('abort', stop);
       const records = (output + '\n' + errors).split('\n').filter(line => line.startsWith('{')).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } });
       // Never expose raw child output: generated installation keys are private.
+      if (verb==='run') { resolveResult({code, result:records.findLast(value=>typeof value.ok==='boolean')??null}); return; }
       resolveResult({ code, messages: records.filter(value => value.event === 'error').map(value => value.message), errorCodes: records.filter(value => value.event === 'error').map(value => value.code), failureCodes: records.filter(value => value.event === 'error').flatMap(value => value.message?.match(/: ([a-zA-Z0-9_-]+)(?:[. ]|$)/)?.[1] ?? []), result: records.findLast(value => value.event === 'result') ?? null });
     });
   });

@@ -36,13 +36,13 @@ import {claimGrants} from './effect-grants.server.ts'
 // at least one interval after each vantage's previous delivery (see the delivery below), so a vantage's own consecutive checks stay
 // one interval apart however late it polls. `slot` is the slot about to be delivered and ?2 its runner.
 const newest=(slot:string)=>`NOT EXISTS(SELECT 1 FROM slots c JOIN slots n ON n.monitor_id=c.monitor_id AND n.manual=0 AND n.due_at>c.due_at WHERE c.id=${slot} AND c.manual=0 AND (json_extract(n.hosted,'$.runnerId')=?2 OR EXISTS(SELECT 1 FROM runner_assignments na WHERE na.slot_id=n.id AND na.runner_id=?2)))`
-export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null}:{monitorId?:string|null}={}){
+export async function claimAttempt(env:Bindings,runnerId:string,{monitorId=null,dueThrough}:{monitorId?:string|null;dueThrough?:number}={}){
  const delegated=await agentRunnerTask(env,runnerId,monitorId);if(delegated)return delegated;
- return nativeClaimAttempt(env,runnerId,monitorId,false)
+ return nativeClaimAttempt(env,runnerId,monitorId,false,dueThrough)
 }
 // Trusted shared-door executor only; public runner protocols never choose this.
 export async function claimAdmittedAttempt(env:Bindings,runnerId:string,{monitorId=null}:{monitorId?:string|null}={}){return nativeClaimAttempt(env,runnerId,monitorId,true)}
-async function nativeClaimAttempt(env:Bindings,runnerId:string,monitorId:string|null,admitted:boolean){
+async function nativeClaimAttempt(env:Bindings,runnerId:string,monitorId:string|null,admitted:boolean,dueThrough?:number){
  const now=Date.now();
  await expireCheckLeases(env.DB,now).run();
  const pendingRows=(await env.DB.prepare(`SELECT s.*,m.definition AS current_definition FROM slots s JOIN monitors m ON m.id=s.monitor_id JOIN runner_assignments a ON a.slot_id=s.id WHERE a.runner_id=?2 AND a.delivered_at IS NULL AND s.status='running' AND s.hosted IS NULL AND s.lease_until>?3 AND (?4 IS NULL OR s.monitor_id=?4) AND ${newest('s.id')} ORDER BY s.manual,s.due_at`).bind(null,runnerId,now,monitorId).all<any>()).results;
@@ -55,7 +55,7 @@ async function nativeClaimAttempt(env:Bindings,runnerId:string,monitorId:string|
   for(const queued of queuedRows){if(!await allowed(queued))continue;const definition=JSON.parse(queued.current_definition);if(!definition.enabled||queued.current_revision!==queued.revision){await env.DB.prepare("UPDATE slots SET status='interrupted' WHERE id=?").bind(queued.id).run()}else if(activeMaintenance(definition,now)?.mode!=='pause'){slot=queued;break}}
   if(!slot){
    const target=monitorId===null?'':'AND id=?3';
-   const bindings=monitorId===null?[now,runnerId]:[now,runnerId,monitorId];
+   const bindings=monitorId===null?[dueThrough??now,runnerId]:[dueThrough??now,runnerId,monitorId];
    const due=(await env.DB.prepare(`SELECT * FROM monitors WHERE next_due<=?1 AND json_extract(definition,'$.enabled')=1 ${target} AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(monitors.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?2)) ORDER BY next_due`).bind(...bindings).all<any>()).results;
    // Calendar filtering considers every due monitor: a paused first row must
    // never starve unrelated monitors, or move their configured schedule.
@@ -102,10 +102,10 @@ export async function completeHostedAttempts(env:Bindings,task:HostedScheduleCla
  const slot={id:task.id,monitor_id:task.monitorId,revision:task.revision,due_at:task.dueAt,lease_until:task.acceptUntil,
   manual:false,status:'running',definition:JSON.stringify(task.savedDefinition)};
  const identified=attempts.map(o=>({...o,id:hostedObservationId(o.id,task.dueAt)}));
- return acceptAttempts(env,{slotId:task.id,attempts:identified},HOSTED_RUNNER_ID,{slot,probes:task.probes});
+ return acceptAttempts(env,{slotId:task.id,attempts:identified},HOSTED_RUNNER_ID,{slot,probes:task.probes,cronNextDueAt:task.cronNextDueAt});
 }
 export function completeAttempts(env:Bindings,input:any,runnerId:string){return acceptAttempts(env,input,runnerId)}
-async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{slot:any;probes:string[]}){
+async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{slot:any;probes:string[];cronNextDueAt:number|null}){
  const now=Date.now(),slot=hosted?.slot??await env.DB.prepare('SELECT * FROM slots WHERE id=?').bind(input.slotId).first<any>();
  if(!slot||!['running','complete'].includes(slot.status)||slot.lease_until<=now)throw Error('Invalid or expired acceptance window');
  const definition=JSON.parse(slot.definition),attempts=input.attempts;
@@ -201,7 +201,7 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
    }
   }
   const started=Math.max(...slotEvidence.filter(o=>o.attempt===0).map(o=>o.startedAt));
-  const next=Number.isSafeInteger(started)?started+definition.intervalMs:null;
+  const next=hosted?.cronNextDueAt==null&&Number.isSafeInteger(started)?started+definition.intervalMs:null;
   if(hosted){
    // Unlike a signed runner, the Worker has supplied all attempts at
    // once. Fold this result if no earlier mutable slot blocks the cursor.

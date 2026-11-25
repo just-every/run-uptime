@@ -30,6 +30,7 @@ const manualRunReadBudget = 180;
 const activePollInterval = 5_000;
 const unchangedPollInterval = minute;
 const scrapeInterval = 15_000;
+const cronLags = [7_000, 0, 6_000, 1_000, 4_000, 0, 3_000, 0, 2_000, 0];
 
 async function readMeter(request, door, time) {
  const response = await request('/__d1_meter?summary=1');
@@ -179,6 +180,18 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
  assert.ok(migrationWrites + written < freeDailyWriteLimit, `upgrade day wrote ${migrationWrites + written} rows; expected under ${freeDailyWriteLimit}`);
 }
 
+async function proveHostedCadence(worker, firstMinute, probes) {
+ const service = await worker.getWorker();
+ for (const [index, lag] of cronLags.entries()) {
+  const tick = firstMinute + index * minute;
+  probes.length = 0;
+  await dispatchCron(service, tick);
+  assert.deepEqual(probes.toSorted(), ['/health/1','/health/2','/health/3','/health/4'],
+   `one outbound probe per monitor at ${new Date(tick).toISOString()} (Cron arrived ${lag} ms later)`);
+ }
+ console.log('Ten jittered Cron ticks: one outbound probe for each of four monitors on every tick');
+}
+
 const migrations = await migrationPlan();
 await proveAvailabilityDumpRoundTrip([...migrations.initial,...migrations.buckets]);
 const directory = await mkdtemp(join(tmpdir(), 'uptime-cron-d1-budget-'));
@@ -239,11 +252,17 @@ try {
  const independentlyIssued = await pollOverview(restartedRequest, firstMinute - minute + 8_000, auth.cookie);
  assert.equal(independentlyIssued.etag, original.etag, 'Workers independently issue the same validator');
  console.log(`Cross-instance overview: 304 with ${coldPoll.rows} D1 rows read`);
- // Restart again so day metering includes a truly cold scheduled run.
+ // Restart so the jittered Cron sequence uses persisted state from a populated installation.
+ await worker.dispose();
+ const probes = [];
+ worker = await runtime(values.dist, directory, {onProbe:path=>probes.push(path), cronStart:firstMinute, cronLags});
+ await proveHostedCadence(worker, firstMinute, probes);
+ // Meter the day beginning with a truly cold scheduled run.
  await worker.dispose();
  worker = await runtime(values.dist, directory);
- await measureDay(worker, auth, firstMinute, migrationWrites);
- await checkAfterSave(worker, auth.cookie, firstMinute + day);
+ const dayStart = firstMinute + cronLags.length * minute;
+ await measureDay(worker, auth, dayStart, migrationWrites);
+ await checkAfterSave(worker, auth.cookie, dayStart + day);
 } finally {
  try { await worker?.dispose(); }
  finally { await rm(directory, {recursive:true, force:true}); }

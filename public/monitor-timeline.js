@@ -14,6 +14,7 @@
 //   plus one interval; a completed result on the current revision raises it to one interval after the runner's reported
 //   start. The due times due + k * interval, k = 1..missed_count, were skipped: never claimed, never run. They lie before
 //   the claim, so before the next scheduled slot, and a missed run never crosses a revision boundary.
+// - Packed checks claimed by Cron record their next due time. Their schedule follows the Cron clock across execution jitter.
 // - next_due after a revision's last claim (see slotNextDue) names the first due time no claim took; while nothing
 //   claims it, the due times after it follow every interval. The due times from there to the save that ended the
 //   revision were scheduled and never ran (missed); for the newest revision they are the ongoing outage once a grace
@@ -103,6 +104,7 @@ function slotStart(slot,before=Infinity){
 // the claim, raised to one interval after the check's reported start by a result completeAttempts accepts while the
 // slot's revision is current, so only results reported by `before` (the save that ended the revision) count.
 function slotNextDue(slot,before=Infinity){
+ if(isTime(slot.cronNextDueAt))return slot.cronNextDueAt;
  const interval=slot.definition.intervalMs,start=slotStart(slot,before),grid=slot.due_at+((isTime(slot.missed_count)&&slot.missed_count>0?slot.missed_count:0)+1)*interval;
  return start===null?grid:Math.max(grid,start+interval);
 }

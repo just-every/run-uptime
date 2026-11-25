@@ -109,7 +109,9 @@ export function meteredWorker(app) {
     (bindings, context) => app.fetch(incoming, bindings, context));
   },
   scheduled(controller, env, ctx) {
-   return measure('cron', controller.scheduledTime, env, ctx,
+   const {start, lags} = JSON.parse(env.D1_METER_CRON_LAGS ?? '{}');
+   const lag = lags?.[(controller.scheduledTime - start) / 60_000] ?? 0;
+   return measure('cron', controller.scheduledTime + lag, env, ctx,
     (bindings, context) => app.scheduled(controller, bindings, context));
   },
  };

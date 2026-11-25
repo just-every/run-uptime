@@ -19,7 +19,7 @@ export const clientHeaders = {'cf-connecting-ip':'192.0.2.10'};
 const target = 'https://target.cron-budget.test';
 const migrations = fileURLToPath(new URL('../migrations/', import.meta.url));
 
-export async function runtime(build, directory) {
+export async function runtime(build, directory, {onProbe, cronStart, cronLags} = {}) {
  const emitted = resolve(build, 'server');
  const config = JSON.parse(await readFile(join(emitted, 'wrangler.json'), 'utf8'));
  const entry = join(emitted, config.main);
@@ -34,6 +34,7 @@ export default meteredWorker(app);`);
   ...config.vars, UPTIME_ORIGIN:origin, OWNER_EMAIL:testAuthBindings.OWNER_EMAIL,
   SESSION_SECRET:testAuthBindings.SESSION_SECRET, SETUP_TOKEN:testAuthBindings.SETUP_TOKEN,
   UPTIME_RUNNER_KEY:testAuthBindings.UPTIME_RUNNER_KEY,
+  ...(cronLags ? {D1_METER_CRON_LAGS:JSON.stringify({start:cronStart, lags:cronLags})} : {}),
  };
  return new Miniflare(convertV4MiniflareOptions({
   host:'127.0.0.1', port:0, cf:false, scriptPath:wrapper, modulesRoot:parse(emitted).root,
@@ -50,6 +51,7 @@ export default meteredWorker(app);`);
     return Response.json({Status:0, Answer:type === 'A' ? [{type:1, data:'93.184.215.14'}] : []});
    }
    assert.equal(url.origin, target, 'all outbound traffic stays at the controlled DNS and target edges');
+   onProbe?.(url.pathname);
    return new Response('Ready');
   },
  }));

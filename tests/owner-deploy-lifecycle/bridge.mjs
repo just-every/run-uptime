@@ -10,6 +10,7 @@ export async function providerBridge(t, environment = 'production') {
   const key = randomBytes(32).toString('hex');
   const uploads = [], failures = [];
   let healthRequests = 0, interruptMigration = false, interruptedMigration = false;
+  let tokenRetirement;
   const server = createServer(async (request, response) => {
     try {
       assert.ok(request.headers['x-test-key'] === key, 'authenticated test bridge request');
@@ -32,6 +33,12 @@ export async function providerBridge(t, environment = 'production') {
         uploads.push({ method: input.method });
       }
       let result;
+      if (tokenRetirement && input.method === 'DELETE' && target.pathname.endsWith('/secrets/SETUP_TOKEN')) {
+        const {arrive, released} = tokenRetirement;
+        tokenRetirement = undefined;
+        arrive();
+        await released;
+      }
       // Fail before a second migration is claimed, after the first migration's
       // applied ledger row and D1 ownership receipt have both been persisted.
       const sql = typeof body === 'string' && target.pathname.endsWith('/query') ? JSON.parse(body).sql : '';
@@ -55,6 +62,12 @@ export async function providerBridge(t, environment = 'production') {
     assert.deepEqual(failures, [], 'test provider must handle every real controller request');
   });
   return { ...fixture, uploads, get healthRequests() { return healthRequests; },
+    holdTokenRetirement() {
+      const {promise:started, resolve:arrive} = Promise.withResolvers();
+      const {promise:released, resolve:release} = Promise.withResolvers();
+      tokenRetirement = {arrive, released};
+      return {started, release};
+    },
     interruptBeforeSecondMigration() { interruptMigration = true; },
     get interruptedMigration() { return interruptedMigration; },
     transport: { origin: `https://uptime-monitor-${environment}.fixture-account.workers.dev`, bridge: `http://127.0.0.1:${server.address().port}`, key },
