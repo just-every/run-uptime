@@ -596,7 +596,7 @@
       "executable": false
     },
     "docs/deploy.md": {
-      "sha256": "31676ea108764ecc2e640b504dae4df12f81e57d86677314da930ceb1095802c",
+      "sha256": "bd733382191e68b3acf40a0d6b829124304db902f5e7a7183da553fb753ba2da",
       "executable": false
     },
     "docs/evidence/contracts/archives/archive-restored-1440.png": {
@@ -2600,7 +2600,7 @@
       "executable": false
     },
     "OPERATIONS.md": {
-      "sha256": "84ef514cdfd1d95cdae637ccd8cb0e1bccb6c8d5ce5fc3922a3cbec980659b3d",
+      "sha256": "4247540b421c1529046477d99420d3a4a6470cc482d863d0a60ba0ca37c024b4",
       "executable": false
     },
     "package.json": {
