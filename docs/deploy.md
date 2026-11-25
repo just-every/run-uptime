@@ -183,22 +183,22 @@ First-run setup, monitor checks, incident recovery and Settings remain available
 
 ### Enable email later or switch back to none
 
-This checkout declares public `MAIL_PROVIDER` with default `none` and optional secret transport on rer 0.2.121. On the existing deployment checkout, keep the same account credentials, environment, ownership receipt and private settings. Stop dev or preview first. Put the verified sender and SendGrid credential into an owned mode-0600 `deploy.env` file, with `MAIL_FROM` and `SENDGRID_API_KEY` entries. Keep that file out of Git. Enable email on the same Worker with:
+This checkout declares public `MAIL_PROVIDER` with default `none` and optional secret transport on rer 0.2.121. On the existing deployment checkout, keep the same account credentials, environment, ownership receipt and private settings. Stop dev or preview first. Put the verified sender and SendGrid credential into an owned mode-0600 `deploy.env` file, with `MAIL_PROVIDER=sendgrid`, `MAIL_FROM` and `SENDGRID_API_KEY` entries. Keep that file out of Git. Enable email on the same Worker with:
 
 ```sh
-rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env
+rer deploy --set-secret MAIL_PROVIDER --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env
 ```
 
-Add `--environment NAME` for a named environment. Public selector values may appear inline; credentials come from the environment or the private file. The grouped change copies the existing Worker code into one version and retains the admitted owner, database and installation keys. A plain `rer deploy` preserves the selected provider. For a fresh enabled deployment, select `MAIL_PROVIDER=sendgrid` explicitly with its sender and key; a key without a selector does not select SendGrid.
+Add `--environment NAME` for a named environment. `--set-secret` takes names only, never `NAME=value`: every value, the public `MAIL_PROVIDER` selector included, comes from the environment or the private file. The grouped change copies the existing Worker code into one version and retains the admitted owner, database and installation keys. A plain `rer deploy` preserves the selected provider. For a fresh enabled deployment, select `MAIL_PROVIDER=sendgrid` explicitly with its sender and key; a key without a selector does not select SendGrid.
 
 ### Send alerts to the owner only
 
 Set public `MAIL_RECIPIENTS=owner` with the mail inputs and every message the installation sends goes to `OWNER_EMAIL` alone. A message to any other address (another alert destination, an invitation, a member notice) is refused before it reaches the provider and shows as rejected with `mail_input_invalid`. The default, `any`, keeps ordinary behaviour. With mail off (`MAIL_PROVIDER=none`) nothing is sent either way.
 
-Use a sender that is not in a zone you cannot change DNS for: the RER relay (`MAIL_PROVIDER=rer`, with the assigned `MAIL_FROM`, `MAIL_RELAY_URL` and `MAIL_API_KEY`) or a SendGrid sender that is already verified. Put the key in the private `--env-file`, never on the command line, and set it only through `rer deploy`: `wrangler secret put` or a settings PATCH makes rer's receipt stale and the next deploy refuses with `owned-resource-replaced`.
+Use a sender that is not in a zone you cannot change DNS for: the RER relay (`MAIL_PROVIDER=rer`, with the assigned `MAIL_FROM`, `MAIL_RELAY_URL` and `MAIL_API_KEY`) or a SendGrid sender that is already verified. Put the key and the public values (`MAIL_PROVIDER=sendgrid`, `MAIL_RECIPIENTS=owner`, `MAIL_FROM`) in the private `--env-file`, never on the command line, and set it only through `rer deploy`: `wrangler secret put` or a settings PATCH makes rer's receipt stale and the next deploy refuses with `owned-resource-replaced`.
 
 ```sh
-rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_RECIPIENTS=owner --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env
+rer deploy --set-secret MAIL_PROVIDER --set-secret MAIL_RECIPIENTS --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env
 ```
 
 The same inputs in the environment file (`MAIL_PROVIDER`, `MAIL_RECIPIENTS`, `MAIL_FROM`, `SENDGRID_API_KEY`) show in `rer deploy --dry-run` as secret bindings, so the plan can be checked first. Run `--set-secret` and `--dry-run` on separate runs.

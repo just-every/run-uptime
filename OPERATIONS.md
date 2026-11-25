@@ -419,13 +419,13 @@ First-run setup, monitor checks, incident recovery and Settings remain available
 
 ### Enable email later or switch back to none
 
-This checkout declares public `MAIL_PROVIDER` with default `none` and optional secret transport on rer 0.2.121. On the existing deployment checkout, keep the same account credentials, environment, ownership receipt and private settings. Stop dev or preview first. Put the verified sender and SendGrid credential into an owned mode-0600 `deploy.env` file, with `MAIL_FROM` and `SENDGRID_API_KEY` entries. Keep that file out of Git. Enable email on the same Worker with:
+This checkout declares public `MAIL_PROVIDER` with default `none` and optional secret transport on rer 0.2.121. On the existing deployment checkout, keep the same account credentials, environment, ownership receipt and private settings. Stop dev or preview first. Put the verified sender and SendGrid credential into an owned mode-0600 `deploy.env` file, with `MAIL_PROVIDER=sendgrid`, `MAIL_FROM` and `SENDGRID_API_KEY` entries. Keep that file out of Git. Enable email on the same Worker with:
 
 ```sh
-rer deploy --set-secret MAIL_PROVIDER=sendgrid --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env
+rer deploy --set-secret MAIL_PROVIDER --set-secret MAIL_FROM --set-secret SENDGRID_API_KEY --env-file deploy.env
 ```
 
-Add `--environment NAME` for a named environment. Public selector values may appear inline; credentials come from the environment or the private file. The grouped change copies the existing Worker code into one version and retains the admitted owner, database and installation keys. A plain `rer deploy` preserves the selected provider. For a fresh enabled deployment, select `MAIL_PROVIDER=sendgrid` explicitly with its sender and key; a key without a selector does not select SendGrid.
+Add `--environment NAME` for a named environment. `--set-secret` takes names only, never `NAME=value`: every value, the public `MAIL_PROVIDER` selector included, comes from the environment or the private file. The grouped change copies the existing Worker code into one version and retains the admitted owner, database and installation keys. A plain `rer deploy` preserves the selected provider. For a fresh enabled deployment, select `MAIL_PROVIDER=sendgrid` explicitly with its sender and key; a key without a selector does not select SendGrid.
 
 Switch that SendGrid installation back to the declared mail-off default and remove its sending inputs together:
 
