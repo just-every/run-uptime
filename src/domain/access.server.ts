@@ -4,6 +4,7 @@ import {credentialFence,CredentialError,type CredentialAuthority} from './creden
 export {credentialPermission} from './credentials/auth.server.ts'
 import {checkSecondFactor,requestNeedsStepUp,mfaCondition,mfaResponse} from './mfa/policy.server.ts'
 import {authenticatedSession,type AuthBindings} from './operator-auth.server.ts'
+import {ownersOwnAlert} from './owner-alert-address.server.ts'
 // @ts-ignore Edition role vocabulary is shared with command helpers.
 import {baseRole,permitted,requestPermission} from './role-permissions.mjs'
 export type Scope={kind:'service'|'team';value:string}
@@ -62,7 +63,7 @@ export async function permission(env:AuthBindings,request:Request,input?:unknown
    for(const id of dependencies){const target=await env.DB.prepare('SELECT definition FROM monitors WHERE id=?').bind(id).first<{definition:string}>();if(!target||!inScope(JSON.parse(target.definition),scopes))throw new AccessError();if(!ids.includes(id))ids.push(id)}
   }
  }
- const fresh=requestNeedsStepUp(request,input);if(fresh)await checkSecondFactor(env,session,true)
+ const fresh=requestNeedsStepUp(request,input)&&!await ownersOwnAlert(env,request,input);if(fresh)await checkSecondFactor(env,session,true)
  return {session,role:row.role,revision:row.revision,scopes,action:wanted.action,monitorIds:ids,fresh}
 }
 export function inScope(definition:any,scopes:Scope[]){

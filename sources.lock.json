@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "3bd006b3db3470adcb4d155abd62737899a5200d9651f627420f9fce70f4b23c",
+      "sha256": "477efa78bd5a9a56ecbf970fb517a1f21c5d7fbc77c51a6f950b971327259444",
       "executable": false
     },
     "CLAUDE.md": {
@@ -2088,7 +2088,7 @@
       "executable": false
     },
     "docs/mfa.md": {
-      "sha256": "9632cf64cbd9b4674a328316c0dbfa089fa4e83273c83904bb147fabe89a9e4e",
+      "sha256": "4738cee9d2fbe964508c69a96ce8bc988fbe3d24bed3e77da20f7583d6e318d9",
       "executable": false
     },
     "docs/migrating-betterstack.md": {
@@ -2600,7 +2600,7 @@
       "executable": false
     },
     "package.json": {
-      "sha256": "b08c3ed3957b10d4187008eaa73056ba63eb2f0858529cb2b15438d4ab0da5a8",
+      "sha256": "9a166da57b94933e49cc9e03c4bf53d44ece6bbfa02e7b437b24237309eda075",
       "executable": false
     },
     "patches/picomatch@4.0.7.patch": {
@@ -3136,7 +3136,7 @@
       "executable": false
     },
     "README.md": {
-      "sha256": "58265c5c921bf1e945ab70678215960a250c5e857aea53c982980b72d2c93dcb",
+      "sha256": "d1892a31f96c1fff437062ea8c5e943259247a534aa07311c87094dda11191f2",
       "executable": false
     },
     "RELEASE.json": {
@@ -7092,7 +7092,7 @@
       "executable": false
     },
     "src/domain/access.server.ts": {
-      "sha256": "d69735b36865854a653ecd304390e051be6f2a413af747ec375bb33cb51290ac",
+      "sha256": "3f52e6a6d3cfa51955368e99946f6c6e6e1bb342850f4ccc35cc6cc489db17c8",
       "executable": false
     },
     "src/domain/agent-actor.ts": {

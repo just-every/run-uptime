@@ -51,6 +51,10 @@ action then finishes without retyping. Cancelling keeps your entries so you can
 try again. Settings › People also opens **Verify a second factor** whenever a
 new verification is needed, separately from **Manage second factors**.
 
+An email alert destination for the owner's own sign-in address is not a sensitive
+action: alerts to it give nobody new access, so it saves without a second factor.
+Any other address or URL still asks for one.
+
 ## Command line (alternative)
 
 Put your live native Base session cookie in `UPTIME_ACCESS_COOKIE` in your private
