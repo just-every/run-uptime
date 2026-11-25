@@ -4,7 +4,8 @@
 
 ### Fixed
 
-- Worker-only checks follow the scheduled Cron clock. Each one-minute monitor runs on every due minute when Cron arrives a few seconds early or late relative to the previous invocation.
+- Worker-only checks follow the scheduled Cron clock when Cron arrives a few seconds early or late. A console action that claims a due check leaves the next check on the same minute boundary.
+- The Monitors list rechecks live health and alerts on each poll. Changes to evidence timestamps within the same status leave its conditional response valid until the rolling availability figures refresh.
 - Hosted health reports the deployment diagnostic and tells you when to repeat the command after deploy finishes.
 - Choosing **My private network** removes Cloudflare Worker from the monitor's locations.
 - The monitoring and CI key form marks the expiry as required.

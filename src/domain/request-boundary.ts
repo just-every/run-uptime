@@ -82,7 +82,7 @@ export const apiRoutes:readonly Route[]=[
  {method:'POST',path:'/api/monitors/:id/heartbeat-settings',params:id,body:'object'},
  {method:'GET',path:'/api/monitors/:id/heartbeat-runs',params:id,query:{before:uuid,previewFrom:value=>/^\d{1,13}$/.test(value)&&Number(value)<=8640000000000000},body:'none'},
  {method:'POST',path:'/api/auth/sign-out',body:'empty'},
- {method:'GET',path:'/api/overview',query:{monitor:identity},body:'none'},
+ {method:'GET',path:'/api/overview',query:{monitor:identity,view:value=>value==='monitors'},body:'none'},
  {method:'GET',path:'/api/monitor-editor',query:{monitor:identity},body:'none'},
  {method:'POST',path:'/api/monitors',body:'object'},
  {method:'PATCH',path:'/api/monitors/:id',params:id,body:'object'},

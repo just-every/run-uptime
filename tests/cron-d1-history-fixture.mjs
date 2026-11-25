@@ -51,8 +51,7 @@ export default meteredWorker(app);`);
     return Response.json({Status:0, Answer:type === 'A' ? [{type:1, data:'93.184.215.14'}] : []});
    }
    assert.equal(url.origin, target, 'all outbound traffic stays at the controlled DNS and target edges');
-   onProbe?.(url.pathname);
-   return new Response('Ready');
+   return onProbe?.(url.pathname) ?? new Response('Ready');
   },
  }));
 }

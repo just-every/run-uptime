@@ -26,8 +26,8 @@ function routeOf(path){
 const pathOf=({view,area})=>view==='settings'?`/app/settings/${area}`:`/app/${view}`;
 const TITLES={monitors:'Monitors',locations:'Locations',signout:'Sign out'};
 function mountConsole(){if(window.uptimeBooted)return;window.uptimeBooted=true;const pageId=monitorIdFromPath(location.pathname),entry=routeOf(location.pathname);let data=null,view=pageId!==null?'monitor':entry?.view??(location.pathname.split('/')[2]||'monitors'),settingsArea=entry?.area??null,feedback,readUnavailable=false,redirecting=false,closed=false,retryReadAt=0,retryTimer,shown=null;const $=s=>document.querySelector(s);
-const overviewPath=pageId===null?'/api/overview':`/api/overview?monitor=${encodeURIComponent(pageId)}`;
-let overviewTag=null,unchangedPolls=0,overviewRefreshAt=Infinity,pollTimer;
+const overviewPath=()=>pageId!==null?`/api/overview?monitor=${encodeURIComponent(pageId)}`:view==='monitors'?'/api/overview?view=monitors':'/api/overview';
+let overviewTag=null,overviewTagPath,unchangedPolls=0,overviewRefreshAt=Infinity,pollTimer;
 // /app/settings, or an area Settings does not have, opens Alerts at its own path.
 if(entry&&location.pathname!==pathOf(entry))history.replaceState(history.state,'',pathOf(entry)+location.search+location.hash);
 // A monitor's page started its first reads while the document parsed (src/ui/console-prefetch.ts); each is used once.
@@ -60,14 +60,14 @@ async function request(path,method,body,{ifNoneMatch,retried=false}={}){
 }
 async function api(path,method='GET',body){return (await request(path,method,body)).json()}
 async function loadOverview({conditional}){
- const previous=data,ifNoneMatch=conditional?overviewTag:null;
- const response=await request(overviewPath,'GET',undefined,{ifNoneMatch});
+ const path=overviewPath(),previous=data,ifNoneMatch=conditional&&overviewTagPath===path?overviewTag:null;
+ const response=await request(path,'GET',undefined,{ifNoneMatch});
  const unchanged=response.status===304;
  const overview=unchanged?previous:await response.json();
  // Keep the server's snapshot on a 304 and separately record when it was confirmed.
  const now=unchanged?Date.parse(response.headers.get('date')??''):overview.now;
  const ttl=Number(response.headers.get('x-uptime-overview-ttl')??Infinity);
- return {overview,unchanged,etag:response.headers.get('etag')??(unchanged?ifNoneMatch:null),refreshAt:Number.isFinite(ttl)?Date.now()+ttl:Infinity,now:Number.isFinite(now)?now:Date.now()};
+ return {overview,path,unchanged,steady:unchanged||response.headers.get('x-uptime-overview-steady')==='1',etag:response.headers.get('etag')??(unchanged?ifNoneMatch:null),refreshAt:Number.isFinite(ttl)?Date.now()+ttl:Infinity,now:Number.isFinite(now)?now:Date.now()};
 }
 const notice=text=>feedback?.announceBackground(text);
 const catalog=createCatalog({api,action});
@@ -149,7 +149,7 @@ window.addEventListener('beforeunload',holdUnsaved);
 function followHistory(){if(closed||pageId!==null)return;const next=routeOf(location.pathname);if(next)showSection(next)}
 window.addEventListener('popstate',followHistory);
 // The monitor list reads its search, filters and selection from the path it is entered at (public/catalog.js).
-function showSection(next){if(next.view==='monitors')catalog.read();view=next.view;settingsArea=next.area??null;leaveSection();setHeading();markCurrent();render()}
+function showSection(next){const previous=overviewPath();if(next.view==='monitors')catalog.read();view=next.view;settingsArea=next.area??null;leaveSection();setHeading();markCurrent();render();if(previous!==overviewPath())void refresh()}
 const header=$('.top > div'),actions=$('.actions');
 const n=document.createElement('div');n.id='notice';n.className='ui-notice';n.hidden=true;n.innerHTML='<p id="action-notice" role="status" hidden></p><p id="read-notice" role="status" hidden></p><p id="background-notice" role="status" hidden></p>';$('.top').after(n);
 const installationNote=document.createElement('p');installationNote.className='ui-helper';installationNote.hidden=true;n.after(installationNote);
@@ -182,10 +182,10 @@ const signedIn=()=>{if(!closed)document.documentElement.classList.add('signed-in
 function renderOverview(next,state){
  if(closed)return;
  if(state.error?.status===401){navigateToLogin();return}
- unchangedPolls=!state.readUnavailable&&next?.unchanged?unchangedPolls+1:0;
+ unchangedPolls=!state.readUnavailable&&next?.steady?unchangedPolls+1:0;
  overviewRefreshAt=state.readUnavailable?Infinity:next?.refreshAt??Infinity;
  if(!next){if(state.readUnavailable)firstReadFailed();return}
- data=next.overview;overviewTag=next.etag;rememberZone(data);readUnavailable=state.readUnavailable;
+ data=next.overview;overviewTag=next.etag;overviewTagPath=next.path;rememberZone(data);readUnavailable=state.readUnavailable;
  const drawn=render(!state.readUnavailable&&!next.unchanged);
  if(!state.readUnavailable){if(drawn)void drawn.then(signedIn);else signedIn()}
 }

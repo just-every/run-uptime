@@ -32,9 +32,9 @@ const overlap=(start:number,end:number,spans:Span[])=>{
   return total
 }
 
-export async function summarizeAvailability(buckets:AvailabilityBuckets,from:number,to:number,mode:'overview'|'metrics'){
-  const recent=mode==='overview'
-  const starts=recent?[to-DAY,from]:[from]
+export async function summarizeAvailability(buckets:AvailabilityBuckets,from:number,to:number,mode:'overview'|'day'|'metrics'){
+  const recent=mode!=='metrics'
+  const starts=mode==='overview'?[to-DAY,from]:[from]
   const totals=starts.map(()=>({up:0,notPassing:0,paused:0,maintenance:0}))
   const revisions=new Map(buckets.revisions.map(r=>[r.revision,r]))
   const maintenance=buckets.revisions.flatMap(r=>r.maintenance)

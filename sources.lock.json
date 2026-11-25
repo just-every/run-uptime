@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "cd2d157cabb81325594b670c81a3aced22463673afcfca72129107f717583bab",
+      "sha256": "908b20356e331a4d9d32784962c9486fcf3478b6d0b550a49f863544745deaf8",
       "executable": false
     },
     "CLAUDE.md": {
@@ -2656,7 +2656,7 @@
       "executable": false
     },
     "public/app.js": {
-      "sha256": "39ed46c12c00240be51d6be72b66366bc22a319d8f1fbc9202a3fa34cafa2506",
+      "sha256": "e05ffdd6cc81bd6d4f6260eab53617f8c5526e7e7d0317ba7a79c357a9d7c64f",
       "executable": false
     },
     "public/archive-view.js": {
@@ -7284,11 +7284,11 @@
       "executable": false
     },
     "src/domain/availability-rollup.ts": {
-      "sha256": "3593342a603e5dd15c7e7785b6bf5e8725efae97cbff57f2670eae0b7de6a141",
+      "sha256": "c0ff8ca9404efae591eff3318caef6c53beb283584a373eecdbd2ad8b2aba116",
       "executable": false
     },
     "src/domain/availability.server.ts": {
-      "sha256": "8b94fcfb1d425ed7493d6fb36c20291a2456d97043c364421237ced81aa90068",
+      "sha256": "5dd34a0ab0b700ba4754de31a8c6cc3ff7a21fb820f0e282774c17d80d7d9977",
       "executable": false
     },
     "src/domain/business-import/archive.server.ts": {
@@ -7436,7 +7436,7 @@
       "executable": false
     },
     "src/domain/control.server.ts": {
-      "sha256": "88b66dd100a073a02f869adb6e7a10ba70f2f73b7b96efe4d4030d7926965c93",
+      "sha256": "eba42301e8f01cb8be7ffdf37d69819e0efdaadb5f0bc3fd4ac83183176a462d",
       "executable": false
     },
     "src/domain/credential-binding.mjs": {
@@ -7748,7 +7748,7 @@
       "executable": false
     },
     "src/domain/hosted-scheduled-claim.server.ts": {
-      "sha256": "841e00251b30735b4b403d9fd96c5d176fb3c96f7c18e126f347ca4b02744ebf",
+      "sha256": "e0c0ea80dfaf19a90edcce394ea7661e6f996b8c4d27a58658e721b89789da97",
       "executable": false
     },
     "src/domain/http-assertions.mjs": {
@@ -8052,11 +8052,11 @@
       "executable": false
     },
     "src/domain/overview-etag.server.ts": {
-      "sha256": "9d24be3db6cdedb8bd5b7a2f94f2b51b93126eb068985f05f301000bd9966075",
+      "sha256": "bbbbb5a8c14ff810029b78f6344b8b7b826e613c8a122f51b429326bda408828",
       "executable": false
     },
     "src/domain/overview-refresh.server.ts": {
-      "sha256": "bcf4e35108b4f4abbef9603a39da0a7823f616548001c45c000e7ad6c170c27b",
+      "sha256": "49853c968e5213c4f8dde713bd7bee8d47f8f70c265c7d5e4a5c74cd61145c5d",
       "executable": false
     },
     "src/domain/owner-account.server.ts": {
@@ -8256,7 +8256,7 @@
       "executable": false
     },
     "src/domain/request-boundary.ts": {
-      "sha256": "2926e7afeee87c5a85ec8ec32c1e5623aa426c42fe89084e44cc45252c70b55b",
+      "sha256": "0385922a9f7df17d0e7094ef4e2496565484e66f7706e17408a76efa4d990873",
       "executable": false
     },
     "src/domain/rer-cutover-status.server.ts": {
@@ -8484,7 +8484,7 @@
       "executable": false
     },
     "src/domain/worker-checks.server.ts": {
-      "sha256": "b5689a6dc24344f24c0602cf9de5b2e3333697a4ad04568bbb765885397a80c2",
+      "sha256": "3c1aa734050b04a271ce40ca49c286abd908863d6ebcbf903258339b0324c919",
       "executable": false
     },
     "src/domain/worker-discovery.server.ts": {
@@ -8728,7 +8728,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "0f3368fd8bc94cfac94734c8770483e412038a13ce1156bf76681c3d74770653",
+      "sha256": "4c96578265d1d8b8d2e5df4a881a655998210685fa5d16c6cfa958d88a4d5e66",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -9376,15 +9376,15 @@
       "executable": false
     },
     "tests/cron-d1-budget.mjs": {
-      "sha256": "df6c1d3be9ecdee81f52eef56962454b579e196f6620b5490bb5afa73db4e01c",
+      "sha256": "4a4af4210f83e768d4ab0de51f6aea2445776155717f6e2ebd59fa5720780ced",
       "executable": false
     },
     "tests/cron-d1-history-fixture.mjs": {
-      "sha256": "237cf053aa757128144a6fbf5f1c70ebb7b3bda17d324b817c294a8147526ffc",
+      "sha256": "bbcd7ed8533f7e8c6b6fd1ed7cc444cace5ae903d082bf15e36fcd4b8149eace",
       "executable": false
     },
     "tests/cron-d1-meter-worker.mjs": {
-      "sha256": "d4e1b9f8448c708272f174cc7a4587e3d97663a2f614eca838639d1e44e31251",
+      "sha256": "4fef58b7c6b15b12763304ffef2f2a4a06662bda3e91c696d581d294c0ad94ec",
       "executable": false
     },
     "tests/cron-d1-notification-fixture.mjs": {

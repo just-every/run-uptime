@@ -21,7 +21,7 @@ export type MonitorAvailability = {
   lastCheckAt: number | null
   responseDurationMs: number | null
   last24h: WindowMetrics
-  last7d: WindowMetrics
+  last7d?: WindowMetrics
 }
 
 function percent(value: number, total: number): number {
@@ -65,16 +65,18 @@ export async function availabilityOverview(
   db: D1Database,
   monitors: Array<{ id: string; revision: number; definition: Record<string, any> }>,
   now = Date.now(),
+  dayOnly = false,
 ): Promise<Map<string, MonitorAvailability>> {
   if (!Number.isSafeInteger(now) || now < 0) throw Error('Availability clock must be a nonnegative safe integer')
   const result = new Map<string, MonitorAvailability>()
   if (!monitors.length) return result
-  await availabilityBucketReports(db,monitors.map(monitor=>monitor.id),now-WEEK_MS,now,true,async(data,index)=>{
-    const {totals:[day,week],lastCheckAt,responseDurationMs}=await summarizeAvailability(data,now-WEEK_MS,now,'overview')
+  const from=now-(dayOnly?DAY_MS:WEEK_MS)
+  await availabilityBucketReports(db,monitors.map(monitor=>monitor.id),from,now,true,async(data,index)=>{
+    const {totals:[day,week],lastCheckAt,responseDurationMs}=await summarizeAvailability(data,from,now,dayOnly?'day':'overview')
     result.set(monitors[index].id,{
       lastCheckAt,responseDurationMs,
       last24h:windowMetrics(day.up,day.notPassing,DAY_MS,day.paused,day.maintenance),
-      last7d:windowMetrics(week.up,week.notPassing,WEEK_MS,week.paused,week.maintenance),
+      ...(week?{last7d:windowMetrics(week.up,week.notPassing,WEEK_MS,week.paused,week.maintenance)}:{}),
     })
   })
   return result

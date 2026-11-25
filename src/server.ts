@@ -216,13 +216,17 @@ api.get('/api/overview',async c=>{
  const actor=c.get('access'),readOnly=!['owner','admin'].includes(actor.role),zone=c.req.header('x-uptime-time-zone')
  const monitorId=c.req.query('monitor'),person=actor.session.operator
  const key=JSON.stringify([person.id,person.version,person.displayName,actor.role,actor.scopes,actor.revision,monitorId,zone])
- const validator=await overviewValidator(c.env,key,c.req.header('if-none-match'),monitorId)
- if(validator.unchanged)return c.body(null,304,validator.headers)
+ const tag=c.req.header('if-none-match'),list=monitorId===undefined&&c.req.query('view')==='monitors'
+ const validator=list?undefined:await overviewValidator(c.env,key,tag,monitorId)
+ if(validator?.unchanged)return c.body(null,304,validator.headers)
  if(zone&&!readOnly)await initializeNotificationTimeZone(c.env,zone)
- const {snapshot,validFrom,expiresAt}=await overview(c.env,{monitorId,readOnly})
+ const result=await overview(c.env,{monitorId,readOnly,list:list?{key,tag}:undefined})
+ if(!('snapshot' in result))return c.body(null,304,result.headers)
+ const {snapshot}=result
  // An owner can start work while Cloudflare is still activating Cron.
  if(!readOnly&&!snapshot.runner.cronStarted)c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))
- return c.json({...snapshot,operator:{displayName:person.displayName},access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}},200,await validator.issue(validFrom,expiresAt))
+ return c.json({...snapshot,operator:{displayName:person.displayName},access:{role:actor.role,scopes:actor.scopes,revision:actor.revision,monitoringOnly:readOnly}},200,
+  validator?await validator.issue(result.validFrom,result.expiresAt):result.headers)
 })
 for(const [path,preview,apply] of [
  ['/api/catalog/routes',previewCatalogRoutes,applyCatalogRoutes],['/api/catalog',catalogBulkPreview,catalogBulkApply],['/api/catalog/add',catalogAddPreview,catalogAddApply],['/api/maintenance',previewMaintenance,applyMaintenance],

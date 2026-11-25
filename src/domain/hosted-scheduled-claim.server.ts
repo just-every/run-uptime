@@ -17,10 +17,10 @@ export async function claimHostedSchedule(env:Bindings,row:Candidate,cronThrough
  if(row.next_due>dueThrough||activeMaintenance(definition,now)?.mode==='pause'||
     !definition.probes.every((p:string)=>definition.assignments?.[p]?.runnerId===HOSTED_RUNNER_ID))return null;
  const gridNext=nextDueAfter(row.next_due,dueThrough,definition.intervalMs);
- // Whole-minute cadences move onto the Cron grid after the first claim.
- // Fractional cadences keep their interval grid. Console kicks keep wall-clock spacing.
- const cronNextDueAt=cronThrough===undefined?null:definition.intervalMs%CRON_MINUTE===0?
-  Math.ceil(gridNext/CRON_MINUTE)*CRON_MINUTE:gridNext;
+ // A console kick can win the same slot as Cron. Both advance whole-minute
+ // checks to the same grid, even if the kick arrives before Cron's delivery.
+ const cronNextDueAt=definition.intervalMs%CRON_MINUTE===0?
+  Math.ceil(gridNext/CRON_MINUTE)*CRON_MINUTE:cronThrough===undefined?null:gridNext;
  const until=now+acceptanceMs(definition),id=`${row.id}:${row.revision}:${row.next_due}`;
  const pause=intervals({...definition,maintenanceUntil:0,maintenanceWindows:(definition.maintenanceWindows??[]).filter((w:any)=>w.mode==='pause')},now,until);
  const task=definition.probes.some((p:string)=>definition.assignments[p].canaryUrl)?liveExternalCheck(definition,await externalCheck(env)):definition;

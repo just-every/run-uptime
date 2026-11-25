@@ -18,6 +18,10 @@ const worstCase=(definition:any,probes:string[])=>probes.reduce((sum,probe)=>sum
 // Select only this Worker's assignments: it must never advance a private runner's schedule.
 export async function scheduledPublicChecks(env:Bindings,budget:SubrequestBudget,scheduledAt?:number){
  if(!hostedInstallation(env))return;
+ const earlyBy=scheduledAt===undefined?0:scheduledAt-Date.now();
+ // A slightly early tick still owns this minute. Wait until its boundary so
+ // real probe evidence and acceptance windows keep their usual clock rules.
+ if(earlyBy>0&&earlyBy<=5_000)await new Promise(resolve=>setTimeout(resolve,earlyBy+1));
  const now=Date.now();
  // An ordinary tick has a fixed due boundary regardless of delivery jitter.
  // If a tick arrives a minute or more late, advance past the missed windows once.

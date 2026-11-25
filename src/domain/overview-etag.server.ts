@@ -4,6 +4,17 @@ import {overviewRefreshMs} from './overview-refresh.server.ts'
 
 const headers=(etag:string,expiresAt:number)=>({etag,'x-uptime-overview-ttl':String(Math.max(0,expiresAt-Date.now()))})
 
+function* signedIntervals(requestTag:string|undefined){
+ for(const tag of requestTag?.split(',')??[]){
+  const match=/^(?:W\/)?"(\d{1,16})\.(\d{1,16})\.([0-9a-f]{64})"$/.exec(tag.trim())
+  if(!match)continue
+  const [,start,end,digest]=match
+  const validFrom=Number(start),expiresAt=Number(end)
+  if(!Number.isSafeInteger(validFrom)||!Number.isSafeInteger(expiresAt)||expiresAt<=validFrom||expiresAt-validFrom>overviewRefreshMs)continue
+  yield {validFrom,expiresAt,digest,tag:`W/"${start}.${end}.${digest}"`}
+ }
+}
+
 async function overviewVersion(db:D1Database,monitorId?:string){
  const filter=monitorId===undefined?'':' WHERE m.id=?'
  const monitors=db.prepare(`SELECT m.id,m.revision,m.next_due,g.generation,m.hosted_generation
@@ -31,17 +42,29 @@ export async function overviewValidator(env:Bindings,key:string,requestTag:strin
   'uptime-overview-v1',env.RER_VERSION?.id,key,version,validFrom,expiresAt,
  ]))
  const now=Date.now()
- for(const tag of requestTag?.split(',')??[]){
-  const match=/^(?:W\/)?"(\d{1,16})\.(\d{1,16})\.([0-9a-f]{64})"$/.exec(tag.trim())
-  if(!match)continue
-  const [,start,end,digest]=match
-  const validFrom=Number(start),expiresAt=Number(end)
-  if(!Number.isSafeInteger(validFrom)||!Number.isSafeInteger(expiresAt)||validFrom>now||expiresAt<=now||expiresAt-validFrom>overviewRefreshMs)continue
+ for(const {validFrom,expiresAt,digest,tag} of signedIntervals(requestTag)){
+  if(validFrom>now||expiresAt<=now)continue
   if(equalSignature(digest,await signature(validFrom,expiresAt))){
-   return {unchanged:true,headers:headers(`W/"${start}.${end}.${digest}"`,expiresAt)} as const
+   return {unchanged:true,headers:headers(tag,expiresAt)} as const
   }
  }
  return {unchanged:false,async issue(validFrom:number,expiresAt:number){
   return headers(`W/"${validFrom}.${expiresAt}.${await signature(validFrom,expiresAt)}"`,expiresAt)
  }} as const
+}
+
+// The list rechecks live status and alerts on every poll. Its signed interval
+// controls only how often to refresh the rolling chart and last-check time.
+export async function monitorListValidator(env:Bindings,key:string,requestTag:string|undefined,version:unknown,now:number,deadline:number){
+ const content=JSON.stringify(['uptime-monitor-list-v1',env.RER_VERSION?.id,key,version])
+ const signature=(start:number,end:number)=>sign(env.SESSION_SECRET!,JSON.stringify([content,start,end]))
+ let steady=false
+ for(const {validFrom,expiresAt,digest,tag} of signedIntervals(requestTag)){
+  if(validFrom>now||!equalSignature(digest,await signature(validFrom,expiresAt)))continue
+  if(expiresAt>now)return {unchanged:true,headers:headers(tag,Math.min(deadline,expiresAt))}
+  steady=true
+ }
+ const end=now+overviewRefreshMs
+ const tag=`W/"${now}.${end}.${await signature(now,end)}"`
+ return {unchanged:false,headers:{...headers(tag,Math.min(deadline,end)),...(steady?{'x-uptime-overview-steady':'1'}:{})}}
 }

@@ -23,6 +23,7 @@ import {validateDefinition} from './policy.mjs'
 import {FLOW_LIMITS,requirementChange} from './flow.mjs'
 import {CONTACT_FRESHNESS_MS,readContact} from './runner-contact.server.ts'
 import {overviewClock,type OverviewClock} from './overview-refresh.server.ts'
+import {monitorListValidator} from './overview-etag.server.ts'
 import {externalCheck,externalCheckOf} from './external-check.server.ts'
 import {assignDefinition,listRunners,ensureFirstRunner,runnerIdentity} from './runner-registration.server.ts'
 import {attemptSnapshot} from './attempt-checkpoint.server.ts'
@@ -73,9 +74,9 @@ async function monitorState(env:Bindings,m:ReturnType<typeof monitorRow>,now:num
 // notification history, so opening one monitor costs one monitor's reads however many the installation has. Both carry the
 // installation's one time zone (Settings › General), which the console's report, maintenance and job forms start from. Reads that do
 // not depend on each other run together: each is a D1 round trip, and a hosted console waits for the slowest chain.
-export async function overview(env:Bindings,{monitorId,readOnly=false}:{monitorId?:string;readOnly?:boolean}={}){
+export async function overview(env:Bindings,{monitorId,readOnly=false,list}:{monitorId?:string;readOnly?:boolean;list?:{key:string;tag?:string}}={}){
  const now=Date.now(),staleMs=Number(env.UPTIME_RUNNER_STALE_MS??120000);
- const clock=overviewClock(now);
+ const clock=overviewClock(now,Boolean(list));
  if(!Number.isSafeInteger(staleMs)||staleMs<=0)throw Error('Invalid monitoring watch interval');
  // The first runner rows exist after the first overview; only an installation still missing one writes them, then reads again.
  const present=async()=>{const [runners,legacy]=await Promise.all([listRunners(env),runnerIdentity(env)]);return legacy&&(!hostedInstallation(env)||runners.some((r:any)=>r.hosted))?{runners,legacy}:null};
@@ -85,16 +86,30 @@ export async function overview(env:Bindings,{monitorId,readOnly=false}:{monitorI
   cronStarted(env),readContact(env.DB,now),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env),installationName(env)]);
  const {runners,legacy}=found??(readOnly?{runners:await listRunners(env),legacy:await runnerIdentity(env)}:(await ensureFirstRunner(env),(await present())!));
  if(!readOnly)clock.contact(contact.lastContactAt,CONTACT_FRESHNESS_MS);
- for(const runner of runners)if(runner.revokedAt===null){
+ for(const runner of runners)if(runner.revokedAt===null&&(!list||!runner.hosted)){
   clock.contact(runner.lastContactAt,staleMs);
   if(!runner.hosted&&staleMs!==CONTACT_FRESHNESS_MS)clock.contact(runner.lastContactAt,CONTACT_FRESHNESS_MS);
  }
  const basics=rows.results.map(monitorRow);
- const [monitors,availability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs,readOnly,clock))),availabilityOverview(env.DB,basics,now)]);
- const snapshot={monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)})),alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
+ const [monitors,fullAvailability]=await Promise.all([Promise.all(basics.map(m=>monitorState(env,m,now,runners,legacy,staleMs,readOnly,clock))),list?undefined:availabilityOverview(env.DB,basics,now)]);
+ const common={alerts:alerts.results.map(r=>({...r,event:JSON.parse(r.event)})),
   runner:{...runnerRuntime(env,runners),cronStarted:started,identity:'private-runner',version:'uptime-node/0.1.0',independentVantage:new Set(runners.filter((r:any)=>r.revokedAt===null).map((r:any)=>r.networkLabel)).size>1,runners,...(readOnly?{}:{grants:grants(env),contact,externalCheckUrl:external.url})},
   installationName:name,timeZone:(notifications?.preferences??preferences)!.timeZone,...(notifications?{notifications}:{}),now};
- return {snapshot,...clock.interval()};
+ const interval=clock.interval();
+ // Match the list's status, failing locations and checker warnings. Probe
+ // timestamps and confirmation counters belong to the detail view.
+ const validator=list?await monitorListValidator(env,list.key,list.tag,[
+  monitors.map(m=>[m.id,m.revision,m.definition,m.configurationWarning,m.maintenanceEndsAt,
+   m.state.state,m.state.notificationOpen,m.state.incidentKey,
+   m.state.regions?.map(({probe,state}:any)=>[probe,state]),m.checking.reporting,
+   m.checking.missing.map(({name,thisComputer})=>[name,thisComputer])]),
+  runners.map(({lastContactAt,...runner})=>runner),common.runner.hosted,started,name,common.timeZone,common.alerts,
+  notifications&&{...notifications,runnerContact:undefined},
+ ],now,interval.expiresAt):undefined;
+ if(validator?.unchanged)return {headers:validator.headers};
+ const availability=fullAvailability??await availabilityOverview(env.DB,basics,now,true);
+ const snapshot={...common,monitors:monitors.map(m=>({...m,availability:availability.get(m.id),externalCheck:externalCheckOf(m.definition,external)}))};
+ return {snapshot,headers:validator?.headers,...interval};
 }
 export {MONITOR_LIMIT} from './monitor-cap.ts'
 // The revision guard runs in the write transaction. A racing create returns the same useful capacity error as preflight.

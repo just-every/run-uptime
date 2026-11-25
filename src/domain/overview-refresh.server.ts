@@ -5,11 +5,11 @@ import {maintenanceOccurrences} from './planned-maintenance.mjs'
 import {heartbeatDeadline} from './heartbeat-job.mjs'
 
 export const overviewRefreshMs=60_000;
-export function overviewClock(now:number){
+export function overviewClock(now:number,rolling=false){
  // Rolling availability and other continuous values are read at least once
  // per minute. Align the interval across Workers, and split it at categorical
  // state boundaries so a validator cannot straddle a known transition.
- const minuteStart=Math.floor(now/overviewRefreshMs)*overviewRefreshMs;
+ const minuteStart=rolling?now:Math.floor(now/overviewRefreshMs)*overviewRefreshMs;
  const horizon=minuteStart+overviewRefreshMs;
  let validFrom=minuteStart,expiresAt=horizon;
  const at=(edge:number)=>{

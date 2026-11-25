@@ -2,8 +2,8 @@
 export function meteredWorker(app) {
  const bindings = new WeakMap();
  const wallNow = Date.now;
- let clock, current, latest;
- Date.now = () => clock ?? wallNow();
+  let clock, realStart, current, latest;
+  Date.now = () => clock === undefined ? wallNow() : clock + (realStart === undefined ? 0 : wallNow() - realStart);
 
  function meterBinding(db) {
   const statements = new WeakMap();
@@ -61,8 +61,9 @@ export function meteredWorker(app) {
   };
  }
 
- async function measure(door, time, env, ctx, run) {
+ async function measure(door, time, env, ctx, run, advanceClock=false) {
   clock = time;
+  realStart = advanceClock ? wallNow() : undefined;
   if (!bindings.has(env.DB)) bindings.set(env.DB, meterBinding(env.DB));
   // Reuse the binding's identity across invocations, including for app caches.
   const sample = {queries:new Map(), unmetered:[], pending:new Set()};
@@ -82,6 +83,7 @@ export function meteredWorker(app) {
    latest = {door, time, queries:[...sample.queries], unmetered:sample.unmetered};
    current = undefined;
    clock = undefined;
+   realStart = undefined;
   }
  }
 
@@ -112,7 +114,7 @@ export function meteredWorker(app) {
    const {start, lags} = JSON.parse(env.D1_METER_CRON_LAGS ?? '{}');
    const lag = lags?.[(controller.scheduledTime - start) / 60_000] ?? 0;
    return measure('cron', controller.scheduledTime + lag, env, ctx,
-    (bindings, context) => app.scheduled(controller, bindings, context));
+    (bindings, context) => app.scheduled(controller, bindings, context), lag < 0);
   },
  };
 }

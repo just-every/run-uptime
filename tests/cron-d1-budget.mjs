@@ -9,6 +9,7 @@ import {
 } from './cron-d1-history-fixture.mjs';
 import {proveCanaryBucketBudget, proveAvailabilityDumpRoundTrip} from './cron-d1-bucket-fixture.mjs';
 import {proveNotificationIndexUpgrade} from './cron-d1-notification-fixture.mjs';
+import {completeSecondFactor} from './mfa-auth-support.mjs';
 
 const {values} = parseArgs({options:{
  dist:{type:'string', default:'dist'},
@@ -30,7 +31,8 @@ const manualRunReadBudget = 180;
 const activePollInterval = 5_000;
 const unchangedPollInterval = minute;
 const scrapeInterval = 15_000;
-const cronLags = [7_000, 0, 6_000, 1_000, 4_000, 0, 3_000, 0, 2_000, 0];
+const cronLags = [7_000, 0, 6_000, 1_000, -200, 0, 3_000, 0, 2_000, 0];
+const listPath = '/api/overview?view=monitors';
 
 async function readMeter(request, door, time) {
  const response = await request('/__d1_meter?summary=1');
@@ -42,8 +44,8 @@ async function readMeter(request, door, time) {
  return report;
 }
 
-async function pollOverview(request, time, cookie, etag) {
- const response = await request('/api/overview', {headers:{
+async function pollOverview(request, time, cookie, etag, path = '/api/overview') {
+ const response = await request(path, {headers:{
   ...clientHeaders, cookie, 'x-uptime-time-zone':'Australia/Brisbane', 'x-d1-meter-time':String(time), ...(etag ? {'if-none-match':etag} : {}),
  }});
  const ttl = Number(response.headers.get('x-uptime-overview-ttl'));
@@ -52,16 +54,17 @@ async function pollOverview(request, time, cookie, etag) {
   assert.ok(etag, 'unchanged response follows a successful poll');
   assert.equal(response.headers.get('etag')?.replace(/^W\//,''), etag.replace(/^W\//,''), '304 preserves the opaque validator');
   assert.equal(await response.text(), '', 'unchanged overview has no body');
-  return {etag:response.headers.get('etag'), unchanged:true, ttl};
+  return {etag:response.headers.get('etag'), unchanged:true, steady:true, ttl};
  }
  assert.equal(response.status, 200, 'signed-in overview poll succeeds');
- const {monitors} = await response.json();
+ const snapshot = await response.json();
+ const {monitors} = snapshot;
  assert.equal(monitors.length, monitorCount);
  assert.ok(monitors.every(({availability}) => availability.lastCheckAt >= time - minute), 'overview reports the latest scheduled evidence');
  const updated = response.headers.get('etag');
  assert.ok(updated, 'overview advertises an ETag');
  assert.notEqual(updated, etag, 'a conditional 200 returns a changed overview');
- return {etag:updated, unchanged:false, ttl};
+ return {etag:updated, unchanged:false, steady:response.headers.get('x-uptime-overview-steady')==='1', ttl, snapshot};
 }
 
 async function scrapeMetrics(request, time, authorization, ids) {
@@ -120,7 +123,7 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
  const db = await worker.getD1Database('DB');
  const ids = (await db.prepare('SELECT id FROM monitors').all()).results.map(({id}) => id);
  let nextCron = firstMinute, nextPoll = firstMinute, nextScrape = firstMinute;
- let etag, coldCron, coldOverview, coldScrape;
+ let etag, coldCron, coldOverview, coldScrape, steadyPolls=0;
  const end = firstMinute + day;
  for (let time = firstMinute; time < end; time = Math.min(nextCron, nextPoll, nextScrape)) {
   if (time === nextCron) {
@@ -138,7 +141,7 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
    nextCron += minute;
   }
   if (time === nextPoll) {
-   const result = await pollOverview(request, time, cookie, etag);
+   const result = await pollOverview(request, time, cookie, etag, listPath);
    const cost = await readMeter(request, '/api/overview', time);
    if (coldOverview === undefined) {
     coldOverview = cost.rows;
@@ -146,7 +149,9 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
    }
    etag = result.etag;
    record(result.unchanged ? 'unchanged overview' : 'changed overview', cost);
-   nextPoll += Math.max(1000,Math.min(result.unchanged ? unchangedPollInterval : activePollInterval,result.ttl));
+   steadyPolls = result.steady ? steadyPolls + 1 : 0;
+   const interval = steadyPolls === 0 ? activePollInterval : steadyPolls === 1 ? 30_000 : unchangedPollInterval;
+   nextPoll += Math.max(1000,Math.min(interval,result.ttl));
   }
   if (time === nextScrape) {
    await scrapeMetrics(request, time, authorization, ids);
@@ -174,6 +179,9 @@ async function measureDay(worker, {cookie, authorization}, firstMinute, migratio
  assert.equal(usage.get('metrics').calls, day / scrapeInterval);
  assert.ok(usage.get('changed overview')?.calls > 1, 'a live overview changes as scheduled checks complete');
  assert.ok(usage.get('unchanged overview')?.calls > 0, 'unchanged polls exercise conditional responses and the slower cadence');
+ const openTabRows = (combined-usage.get('metrics').rows)/minutesPerDay;
+ console.log(`One Monitors tab with Cron: ${openTabRows.toFixed(1)} D1 rows read per minute`);
+ assert.ok(openTabRows <= 400, 'one healthy Monitors tab and Cron stay within the read budget');
  assert.ok(usage.get('cron').rows < cronBudget, `cron read ${usage.get('cron').rows} rows; expected under ${cronBudget} per day`);
  assert.ok(combined < dailyBudget, `combined read ${combined} rows; expected under ${dailyBudget} per day`);
  assert.ok(written < dailyWriteBudget, `combined wrote ${written} rows; expected under ${dailyWriteBudget} per day`);
@@ -189,7 +197,68 @@ async function proveHostedCadence(worker, firstMinute, probes) {
   assert.deepEqual(probes.toSorted(), ['/health/1','/health/2','/health/3','/health/4'],
    `one outbound probe per monitor at ${new Date(tick).toISOString()} (Cron arrived ${lag} ms later)`);
  }
- console.log('Ten jittered Cron ticks: one outbound probe for each of four monitors on every tick');
+ console.log('Ten early and late Cron ticks: one outbound probe for each of four monitors on every tick');
+}
+
+async function proveConsoleKick(worker, cookie, tick) {
+ const service = await worker.getWorker();
+ const db = await worker.getD1Database('DB');
+ const {results:[checked, edited]} = await db.prepare('SELECT id, definition FROM monitors ORDER BY rowid LIMIT 2').all();
+ const request = (path, init) => worker.dispatchFetch(origin + path, init);
+ const savePath = `/api/monitors/${edited.id}`, saveAt = tick + 500;
+ const saved = await request(savePath, {
+  method:'PATCH',headers:{...clientHeaders,origin,cookie,'content-type':'application/json','x-d1-meter-time':String(saveAt)},
+  body:JSON.stringify({...JSON.parse(edited.definition),name:'Renamed checkout'}),
+ });
+ assert.equal(saved.status,200,await saved.clone().text());
+ await readMeter(request,savePath,saveAt);
+ const scheduledHistory = async time => {
+  const response = await request(`/api/monitors/${checked.id}/history`,{
+   headers:{...clientHeaders,cookie,'x-d1-meter-time':String(time)},
+  });
+  assert.equal(response.status, 200);
+  return (await response.json()).filter(s => !s.manual && s.due_at >= tick).map(s => [s.due_at,s.status]).sort();
+ };
+ assert.deepEqual(await scheduledHistory(saveAt), [[tick,'complete']], 'saving another monitor claims the due scheduled check');
+ await dispatchCron(service,tick);
+ await dispatchCron(service,tick+minute);
+ assert.deepEqual(await scheduledHistory(tick+minute+2000), [[tick,'complete'],[tick+minute,'complete']],
+  'Cron follows the kick without repeating its slot or skipping the next minute');
+}
+
+async function proveListRevalidation(worker, cookie, tick, failTarget) {
+ const request = (path, init) => worker.dispatchFetch(origin + path, init);
+ const service = await worker.getWorker();
+ const poll = (time, etag) => pollOverview(request, time, cookie, etag, listPath);
+ const pass = await poll(tick-1000);
+ const id = pass.snapshot.monitors[0].id;
+ const state = result => result.snapshot?.monitors.find(m=>m.id===id)?.state.state;
+ assert.equal(state(pass),'Healthy','the checkout begins healthy');
+ await dispatchCron(service,tick);
+ const steady = await poll(tick+1000,pass.etag);
+ assert.ok(steady.unchanged, 'another passing check preserves the list validator');
+ const healthy = await poll(tick+minute-1000);
+ failTarget(true);
+ await dispatchCron(service,tick+minute);
+ const degraded = await poll(tick+minute+1000,healthy.etag);
+ assert.equal(state(degraded),'Degraded','a changed target state invalidates the list immediately');
+ failTarget(false);
+ await dispatchCron(service,tick+2*minute);
+ const recovered = await poll(tick+2*minute+1000);
+ assert.equal(state(recovered),'Healthy','the next passing check restores the list status');
+ const alertAt=tick+2*minute+2000;
+ await completeSecondFactor(origin,cookie,(url,init)=>worker.dispatchFetch(url,{
+  ...init,headers:{...init.headers,...clientHeaders,'x-d1-meter-time':String(alertAt)},
+ }),alertAt);
+ const added = await request('/api/notifications/destinations',{
+  method:'POST',headers:{...clientHeaders,cookie,origin,'content-type':'application/json','x-d1-meter-time':String(alertAt)},
+  body:JSON.stringify({name:'On-call team',kind:'webhook',url:'https://receiver.example.com/uptime'}),
+ });
+ assert.equal(added.status,201,await added.clone().text());
+ const {id:destinationId} = await added.json();
+ await readMeter(request,'/api/notifications/destinations',alertAt);
+ const alertChange = await poll(tick+2*minute+3000,recovered.etag);
+ assert.ok(alertChange.snapshot.notifications.destinations.some(d=>d.id===destinationId&&d.enabled), 'an alert destination change invalidates the list without a new probe');
 }
 
 const migrations = await migrationPlan();
@@ -259,10 +328,21 @@ try {
  await proveHostedCadence(worker, firstMinute, probes);
  // Meter the day beginning with a truly cold scheduled run.
  await worker.dispose();
- worker = await runtime(values.dist, directory);
  const dayStart = firstMinute + cronLags.length * minute;
+ const dayEnd = dayStart+day;
+ const saveTick = dayEnd+6*minute;
+ let failTarget = false;
+ worker = await runtime(values.dist, directory,{
+  onProbe:path=>failTarget&&path==='/health/1'?new Response('Unavailable',{status:503}):undefined,
+  cronStart:saveTick,cronLags:[3_000,1_200],
+ });
  await measureDay(worker, auth, dayStart, migrationWrites);
- await checkAfterSave(worker, auth.cookie, dayStart + day);
+ await checkAfterSave(worker, auth.cookie, dayEnd);
+ const service = await worker.getWorker();
+ await dispatchCron(service,dayEnd+minute);
+ await dispatchCron(service,dayEnd+2*minute);
+ await proveListRevalidation(worker, auth.cookie, dayEnd+3*minute, fail=>{failTarget=fail});
+ await proveConsoleKick(worker, auth.cookie, saveTick);
 } finally {
  try { await worker?.dispose(); }
  finally { await rm(directory, {recursive:true, force:true}); }
