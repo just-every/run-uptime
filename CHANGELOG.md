@@ -13,6 +13,7 @@ Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/r
 - Check history reads packed attempts and external check URLs directly from their scheduled slots. A steady-state workerd test measured 373 D1 rows read per minute for one detail tab, excluding cron.
 - On a hosted installation, **Run check** bypasses the five-second cooldown for starting hosted work, so a check requested just after saving a monitor can start without waiting up to a minute for the next cron tick.
 - **Locations** shows the hosted restart command for the deployment runner.
+- Deploys set an explicit 30-second CPU limit on Workers Paid and use the account default on Workers Free.
 
 ### Documentation
 

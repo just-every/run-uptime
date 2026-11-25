@@ -130,6 +130,11 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
       const consumer = {...body,consumer_id:queue[3] ?? randomUUID().replaceAll('-','')};row.consumers=[consumer];write(method,path,body);return ok(consumer);
     }
     if (path === '/workers/durable_objects/namespaces') return list(state.namespaces);
+    if (path === '/workers/settings' && method === 'GET') {
+      return state.workersPlanLookupFails
+        ? Response.json({success:false,errors:[{code:10000,message:'test account settings refusal'}]}, {status:403})
+        : ok({free_tier:state.workersFree ?? false});
+    }
     if (path === '/workers/subdomain') return ok({subdomain:'fixture-account'});
     if (path === '/workers/assets/upload') {for(const [digest,file] of body)assets.set(digest,Buffer.from(await file.text(),'base64'));write(method,path);return ok({jwt:'fixture-complete-jwt'});}
     const worker = /^\/workers\/scripts\/([^/]+)(.*)$/.exec(path); if (!worker) throw Error(`unexpected fixture path ${path}`);
@@ -187,6 +192,9 @@ export function providerFixture({handlers = ['fetch','scheduled']} = {}) {
     }
     if (suffix === '' && method === 'PUT') {
       const meta = JSON.parse(await body.get('metadata').text());
+      if (state.workersFree && meta.limits?.cpu_ms !== undefined) {
+        return Response.json({success:false,errors:[{code:10001,message:'custom CPU limit requires Workers Paid'}]}, {status:400});
+      }
       // Cloudflare preserves unmentioned opaque secrets when keep_bindings asks
       // for secret_text. A normal product upload must not erase a held sender/key.
       const oldSecrets = new Map(state.secrets.map(item=>[item.name,item.value]));

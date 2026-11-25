@@ -4,6 +4,7 @@ import { mkdir, readFile, rm, writeFile, stat } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { readDeployEnvFile } from '@runeditrun/rer/internal/modules/deploy-kit/env-file.mjs';
+import { parseJsonc } from '@runeditrun/rer/internal/modules/deploy-kit/jsonc.mjs';
 import { providerBridge } from './owner-deploy-lifecycle/bridge.mjs';
 import { checkout, deploy, git } from './owner-deploy-lifecycle/commands.mjs';
 
@@ -34,6 +35,10 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   assert.ok(provider.state.settledDatabaseListings > 0, 'the same first deploy read a settled listing before proceeding');
   assert.equal(provider.state.writes.filter(row => row.path === '/d1/database').length, 1, 'eventual listing never creates another D1');
   assert.equal(provider.uploads.length, 1);
+  const configuredLimits = parseJsonc(await readFile(join(root, 'wrangler.jsonc'), 'utf8')).limits;
+  const settings = (fixture, worker) => fixture.fetch(`https://api.cloudflare.com/client/v4/accounts/${fixture.accountId}/workers/scripts/${worker}/settings`,
+    { headers: { Authorization: `Bearer ${fixture.token}` } }).then(response => response.json()).then(({ result }) => result);
+  assert.deepEqual((await settings(provider, first.result.worker)).limits, configuredLimits, 'Paid deployment reads back the configured Worker limits');
   assert.ok(provider.healthRequests > 0, 'successful deployment verifies the served deployment identity');
   assert.ok(provider.state.assetRequests.length > 0, 'the package verifies an uploaded static asset');
   assert.ok(provider.state.schedules.some(schedule=>schedule.cron),'deployed monitoring has a scheduled trigger');
@@ -157,6 +162,7 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   // A fresh mail-off deployment uses its ordinary owner bootstrap, then the
   // actual rer signin command against that exact recorded account and Worker.
   const offRoot=await checkout(t),offProvider=await providerBridge(t);
+  offProvider.state.workersFree = true;
   const mailOffInputs={OWNER_EMAIL:'synthetic-uptime-620@example.test'};
   const incompletePlan=await deploy(offRoot,offProvider,t.signal,['--dry-run'],{inputs:mailOffInputs,ownerName:null});
   assert.notEqual(incompletePlan.code,0,'a fresh checkout cannot deploy without its owner name');
@@ -174,10 +180,17 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   const offPlan=await deploy(offRoot,offProvider,t.signal,['--dry-run'],{inputs:mailOffInputs});
   assert.equal(offPlan.code,0,JSON.stringify(offPlan));
   assert.equal(offPlan.result?.dryRun,true);
+  assert.deepEqual(offPlan.result.plan.workersPaidLimits, configuredLimits, 'offline dry run reads back the compiled Paid limits');
   assert.equal(offProvider.state.calls.length,callsBeforeDryRun,'mail-off dry run never contacts the provider');
   assert.equal(offProvider.state.writes.length,0,'mail-off dry run never mutates the provider');
+  offProvider.state.workersPlanLookupFails = true;
+  const refusedPlan = await deploy(offRoot, offProvider, t.signal, [], { inputs: mailOffInputs });
+  assert.ok(refusedPlan.errorCodes.includes('workers_plan_lookup_failed'), 'a failed account plan lookup stops deployment');
+  assert.equal(offProvider.state.writes.length, 0, 'a failed account plan lookup stops before provisioning');
+  offProvider.state.workersPlanLookupFails = false;
   const off=await deploy(offRoot,offProvider,t.signal,[],{inputs:{OWNER_EMAIL:'synthetic-uptime-620@example.test'}});
   assert.equal(off.code,0,JSON.stringify(off));
+  assert.equal((await settings(offProvider, off.result.worker)).limits, undefined, 'Free deployment reads back without custom limits');
   const mailProvider=()=>offProvider.state.secrets.find(s=>s.name==='MAIL_PROVIDER')?.value ?? offProvider.state.settings.bindings.find(s=>s.name==='MAIL_PROVIDER')?.text;
   assert.equal(mailProvider(),'none','an omitted selector without sending inputs uses the declared mail-off default');
   assert.ok(!offProvider.state.secrets.some(s=>s.name==='MAIL_FROM'||s.name.includes('API_KEY')));

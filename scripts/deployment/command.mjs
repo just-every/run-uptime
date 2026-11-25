@@ -12,6 +12,7 @@ import { ownerDeploy } from '@runeditrun/rer/deploy';
 import { switchableDefaults } from '@runeditrun/rer/internal/cli/deploy-settings.mjs';
 import { deployCommand } from '@runeditrun/rer/internal/cli/deploy-command.mjs';
 import { migrateSecrets, savedInputs } from './secret-custody.mjs';
+import { configuredWorkerLimits, workersPaid, workerUploadWithLimits } from './worker-cpu-limit.mjs';
 function upload(lifecycle) {
  const sharedDeploy = ownerDeploy('deploy.json', lifecycle);
  return async context => {
@@ -46,22 +47,29 @@ function upload(lifecycle) {
    if (error.message === 'missing-input') throw missing(`Required deployment configuration is missing: ${error.inputs.join(', ')}. See OPERATIONS.md.`);
    throw error;
   }
+  const limits = await configuredWorkerLimits(root);
+  const paid = !options.dryRun && await workersPaid(processEnv, signal);
   await lifecycle.run(root, {}, store, () => {}, signal, { verb: 'build', operationToken, privateSettings: ['data/local-secrets.json'] });
   await prepareOwnerBuild(root);
+  const built = JSON.parse(await readFile(join(root, ownerProduct, 'dist/server/wrangler.json'), 'utf8'));
+  if (built.limits?.cpu_ms !== limits.cpu_ms) {
+   throw new RerError('built_worker_cpu_limit_mismatch', 'The compiled Worker configuration did not retain the configured CPU limit.', 1);
+  }
+  const worker = ownerWorkerName(declaration.project, environment);
   if (options.dryRun) {
-   const worker = ownerWorkerName(declaration.project, environment);
    const artifact = await packageBuild({ root, source: { sha: '0'.repeat(40), tree: '0'.repeat(40) }, runIdentity: { id: '0', attempt: '1' }, productDirectory: ownerProduct });
    // Cloudflare assigns the origin during deployment. Validate the remaining
    // plan without inventing an origin, and name its pending variable explicitly.
    const { originVar, ...planningDeclaration } = selectedDeclaration;
    const validated = ownerPlan({ project: declaration.project, environment, worker }, planningDeclaration, artifact, { publicDefaults: await switchableDefaults(planningDeclaration) });
-   const plan = { ...validated, d1: validated.d1.map(database => ({ ...database,
+   const plan = { ...validated, workersPaidLimits: limits, d1: validated.d1.map(database => ({ ...database,
     migrations: database.migrations.map(({ sql, ...migration }) => migration),
    })) };
    const pendingVariables = originVar ? [originVar] : [];
    store.report([
     `deploy: resource plan for ${environment}`,
     `  Worker: ${plan.worker}`,
+    `  Workers Paid CPU limit: ${limits.cpu_ms} ms (account plan checked at deployment)`,
     ...plan.d1.map(database => `  D1: ${database.name} (${database.migrations.length} migrations)`),
     `  Cron: ${plan.crons.join(', ')}`,
     `  Secret bindings: ${plan.secrets.map(secret => secret.binding).join(', ')}`,
@@ -72,9 +80,10 @@ function upload(lifecycle) {
   const env = ownerEnvironment({ ...processEnv, ...secrets });
   const selected=await saveOwnerDeclaration(root,declaration,env);
   const args = ['--declaration', selected, '--environment', environment, '--product', ownerProduct];
+  const uploadFetch = paid ? workerUploadWithLimits(env.CLOUDFLARE_ACCOUNT_ID, worker, limits) : undefined;
   // A kit failure keeps its sanitized code and the stage it stopped in; its saved state lets the same command resume.
   const kit = async (stage, command) => {
-   try { return await main([command, ...args], env, { cwd: root }); }
+   try { return await main([command, ...args], env, { cwd: root, fetch: command === 'deploy' ? uploadFetch : undefined }); }
    catch (error) { const failure = report(error); throw new RerError('owner_deploy_failed', `Owner deployment stopped during ${stage}: ${failure.code}${failure.resource ? ` (${failure.resource})` : ''}. Its saved state in .rer/deploy/${environment}.json is kept; run the same command again to resume.`, 1); }
   };
   const result = await kit('provisioning, migrations and upload', 'deploy');

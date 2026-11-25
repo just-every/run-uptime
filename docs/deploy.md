@@ -42,6 +42,8 @@ rer deploy --owner-name "Your name"
 
 The command builds Uptime without your Cloudflare credentials in the build environment, then creates the Worker `uptime-monitor-production`, the D1 database `uptime-monitor-production-db`, the database migrations and a one-minute Cron trigger in your account. Cloudflare assigns the hosted address.
 
+Before provisioning, `rer deploy` reads your Cloudflare Workers account settings. Workers Paid uploads include the `limits.cpu_ms` of `30000` from `wrangler.jsonc`. Workers Free uses Cloudflare’s default. If Cloudflare cannot confirm the plan, deployment stops. The dry run checks the compiled limit offline. Read the [Worker’s settings](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/script_and_version_settings/methods/get/) after deploying to confirm `result.limits.cpu_ms`.
+
 When it finishes, it prints the hosted address with the Worker and environment, for example `deploy: https://uptime-monitor-production.your-subdomain.workers.dev (Worker uptime-monitor-production, environment production)`. With `--json` the same values are in the result.
 
 To build and inspect the resource plan first, run:
