@@ -1,14 +1,13 @@
 name: Verify
 'on':
   push: null
-  pull_request: null
   schedule:
     - cron: 54 6 * * 1,4
   workflow_dispatch: null
 permissions:
   contents: read
 concurrency:
-  group: uptime-verify-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  group: uptime-verify-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   plan:
@@ -31,6 +30,8 @@ jobs:
           fetch-depth: 2
       - name: Check reusable workflow permissions
         run: node scripts/verify-ci.mjs --check-workflows
+      - name: Count tests against the cap
+        run: node scripts/test-budget.mjs
       - name: Look up complete nightly marker
         id: nightly
         if: ${{ github.event_name == 'schedule' }}

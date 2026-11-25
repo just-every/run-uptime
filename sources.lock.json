@@ -484,7 +484,7 @@
       "executable": false
     },
     ".github/workflows/verify.yml": {
-      "sha256": "cf70f736e525fc00a2a4605bf5b0fdebe37f82bf5cdb7dc3c07bd338fcb86655",
+      "sha256": "7b492844b25da5af16b42250ce3a1866b7ad291a3b24c659094e0590b578a289",
       "executable": false
     },
     ".gitignore": {
@@ -512,7 +512,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "87ea038d07a6045fda59d73db0302f173f836f75c2bb412b8042786bbf501c58",
+      "sha256": "568e50372ec525a31e5bcf7575adce55ce5f38d202f82ee555e8aae4ac5e2114",
       "executable": false
     },
     "BASELINE.md": {
@@ -2177,14 +2177,6 @@
     },
     "edition.json": {
       "sha256": "ed5842243ba4062b8330710558dda64f596e60a53de3aac5bc014b0ae89f4809",
-      "executable": false
-    },
-    "evidence/sd-uptime-c4/component-review-1440.png": {
-      "sha256": "0142ce1f3066b422c354071da0e7bc4df6d91dcf56fe2abedabf1e9787b61e3d",
-      "executable": false
-    },
-    "evidence/sd-uptime-c4/component-review-390.png": {
-      "sha256": "c71b9d840ff769a455b8aa0b21bb4bb2894b4cfa7a2dac64e851015b0a460dba",
       "executable": false
     },
     "HANDOVER.md": {
@@ -4583,6 +4575,10 @@
       "sha256": "78bdc55540a2ed9f232b04bed07eba8481befe4cccdf4875d5cf8d4e4e46d5f3",
       "executable": false
     },
+    "scripts/test-budget.mjs": {
+      "sha256": "666f93f4725ab0ea069be1ae10789c4683fb323179f8661e94ed111f6de82253",
+      "executable": false
+    },
     "scripts/verification-plan.mjs": {
       "sha256": "e4f06bbd680056b6d0d22e16af4a31f8159226cf526e5dcc89ff3304a8f4f107",
       "executable": false
@@ -4604,7 +4600,7 @@
       "executable": false
     },
     "scripts/verify-plan.mjs": {
-      "sha256": "45fe2ab9c5cbc72d0186bf77fab32c985605caae6ecee50676dd618612c3e78f",
+      "sha256": "1c1f73198228f4146912002c4d4d91b632b22beba7f61de2a66341c0e91e92fc",
       "executable": false
     },
     "SEED-COMMAND-CONTRACT.md": {
@@ -9067,6 +9063,10 @@
       "sha256": "8dff0b899ae46654414bf2a03733c2cf2fd4e0701c1572ee2a6a46b6822e00a2",
       "executable": false
     },
+    "test-budget.json": {
+      "sha256": "7962454dfd02f23d5e024c44c4f0658081e4b107f6c4feeeddc024460c14a355",
+      "executable": false
+    },
     "tests/access-admin-support.mjs": {
       "sha256": "d36d35993ab468092ccd874e853c0272e519570551e5f720c4c469732af91d26",
       "executable": false
@@ -10921,138 +10921,6 @@
     },
     "vite.site.config.ts": {
       "sha256": "fe05cfd7af0de5b7f90a813ffb5bb64cfe8d0ff503cb1df83f14da201722b50a",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/bulk-applied-1440.png": {
-      "sha256": "297e265e4170e7a6244db9c1aeadf39793b79d59c9aed2c289978c45af0feda7",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/bulk-applied-390.png": {
-      "sha256": "78f5f7a1dd3688a78bfb11b5779cd2d461acfd9feff9fcb91b610b8c5d774ab6",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/bulk-label-form-1440.png": {
-      "sha256": "a1de1a8afe9d3458945a8e5e034928cb84973a874725c10d49d5fb6cb6f243eb",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/bulk-label-form-390.png": {
-      "sha256": "66ce6397f5e1da84dd7e63bacea16693ff3bd9b5268bdf25fc73ebd38a3b859f",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/bulk-label-preview-1440.png": {
-      "sha256": "e2f7fae1db080070c3099d9655f7510d6bdefc5ef2aa369344f2026db7f61b80",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/bulk-label-preview-390.png": {
-      "sha256": "2a3b7a23e52cf1945da1956ed34fed0611ec17cfef6a8fe0d7d1d0fc191b8b43",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/bulk-undone-1440.png": {
-      "sha256": "8dab8b62a5237d3646889503bcf4dd6591f9452588d3c7201693315bf0985392",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/bulk-undone-390.png": {
-      "sha256": "bb224433c7b8be7d280f6b5b34c7d451767d3c61caec4532074a72e2ee2ea130",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/catalog-docs-1440.png": {
-      "sha256": "5474b8f5a54b6471e843032e81d19917202ec0a7d72d9a8994098a1f77ddc856",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/catalog-docs-390.png": {
-      "sha256": "40f1f8b45a2e95f2a4eb9f78dc9b89dc639109b69b10fbb9136ec534df3ca402",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/csv-preview-390.png": {
-      "sha256": "2401ad216cffa1ec0a790038a0c178d7c0c27570106d6388e7157e1944ab4ff7",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/fifty-url-preview-1440.png": {
-      "sha256": "0efc5872d4a2e1c25a8cabd2c4718849be0b1e419c40e7f20d945366cf742a99",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/filtered-selection-1440.png": {
-      "sha256": "9a4fcc6f0ac64415d35bd783b84cab88ad58904d7490ca484152d4439fca9441",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/filtered-selection-390.png": {
-      "sha256": "eb25e26ec23ea5a3ce837d561e67fa49cc4a717ed901c18fcfd18593deee3f89",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/invalid-csv-390.png": {
-      "sha256": "f2ada49a3107a4746eb1d2238b9280122455f55c1670597dda8d47859ef8f2d0",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/metadata-editor-1440.png": {
-      "sha256": "2f11b614c928de28466c86f30bc96dc4561517ca7bd42ce61e5a4c0d184f3c9d",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/metadata-editor-390.png": {
-      "sha256": "d3dae55e87db3a86ad72511ed3dfda31d5585eb5523decf2af12bec123a7d3be",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/paused-history-retained-1440.png": {
-      "sha256": "534f1aa26d37c8d0cf8f5d731a63ed86be091518c399b77866dce486c99b8278",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/paused-history-retained-390.png": {
-      "sha256": "1a1cc2a7a806f86638a096d92164bca51279916dcc14af52d742a581794678a9",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/preview-rows-1440.png": {
-      "sha256": "a3e30a09cd1139e8a6a0d6e99c010d8f4b862646c55f7ca60f3fac1bd8fae27d",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/MONITOR-001/preview-rows-390.png": {
-      "sha256": "16281c869995264293f5ce643ea98127170e53effa83b32f74845cfb018d1125",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/NOTICE-001/recovered-context-1440.png": {
-      "sha256": "60aae2d24a775597db4528747c0498dff95891b5bd9ccd5a54d39d47c2028c23",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/NOTICE-001/recovered-context-390.png": {
-      "sha256": "a4345003bca02aa2af6396de3e92b9546bfbee729a7c38dc32ec0c5b4e002713",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/READAPI-001/documented-api-1440.png": {
-      "sha256": "2dc396cad61a5af98b483417dc83911e50ebc14474bf147bef823217e80ec21d",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/READAPI-001/documented-api-390.png": {
-      "sha256": "2fe4de87f12b55623278e759fd6a0bfa1596f96ef32a68cfaa8c300b6d965c26",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/REPORT-001/custom-report-1440.png": {
-      "sha256": "be6c4ff67ddc8c809899e2b269000223808a541ebd7908c7880a15b6aacb284c",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/REPORT-001/custom-report-390.png": {
-      "sha256": "331747d2234ec7ff996098158e522f240041086b383e039cb211d761e227aee1",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/REPORT-001/dst-refusal-1440.png": {
-      "sha256": "70fd75193790d4b4afc4294f1642d2cec7086dd280ec11b6a3d8f10ac11cec51",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/REPORT-001/dst-refusal-390.png": {
-      "sha256": "86c57ed95d0d2312106ecaacb0bbeac26d806c4c56737dac6d3056bcdc6fc153",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/REPORT-001/latency-page-two-1440.png": {
-      "sha256": "f866f699969d39854b8b142be493171f228a453811d69c6311d3e71f3e3e12aa",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/REPORT-001/latency-page-two-390.png": {
-      "sha256": "b76ccfbe28104ed95f78b39a1dd7603a09bdbb32708d2de7fe312b6cc218dbaf",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/REPORT-001/no-evidence-1440.png": {
-      "sha256": "11cdd8bb486b7d7eb46c3c2973a529de393c7dd0ad67927c8537ba49e88fc109",
-      "executable": false
-    },
-    "work/sd-cp-uptime/shots/REPORT-001/no-evidence-390.png": {
-      "sha256": "20b450074d719aaa4a075a7eb42be2b8bc5302b5dd897ac03b87afab7021176b",
       "executable": false
     },
     "wrangler.jsonc": {

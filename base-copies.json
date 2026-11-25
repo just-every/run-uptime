@@ -30,7 +30,7 @@
       },
       "acknowledged": {
         ".github/workflows/verify.yml": {
-          "sha256": "cf70f736e525fc00a2a4605bf5b0fdebe37f82bf5cdb7dc3c07bd338fcb86655",
+          "sha256": "7b492844b25da5af16b42250ce3a1866b7ad291a3b24c659094e0590b578a289",
           "mode": "100644"
         }
       },
@@ -1151,7 +1151,16 @@
       },
       "originFiles": [
         "export/verify-plan.mjs"
-      ]
+      ],
+      "adapted": {
+        "scripts/verify-plan.mjs": "8fa76d1ceef21535d0c1fa31298326d971bd8520"
+      },
+      "acknowledged": {
+        "scripts/verify-plan.mjs": {
+          "sha256": "1c1f73198228f4146912002c4d4d91b632b22beba7f61de2a66341c0e91e92fc",
+          "mode": "100644"
+        }
+      }
     },
     {
       "path": "SEED-COMMAND-CONTRACT.md",
