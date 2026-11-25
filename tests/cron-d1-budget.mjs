@@ -192,8 +192,12 @@ try {
  const historyAt = firstMinute - minute + 6_500;
  const recent = await firstRequest(historyPath, {headers:{...clientHeaders, cookie:auth.cookie, 'x-d1-meter-time':String(historyAt)}});
  assert.equal(recent.status, 200, 'the signed-in monitor detail can read recent checks');
- assert.ok((await recent.json()).length, 'recent scheduled evidence is available');
- assert.equal((await readMeter(firstRequest, historyPath, historyAt)).writes, 0, 'reading details leaves scheduling to Cron');
+ const slots = await recent.json();
+ assert.ok(slots.some(slot=>slot.due_at===firstMinute-minute&&slot.observations.some(o=>o.outcome==='pass')), 'history contains new packed evidence');
+ assert.ok(slots.some(slot=>slot.due_at<firstMinute-minute&&slot.observations.some(o=>o.outcome==='pass')), 'history contains pre-upgrade evidence');
+ const historyCost = await readMeter(firstRequest, historyPath, historyAt);
+ assert.equal(historyCost.writes, 0, 'reading details leaves scheduling to Cron');
+ assert.ok(historyCost.rows < 600, `recent history read ${historyCost.rows} rows on a populated upgrade`);
  await worker.dispose();
  worker = await runtime(values.dist, directory);
  const restartedRequest = (path, init) => worker.dispatchFetch(origin + path, init);

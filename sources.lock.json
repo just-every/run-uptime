@@ -7724,7 +7724,7 @@
       "executable": false
     },
     "src/domain/history.server.ts": {
-      "sha256": "40b5fa51181a144e9cd6781ef16136fe77b44966dfb3d88a095021b083202639",
+      "sha256": "4e374843a2c2eeaf120c4c1974be79056bbe6245277bd8577aae1c42f3c4f464",
       "executable": false
     },
     "src/domain/hosted-availability.server.ts": {
@@ -9372,7 +9372,7 @@
       "executable": false
     },
     "tests/cron-d1-budget.mjs": {
-      "sha256": "6fd35c823b8e20786697accc9b27befb3dc7f0539124864a103d0076c00b71a2",
+      "sha256": "aa12c51d6aa87bb3ecad700a177b71d841500af86474476b717023640dfa7ddb",
       "executable": false
     },
     "tests/cron-d1-history-fixture.mjs": {
