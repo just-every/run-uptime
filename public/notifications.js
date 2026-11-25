@@ -27,7 +27,7 @@ export function destinationDialog(destination,{notes,api,action}){
  dialog.querySelector('[data-delete-destination]')?.addEventListener('click',()=>confirmDestination({title:`Delete ${destination.name}?`,explanation:'Its name, address, credentials and delivery history will be permanently erased. The anonymous audit remains.',button:'Delete destination',tone:'danger',onConfirm:async()=>{close();const result=await action(()=>api(path(destination.id),'DELETE'),{pending:'Erasing destination…',success:'Destination and dependent delivery records erased.'});if(result.ok){document.getElementById('alert-teams')?.dispatchEvent(new Event('uptime:destinations-changed'));showErasureReceipt(result.result.receipt)}}}));
  form.onsubmit=async event=>{
   event.preventDefault();const values={name:form.elements.name.value,enabled:form.elements.enabled.checked};
-  if(destination){if(email)values.address=form.elements.address.value;else if(form.elements.url.value.trim())values.url=form.elements.url.value.trim()}
+  if(destination){if(email&&form.elements.address.value!==destination.address)values.address=form.elements.address.value;else if(form.elements.url.value.trim())values.url=form.elements.url.value.trim()}
   else{values.kind=form.elements.kind.value;values[values.kind==='email'?'address':'url']=form.elements[values.kind==='email'?'address':'url'].value}
   const kind=destination?.kind??values.kind;
   try{Object.assign(values,webhook.read())}catch(error){dialog.querySelector('form > .form-error').textContent=error.message;return}

@@ -29,6 +29,8 @@ export function requestNeedsStepUp(request:Request,input?:any){
  if(!write)return false
  if(path==='/api/routing/named-routes'||path.startsWith('/api/catalog/routes/'))return true
  if(request.method==='DELETE'&&/^\/api\/notifications\/destinations\/[^/]+$/.test(path))return true
+ // A new address or URL re-points where alerts go; a name or enabled change does not.
+ if(request.method==='PATCH'&&/^\/api\/notifications\/destinations\/[^/]+$/.test(path)&&input&&typeof input==='object'&&(Object.hasOwn(input,'address')||Object.hasOwn(input,'url')))return true
  if(/\/erase$/.test(path)||path==='/api/notifications/destinations'||/^\/api\/notifications\/destinations\/[^/]+\/(?:rotate|credentials)$/.test(path))return true
  if(path==='/api/routing/teams')return true
  if(path.startsWith('/api/access/')||/^\/auth\/(?:invite|operator\/role|operator\/status)/.test(path))return true

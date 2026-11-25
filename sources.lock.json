@@ -520,7 +520,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "477efa78bd5a9a56ecbf970fb517a1f21c5d7fbc77c51a6f950b971327259444",
+      "sha256": "de1fbbb9b510f5fcae3c3b829fbc6176c64c6d7160bbc1f6ace14c0c2f6e7009",
       "executable": false
     },
     "CLAUDE.md": {
@@ -3036,7 +3036,7 @@
       "executable": false
     },
     "public/notifications.js": {
-      "sha256": "750ea551fa071b1bfc303724f3f8d366d8d2ab8db426f8743055ae87c85bc7ed",
+      "sha256": "f6872b3b6cba7fe065a955ae2c5839999702615dcf0dd20249eb06c2a551b87e",
       "executable": false
     },
     "public/pagespeed-panel.js": {
@@ -7920,7 +7920,7 @@
       "executable": false
     },
     "src/domain/mfa/policy.server.ts": {
-      "sha256": "85e77ef448cdd7619b7c7dc6890a22384764b5dd599410cd794c1f59b4888082",
+      "sha256": "3f16afce3214eae8505506b287f1e70d57d41feefebcefef27f403fd03e92ab1",
       "executable": false
     },
     "src/domain/mfa/signin-document.server.ts": {
@@ -8057,6 +8057,10 @@
     },
     "src/domain/owner-account.server.ts": {
       "sha256": "7780e25de58de33aca3169f6f4647dbf18604797287e8081fdcf6837656b2903",
+      "executable": false
+    },
+    "src/domain/owner-alert-address.server.ts": {
+      "sha256": "9350aa02bb7b488b48298ba740a13eea8ab376a195f62258e14b1b1d72249f5c",
       "executable": false
     },
     "src/domain/owner-claim.server.ts": {
@@ -10585,6 +10589,10 @@
     },
     "tests/ops-stale-coverage-support.mjs": {
       "sha256": "51d68d7f4f5cd48356fa601c88be0c3e350a62978d067410023b22b5ed3a69d8",
+      "executable": false
+    },
+    "tests/owner-alert.mjs": {
+      "sha256": "0547a9303739a6885d172273318f3bbddde4547b4f04222fa141d0658cc7d61f",
       "executable": false
     },
     "tests/owner-deploy-lifecycle.mjs": {

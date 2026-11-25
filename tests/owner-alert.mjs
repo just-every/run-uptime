@@ -33,6 +33,10 @@ try{
  assert.equal(hook.status,403,'a URL still asks for a fresh second factor');
  const own=await call('/api/notifications/destinations',{name:'Me',kind:'email',address:owner},cookie);
  assert.equal(own.status,201,await own.clone().text());
+ const {id}=await own.json(),patch=body=>worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',redirect:'manual',headers:{'content-type':'application/json'},body:JSON.stringify({url:`${origin}/api/notifications/destinations/${id}`,method:'PATCH',headers:{host:'uptime.example.test',origin,'content-type':'application/json','cf-connecting-ip':'192.0.2.1',cookie},body:JSON.stringify(body)})});
+ const repointed=await patch({name:'Me',enabled:true,address:'synthetic-uptime-other@example.test'});
+ assert.equal(repointed.status,403);assert.equal((await repointed.json()).code,'fresh_second_factor_required','re-pointing it at another address still asks');
+ assert.equal((await patch({name:'My inbox',enabled:true})).status,200,'a rename needs nothing');
 
  await json(await call('/api/monitors',{name:'Down service',url:'https://down.example.test/health',retries:0,confirmSlots:1,recoverSlots:1},cookie));
  for(let run=0;run<3&&!mail.length;run++){const response=await worker.dispatchFetch('http://127.0.0.1:15504/',{method:'POST',body:JSON.stringify({scheduled:true})});assert.equal(response.status,204)}
