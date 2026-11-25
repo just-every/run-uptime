@@ -2591,6 +2591,10 @@
       "sha256": "9b6d530f051c31c7676ef905dc7786441b399e858bc379354a45cb6d0f6fbe05",
       "executable": false
     },
+    "migrations/0098_bound_contact_schedule_reads.sql": {
+      "sha256": "84d9a14659cf5dc9c04767033e42678ec0797149653906edf82d6550783af5c9",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "1d0d8857c00d9b84210c7a1a284fcf0688fbf9a3bb05f29fc8c4f531c73e214b",
       "executable": false
@@ -9381,6 +9385,10 @@
     },
     "tests/cron-d1-history-fixture.mjs": {
       "sha256": "bbcd7ed8533f7e8c6b6fd1ed7cc444cace5ae903d082bf15e36fcd4b8149eace",
+      "executable": false
+    },
+    "tests/cron-d1-incident-fixture.mjs": {
+      "sha256": "5b61516efb8d532f5b6d4f77a4cf6938a0a18b710c2219c964cb37759a467c66",
       "executable": false
     },
     "tests/cron-d1-meter-worker.mjs": {
