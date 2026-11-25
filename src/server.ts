@@ -166,7 +166,13 @@ api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(!a
 })
 // Monitor and notification actions can start work immediately. Passive reads
 // leave scheduling to Cron, with the overview covering initial activation.
-api.use('/api/*',async(c,next)=>{await next();const access=c.get('access');if(c.res.ok&&['POST','PATCH','DELETE'].includes(c.req.method)&&access&&access.role!=='read-only'&&/^\/api\/(monitors|notifications)(\/|$)/.test(c.req.path)){c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')))}})
+api.use('/api/*',async(c,next)=>{
+ await next();const access=c.get('access'),{method,path}=c.req;
+ if(c.res.ok&&['POST','PATCH','DELETE'].includes(method)&&access&&access.role!=='read-only'&&/^\/api\/(monitors|notifications)(\/|$)/.test(path)){
+  const bypassCooldown=method==='POST'&&/^\/api\/monitors\/[^/]+\/run$/.test(path);
+  c.executionCtx.waitUntil(kickHostedWork(c.get('systemBindings')??c.env,{bypassCooldown}).catch(()=>console.error('Hosted console work failed; queued work remains available to Cron.')));
+ }
+})
 api.get('/api/routing/named-routes',async c=>c.json(await namedAlertRoutes(c.env)))
 api.post('/api/routing/named-routes',async c=>c.json(await saveNamedAlertRoute(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id}),201))
 api.post('/api/catalog/routes/undo',async c=>c.json(await undoCatalogRoutes(c.env,c.get('input'),{kind:'operator',ref:c.get('access').session.operator.id})))

@@ -26,6 +26,7 @@ const cronWriteBudget = 56;
 const cronBudget = 300_000;
 const coldCronBudget = 500_000 / minutesPerDay;
 const coldReadBudget = 1_000;
+const manualRunReadBudget = 180;
 const activePollInterval = 5_000;
 const unchangedPollInterval = minute;
 const scrapeInterval = 15_000;
@@ -69,6 +70,34 @@ async function scrapeMetrics(request, time, authorization, ids) {
  assert.equal(response.status, 200, 'authenticated Prometheus scrape succeeds');
  const metrics = await response.text();
  for (const id of ids) assert.ok(metrics.includes(`uptime_availability_observed_seconds{monitor_id="${id}"}`));
+}
+
+async function checkAfterSave(worker, cookie, tick) {
+ await dispatchCron(await worker.getWorker(), tick);
+ const db = await worker.getD1Database('DB');
+ const {results:[checked, edited]} = await db.prepare('SELECT id, definition FROM monitors ORDER BY rowid LIMIT 2').all();
+ const request = (path, init) => worker.dispatchFetch(origin + path, init);
+ const requestAt = (path, time, {method='GET', body}={}) => request(path, {
+  method, body, headers:{...clientHeaders, origin, cookie, 'content-type':'application/json', 'x-d1-meter-time':String(time)},
+ });
+ const savePath = `/api/monitors/${edited.id}`, saveAt = tick + 2_000;
+ const saved = await requestAt(savePath, saveAt, {method:'PATCH', body:JSON.stringify({...JSON.parse(edited.definition), name:'Renamed service'})});
+ assert.equal(saved.status, 200, 'the owner saves another monitor');
+ await saved.json();
+ await readMeter(request, savePath, saveAt);
+
+ const runPath = `/api/monitors/${checked.id}/run`, runAt = saveAt + 2_000;
+ const run = await requestAt(runPath, runAt, {method:'POST', body:'{}'});
+ assert.equal(run.status, 200, 'the owner can run a check after saving');
+ const {slotId} = await run.json();
+ const cost = await readMeter(request, runPath, runAt);
+ const history = await requestAt(`/api/monitors/${checked.id}/history`, runAt + 1_500);
+ assert.equal(history.status, 200);
+ const slot = (await history.json()).find(slot => slot.id === slotId);
+ assert.equal(slot?.status, 'complete', 'the first history poll finds the manual check complete before Cron');
+ assert.ok(slot.observations.some(observation => observation.outcome === 'pass'), 'the manual check recorded passing evidence');
+ assert.ok(cost.rows <= manualRunReadBudget, `Run check read ${cost.rows} D1 rows including background work, expected at most ${manualRunReadBudget}`);
+ console.log(`Run check after saving: ${cost.rows} D1 rows read and complete on the first history poll`);
 }
 
 async function measureDay(worker, {cookie, authorization}, firstMinute, migrationWrites) {
@@ -214,6 +243,7 @@ try {
  await worker.dispose();
  worker = await runtime(values.dist, directory);
  await measureDay(worker, auth, firstMinute, migrationWrites);
+ await checkAfterSave(worker, auth.cookie, firstMinute + day);
 } finally {
  try { await worker?.dispose(); }
  finally { await rm(directory, {recursive:true, force:true}); }

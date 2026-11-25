@@ -8,12 +8,12 @@ import {SubrequestBudget} from './worker-budget.ts'
 // Owner activity starts real work before Cloudflare's first Cron invocation.
 // A D1 lease bounds concurrent console polls across isolates; normal attempt and
 // delivery claims still own every result/send, including races with Cron.
-export async function kickHostedWork(env:Bindings){
+export async function kickHostedWork(env:Bindings,{bypassCooldown=false}={}){
  if(!hostedInstallation(env))return;
  const now=Date.now(),id='console-worker-kick';
  const claim=await env.DB.prepare(`INSERT INTO monitoring_watch(id,at,outcome) VALUES(?,?,'running')
  ON CONFLICT(id) DO UPDATE SET at=excluded.at,outcome='running'
- WHERE monitoring_watch.at<=?-CASE WHEN monitoring_watch.outcome='running' THEN 30000 ELSE 5000 END`).bind(id,now,now).run();
+ WHERE monitoring_watch.at<=?-CASE WHEN monitoring_watch.outcome='running' THEN 30000 ELSE ? END`).bind(id,now,now,bypassCooldown?0:5000).run();
  if(!claim.meta.changes)return;
  try{
   await maintenance(env);

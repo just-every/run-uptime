@@ -8496,7 +8496,7 @@
       "executable": false
     },
     "src/domain/worker-kick.server.ts": {
-      "sha256": "04ed2e0509e23366ab01b3a9923a8392cc9b79216d57d41231e6b9cc956c0954",
+      "sha256": "fac83affea09c0f4268e8e0363f0faeee28d98b0ea41b9099cc437ae8b37ae08",
       "executable": false
     },
     "src/domain/worker-protocol-diagnostics.server.ts": {
@@ -8724,7 +8724,7 @@
       "executable": false
     },
     "src/server.ts": {
-      "sha256": "f9d839b82911b136926704d245a632e3dfaddf6d475c524848c0c56b3bf304e3",
+      "sha256": "2129545d60dd009201ae3966801b0b53092a5c8fc6b47f367ca457ffa167b726",
       "executable": false
     },
     "src/site/docs/build/manifest.ts": {
@@ -9372,7 +9372,7 @@
       "executable": false
     },
     "tests/cron-d1-budget.mjs": {
-      "sha256": "aa12c51d6aa87bb3ecad700a177b71d841500af86474476b717023640dfa7ddb",
+      "sha256": "f89a0fc377ddd2db67327cf7e6fde9ea1c77940dcd8b268dc3b95cec4664fb38",
       "executable": false
     },
     "tests/cron-d1-history-fixture.mjs": {
