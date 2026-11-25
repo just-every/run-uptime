@@ -2,13 +2,27 @@
 
 ## Unreleased
 
+## 0.5.30 — 2026-11-25
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
 ### Fixed
 
-- Worker-only checks follow the scheduled Cron clock when Cron arrives a few seconds early or late. A console action that claims a due check leaves the next check on the same minute boundary.
-- The Monitors list rechecks live health and alerts on each poll. Changes to evidence timestamps within the same status leave its conditional response valid until the rolling availability figures refresh.
-- Hosted health reports the deployment diagnostic and tells you when to repeat the command after deploy finishes.
-- Choosing **My private network** removes Cloudflare Worker from the monitor's locations.
+- Hosted one-minute monitors that use only the Worker location are probed on every one-minute Cron tick. The 0.5.29 hosted test observed a probe about every 118 seconds. Early Cron delivery no longer skips a minute, and a console write that starts a due check leaves the next check on the Cron minute boundary.
+- The Monitors list rechecks live health and alerts on every poll. A new check with the same status can keep the conditional response valid until the rolling availability figures refresh. The list reads the last 24 hours of availability. In a local Worker test with four healthy one-minute monitors and one Chromium tab on Monitors, D1 reads averaged about 348 rows per minute including Cron, down from about 645.
+- The hosted health command reads the deployment artifact saved by deploy and succeeds after deploy completes in the deployment lifecycle test. If the deployment is still locked, the command reports the reason and asks you to try again after deploy finishes.
+- Choosing **My private network** for an HTTP or TCP monitor removes Cloudflare Worker from its selected locations and prevents selecting it while that network is chosen.
 - The monitoring and CI key form marks the expiry as required.
+
+### Known issue
+
+- Monitors configured with both a Worker location and a private runner location still use wall-clock scheduling and can miss the Worker's part of the second scheduled slot (F2).
+
+### Upgrading from 0.5.29
+
+- An upgrade from 0.5.29 applies no database migrations and writes zero D1 rows for migrations. The latest migration remains `0097_bound_notification_reads.sql`. The `@runeditrun/rer` pin stays at 0.2.131. The backup and upgrade guidance under 0.5.26 still applies.
+
+— Run Edit Run fleet, 2026-11-25
 
 ## 0.5.29 — 2026-11-25
 

@@ -205,9 +205,9 @@ Keep a private runner under a supervisor. A healthy Worker does not establish th
 
 Each run takes at most one scheduled check per due monitor. For four healthy public HTTP monitors at one minute, the current Worker's populated local D1 fixture measured about 190 rows read and 34 written per minute, with all four checks running every minute. Individual runs in the ten-minute cadence test read 162–250 rows.
 
-Cloudflare's 0.5.29 measurements for four healthy one-minute monitors were about 258 rows read per minute with Cron alone and 782 with one Monitors list tab open, including Cron. A window with an outage and recovery averaged 1,076 with the list tab open. The 586 figure in the 0.5.29 release notes was for one **monitor detail** tab including Cron. These hosted measurements predate the cadence fix.
+In the 0.5.30 local Worker test with four healthy one-minute monitors and one Chromium tab on **Monitors**, D1 reads averaged about 348 rows per minute including Cron. See the [changelog](CHANGELOG.md) for the earlier hosted measurements.
 
-The remaining rows below are from the 0.5.27 local budget fixture. All figures assume one Cron invocation per minute, without retries or an external check.
+The remaining rows below are from an earlier local budget fixture. All figures assume one Cron invocation per minute, without retries or an external check.
 
 | Monitors and interval | Rows read per run | Rows written per run | Rows read per day | Rows written per day |
 | --- | --- | --- | --- | --- |
