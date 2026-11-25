@@ -9,6 +9,7 @@ import {
 } from './cron-d1-history-fixture.mjs';
 import {proveCanaryBucketBudget, proveAvailabilityDumpRoundTrip} from './cron-d1-bucket-fixture.mjs';
 import {proveNotificationIndexUpgrade} from './cron-d1-notification-fixture.mjs';
+import {proveFinishedIncidentsStayOffCron} from './cron-d1-incident-fixture.mjs';
 import {completeSecondFactor} from './mfa-auth-support.mjs';
 
 const {values} = parseArgs({options:{
@@ -343,6 +344,7 @@ try {
  await dispatchCron(service,dayEnd+2*minute);
  await proveListRevalidation(worker, auth.cookie, dayEnd+3*minute, fail=>{failTarget=fail});
  await proveConsoleKick(worker, auth.cookie, saveTick);
+ await proveFinishedIncidentsStayOffCron(worker, await worker.getD1Database('DB'), saveTick + 10 * minute);
 } finally {
  try { await worker?.dispose(); }
  finally { await rm(directory, {recursive:true, force:true}); }

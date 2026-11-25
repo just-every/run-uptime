@@ -606,6 +606,12 @@
       "name": "0097_bound_notification_reads.sql",
       "sha256": "9b6d530f051c31c7676ef905dc7786441b399e858bc379354a45cb6d0f6fbe05",
       "sql": "-- Keep the minute credential seal proportional to unfinished legacy work.\nCREATE INDEX IF NOT EXISTS integration_deliveries_legacy_hash\n ON integration_deliveries(namespace,id)\n WHERE namespace='uptime-notifications'\n AND lower(substr(destination_hash,1,8))<>'hmac-v1:'\n AND lower(substr(destination_hash,1,12))<>'unavailable:';\n\n-- Bound console pages and metrics to the selected history.\nCREATE INDEX IF NOT EXISTS notification_jobs_recent ON notification_jobs(created_at DESC,id DESC);\nCREATE INDEX IF NOT EXISTS notification_jobs_monitor_time\n ON notification_jobs(json_extract(event,'$.monitorId'),created_at)\n WHERE json_extract(event,'$.monitorId') IS NOT NULL;\nCREATE INDEX IF NOT EXISTS notification_jobs_oncall_incident\n ON notification_jobs(destination_id,credential_id,json_extract(event,'$.incidentKey'))\n WHERE json_extract(webhook_template,'$.mode')='oncall';\nCREATE INDEX IF NOT EXISTS outbox_monitor_history ON outbox(monitor_id);\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0098_bound_contact_schedule_reads.sql",
+      "sha256": "84d9a14659cf5dc9c04767033e42678ec0797149653906edf82d6550783af5c9",
+      "sql": "-- Keep each Cron run proportional to live work, not to every incident ever opened.\nCREATE INDEX IF NOT EXISTS alert_contact_schedules_incident ON alert_contact_schedules(monitor_id,incident_key);\nCREATE INDEX IF NOT EXISTS outbox_monitor_kind ON outbox(monitor_id,kind);\nCREATE INDEX IF NOT EXISTS outbox_monitor_incident ON outbox(monitor_id,kind,json_extract(event,'$.incidentKey'));\nCREATE INDEX IF NOT EXISTS alert_contact_schedules_live ON alert_contact_schedules(next_at) WHERE next_at IS NOT NULL;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",
