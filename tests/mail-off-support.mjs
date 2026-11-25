@@ -164,7 +164,14 @@ export async function proveMailOff() {
   assert.equal(await page.getByRole('link',{name:'Set up email',exact:true}).count(),0);
   assert.match(await page.locator('.sent-row').first().innerText(),/Failed|Not sent/);
   await capture('alerts');
-  fail=false;await new Promise(r=>setTimeout(r,61000));await scheduled();
+  fail=false;
+  const overview=await context.request.get(origin+`/api/overview?monitor=${monitorId}`);
+  assert.equal(overview.status(),200);
+  const [{nextDue}]=(await overview.json()).monitors;
+  // A monitor created between ticks joins the Cron grid after its first check.
+  // Wait for that monitor's due time before asking the Worker to check again.
+  await new Promise(resolve=>setTimeout(resolve,Math.max(0,nextDue-Date.now())+100));
+  await scheduled();
   for(let n=0;n<100;n++){incidents=await (await context.request.get(origin+`/api/monitors/${monitorId}/incidents`)).json();if(incidents.every(i=>typeof i.endedAt==='number'))break;await new Promise(r=>setTimeout(r,50))}
   assert.ok(incidents.length&&incidents.every(i=>typeof i.endedAt==='number'&&i.recovery?.kind==='recovery'),'mail-off monitoring recovers');
   await post('/auth/signout',{});

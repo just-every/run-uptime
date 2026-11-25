@@ -10436,7 +10436,7 @@
       "executable": false
     },
     "tests/mail-off-support.mjs": {
-      "sha256": "cf326f0adced9f9512dd6fbc8fad112e7ff603c6e98b73e9a95485d552193184",
+      "sha256": "ff748b83ae42ac99555a87f5b6a5c1323190f11a3e5d6de2511ebd9d098174f3",
       "executable": false
     },
     "tests/mail-provider-fixture.mjs": {
