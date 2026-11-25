@@ -91,7 +91,7 @@ export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget
  // Work can originate in a contact, fallback or report schedule even when the queue is empty.
  const active=await op('notifications.poll.pending',()=>env.DB.prepare(`SELECT 1 WHERE EXISTS(SELECT 1 FROM notification_jobs WHERE state IN ('queued','sending'))
   OR EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace='uptime-notifications' AND state IN ('queued','sending'))
-  OR EXISTS(SELECT 1 FROM alert_contact_schedules) OR EXISTS(SELECT 1 FROM alert_fallback_chains WHERE ended_at IS NULL)
+  OR EXISTS(SELECT 1 FROM alert_contact_schedules WHERE next_at IS NOT NULL) OR EXISTS(SELECT 1 FROM alert_fallback_chains WHERE ended_at IS NULL)
   OR EXISTS(SELECT 1 FROM report_recurrences WHERE stopped_at IS NULL)`).first());
  if(!active){
   await op('notifications.poll.custody',()=>ensureNotificationCustody(env));

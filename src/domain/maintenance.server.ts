@@ -18,7 +18,7 @@ export async function maintenance(env:Bindings,now=Date.now()){
  // recoverExpired also handles email claims and quiet contact schedules.
  const active=await env.DB.prepare(`SELECT 1 WHERE EXISTS(SELECT 1 FROM notification_jobs WHERE state='sending')
   OR EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace='uptime-notifications' AND state='sending')
-  OR EXISTS(SELECT 1 FROM alert_contact_schedules)`).first();
+  OR EXISTS(SELECT 1 FROM alert_contact_schedules WHERE next_at IS NOT NULL)`).first();
  if(active)await notificationRepository(env).recoverExpired(now);
  // Seal any plaintext credential left by an upgrade, without decrypting stored ones.
  await ensureNotificationCustody(env,{validate:false});

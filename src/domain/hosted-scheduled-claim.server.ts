@@ -16,7 +16,10 @@ export async function claimHostedSchedule(env:Bindings,row:Candidate,cronThrough
  const {definition}=row,now=Date.now(),dueThrough=cronThrough??now;
  if(row.next_due>dueThrough||activeMaintenance(definition,now)?.mode==='pause'||
     !definition.probes.every((p:string)=>definition.assignments?.[p]?.runnerId===HOSTED_RUNNER_ID))return null;
- const gridNext=nextDueAfter(row.next_due,dueThrough,definition.intervalMs);
+ const nearestNext=nextDueAfter(row.next_due,dueThrough,definition.intervalMs);
+ // A console kick that fills a slot Cron never delivered, late in its minute, must not
+ // leave the next Cron probe seconds behind it: that slot goes to the following grid point.
+ const gridNext=cronThrough===undefined&&definition.intervalMs%CRON_MINUTE===0&&nearestNext-now<definition.intervalMs/2?nearestNext+definition.intervalMs:nearestNext;
  // A console kick can win the same slot as Cron. Both advance whole-minute
  // checks to the same grid, even if the kick arrives before Cron's delivery.
  const cronNextDueAt=definition.intervalMs%CRON_MINUTE===0?
