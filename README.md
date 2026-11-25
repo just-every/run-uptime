@@ -203,7 +203,7 @@ Keep a private runner under a supervisor. A healthy Worker does not establish th
 
 `rer deploy` creates one Cron trigger, `* * * * *` (every minute), and Uptime has no setting for another schedule: a different one is set on the Worker's Cron trigger in Cloudflare after deployment, and read back there. The schedule is the company manager's choice. This is what a run costs, so the choice can be made on numbers.
 
-Each run takes at most one check for each monitor that is due. In the hosted Worker's budget test, a warm run with nothing due read 42 D1 rows with one monitor and 51 with four, and wrote none. Each check added about 35 rows read and about 8 rows written. The table shows those measurements for healthy public HTTP monitors without retries or external checks. See the [changelog](CHANGELOG.md) for the separate cold-run and console measurements.
+Each run takes at most one check for each monitor that is due. In the hosted Worker's budget test, a warm run with nothing due read 42 D1 rows with one monitor and 51 with four, and wrote none. Each check added about 35 rows read and about 8 rows written. The table shows those measurements for healthy public HTTP monitors without retries or external checks. See the [changelog](CHANGELOG.md) for the cold-run and open-console D1 measurements.
 
 | Monitors and interval | Rows read per run | Rows written per run | Rows read per day | Rows written per day |
 | --- | --- | --- | --- | --- |

@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+## 0.5.29 — 2026-11-25
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Fixed
+
+- The console backs off overview polling when data stays unchanged and refreshes when you return to the tab. Passive monitor and notification reads leave scheduled work to cron once it is active. In a hosted test with four one-minute monitors and one detail tab open, Cloudflare recorded about 586 D1 rows read per minute, including cron, down from 5,484 with one detail tab on 0.5.28.
+- Conditional requests for an unchanged overview now return HTTP 304 across Worker instances behind Cloudflare. The monitor detail page skips its extra reads after a 304.
+- Check history reads packed attempts and external check URLs directly from their scheduled slots. A steady-state workerd test measured 373 D1 rows read per minute for one detail tab, excluding cron.
+- On a hosted installation, **Run check** bypasses the five-second cooldown for starting hosted work, so a check requested just after saving a monitor can start without waiting up to a minute for the next cron tick.
+- **Locations** shows the hosted restart command for the deployment runner.
+
+### Documentation
+
+- The deployment and private runner guides point to **Locations** for runners, **Settings › Backup and files** for archives, and `rer run` for starting the runner from a checkout.
+
+### Upgrading from 0.5.28
+
+- An upgrade from 0.5.28 applies no database migrations and writes zero D1 rows for migrations. The `@runeditrun/rer` pin stays at 0.2.131. The backup and upgrade guidance under 0.5.26 still applies.
+
+— Run Edit Run fleet, 2026-11-25
+
 ## 0.5.28 — 2026-11-24
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
