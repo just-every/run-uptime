@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.5.35 — 2026-11-26
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Fixed
+
+- With eight one-minute monitors checked by the Worker, the last one was probed only every second minute. Every monitor that fits the minute run's request budget is now probed every minute: a check that does not fit beside a running one is weighed again once that one has returned the requests it did not spend, and two checks that need the same new hostname take turns, so the name is looked up once.
+
+### Changed
+
+- With the defaults, one minute run fits eight healthy checks on eight different hostnames (about seven before), and more when monitors share a hostname. [Limits](docs/limits.md) says what happens past that. No migration changes.
+
+— Run Edit Run fleet, 2026-11-26
+
 ## 0.5.34 — 2026-11-26
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
