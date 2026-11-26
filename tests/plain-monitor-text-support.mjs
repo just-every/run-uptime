@@ -25,21 +25,38 @@ export async function nextOverviewPoll(page){
  const [request]=await Promise.all([finished,advance()]);
  return request.response();
 }
+// The console folds a visible-tab refresh into a read already in flight (public/action-feedback.mjs), so a dispatch only
+// starts a fresh unconditional read when none is pending. The dispatch reports whether it started one; when it did not,
+// wait for the pending read to end and dispatch again, so the returned read always began after this call.
 export async function refreshVisibleOverview(page){
- const [request]=await Promise.all([
-  overviewFinished(page,request=>overviewRequest(request)&&!request.headers()['if-none-match']),
-  (async()=>{
-   await page.bringToFront();
-   const visible=await page.evaluate(()=>{
-    if(document.hidden)return false;
-    document.dispatchEvent(new Event('visibilitychange'));
-    return true;
+ await page.bringToFront();
+ let ended=()=>{},fresh=()=>{};
+ const onFinished=request=>{
+  if(!overviewRequest(request))return;
+  ended();
+  if(!request.headers()['if-none-match'])fresh(request);
+ };
+ page.on('requestfinished',onFinished);
+ try{
+  for(const end=Date.now()+15000;Date.now()<end;){
+   const freshRead=new Promise(resolve=>{fresh=resolve}),pendingEnded=new Promise(resolve=>{ended=resolve});
+   const {hidden,started}=await page.evaluate(()=>{
+    if(document.hidden)return {hidden:true,started:false};
+    const fetchRead=window.fetch;let started=false;
+    window.fetch=(input,init)=>{if(String(input).startsWith('/api/overview')&&!init?.headers?.['if-none-match'])started=true;return fetchRead.call(window,input,init)};
+    try{document.dispatchEvent(new Event('visibilitychange'))}finally{window.fetch=fetchRead}
+    return {hidden:false,started};
    });
-   assert.ok(visible,'the console is visible before requesting a refresh');
-  })(),
- ]);
- const response=await request.response();
- assert.ok(response.ok(),'returning to the visible console reads fresh data');
+   assert.ok(!hidden,'the console is visible before requesting a refresh');
+   if(started){
+    const response=await (await Promise.race([freshRead,new Promise((_,reject)=>setTimeout(()=>reject(new Error('the fresh overview read did not finish')),Math.max(1,end-Date.now())))])).response();
+    assert.ok(response.ok(),'returning to the visible console reads fresh data');
+    return;
+   }
+   await Promise.race([pendingEnded,new Promise(resolve=>setTimeout(resolve,250))]);
+  }
+  assert.fail('the console never started a fresh overview read');
+ }finally{page.off('requestfinished',onFinished)}
 }
 export async function waitForMonitorState(page,state,{timeout=30000}={}){
  const status=page.locator('#monitor-state').filter({hasText:state}),end=Date.now()+timeout;
