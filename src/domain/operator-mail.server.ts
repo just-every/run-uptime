@@ -24,7 +24,8 @@ export function operatorMailSender(env:AuthBindings,development:boolean){
    if(!sender)throw Error('Authentication mail is not configured');
    if(development)await handoff();
    const result=await sender.send(snapshot);
-   await finishAuxiliary(env,attempt,submitted?result.status:'expired',submitted?(result.code??`mail_${result.status}`):'submission_not_started');
+   // A sender that refuses the envelope itself (Base's owner relay guard) returns rejected without starting a submission.
+   await finishAuxiliary(env,attempt,submitted?result.status:result.status==='rejected'?'rejected':'expired',submitted?(result.code??`mail_${result.status}`):'submission_not_started');
    if(!submitted)throw Error('Authentication mail submission did not start');
    return result;
   }catch(error){

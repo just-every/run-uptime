@@ -44,6 +44,7 @@ modules/mail/src/adapters/sendgrid/serialize.mjs
 modules/mail/src/adapters/rer/contract.mjs
 modules/mail/src/adapters/rer/index.mjs
 modules/mail/src/adapters/rer/list-headers.mjs
+modules/mail/src/adapters/rer/owner.mjs
 modules/mail/src/adapters/messaging/contract.mjs
 modules/mail/src/adapters/messaging/event-schema.mjs
 modules/mail/src/adapters/messaging/index.mjs
@@ -99,7 +100,15 @@ default-seed/src/core/platform/auth/mail.server.mjs
 default-seed/migrations/core/0004_development_outbox.sql
 ```
 
-`mail.server.mjs` builds the production sender from `MAIL_PROVIDER` (`resend`, `sendgrid` or `cloudflare`). Explicit development and demo configuration suppress mail before selecting any configured remote sender. The migration preserves historical local messages.
+`mail.server.mjs` builds the production sender from `MAIL_PROVIDER` (`resend`, `sendgrid`, `cloudflare` or `rer`). Explicit development and demo configuration suppress mail before selecting any configured remote sender. The migration preserves historical local messages.
+
+For a Business owner-only relay, select `MAIL_PROVIDER=rer` and use
+`createOwnerRelaySender({ownerEmail, relayUrl, apiKey})`. Supply the verified
+Business owner from trusted deployment or installation settings, the assigned
+`MAIL_RELAY_URL` and the private `MAIL_API_KEY`. The sender uses the same
+`send(message)` contract as the facade and only submits a single matching
+recipient. The relay supplies the sender identity. A failed submission logs a
+fixed failure code and returns a non-accepted result.
 
 ### Former sendgrid-email API
 
