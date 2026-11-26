@@ -62,7 +62,7 @@ export function administration(context) {
       const created = await store.invite(plan.mutation, plan.actor, plan);
       if (!created) deny('invitation_conflict', 409);
       const delivered = await plan.afterCommit();
-      if (delivered === 'accepted') return { status: 'accepted' };
+      if (delivered === 'accepted' || delivered === 'uncertain') return { status: 'accepted' };
       // A development provider takes the message and sends nothing. Say so; the
       // key-gated local owner who made the invitation also gets the way to open it.
       const link = config.local && plan.actor.operator.role === 'owner' && await devAdmitted(request);

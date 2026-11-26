@@ -10,6 +10,7 @@ import {testAuthBindings} from './auth-test-support.mjs';
 import {splitSql} from './migration-support.mjs';
 import {proveRelayMail} from './relay-mail-support.mjs';
 import {proveOwnerOnlyMail} from './owner-only-mail-support.mjs';
+import {proveUncertainSigninMail} from './signin-uncertain-mail-support.mjs';
 // A hosted install with no private runner: HTTP setup -> real scheduled handler -> webhook and Slack receivers.
 // Only public DNS/HTTP network edges are faked.
 const directory=await mkdtemp(join(tmpdir(),'uptime-hosted-alerts-')),origin='https://uptime.example.test';
@@ -164,3 +165,4 @@ try{
 await proveHostedProbeIdentification();
 await proveRelayMail();
 await proveOwnerOnlyMail();
+await proveUncertainSigninMail();

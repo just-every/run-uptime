@@ -253,7 +253,8 @@ export function registerOperatorAuthConformance({ test, adapter }) {
       await bootstrap(runtime, config);
       equal((await runtime.mails()).length, 0, 'owner bootstrap does not use the mail adapter');
       const response = await runtime.call('/auth/magic-link', post({ email: config.OWNER_EMAIL }));
-      if (mailStatus === 'accepted') {
+      // An uncertain send (timeout, dropped connection) may still deliver: its link stays live.
+      if (mailStatus === 'accepted' || mailStatus === 'uncertain') {
         assertStatus(response, 202);
         const link = await capturedLink(runtime);
         assertStatus(await runtime.call(`${link.pathname}${link.search}`), 200);

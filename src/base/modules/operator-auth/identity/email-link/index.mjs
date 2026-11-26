@@ -50,8 +50,11 @@ export function createEmailLinkLifecycle({ config: input, clock = Date.now, mail
         ...linkMessage(config, token, url.href),
         headers: { 'Auto-Submitted': 'auto-generated' } });
     } catch { await revoke(); deny('mail_unavailable', 503); }
+    // 'uncertain' (a timeout, a dropped connection, a provider 5xx) is not a refusal: the provider may still deliver
+    // this link to its one recipient, so it stays live, single-use, for its normal lifetime and the caller answers as
+    // for a sent link. Only a definite refusal revokes it.
+    if (result?.status === 'uncertain') return result.status;
     if (result?.status !== 'accepted' && !(result?.status === 'development' && (config.local || demoEffectsEnabled()))) {
-      // Even ambiguous delivery cannot leave a valid, unreported auth link.
       await revoke(); deny('mail_unavailable', 503);
     }
     // 'accepted' reached a mail provider; 'development' was suppressed on purpose (local or demo).

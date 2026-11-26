@@ -513,7 +513,7 @@
       "executable": false
     },
     "base-copies.json": {
-      "sha256": "edfe41be456609149df876c60c14d0d307d1318ad2f7883c781a293963189474",
+      "sha256": "ee538b9f4f0a53f4c317cd722da597f5e4561f56652d3fd65588525c6c40e0be",
       "executable": false
     },
     "BASELINE.md": {
@@ -6517,7 +6517,7 @@
       "executable": false
     },
     "src/base/modules/operator-auth/accounts/admin.mjs": {
-      "sha256": "ef68f9a24788ef0ac00bb0012d988c7661992926491a03b39783b529f6134017",
+      "sha256": "e38f8d3b2e4888a767dfd27f2042ad3ad76916e36748ceea9d77e006d151c25f",
       "executable": false
     },
     "src/base/modules/operator-auth/accounts/audit.mjs": {
@@ -6669,7 +6669,7 @@
       "executable": false
     },
     "src/base/modules/operator-auth/conformance/index.mjs": {
-      "sha256": "60e925f31c3c927889aae0dfeb82809e3f325cb572d4c31efe591d5ddc0a5010",
+      "sha256": "6cbb458a7c153bf02ac2b65a4683b86b9754bddd611f102a1a292b510047cd33",
       "executable": false
     },
     "src/base/modules/operator-auth/conformance/presentation.mjs": {
@@ -6797,7 +6797,7 @@
       "executable": false
     },
     "src/base/modules/operator-auth/identity/email-link/index.mjs": {
-      "sha256": "07f2d1f51a22e445179995ed3fecba155c954264f8738da1ba69afe2a1d39e2c",
+      "sha256": "9159a33de529821a383ae5aeb0a055ac64ac48b29c49a5e701b24f4f781633db",
       "executable": false
     },
     "src/base/modules/operator-auth/identity/email-link/message.mjs": {
@@ -10449,7 +10449,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "e7e318fe21b4664ce2074beb0e234eac59e2574a1942513e093f8790399c962a",
+      "sha256": "bb39ae8f387aa383bcc9a03a2757b603198c363d75ef053d130ac463f7983b44",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {
@@ -10942,6 +10942,10 @@
     },
     "tests/signed-runner.mjs": {
       "sha256": "f2c000f25bef3d7011b2e5a9c48f03712961bdcba5a6b3500811b759802da8c2",
+      "executable": false
+    },
+    "tests/signin-uncertain-mail-support.mjs": {
+      "sha256": "5536325e9c687c0586162825fed9298faf906743f97064a12072c839d2412a1e",
       "executable": false
     },
     "tests/slow-responses.mjs": {
