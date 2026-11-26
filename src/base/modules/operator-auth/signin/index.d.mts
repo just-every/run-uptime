@@ -5,6 +5,8 @@ export interface SignInPageOptions {
   setup?: (request: Request) => null | false | undefined | { instructions?: string } | Promise<null | false | undefined | { instructions?: string }>;
   /** Extra same-origin links under the form. */
   links?: (request: Request) => Array<{ href: string; label: string }> | Promise<Array<{ href: string; label: string }>>;
+  /** A short plain-text line shown under the email form, for what the sender cannot do. */
+  note?: string;
   defaultReturnTo?: string;
 }
 /** The shared server-rendered sign-in page at branding.signInPath (GET and HEAD); null for anything else. */

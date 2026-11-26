@@ -43,7 +43,7 @@ const hidden = returnTo => `<input type="hidden" name="returnTo" value="${escape
  * links(request) may return [{ href, label }] shown under the form (same-origin paths only).
  * `?login_hint=<email>` prefills the email field of the email-link form.
  */
-export function createSignInHandler(auth, { setup, links, defaultReturnTo = '/app' } = {}) {
+export function createSignInHandler(auth, { setup, links, note, defaultReturnTo = '/app' } = {}) {
   const path = new URL(auth.presentation.signInPath, 'https://signin.invalid').pathname;
   return async function signIn(request) {
     const url = new URL(request.url);
@@ -72,6 +72,7 @@ export function createSignInHandler(auth, { setup, links, defaultReturnTo = '/ap
       if (emailAvailable) parts.push('<p class="divider">or</p>');
     }
     if (emailAvailable) parts.push(`<form method="post" action="/auth/magic-link">${hidden(returnTo)}<label for="signin-email">Email</label><input id="signin-email" name="email" type="email" autocomplete="email" required maxlength="254"${hint ? ` value="${escapeHtml(hint)}"` : ''}><button type="submit">Email a sign-in link</button></form>`);
+    if (emailAvailable && typeof note === 'string' && note) parts.push(`<p class="notice" role="note">${escapeHtml(note)}</p>`);
     for (const link of (await links?.(request)) ?? []) {
       if (typeof link?.href === 'string' && /^\/(?!\/)[^\s\\]*$/.test(link.href) && typeof link.label === 'string') parts.push(`<p class="secondary-link"><a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a></p>`);
     }
