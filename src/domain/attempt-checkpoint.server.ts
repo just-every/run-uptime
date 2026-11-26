@@ -60,16 +60,23 @@ export function checkpointStatement(env:Bindings,monitorId:string,revision:numbe
   ON CONFLICT(monitor_id,revision) DO UPDATE SET due_at=excluded.due_at,slot_id=excluded.slot_id,state=excluded.state,last_observations=excluded.last_observations`)
   .bind(monitorId,revision,update.dueAt,update.slotId,JSON.stringify(update.checkpoint.state),JSON.stringify(update.checkpoint.last),...(guard?[monitorId,guard.generation,guard.token]:[]))
 }
-export async function attemptSnapshot(env:Bindings,monitorId:string,revision:number,definition:any,now:number,extraSlot?:string,readOnly=false,guardedHosted=false){
- restart:for(;;){
-  const clock=await env.DB.prepare(`SELECT g.generation,m.hosted_generation AS hostedGeneration,
+export type AttemptClockRow=EvidenceClock&{
+ due_at:number|null;slot_id:string|null;state:string|null;last_observations:string|null;hosted_checkpoint:string|null;
+};
+
+export function attemptClock(env:Bindings,monitorId:string,revision:number,claimed=false){
+ return env.DB.prepare(`SELECT g.generation,m.hosted_generation AS hostedGeneration,
     native.due_at,native.slot_id,native.state,native.last_observations,
     CASE WHEN json_extract(m.hosted_checkpoint,'$.revision')=?2 THEN m.hosted_checkpoint END AS hosted_checkpoint
     FROM evidence_generation g JOIN monitors m ON m.id=g.monitor_id
     LEFT JOIN attempt_checkpoints native ON native.monitor_id=g.monitor_id AND native.revision=?2
-    WHERE g.monitor_id=?1`).bind(monitorId,revision).first<EvidenceClock&{
-      due_at:number|null;slot_id:string|null;state:string|null;last_observations:string|null;hosted_checkpoint:string|null;
-    }>();
+    WHERE g.monitor_id=?1${claimed?' AND changes()=1':''}`).bind(monitorId,revision);
+}
+
+export async function attemptSnapshot(env:Bindings,monitorId:string,revision:number,definition:any,now:number,extraSlot?:string,readOnly=false,guardedHosted=false,claimedClock?:AttemptClockRow){
+ restart:for(;;){
+  const clock=claimedClock??await attemptClock(env,monitorId,revision).first<AttemptClockRow>();
+  claimedClock=undefined;
   if(!clock)throw Error('Monitor absent');
   const {generation,hostedGeneration}=clock;
   const native=clock.due_at===null?undefined:{

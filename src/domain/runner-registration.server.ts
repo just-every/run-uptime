@@ -1,5 +1,6 @@
 import {HOSTED_RUNNER_ID,hostedHttp,hostedInstallation,ownOrigin,SELF_CHECK_REFUSAL} from './hosted-runner.ts'
-import {same,sign,sha,type Bindings} from './control.server.ts'
+import {type Bindings} from './control.server.ts'
+import {same,sign,sha} from './runner-crypto.ts'
 import {externalCheck,followsSettings,sameSite,EXTERNAL_CHECK_ABSENT,type ExternalCheck} from './external-check.server.ts'
 // @ts-expect-error Base authenticated encryption; separate product purpose.
 import {keyedHash,seal,unseal} from '../base/modules/operator-auth/identity/oidc/crypto.mjs'

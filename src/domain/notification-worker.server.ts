@@ -6,7 +6,6 @@ import {NotificationRepository,pollNotificationJobs} from './notification-rpc.se
 import {registerClaim,startClaim} from './notification-claims.server.ts'
 import {notificationProtocols} from './notification-protocols.ts'
 import {retireObsoleteCredentials} from './notification-credentials.server.ts'
-import {dispatchPendingMentions} from './incident-work/mention-delivery.server.ts'
 import {retireDrillTokens} from './alert-drills.server.ts'
 import {hostedInstallation} from './hosted-runner.ts'
 import {boundedBody} from './worker-http.server.ts'
@@ -42,8 +41,8 @@ function workerTransport(dns:PublicDNS,allowance:Allowance,start:()=>Promise<voi
  }};
 }
 /** Hosted installs need no runner for alerts: each cron run sends queued email, webhook and Slack jobs it can afford. */
-export async function scheduledNotifications(env:Bindings,budget:SubrequestBudget){
- const jobs=await pollNotificationJobs(env,budget,{checkerOnly:!hostedInstallation(env)}),repository=new WorkerNotificationRepository(env),dns=dnsCache();
+export async function scheduledNotifications(env:Bindings,budget:SubrequestBudget,{due=false}={}){
+ const jobs=await pollNotificationJobs(env,budget,{checkerOnly:!hostedInstallation(env),due}),repository=new WorkerNotificationRepository(env),dns=dnsCache();
  for(const job of jobs){
   // A+AAAA and the POST. A job the run cannot afford stays queued for the next run or a private runner's poll.
   const allowance=budget.reserve(3);if(!allowance)break;
@@ -53,5 +52,4 @@ export async function scheduledNotifications(env:Bindings,budget:SubrequestBudge
   }finally{allowance.release()}
  }
  if(jobs.length){await retireObsoleteCredentials(env);await retireDrillTokens(env)}
- await dispatchPendingMentions(env,budget);
 }

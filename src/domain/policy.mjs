@@ -2,14 +2,13 @@ import {validateMailSettings,mailUrl} from './mail-probe/schema.mjs';
 import {validateApiTransaction} from './api-transaction.mjs';
 import {normalizeSlow} from './slow-policy.mjs';
 import {normalizeTlsTrust} from './tls-trust.mjs';
-import {heartbeatSettings,heartbeatEvaluation} from './heartbeat-job.mjs'
+import {heartbeatSettings} from './heartbeat-job.mjs'
 import {validateMonitorMetadata} from './monitor-metadata.mjs';
-import {validateMaintenanceWindows,activeMaintenance} from './planned-maintenance.mjs';
+import {validateMaintenanceWindows} from './planned-maintenance.mjs';
 import {privateTarget} from './private-target.mjs';
 import {publicTarget} from './public-target.mjs';
 import {FLOW_LIMITS,validateFlow} from './flow.mjs';
 import {PAGESPEED_LIMITS,validatePageSpeed} from './pagespeed.mjs';
-import {policyReason} from './policy-reason.mjs';
 import {PROTOCOL_TYPES,PROTOCOL_TIMING,isProtocol,protocolSettings} from './protocol/settings.mjs';
 import {HTTP_ASSERTIONS,assertionObject} from './http-assertions/config.mjs';
 import {validateStatus} from './http-assertions/status.mjs';
@@ -17,7 +16,8 @@ import {compileBodyRegex} from './http-assertions/regex.mjs';
 import {validateJsonPath} from './http-assertions/json.mjs';
 export {ASSERTION_FIELDS} from './http-assertions/config.mjs';
 export const RUNNER_VERSION = 'uptime-node/0.1.0';
-export const MAX_BODY = 65536;
+export {MAX_BODY} from './http-assertions/limits.mjs';
+export {evaluate} from './policy-evaluation.mjs';
 const LOCAL_GRANT_REFUSAL = 'Target outside the local practice grant. The practice target address belongs to the running checkout. Run rer run practice-target there to read it again.';
 const integer = (v, min, max, label) => { if (!Number.isInteger(v) || v < min || v > max) throw Error(`Invalid ${label}`); return v; };
 export function validateDefinition(input, grants) {
@@ -125,45 +125,4 @@ export function validateDefinition(input, grants) {
   const timeout=input.timeoutMs??(timing?timing.timeout[2]:['api','mail'].includes(type)?30000:type==='flow'?FLOW_LIMITS.wallMs:type==='pagespeed'?PAGESPEED_LIMITS.wallMs:2000);
   if(slow&&slow.thresholdMs>=timeout)throw Error('Slow threshold must be below the saved request timeout');
   return { ...(slow?{slow}:{}), ...validateMonitorMetadata(input), name:name.trim(), type, network, ...(privateGrantRef?{privateGrantRef}:{}), url:protocol?settings.url:u?.href??'', ...(protocol?{[type]:settings.settings}:{method}), ...(catalog?{catalog}:{}), ...(request?{request}:{}), ...(tlsTrust?{tlsTrust}:{}), ...(heartbeat?{heartbeat}:{}), ...(flow?{flow}:{}), ...(pagespeed?{pagespeed}:{}), ...(api?{api}:{}), probes, ...(assignments?{assignments}:{}), ...(assignments&&input.externalCheck?{externalCheck:input.externalCheck}:{}), assertions:protocol?{...assertions}:{...assertions,status:assertions.status??200}, intervalMs:type==='mail'?integer(input.intervalMs??60000,5000,86400000,'mail interval'):type==='api'?integer(input.intervalMs??60000,60000,86400000,'API transaction interval'):timing?integer(input.intervalMs??timing.interval[2],timing.interval[0],timing.interval[1],`interval (${type.toUpperCase()} checks run every ${timing.interval[0]/1000} seconds to ${timing.interval[1]/60000} minutes)`):type==='flow'?integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,FLOW_LIMITS.minIntervalMs,86400000,'interval (a flow runs at most every 5 minutes)'):type==='pagespeed'?integer(input.intervalMs??PAGESPEED_LIMITS.minIntervalMs,PAGESPEED_LIMITS.minIntervalMs,86400000,'interval (a page-speed check runs at most every 5 minutes)'):integer(input.intervalMs??60000,5000,86400000,'interval'), timeoutMs:['api','mail'].includes(type)?integer(input.timeoutMs??30000,100,60000,'API transaction timeout'):timing?integer(input.timeoutMs??timing.timeout[2],timing.timeout[0],timing.timeout[1],'timeout'):type==='flow'?integer(input.timeoutMs??FLOW_LIMITS.wallMs,FLOW_LIMITS.minTimeoutMs,FLOW_LIMITS.wallMs,'flow time limit'):type==='pagespeed'?integer(input.timeoutMs??PAGESPEED_LIMITS.wallMs,PAGESPEED_LIMITS.minTimeoutMs,PAGESPEED_LIMITS.wallMs,'page-speed time limit'):integer(input.timeoutMs??2000,50,60000,'timeout'), retries:['api','mail'].includes(type)?integer(input.retries??0,0,0,'API transactions cannot automatically replay writes'):type==='flow'?integer(input.retries??0,0,1,'flow retries'):type==='pagespeed'?integer(input.retries??0,0,0,'A page-speed check keeps its one measured load; it never retries'):integer(input.retries??1,0,2,'retries'), failureQuorum:integer(input.failureQuorum??probes.length,1,probes.length,'failure quorum'), confirmSlots:integer(input.confirmSlots??2,1,10,'confirmation'), recoverSlots:integer(input.recoverSlots??2,1,10,'recovery'), freshnessMs:integer(input.freshnessMs??(timing?Math.min(86400000,Math.max(180000,(input.intervalMs??timing.interval[2])*2)):['flow','pagespeed'].includes(type)?Math.min(86400000,Math.max(180000,integer(input.intervalMs??FLOW_LIMITS.minIntervalMs,0,86400000,'interval')*3)):180000),5000,86400000,'freshness'), enabled:input.enabled === undefined ? true : (()=>{if(typeof input.enabled!=='boolean')throw Error('Invalid enabled flag');return input.enabled;})(), maintenanceUntil:integer(input.maintenanceUntil??0,0,Number.MAX_SAFE_INTEGER,'maintenance end'), ...(input.maintenanceWindows!==undefined?{maintenanceWindows}:{}) };
-}
-// evidenceThrough only admits already accepted target/canary timestamps; it
-// never advances freshness ages, heartbeat receipt validity or maintenance.
-export function evaluate(def, observations, previous = {}, now = Date.now(), advance = true, evidenceThrough = now) {
-  const regions = def.probes.map(probe => {
-    const observation = observations.find(o => o.probe === probe);
-    const retryComplete=observation?.retryComplete!==false;
-    const canary=observation?.canary;
-    const canaryFresh=canary?(canary.outcome==='pass'&&canary.completedAt<=evidenceThrough&&now-canary.completedAt<=def.freshnessMs):!def.assignments?.[probe]?.canaryUrl;
-    // Current job snapshots own their cron/period deadline and duration rule.
-    // Legacy receipts have only a period age; they cannot prove a cron window.
-    const heartbeatFresh=def.type!=='heartbeat'||observation?.outcome!=='pass'||(Number.isFinite(observation.heartbeatReceivedAt)&&observation.heartbeatReceivedAt<=now&&(observation.heartbeatJob?heartbeatEvaluation(def,observation.heartbeatJob,now).outcome==='pass':!def.heartbeat.cron&&now-observation.heartbeatReceivedAt<=def.heartbeat.maxAgeMs+(def.heartbeat.graceMs??0)));
-    const fresh = canaryFresh && observation && (observation.outcome!=='pass'||retryComplete) && heartbeatFresh && now - observation.completedAt <= def.freshnessMs && observation.completedAt <= evidenceThrough && !['runner_error','interrupted'].includes(observation.outcome);
-    return { probe, networkLabel:def.assignments?.[probe]?.networkLabel??'owner-network', canaryPassed:Boolean(canary&&canaryFresh),terminal:Boolean(observation)&&retryComplete&&(observation.outcome!=='target_failure'||observation.attempt===def.retries), state:!fresh?'Unknown':observation.outcome==='pass'?'Healthy':'Failing', observationId:observation?.id??null,observedAt:observation?.completedAt??null };
-  });
-  const fails=regions.filter(r=>r.state==='Failing').length,unknown=regions.filter(r=>r.state==='Unknown').length;
-  const coverageState=unknown?'Incomplete':'Complete';
-  const absentLabels=new Set(observations.filter(o=>o.canary&&o.canary.outcome!=='pass').map(o=>def.assignments?.[o.probe]?.networkLabel??'owner-network'));
-  // A canary belongs to its whole network label, not just its probe or key.
-  // Until every configured-canary peer has a contiguous terminal chain, a
-  // missing attempt or a later retry can still exclude that label. Unconfigured
-  // probes cannot invalidate a settled witness and need not hold it back.
-  const pendingLabels=new Set(regions.filter(r=>def.assignments?.[r.probe]?.canaryUrl&&!r.terminal).map(r=>r.networkLabel));
-  const failures=regions.filter(r=>r.state==='Failing'&&r.terminal&&!absentLabels.has(r.networkLabel)&&!pendingLabels.has(r.networkLabel));
-  const failingVantages=new Set(failures.map(r=>r.networkLabel)).size;
-  const witnessed=failures.some(r=>r.canaryPassed);
-  const failedCanary=observations.some(o=>o.canary&&o.canary.outcome!=='pass'&&o.outcome==='target_failure');
-  // Assignment-free revisions retain their historical quorum until an owner saves
-  // a new revision. New saves always pass assignDefinition's network boundary.
-  const legacy=!def.assignments;
-  const agreement=legacy?failures.length>=def.failureQuorum:failingVantages>=2||witnessed;
-  const candidate=agreement?'Failing':fails||failedCanary?'Degraded':unknown?'Unknown':'Healthy';
-  const failureStreak=advance?(candidate==='Failing'?(previous.failureStreak??0)+1:0):(previous.failureStreak??0);
-  const recoveryStreak=advance?(candidate==='Healthy'?(previous.recoveryStreak??0)+1:0):(previous.recoveryStreak??0);
-  let targetState=candidate;
-  if(candidate==='Failing'&&failureStreak<def.confirmSlots)targetState='Degraded';
-  if(candidate==='Healthy'&&previous.confirmedFailure&&recoveryStreak<def.recoverSlots)targetState='Recovering';
-  const confirmedFailure=targetState==='Failing'||(previous.confirmedFailure&&targetState!=='Healthy');
-  const maintenance=Boolean(activeMaintenance(def,now));
-  const explanation=policyReason(def,observations,{candidate,targetState,agreement,failureStreak,recoveryStreak,now,evidenceThrough});
-  return {state:maintenance?'Maintenance':targetState,targetState,underlyingState:targetState,evidenceState:candidate,coverageState,candidate,regions,denominator:def.probes.length,fails,unknown,failingVantages,failureStreak,recoveryStreak,confirmedFailure,notificationOpen:previous.notificationOpen??false,maintenance,reason:`${explanation}${explanation?' ':''}${fails}/${def.probes.length} selected probes failed; ${unknown} unknown; coverage ${coverageState.toLowerCase()}. ${failingVantages} independent failing vantages; passing external check ${regions.some(r=>r.canaryPassed)?'present':'absent'}; scheduled-slot confirmation ${Math.min(failureStreak,def.confirmSlots)}/${def.confirmSlots}; recovery ${Math.min(recoveryStreak,def.recoverSlots)}/${def.recoverSlots}.`,evaluatedAt:now};
 }

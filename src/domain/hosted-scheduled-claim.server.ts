@@ -2,18 +2,19 @@ import type {Bindings} from './control.server.ts'
 import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
 import {acceptanceMs,CRON_MINUTE,missedSlots,nextDueAfter} from './schedule.ts'
 import {externalCheck,liveExternalCheck} from './external-check.server.ts'
-import {snapshotSettings} from './failure-snapshots.server.ts'
+import {attemptClock,type AttemptClockRow} from './attempt-checkpoint.server.ts'
+import {settingsOf} from './snapshot-policy.server.ts'
 // @ts-ignore Shared immutable maintenance calendar.
 import {activeMaintenance,intervals} from './planned-maintenance.mjs'
 
-export type HostedScheduleClaim=NonNullable<Awaited<ReturnType<typeof claimHostedSchedule>>>
-type Candidate={id:string;revision:number;next_due:number;definition:any}
+export type HostedScheduleClaim=NonNullable<Awaited<ReturnType<typeof planHostedSchedule>>>['task']&{clock?:AttemptClockRow}
+type Candidate={id:string;revision:number;next_due:number;definition:any;snapshotPolicy:ReturnType<typeof settingsOf>}
 
 // An ordinary newly due check can create its slot and hand its probes to the Worker in
 // one transaction. Queued work, delegated authority and shared slots use the runner
 // dispatcher. A competing claim must win the immutable slot before any probe is sent.
-export async function claimHostedSchedule(env:Bindings,row:Candidate,cronThrough?:number){
- const {definition}=row,now=Date.now(),dueThrough=cronThrough??now;
+async function planHostedSchedule(env:Bindings,row:Candidate,now:number,external:()=>ReturnType<typeof externalCheck>,cronThrough?:number){
+ const {definition}=row,dueThrough=cronThrough??now;
  if(row.next_due>dueThrough||activeMaintenance(definition,now)?.mode==='pause'||
     !definition.probes.every((p:string)=>definition.assignments?.[p]?.runnerId===HOSTED_RUNNER_ID))return null;
  const nearestNext=nextDueAfter(row.next_due,dueThrough,definition.intervalMs);
@@ -26,12 +27,12 @@ export async function claimHostedSchedule(env:Bindings,row:Candidate,cronThrough
   Math.ceil(gridNext/CRON_MINUTE)*CRON_MINUTE:cronThrough===undefined?null:gridNext;
  const until=now+acceptanceMs(definition),id=`${row.id}:${row.revision}:${row.next_due}`;
  const pause=intervals({...definition,maintenanceUntil:0,maintenanceWindows:(definition.maintenanceWindows??[]).filter((w:any)=>w.mode==='pause')},now,until);
- const task=definition.probes.some((p:string)=>definition.assignments[p].canaryUrl)?liveExternalCheck(definition,await externalCheck(env)):definition;
+ const task=definition.probes.some((p:string)=>definition.assignments[p].canaryUrl)?liveExternalCheck(definition,await external()):definition;
  const deliveryAssignments=Object.fromEntries(definition.probes.map((p:string)=>[p,task.assignments[p]]));
  // Keep the lease predicate as the index lookup. Historical monitor indexes
  // also match monitor_id but would visit the monitor's entire slot history.
  const delivered="MAX(?3,CAST(ROUND((julianday('now')-2440587.5)*86400000) AS INTEGER))";
- const results=await env.DB.batch([
+ const statements=[
   env.DB.prepare(`INSERT OR IGNORE INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,hosted)
    SELECT ?1,id,revision,next_due,'running',definition,'',?4,?5,
     json_object('runnerId',?8,'deliveredAt',${delivered},'assignments',json(?9),'cronNextDueAt',?11)
@@ -51,7 +52,24 @@ export async function claimHostedSchedule(env:Bindings,row:Candidate,cronThrough
     SELECT COALESCE(?5,MAX(?2,json_extract(hosted,'$.deliveredAt')+?4)),id FROM slots WHERE id=?3
    ),hosted_generation=hosted_generation+1 WHERE id=?1 AND changes()=1`)
    .bind(row.id,gridNext,id,definition.intervalMs,cronNextDueAt),
- ]);
- if(!results[0].meta.changes)return null;
- return {id,monitorId:row.id,revision:row.revision,dueAt:row.next_due,definition:task,probes:definition.probes,acceptUntil:until,cronNextDueAt,savedDefinition:definition,snapshotPolicy:await snapshotSettings(env,row.id)};
+  attemptClock(env,row.id,row.revision,true),
+ ];
+ return {statements,task:{id,monitorId:row.id,revision:row.revision,dueAt:row.next_due,definition:task,
+  probes:definition.probes,acceptUntil:until,cronNextDueAt,savedDefinition:definition,snapshotPolicy:row.snapshotPolicy}};
+}
+
+export async function claimHostedSchedules(env:Bindings,rows:Candidate[],cronThrough?:number):Promise<(HostedScheduleClaim|null)[]>{
+ let independentCheck:ReturnType<typeof externalCheck>|undefined;
+ const external=()=>independentCheck??=externalCheck(env),now=Date.now();
+ const plans=await Promise.all(rows.map(row=>planHostedSchedule(env,row,now,external,cronThrough)));
+ const statements=plans.flatMap(plan=>plan?.statements??[]);
+ if(!statements.length)return plans.map(()=>null);
+ const results=await env.DB.batch<AttemptClockRow>(statements);
+ let index=0;
+ return plans.map(plan=>{
+  if(!plan)return null;
+  const claimed=results[index].meta.changes,clock=results[index+2].results[0];
+  index+=plan.statements.length;
+  return claimed?{...plan.task,clock}:null;
+ });
 }

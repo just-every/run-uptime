@@ -32,7 +32,7 @@ export async function publicRuntime(directory,bindings,port){
  // A genuine file at the network/static edge, deliberately absent from the
  // manifest. The unchanged production Worker must never disclose its content.
  await writeFile(join(assets,'undeclared-public-probe.txt'),'UNDECLARED ASSET MUST NOT BE SERVED');
- await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
+ await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))}; export {ScheduledWork} from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
  export default {async fetch(request,env,ctx){const input=await request.json();
  if(input.scheduled){await app.scheduled({},env,ctx);return new Response(null,{status:204})}
  return app.fetch(new Request(input.url,{method:input.method,headers:input.headers,...(input.body===undefined?{}:{body:input.body})}),env,ctx)}};`);

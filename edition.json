@@ -183,6 +183,7 @@
         "paths": [
           "src/routes",
           "src/server.ts",
+          "src/server-fetch.ts",
           "src/ui",
           "public",
           "migrations/0001_uptime.sql",
