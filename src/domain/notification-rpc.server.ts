@@ -1,3 +1,4 @@
+import {notificationWorkDue} from './due-notifications.server.ts'
 import {deduplicatedNotification,notificationRetryTime} from './notification-retry.ts'
 import {contactReady,advanceContactSchedules} from './contact-scheduler.server.ts'
 import {advanceFallbackChains,attemptPhase} from './notification-fallback.server.ts'
@@ -86,18 +87,10 @@ export class NotificationRepository extends IntegrationsRepository {
 }
 /** Sends queued email, then prepares queued webhook and Slack jobs for whichever dispatcher claims them first: the
  * hosted Worker's cron or a private runner's poll. Both use one Base delivery row, so a job is sent at most once. */
-export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget,{checkerOnly=false}={}){
+export async function pollNotificationJobs(env:Bindings,budget?:SubrequestBudget,{checkerOnly=false,due=false}={}){
  const repository=notificationRepository(env),now=Date.now(),op=storageOperation;
  // Work can originate in a contact, fallback or report schedule even when the queue is empty.
- const active=await op('notifications.poll.pending',()=>env.DB.prepare(`SELECT 1 WHERE EXISTS(SELECT 1 FROM notification_jobs WHERE state IN ('queued','sending'))
-  OR EXISTS(SELECT 1 FROM integration_deliveries WHERE namespace='uptime-notifications' AND state IN ('queued','sending'))
-  OR EXISTS(SELECT 1 FROM alert_contact_schedules WHERE next_at IS NOT NULL) OR EXISTS(SELECT 1 FROM alert_fallback_chains WHERE ended_at IS NULL)
-  OR EXISTS(SELECT 1 FROM report_recurrences WHERE stopped_at IS NULL)`).first());
- if(!active){
-  await op('notifications.poll.custody',()=>ensureNotificationCustody(env));
-  await op('notifications.mail.retireDrillTokens',()=>retireDrillTokens(env));
-  return [];
- }
+ if(!due&&!await notificationWorkDue(env,now))return [];
  await advanceContactSchedules(env);await op('notifications.poll.fallbacks',()=>advanceFallbackChains(env));
  await op('notifications.poll.recoverExpired',()=>repository.recoverExpired(now));await op('notifications.poll.custody',()=>ensureNotificationCustody(env));await op('notifications.poll.recoveryMatches',()=>settleUnmatchedRecoveries(env));await dispatchNotificationMail(env,budget);
  const rows=await op('notifications.poll.selectQueued',()=>env.DB.prepare(`SELECT j.*,c.id AS credential_record_id,c.destination_id AS credential_destination_id,c.created_at AS credential_created_at,c.endpoint,c.signing_secret,c.ciphertext,c.retired_at,c.unavailable_at FROM notification_jobs j JOIN notification_credentials c ON c.id=j.credential_id

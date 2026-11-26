@@ -1,5 +1,6 @@
 import {equalSignature} from '../base/modules/integrations/core/crypto.ts'
-import {sign,type Bindings} from './control.server.ts'
+import {type Bindings} from './control.server.ts'
+import {sign} from './runner-crypto.ts'
 import {overviewRefreshMs} from './overview-refresh.server.ts'
 
 const headers=(etag:string,expiresAt:number)=>({etag,'x-uptime-overview-ttl':String(Math.max(0,expiresAt-Date.now()))})

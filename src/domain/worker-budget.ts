@@ -10,6 +10,17 @@ export class SubrequestBudget {
 }
 export class Allowance {
  constructor(private budget:SubrequestBudget,private left:number){}
- spend(){if(this.left>0)this.left--;else if(this.budget.remaining>0)this.budget.remaining--;else throw new BudgetExhausted()}
+ get reserved(){return this.left}
+ expand(count:number){
+  if(count>this.budget.remaining)throw new BudgetExhausted();
+  this.budget.remaining-=count;
+  this.left+=count;
+ }
+ spend(count=1){
+  const reserved=Math.min(this.left,count),extra=count-reserved;
+  if(extra>this.budget.remaining)throw new BudgetExhausted();
+  this.left-=reserved;
+  this.budget.remaining-=extra;
+ }
  release(){this.budget.remaining+=this.left;this.left=0}
 }

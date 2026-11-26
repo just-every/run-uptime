@@ -1,5 +1,5 @@
 // Run the emitted Worker with workerd's real request handlers, Cron and D1.
-export function meteredWorker(app) {
+export function meteredWorker(app,{probeWorkerTask,completeWorkerCheck,runWorkerBackground}) {
  const bindings = new WeakMap();
  const wallNow = Date.now;
   let clock, realStart, current, latest;
@@ -69,7 +69,14 @@ export function meteredWorker(app) {
   const sample = {queries:new Map(), unmetered:[], pending:new Set()};
   current = sample;
   try {
-   return await run({...env, DB:bindings.get(env.DB)}, {
+   const metered={...env,DB:bindings.get(env.DB)};
+   return await run(metered, {
+    // Keep D1 metering across the loopback transport boundary.
+    exports:{ScheduledWork:()=>({
+     probe:(...args)=>probeWorkerTask(metered,...args),
+     complete:(...args)=>completeWorkerCheck(metered,...args),
+     background:(...args)=>runWorkerBackground(metered,...args),
+    })},
     waitUntil(pending) {
      ctx.waitUntil(pending);
      sample.pending.add(pending);

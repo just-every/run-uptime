@@ -1,5 +1,5 @@
 // @ts-ignore Edition policy has public flow coverage.
-import {evaluate} from './policy.mjs'
+import {evaluate} from './policy-evaluation.mjs'
 const evidence=(row:any)=>{
  const value=typeof row.evidence==='string'?JSON.parse(row.evidence):row.evidence;
  return row.received_at==null?value:{...value,receivedAt:row.received_at,...(value.canary?{canary:{...value.canary,receivedAt:row.received_at}}:{})}

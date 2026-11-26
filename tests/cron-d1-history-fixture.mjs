@@ -25,9 +25,9 @@ export async function runtime(build, directory, {onProbe, cronStart, cronLags} =
  const entry = join(emitted, config.main);
  const wrapper = join(directory, 'meter.mjs');
  const meter = fileURLToPath(new URL('./cron-d1-meter-worker.mjs', import.meta.url));
- await writeFile(wrapper, `import app from ${JSON.stringify(relative(dirname(wrapper), entry))};
+ await writeFile(wrapper, `import app, {probeWorkerTask, completeWorkerCheck, runWorkerBackground} from ${JSON.stringify(relative(dirname(wrapper), entry))};
 import {meteredWorker} from ${JSON.stringify(relative(dirname(wrapper), meter))};
-export default meteredWorker(app);`);
+export default meteredWorker(app, {probeWorkerTask, completeWorkerCheck, runWorkerBackground});`);
  const assets = join(emitted, 'assets');
  const modules = [wrapper, meter, entry, ...(await readdir(assets)).filter(name => name.endsWith('.js')).map(name => join(assets, name))];
  const bindings = {

@@ -19,6 +19,7 @@
     "sensitivePaths": [
       "src/domain/operator-auth.server.ts",
       "src/server.ts",
+      "src/server-fetch.ts",
       "src/base/modules/operator-auth/**",
       "src/base/modules/mail/**",
       "src/base/modules/integrations/**",

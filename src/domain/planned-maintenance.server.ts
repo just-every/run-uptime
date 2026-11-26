@@ -1,4 +1,5 @@
-import {get,revisionStatements,sha,type Bindings} from './control.server.ts'
+import {get,revisionStatements,type Bindings} from './control.server.ts'
+import {sha} from './runner-crypto.ts'
 import {auditStatement,type AuditActor} from './audit.server.ts'
 import {classifyStorage} from './storage-error.ts'
 // @ts-ignore Shared deterministic calendar and validation.

@@ -7,11 +7,10 @@ import {slowEvaluation} from './slow-evaluation.mjs'
 /** Called before the observation transaction; its generation guard is shared
  * with the observations, derived state and notices, so concurrent results cannot
  * each open a degradation. Current scheduled evidence alone can change it. */
-export async function slowNotice(env:Bindings,monitor:any,slot:any,fresh:any[],now:number):Promise<NotificationEvent|null>{
- const last=await env.DB.prepare("SELECT kind,event FROM (SELECT * FROM (SELECT rowid AS seq,kind,event FROM outbox WHERE monitor_id=?1 AND kind='slow' AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1) UNION ALL SELECT * FROM (SELECT rowid AS seq,kind,event FROM outbox WHERE monitor_id=?1 AND kind='slow_recovery' AND status<>'imported-inactive' ORDER BY rowid DESC LIMIT 1)) ORDER BY seq DESC LIMIT 1").bind(monitor.id).first<any>();
- const open=last?.kind==='slow',previous=open?JSON.parse(last.event):null;
+export async function slowNotice(env:Bindings,monitor:any,slot:any,fresh:any[],now:number,previous:NotificationEvent|null):Promise<NotificationEvent|null>{
+ const open=Boolean(previous);
  let policy=monitor.definition.slow;
- if(open){const original=await env.DB.prepare('SELECT definition FROM revisions WHERE monitor_id=? AND revision=?').bind(monitor.id,previous.monitorRevision).first<{definition:string}>();const saved=original?JSON.parse(original.definition):null;policy=saved?.slow?{...saved.slow,locations:saved.slow.locations==='all'?saved.probes:saved.slow.locations}:null;}
+ if(previous){const original=await env.DB.prepare('SELECT definition FROM revisions WHERE monitor_id=? AND revision=?').bind(monitor.id,previous.monitorRevision).first<{definition:string}>();const saved=original?JSON.parse(original.definition):null;policy=saved?.slow?{...saved.slow,locations:saved.slow.locations==='all'?saved.probes:saved.slow.locations}:null;}
  if(!policy)return null;
  const rows=(await env.DB.prepare('SELECT id,due_at,manual,missed_count FROM slots WHERE monitor_id=? AND revision=? AND manual=0 ORDER BY due_at DESC LIMIT 100').bind(monitor.id,monitor.revision).all<any>()).results;
  if(rows[0]?.id!==slot.id)return null; // late historical arrivals cannot regress current degradation

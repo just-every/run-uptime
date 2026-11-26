@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 export async function emittedRunnerWorker(directory,bindings,{outboundService}={}){
  const emitted=resolve('dist/server'),config=JSON.parse(await readFile(join(emitted,'wrangler.json'),'utf8'));
  const wrapper=join(directory,'runner-emitted-envelope.mjs');
- await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
+ await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))}; export {ScheduledWork} from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
  const wallNow=Date.now;let clock;Date.now=()=>clock??wallNow();
  export default {async fetch(request,env,ctx){const input=await request.json();clock=input.clock;if(input.scheduled){await app.scheduled({},env,ctx);return new Response(null,{status:204})}return app.fetch(new Request(input.url,{method:input.method,headers:input.headers,...(input.body===undefined?{}:{body:input.body})}),env,ctx)}};`);
  const modules=[{type:'ESModule',path:wrapper},{type:'ESModule',path:join(emitted,config.main)},...(await readdir(join(emitted,'assets'))).filter(n=>n.endsWith('.js')).map(n=>({type:'ESModule',path:join(emitted,'assets',n)}))];

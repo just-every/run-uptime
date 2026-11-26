@@ -10,14 +10,11 @@ import seed from '../../seed.json' with {type:'json'}
 // @ts-ignore Shared public-address policy.
 import {publicTarget} from './public-target.mjs'
 // @ts-ignore Shared assertion policy.
-import {httpAssertions} from './http-assertions.mjs'
+import {statusAssertion} from './http-assertions/status.mjs'
 // @ts-ignore Provider evidence semantics are shared with signed Node probes.
-import {isDependencyStatus,dependencyMissingCheck,missingDependencyEvidence} from './dependency-status.mjs'
+import {isDependencyStatus,dependencyMissingCheck} from './dependency-status-policy.mjs'
 // @ts-ignore Shared evidence limits.
-import {MAX_BODY} from './policy.mjs'
-// @ts-ignore A followed service is read with the catalog's shared status-source reader.
-import {probeFollowed} from './service-catalog/followed.mjs'
-import {workerReport} from './worker-discovery.server.ts'
+import {MAX_BODY} from './http-assertions/limits.mjs'
 // runnerVersion names the evidence protocol the validator accepts; the User-Agent names this release.
 const EVIDENCE_VERSION='uptime-worker/0.1.0',USER_AGENT=`uptime-worker/${seed.version}`
 const BUDGET_REASON='Not checked: this scheduled run reached its outbound request budget. This is not a target failure.'
@@ -30,7 +27,7 @@ export async function boundedBody(response:Response,max:number,onPartial?:(body:
  return {body:new TextDecoder().decode(all),bytes}
 }
 interface ProbeContext {dns:PublicDNS;allowance:Allowance;appOrigin?:string;userAgent?:string;statusOnly?:boolean;snapshotPolicy?:{masks:string[];version?:number;safeValues?:any;screenshot?:boolean};capture?:any}
-async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigin,userAgent=USER_AGENT,statusOnly,snapshotPolicy,capture={}}:ProbeContext){
+async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigin,userAgent=USER_AGENT,statusOnly,capture={}}:ProbeContext){
  let url=publicTarget(def.url),method=def.method;const redirects:string[]=[];
  for(let hop=0;hop<=5;hop++){
   // Existing revisions and redirects must not mistake Workers' self-fetch 404 for target evidence.
@@ -52,11 +49,11 @@ async function publicResponse(def:any,signal:AbortSignal,{dns,allowance,appOrigi
    else if(response.status===303||(method==='POST'&&[301,302].includes(response.status)))method='GET';
    if(!redirects.length)redirects.push(url.href);redirects.push(next.href);url=next;continue;
   }
-  const headers=Object.fromEntries(response.headers);
+  const headers=capture.responseHeaders;
   if(statusOnly){await response.body?.cancel();return {status:response.status,headers,body:'',bytes:0}}
   if(headers['content-encoding']&&headers['content-encoding']!=='identity'){await response.body?.cancel();throw new ProbeError('encoding')}
   const payload=await boundedBody(response,MAX_BODY,body=>capture.body=body);capture.body=payload.body;
-  return {status:response.status,headers,...payload,...(snapshotPolicy?{failureSnapshot:tryCaptureFailureSnapshot({method,url:url.href,redirects,requestHeaders:capture.requestHeaders,responseHeaders:headers,status:response.status,body:payload.body,durationMs:0,masks:snapshotPolicy.masks,safeValues:snapshotPolicy.safeValues,policyVersion:snapshotPolicy.version,...(snapshotPolicy.screenshot?{screenshot:{unavailable:'browser_unavailable'}}:{}),phases:capture.phases})}:{})};
+  return {status:response.status,headers,...payload};
  }
  throw new ProbeError('redirect');
 }
@@ -66,15 +63,33 @@ export async function workerProbe(def:any,probe:string,context:ProbeContext){
  const evidence=(data:any,completedAt=Date.now())=>{capture.phases.totalMs=completedAt-startedAt;return ({id:crypto.randomUUID(),probe,startedAt,completedAt,durationMs:completedAt-startedAt,runnerVersion:EVIDENCE_VERSION,...data,...(data.failureSnapshot&&!data.failureSnapshot.unavailable?{failureSnapshot:{...data.failureSnapshot,phases:capture.phases}}:{})})};
  try{
   if(def.tlsTrust)throw new ProbeError('vantage','This certificate trust setting requires a private runner; the Cloudflare Worker cannot apply it.');
-  if(def.catalog&&!context.statusOnly)return await probeFollowed(def,probe,{transport:workerReport(context.appOrigin,{dns:context.dns,allowance:context.allowance}),runnerVersion:EVIDENCE_VERSION});
-  const response=await publicResponse(def,signal,{...context,capture}),completedAt=Date.now(),missing=!context.statusOnly&&missingDependencyEvidence(def,response);
+  if(def.catalog&&!context.statusOnly){
+   const [{probeFollowed},{workerReport}]=await Promise.all([
+    // @ts-ignore Shared with the Node runner.
+    import('./service-catalog/followed.mjs'),
+    import('./worker-discovery.server.ts'),
+   ]);
+   return await probeFollowed(def,probe,{transport:workerReport(context.appOrigin,{dns:context.dns,allowance:context.allowance}),runnerVersion:EVIDENCE_VERSION});
+  }
+  const response=await publicResponse(def,signal,{...context,capture}),completedAt=Date.now();
+  // @ts-ignore Only provider monitors need to interpret JSON claim paths.
+  const missing=!context.statusOnly&&isDependencyStatus(def)&&(await import('./dependency-status.mjs')).missingDependencyEvidence(def,response);
   if(missing)return evidence({outcome:'runner_error',checks:[missing]},completedAt);
-  const checks=httpAssertions(def,response,completedAt-startedAt);
-  // Keep body text in the bounded, encrypted and policy-redacted failure snapshot.
-  // A short numeric error label is safe in history even after snapshot expiry or erasure.
-  const errorCode=/\berror(?:\s+code)?\s*:?\s*(1\d{3})\b/i.exec(('failureSnapshot' in response&&response.failureSnapshot&&'body' in response.failureSnapshot?response.failureSnapshot.body:'').replace(/<[^>]*>/g,' '))?.[1];
+  const checks=Object.keys(def.assertions).every(key=>key==='status')?
+   [statusAssertion(response.status,def.assertions.status)]:
+   // @ts-ignore The full ordered assertion bundle is shared with the Node runner.
+   (await import('./http-assertions.mjs')).httpAssertions(def,response,completedAt-startedAt);
+  const pass=checks.every((check:any)=>check.pass),policy=context.snapshotPolicy;
+  const failureSnapshot=!pass&&policy&&!context.statusOnly?tryCaptureFailureSnapshot({
+   ...capture,durationMs:completedAt-startedAt,masks:policy.masks,safeValues:policy.safeValues,
+   policyVersion:policy.version,...(policy.screenshot?{screenshot:{unavailable:'browser_unavailable'}}:{}),
+  }):undefined;
+  // A short numeric error label remains safe after the redacted snapshot expires.
+  const errorCode=failureSnapshot&&'body' in failureSnapshot
+   ? /\berror(?:\s+code)?\s*:?\s*(1\d{3})\b/i.exec(failureSnapshot.body.replace(/<[^>]*>/g,' '))?.[1]
+   : undefined;
   for(const check of checks)if(check.assertion==='status'&&!check.pass)check.reason=`HTTP ${response.status} is outside the expected status or range${errorCode?`; error code ${errorCode}`:''}`;
-  return evidence({...(checks.some((check:any)=>!check.pass)&&'failureSnapshot' in response?{failureSnapshot:response.failureSnapshot&&'unavailable' in response.failureSnapshot?response.failureSnapshot:{...response.failureSnapshot,durationMs:completedAt-startedAt}}:{}),outcome:checks.every((check:any)=>check.pass)?'pass':'target_failure',status:response.status,bytes:response.bytes,checks},completedAt);
+  return evidence({outcome:pass?'pass':'target_failure',status:response.status,bytes:response.bytes,checks,...(failureSnapshot?{failureSnapshot}:{})},completedAt);
  }catch(error){
   const category=error instanceof BudgetExhausted?'budget':signal.aborted||(error as Error)?.name==='TimeoutError'?'timeout':error instanceof ProbeError?error.category:'connection';
   const reason=category==='runner'?SELF_CHECK_REFUSAL:category==='budget'?BUDGET_REASON:error instanceof ProbeError&&error.reason?error.reason:`Probe ${category} check failed`;

@@ -3,7 +3,7 @@ import {authenticatedSession} from '../domain/operator-auth.server.ts'
 import {requireFreshSecondFactor,mfaCondition} from '../domain/mfa/policy.server.ts'
 import type {AgentDoorOptions} from '../base/modules/agent-door/index.ts'
 import {canonical} from '../base/modules/agent-door/policy/document.ts'
-import {sha} from '../domain/control.server.ts'
+import {sha} from '../domain/runner-crypto.ts'
 export function nativeProof(env:Bindings):NonNullable<AgentDoorOptions['nativeProof']>{return {
  handoff:()=>'/app/settings',
  async verify({tool,args,principal,reference}){
