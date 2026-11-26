@@ -20,6 +20,8 @@ curl -fsSL https://runeditrun.com/install.sh | sh -s -- dev just-every/run-uptim
 
 Open the resulting `RER_OPEN` link at `http://localhost` and [enroll a passkey](/docs/mfa#enroll-in-the-console).
 
+To use passkeys on an installation you already have, stop it with `rer dev --stop`, then run `rer setup --host localhost` once in its checkout and `rer dev`. Moving the host keeps its data, and later starts follow the saved address without `--host`.
+
 ## Explicit owner setup
 
 To choose an owner or supply setup answers yourself, run `curl -fsSL https://runeditrun.com/install.sh | sh` and then `rer install just-every/run-uptime` (with Node 22 or later, `npx -y @runeditrun/rer install just-every/run-uptime` does the same), then from the checkout, before `rer dev`:
