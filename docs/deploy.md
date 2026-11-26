@@ -193,7 +193,7 @@ Add `--environment NAME` for a named environment. `--set-secret` takes names onl
 
 ### Send alerts to the owner only
 
-Set public `MAIL_RECIPIENTS=owner` with the mail inputs and every message the installation sends goes to `OWNER_EMAIL` alone. A message to any other address (another alert destination, an invitation, a member notice) is refused before it reaches the provider and shows as rejected with `mail_input_invalid`. The default, `any`, keeps ordinary behaviour. With mail off (`MAIL_PROVIDER=none`) nothing is sent either way.
+Set public `MAIL_RECIPIENTS=owner` with the mail inputs and every message the installation sends goes to `OWNER_EMAIL` alone. A message to any other address (another alert destination, an invitation, a member notice) is refused before it reaches the provider and shows as rejected with `mail_input_invalid` (`rer_owner_recipient_required` on the RER relay, where Base's owner relay sender holds the guard). The default, `any`, keeps ordinary behaviour. With mail off (`MAIL_PROVIDER=none`) nothing is sent either way.
 
 Use a sender that is not in a zone you cannot change DNS for: the RER relay (`MAIL_PROVIDER=rer`, with the assigned `MAIL_FROM`, `MAIL_RELAY_URL` and `MAIL_API_KEY`) or a SendGrid sender that is already verified. Put the key and the public values (`MAIL_PROVIDER=sendgrid`, `MAIL_RECIPIENTS=owner`, `MAIL_FROM`) in the private `--env-file`, never on the command line, and set it only through `rer deploy`: `wrangler secret put` or a settings PATCH makes rer's receipt stale and the next deploy refuses with `owned-resource-replaced`.
 

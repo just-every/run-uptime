@@ -1,12 +1,10 @@
-// @ts-expect-error Maintained Base mail performs serialization and provider classification.
-import {createMailSender} from '../base/modules/mail/index.mjs'
-
 // Base deliberately returns bounded provider results. Retain only the relay's
 // Retry-After scheduling metadata at the transport edge, never its error body.
-export function relayMailSender(config:any,dependencies:any={}){
+// `create` builds the Base relay sender over the observed fetch it is given.
+export function relayMailSender(create:(dependencies:any)=>{send(message:any):Promise<any>},dependencies:any={}){
  return {async send(message:any){
   let retryAt:number|undefined;
-  const sender=createMailSender(config,{...dependencies,fetch:async(url:RequestInfo|URL,init:RequestInit)=>{
+  const sender=create({...dependencies,fetch:async(url:RequestInfo|URL,init:RequestInit)=>{
    const response=await (dependencies.fetch??fetch)(url,init);
    if(response.status===429){
     const value=response.headers.get('retry-after');
