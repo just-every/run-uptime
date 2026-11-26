@@ -1,4 +1,5 @@
 export { createMailSender } from './src/sender.mjs';
+export { createOwnerRelaySender } from './src/adapters/rer/owner.mjs';
 
 export { MailValidationError, DevelopmentOutboxError } from './src/core/errors.mjs';
 export { serializeSendGridMessage } from './src/adapters/sendgrid/index.mjs';

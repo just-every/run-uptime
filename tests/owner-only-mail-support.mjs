@@ -8,15 +8,23 @@ import {completeSecondFactor} from './mfa-auth-support.mjs';
 import {splitSql} from './migration-support.mjs';
 
 const mailbox=(name,domain)=>[name,domain].join('@');
-// One hosted Worker, real D1 and the real SendGrid adapter. Only the provider's network edge is fake: it records every
-// recipient that would have left the Worker.
+const relayUrl='https://relay.example.test/api/managed-mail/send';
+// One hosted Worker, real D1 and the real provider adapter (SendGrid, or Base's owner relay sender for rer). Only the
+// provider's network edge is fake: it records every recipient and message that would have left the Worker.
 async function run(name,settings,check){
- const directory=await mkdtemp(join(tmpdir(),'uptime-owner-mail-')),origin='https://uptime.example.test',sent=[];
+ const directory=await mkdtemp(join(tmpdir(),'uptime-owner-mail-')),origin='https://uptime.example.test',sent=[],messages=[];
  const bindings={...testAuthBindings,UPTIME_LOCAL_REVIEW:'false',UPTIME_ORIGIN:origin,...settings};
  if(settings.MAIL_PROVIDER==='none')delete bindings.MAIL_FROM;
  let worker;
  try{
   worker=await hostedRuntime(directory,bindings,async request=>{
+   if(settings.MAIL_PROVIDER==='rer'){
+    assert.equal(request.url,relayUrl,'only the assigned relay is reachable');
+    assert.equal(request.headers.get('authorization'),'Bearer '+settings.MAIL_API_KEY);
+    const body=await request.json();
+    sent.push([body.to]);messages.push(body);
+    return Response.json({messageId:'<relay-'+messages.length+'@relay.example.test>'},{status:202});
+   }
    assert.equal(new URL(request.url).hostname,'api.sendgrid.com','only the mail provider is reachable');
    const body=await request.json();
    sent.push(body.personalizations.flatMap(p=>[...(p.to??[]),...(p.cc??[]),...(p.bcc??[])].map(r=>r.email)));
@@ -41,7 +49,7 @@ async function run(name,settings,check){
    }
    assert.fail('delivery did not settle');
   };
-  await check({drill,sent,owner:bindings.OWNER_EMAIL,db});
+  await check({drill,sent,messages,call,owner:bindings.OWNER_EMAIL,db});
   console.log('PASS '+name);
  }finally{await worker?.dispose();await rm(directory,{recursive:true,force:true})}
 }
@@ -56,6 +64,24 @@ export async function proveOwnerOnlyMail(){
   assert.equal(other.state,'rejected');assert.equal(other.code,'mail_input_invalid');
   assert.equal(sent.length,before,'the refused address never reached the provider');
   assert.ok(sent.length>0&&sent.every(to=>to.length===1&&to[0]===owner),'every message that left the Worker was addressed to the owner alone: '+JSON.stringify(sent));
+ });
+ const relay={MAIL_PROVIDER:'rer',MAIL_RECIPIENTS:'owner',MAIL_FROM:mailbox('alerts','notify-sender.dev'),MAIL_API_KEY:'synthetic-uptime-owner-relay',MAIL_RELAY_URL:relayUrl};
+ await run('rer MAIL_RECIPIENTS=owner sends the owner sign-in link and alerts through Base\'s owner relay sender and refuses every other address',relay,async({drill,sent,messages,call,owner})=>{
+  const requested=await call('/auth/magic-link',{email:owner,returnTo:'/app'});
+  assert.equal(requested.status,202,await requested.clone().text());
+  const signIn=messages.findLast(message=>message.subject.startsWith('Your sign-in link'));
+  assert.ok(signIn,'the relay received the owner sign-in link');
+  assert.equal(signIn.to,owner);
+  const link=new URL(signIn.text.match(/https?:\/\/[^\s]+/)[0]);
+  const confirmed=await call('/auth/confirm',{token:link.searchParams.get('token')});
+  assert.equal(confirmed.status,303,await confirmed.clone().text());
+  const mine=await drill('Owner email',owner);
+  assert.equal(mine.state,'accepted',JSON.stringify(mine));
+  const before=sent.length;
+  const other=await drill('Someone else',mailbox('someone.else','example.test'));
+  assert.equal(other.state,'rejected');assert.equal(other.code,'rer_owner_recipient_required');
+  assert.equal(sent.length,before,'the refused address never reached the relay');
+  assert.ok(sent.every(to=>to.length===1&&to[0]===owner),'every message that left the Worker was addressed to the owner alone: '+JSON.stringify(sent));
  });
  await run('with no mail input set nothing is sent',{MAIL_PROVIDER:'none'},async({drill,sent,owner})=>{
   const mine=await drill('Owner email',owner);
