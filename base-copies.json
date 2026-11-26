@@ -13,7 +13,16 @@
       },
       "originFiles": [
         "export/run-demo.yml"
-      ]
+      ],
+      "adapted": {
+        ".github/workflows/run-demo.yml": "8fa76d1ceef21535d0c1fa31298326d971bd8520"
+      },
+      "acknowledged": {
+        ".github/workflows/run-demo.yml": {
+          "sha256": "516c6ef8f0d00f2e81776b2328c50dd4b420988616a7036b3e7aa940421b5e02",
+          "mode": "100644"
+        }
+      }
     },
     {
       "path": ".github/workflows/verify.yml",
@@ -50,7 +59,16 @@
       },
       "originFiles": [
         "default-seed/DEMO.md"
-      ]
+      ],
+      "adapted": {
+        "DEMO.md": "8fa76d1ceef21535d0c1fa31298326d971bd8520"
+      },
+      "acknowledged": {
+        "DEMO.md": {
+          "sha256": "2e20af5d341c080dcb72bad5ff79d30a1e021a229f1540457bb999fffae413ef",
+          "mode": "100644"
+        }
+      }
     },
     {
       "path": "migrations/0007_integrations.sql",
