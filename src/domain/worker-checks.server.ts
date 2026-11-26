@@ -5,7 +5,7 @@ import {HOSTED_RUNNER_ID,hostedInstallation} from './hosted-runner.ts'
 import {protocolRequests} from './worker-protocol-budget.ts'
 // @ts-ignore Shared protocol settings.
 import {isProtocol} from './protocol/settings.mjs'
-import type {SubrequestBudget} from './worker-budget.ts'
+import type {Allowance,SubrequestBudget} from './worker-budget.ts'
 import {CRON_MINUTE} from './schedule.ts'
 import {settingsOf} from './snapshot-policy.server.ts'
 // Worst case without redirects: per probe, A+AAAA and one canary read, then A+AAAA and every target attempt.
@@ -18,6 +18,11 @@ function worstCase(definition:any,probes:string[],validated:Set<string>){
    protocolRequests(definition)*(definition.retries+1):dns(definition.url)+definition.retries+1;
   return sum+(canary?dns(canary)+1:0)+target;
  },0);
+}
+// The hostnames a check would look up: its external check's and its target's, less those this run has already resolved.
+function lookups(definition:any,probes:string[],validated:Set<string>){
+ const urls=[...probes.map(probe=>definition.assignments?.[probe]?.canaryUrl),isProtocol(definition.type)?undefined:definition.url];
+ return urls.filter(Boolean).map(url=>new URL(url).hostname).filter(host=>!validated.has(host));
 }
 // Cron uses the same immutable claims, retries, canaries and evidence acceptance as private runners.
 // Select only this Worker's assignments: it must never advance a private runner's schedule.
@@ -56,18 +61,25 @@ export async function scheduledPublicChecks(env:Bindings,budget:SubrequestBudget
   id,revision,next_due,definition:JSON.parse(definition),
   snapshotPolicy:settingsOf(snapshot_version===null?null:{...policy,version:snapshot_version}),
  }));
- const validated=new Set<string>();
- let deferred=0,contactAt=0;
+ const validated=new Set<string>(),asked=new Set<string>();
+ let waiting=due,deferred=0,contactAt=0;
  // Two outbound probes at a time, within Workers' connection limit even with A+AAAA lookups.
- try{for(let index=0;index<due.length;index+=2){
-  // A monitor that does not fit stays due, oldest first, for the next minute.
-  const group=due.slice(index,index+2).flatMap(row=>{
+ try{while(waiting.length){
+  const group:{row:typeof due[number];allowance:Allowance}[]=[],later:typeof due=[],asking=new Set<string>();
+  for(const row of waiting){
    const hosted=row.definition.probes.filter((probe:string)=>row.definition.assignments[probe]?.runnerId===HOSTED_RUNNER_ID);
-   const allowance=budget.reserve(worstCase(row.definition,hosted,validated));
-   if(!allowance){deferred++;return []}
-   return [{row,allowance}];
-  });
-  if(!group.length)continue;
+   // Two checks never look up the same new hostname side by side: the second waits a turn and reuses the first's answer.
+   const names=lookups(row.definition,hosted,validated).filter(host=>!asked.has(host));
+   const allowance=group.length<2&&!names.some(host=>asking.has(host))?budget.reserve(worstCase(row.definition,hosted,validated)):null;
+   if(!allowance){later.push(row);continue}
+   for(const host of names)asking.add(host);
+   group.push({row,allowance});
+  }
+  // A check that does not fit beside a running one is tried again once that one has returned what it did not spend.
+  // One that fits in nothing the run has left stays due, oldest first, for the next minute.
+  if(!group.length){deferred=later.length;break}
+  waiting=later;
+  for(const host of asking)asked.add(host);
   // Each probe invocation can spend its reservation on redirects and retries.
   const extra=Math.floor(budget.remaining/group.length);
   for(const {allowance} of group)allowance.expand(extra);
