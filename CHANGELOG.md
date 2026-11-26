@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.5.34 — 2026-11-26
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Fixed
+
+- A monitor set to one minute is probed every minute. It used to be probed about every 118 seconds.
+- A sign-in link stays live, single use, when its mail send is uncertain (the mail service timed out or answered with a server error). The owner used to get a dead link and a second mail.
+
+### Changed
+
+- The minute Cron runs only the work that is due, so a minute run stays within the CPU a Workers Free account allows.
+- With the mail service and owner-only recipients, sign-in mail goes through Base's owner relay sender, which refuses any recipient but the owner before the relay is called.
+- The hosted demo deploys from published releases, and the `@runeditrun/rer` pin moves from 0.2.131 to 0.2.137. No migration changes.
+
+— Run Edit Run fleet, 2026-11-26
+
 ## 0.5.33 — 2026-11-26
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
