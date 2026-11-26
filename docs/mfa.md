@@ -16,11 +16,12 @@ Enter the app's current code
 and choose **Confirm authenticator**. **Enroll passkey** uses the browser's
 standard WebAuthn prompt on HTTPS or `http://localhost`. A passkey needs a
 website name, so the default address `http://127.0.0.1:PORT` offers an
-authenticator app. To start a new local installation with passkeys, run
-`rer dev just-every/run-uptime --host localhost` from a folder that does
-not contain an Uptime checkout. Open its private `RER_OPEN` link and return to
-**Manage second factors** to enroll. This creates a separate local installation.
-If you want to keep your existing installation on its current address, choose
+authenticator app. To use passkeys on an existing local installation, stop it with `rer dev --stop`,
+run `rer setup --host localhost` once in its checkout (it keeps your data), then
+run `rer dev` and open its private `RER_OPEN` link. Return to
+**Manage second factors** to enroll. To start a new installation with passkeys
+instead, run `rer dev just-every/run-uptime --host localhost` from a folder that
+does not contain an Uptime checkout. If you want to stay on `127.0.0.1`, choose
 **Enroll authenticator** there. The first factor shows ten
 single-use recovery codes once: store them in your password manager, then choose
 **I saved this**. **Replace recovery codes** issues a new set after a fresh
