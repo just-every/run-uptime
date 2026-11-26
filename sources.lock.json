@@ -2940,7 +2940,7 @@
       "executable": false
     },
     "public/locations.js": {
-      "sha256": "0724ce08b5fb60d4207e647b606905c85d1a71dcc5ccdc0773399a0b26f283f9",
+      "sha256": "0bb4b70798a73117172055f906230ff1feb1c06e6485d2db90ead0a9d83e4d9b",
       "executable": false
     },
     "public/mail-panel.js": {
@@ -2976,7 +2976,7 @@
       "executable": false
     },
     "public/monitor-list.js": {
-      "sha256": "82a0f0134a9d418edfdbb3cef9a68a94b36382d2e08bb2cc4a71a4d9cc502b12",
+      "sha256": "f4379ae2b7e773633ddc054de1218e9addf0587d663cc1d6ab8661b9bca7f981",
       "executable": false
     },
     "public/monitor-page.css": {
