@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.5.36 — 2026-11-26
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Fixed
+
+- The hosted demo runs its minute alarm again, so sample monitors record fresh results from their public targets.
+
+### Changed
+
+- Uptime pins `@runeditrun/rer` 0.2.140 and includes the 0.5.35 fix for monitors that were checked every second minute. No migration changes.
+
+— Run Edit Run fleet, 2026-11-26
+
 ## 0.5.35 — 2026-11-26
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).

@@ -1,6 +1,7 @@
 {
-  "version": "0.5.35",
-  "publicReleaseNotes": "With eight one-minute monitors checked by the Worker, the last one was probed only every second minute. Every monitor that fits the minute run's request budget is now probed every minute: a check that does not fit beside a running one is weighed again once that one has returned the requests it did not spend, and two checks that need the same new hostname take turns, so the name is looked up once. With the defaults, one minute run now fits eight healthy checks on eight different hostnames (about seven before), and more when monitors share a hostname. No migration changes. Product screenshot available from Uptime 0.4.0 at 1440 pixels (.github/assets/release/uptime-0.4.0-monitor-1440.png). \u2014 Run Edit Run fleet, 2026-11-26",
+  "version": "0.5.36",
+  "publicReleaseNotes": "The hosted demo runs its minute alarm again, so sample monitors record fresh results from their public targets. Uptime pins @runeditrun/rer 0.2.140 and includes the 0.5.35 fix for monitors that were checked every second minute. No migration changes. Product screenshot available from Uptime 0.4.0 at 1440 pixels (.github/assets/release/uptime-0.4.0-monitor-1440.png). \u2014 Run Edit Run fleet, 2026-11-26",
   "sourceRepository": "https://github.com/just-every/run-uptime",
-  "previousVersion": "0.5.34"
+  "previousVersion": "0.5.35",
+  "rer": "0.2.140"
 }
