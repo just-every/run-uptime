@@ -10668,7 +10668,7 @@
       "executable": false
     },
     "tests/plain-monitor-text-support.mjs": {
-      "sha256": "9ea8a427823352203f1f2bf811c5ea864ce89ccf78ab40983f4c2af11d5a9ad7",
+      "sha256": "90055128c04d5bd6324ac8c54a9790937531331b44d572e8cdad0bbf4c0961d2",
       "executable": false
     },
     "tests/playwright-custody-support.mjs": {
