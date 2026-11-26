@@ -2,7 +2,7 @@ import {checkerWarning,checkerRestart,missingCheckers} from './monitor-status.js
 import {escape,ago,monitorHref,shownState,tip} from './console-format.js';
 import {checkedFrom,locationNamer} from './monitor-rules.js';
 import {dayClock} from './monitor-status.js';
-import {activeLocations} from './locations.js';
+import {checkingLocations} from './locations.js';
 // The monitor list's markup (public/catalog.js mounts the rows, public/app.js the summary): one quiet line under the
 // heading that counts the monitors by state, and one row per monitor that leads with its name over one quiet line,
 // with its last 24 hours as a bar and a share. The monitor's own page holds everything else.
@@ -13,7 +13,7 @@ const joinNames=names=>names.length<3?names.join(' and '):`${names.slice(0,-1).j
 // location it offers a second (two places agree on an outage before it counts).
 const STATES=[['Healthy','healthy'],['Failing','failing'],['Degraded','degraded'],['Recovering','recovering'],['Unknown','unknown'],['Maintenance','in maintenance'],['Paused','paused']];
 export function listSummary(data,readUnavailable){
- const shown=data.monitors.map(m=>shownState(m,readUnavailable)),places=[...new Set(activeLocations(data).map(r=>r.networkLabel))];
+ const shown=data.monitors.map(m=>shownState(m,readUnavailable)),places=[...new Set(checkingLocations(data).map(r=>r.networkLabel))];
  const parts=[`${shown.length} ${shown.length===1?'monitor':'monitors'}`,...STATES.map(([state,word])=>[shown.filter(s=>s===state).length,word]).filter(([count])=>count).map(([count,word])=>`${count} ${word}`)];
  if(places.length)parts.push(`from ${joinNames(places)}`);
  return escape(parts.join(' · '))+(places.length<2&&!data.access?.monitoringOnly?' · <a href="/app/locations">Add a location</a>':'');

@@ -11,6 +11,12 @@ const FRESH_MS=120000;
 let adding=null;
 const monitorsUsing=(data,runnerId)=>data.monitors.filter(m=>Object.values(m.definition.assignments??{}).some(a=>a.runnerId===runnerId)).length;
 export const activeLocations=data=>(data.runner.runners??[]).filter(r=>!r.revokedAt);
+// The locations that check something: those an enabled monitor is assigned to or, while none is, those that have joined.
+// A location still waiting to join, removed, or used by no monitor is not one.
+export function checkingLocations(data){
+ const used=new Set(data.monitors.filter(m=>m.definition.enabled).flatMap(m=>Object.values(m.definition.assignments??{}).map(a=>a.runnerId))),active=activeLocations(data);
+ return used.size?active.filter(r=>used.has(r.runnerId)):active.filter(r=>r.hosted||r.lastContactAt!==null);
+}
 function lastSeen(runner,{now,runner:runtime}){
  if(runner.hosted)return '<span class="ui-pill fresh">Hosted</span>';
  if(runner.lastContactAt===null)return '<span class="ui-pill never">Waiting to join</span>';
