@@ -222,9 +222,9 @@ test('real rer deploy covers fresh custody, automatic legacy upgrade, conflicts,
   const scriptBefore=offProvider.state.version.resources.script.etag;
   const versionBefore=offProvider.state.version.id, uploadsBefore=offProvider.uploads.length;
   const mailFile='.rer/deploy/mail-switch.env';
-  await writeFile(join(offRoot,mailFile),'MAIL_FROM=sender@synthetic-uptime.dev\nSENDGRID_API_KEY=synthetic-uptime-mail-switch-key\n',{mode:0o600});
+  await writeFile(join(offRoot,mailFile),'MAIL_PROVIDER=sendgrid\nMAIL_FROM=sender@synthetic-uptime.dev\nSENDGRID_API_KEY=synthetic-uptime-mail-switch-key\n',{mode:0o600});
   const enabled=await deploy(offRoot,offProvider,t.signal,[
-    '--set-secret','MAIL_PROVIDER=sendgrid','--set-secret','MAIL_FROM','--set-secret','SENDGRID_API_KEY','--env-file',mailFile,
+    '--set-secret','MAIL_PROVIDER','--set-secret','MAIL_FROM','--set-secret','SENDGRID_API_KEY','--env-file',mailFile,
   ],{inputs:false});
   assert.equal(enabled.code,0,JSON.stringify(enabled));
   assert.equal(mailProvider(),'sendgrid');
