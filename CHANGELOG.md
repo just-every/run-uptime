@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.5.33 — 2026-11-26
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
+### Fixed
+
+- The monitor list header names only locations a monitor checks from. It used to name every location that was not removed, so a location still waiting to join, or used by no monitor, appeared in "from Cloudflare Worker and Misty Hill" although every monitor checked from the Worker alone.
+
+— Run Edit Run fleet, 2026-11-26
+
 ## 0.5.32 — 2026-11-26
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).

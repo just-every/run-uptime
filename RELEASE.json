@@ -1,6 +1,6 @@
 {
-  "version": "0.5.32",
-  "publicReleaseNotes": "Cron D1 reads stay flat as incidents accumulate. Cron used to scan every alert contact schedule row and every outbox row of a monitor on each run, so reads grew with every incident ever opened. On a fixture with 0, 50 and 500 past incidents, a Cron run read 186, 6,092 and 508,742 D1 rows before, and 190, 191 and 191 after (F6). Finished schedules keep their rows as history. A late kick no longer re-probes every monitor: a console check that fills a Cron minute that never arrived, late in its minute, no longer leaves the next Cron probe 12 seconds behind it (F5). A Cron delivered up to 30 seconds early still probes, waiting for its minute instead of skipping it (F7). When upgrading from 0.5.31, 0098_bound_contact_schedule_reads.sql adds four indexes on alert contact schedules and the outbox. Earlier migrations are byte-identical. The @runeditrun/rer pin stays at 0.2.131. The backup and upgrade guidance under 0.5.26 still applies. Product screenshot available from Uptime 0.4.0 at 1440 pixels (.github/assets/release/uptime-0.4.0-monitor-1440.png). \u2014 Run Edit Run fleet, 2026-11-26",
+  "version": "0.5.33",
+  "publicReleaseNotes": "The monitor list header names only locations a monitor checks from. It used to name every location that was not removed, so a location still waiting to join, or used by no monitor, appeared in \"from Cloudflare Worker and Misty Hill\" although every monitor checked from the Worker alone. Product screenshot available from Uptime 0.4.0 at 1440 pixels (.github/assets/release/uptime-0.4.0-monitor-1440.png). \u2014 Run Edit Run fleet, 2026-11-26",
   "sourceRepository": "https://github.com/just-every/run-uptime",
-  "previousVersion": "0.5.31"
+  "previousVersion": "0.5.32"
 }
