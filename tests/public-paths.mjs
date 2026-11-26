@@ -100,7 +100,7 @@ try{
  // Discover literal route candidates from the actual server entry, including
  // newly added routes. Denied private routes can never be covered by an asset
  // or document prefix accidentally.
- const source=await readFile('src/server.ts','utf8');
+ const source=await readFile('src/server-fetch.ts','utf8');
  const candidates=new Set([...source.matchAll(/['"](\/[^'"\s]*)['"]/g)].map(match=>match[1].replace(/:[\w]+/g,'private').replace(/\*/g,'private')));
  for(const path of [...candidates,'/api','/api/overview','/app','/app/monitor','/app/monitors/private','/_serverFn/private','/unknown-path','/undeclared-public-probe.txt','/assets-private','/docs-private','/auth/undeclared-probe']){
   if(matches(path))continue;

@@ -19,3 +19,8 @@ export function statusMatches(status, expected) {
     return Boolean(bounds && status >= bounds[0] && status <= bounds[1]);
   });
 }
+
+export function statusAssertion(status,expected){
+  const pass=statusMatches(status,expected);
+  return {assertion:'status',pass,reason:pass?'HTTP status matches expected status or range':'HTTP status is outside the expected status or range'};
+}

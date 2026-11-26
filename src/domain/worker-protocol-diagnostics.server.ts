@@ -1,5 +1,4 @@
 import {workerProtocolProbe as originalProbe} from './worker-protocols.server.ts'
-export {protocolRequests} from './worker-protocols.server.ts'
 import type {Allowance} from './worker-budget.ts'
 import {protocolDiagnosticCategory,normalizeNetworkDiagnostics} from './network-diagnostics.mjs'
 import {tryCaptureFailureSnapshot} from './failure-snapshot.mjs'

@@ -1,0 +1,3 @@
+export async function sha(value:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(b=>b.toString(16).padStart(2,'0')).join('')}
+export async function same(a:string,b:string){const [x,y]=await Promise.all([sha(a),sha(b)]);let difference=0;for(let i=0;i<x.length;i++)difference|=x.charCodeAt(i)^y.charCodeAt(i);return difference===0}
+export async function sign(key:string,value:string){const secret=await crypto.subtle.importKey('raw',new TextEncoder().encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);return [...new Uint8Array(await crypto.subtle.sign('HMAC',secret,new TextEncoder().encode(value)))].map(b=>b.toString(16).padStart(2,'0')).join('')}

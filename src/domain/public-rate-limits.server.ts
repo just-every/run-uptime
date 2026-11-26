@@ -60,9 +60,9 @@ export async function limitPublicRequest(env:AuthBindings,request:Request,declar
  return Response.json({error:'Public request rate limit exceeded'},{status:429,headers:{'retry-after':String(Math.max(1,Math.ceil((expiresAt-now)/1000))),'cache-control':'no-store'}})
 }
 /** Cron may expire only these request counters, never product or audit data. */
-export async function cleanupPublicRateLimits(env:Pick<AuthBindings,'DB'>,now=Date.now()){
- return env.DB.batch([
-  env.DB.prepare('DELETE FROM public_rate_limits WHERE expires_at<=?').bind(now),
-  env.DB.prepare('DELETE FROM metrics_rate_hours WHERE hour_start<=?').bind(now-hourMs),
- ])
+export function cleanupPublicRateLimits(db:D1Database,now:number){
+ return [
+  db.prepare('DELETE FROM public_rate_limits WHERE expires_at<=?').bind(now),
+  db.prepare('DELETE FROM metrics_rate_hours WHERE hour_start<=?').bind(now-hourMs),
+ ]
 }

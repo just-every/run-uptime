@@ -25,14 +25,15 @@ async function lookup(host:string,signal:AbortSignal,allowance:Allowance){
  if(addresses.some(address=>!publicAddress(address)))throw new ProbeError('network');
 }
 /** One scheduled run validates each hostname once; retries and shared canaries reuse the answer. */
-export function dnsCache(){
+export function dnsCache(validated=new Set<string>()){
  const seen=new Map<string,Promise<void>>();
  return (url:URL,signal:AbortSignal,allowance:Allowance)=>{
   const host=url.hostname.replace(/^\[|\]$/g,'');
   if(host.includes(':')||/^[0-9.]+$/.test(host))return publicAddress(host)?Promise.resolve():Promise.reject(new ProbeError('network'));
+  if(validated.has(host))return Promise.resolve();
   let pending=seen.get(host);
   // A budget refusal or timeout is about this run, not the name: the next caller looks it up again.
-  if(!pending){pending=lookup(host,signal,allowance);seen.set(host,pending);pending.catch(error=>{if(!(error instanceof ProbeError)||error.category==='dns')seen.delete(host)})}
+  if(!pending){pending=lookup(host,signal,allowance);seen.set(host,pending);pending.then(()=>validated.add(host),error=>{if(!(error instanceof ProbeError)||error.category==='dns')seen.delete(host)})}
   return pending;
  };
 }

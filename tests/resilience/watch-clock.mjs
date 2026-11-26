@@ -10,7 +10,7 @@ export async function startWatchClockWorker({port,persist,bindings}){
  const delivery=testMailOptions({bindings:{...bindings,UPTIME_ORIGIN:`http://127.0.0.1:${port}`}});
  const emitted=resolve('dist/server'),config=JSON.parse(await readFile(join(emitted,'wrangler.json'),'utf8'));
  const wrapper=join(persist,'watch-clock.mjs');
- await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
+ await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))}; export {ScheduledWork} from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
  let now=Date.now();Date.now=()=>now;
  export default {
   fetch(request,env,ctx){return app.fetch(request,env,ctx)},

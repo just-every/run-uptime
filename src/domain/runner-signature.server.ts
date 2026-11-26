@@ -1,4 +1,5 @@
-import {same,sign,type Bindings} from './control.server.ts'
+import {type Bindings} from './control.server.ts'
+import {same,sign} from './runner-crypto.ts'
 import {runnerKey,type Runner} from './runner-registration.server.ts'
 // A signed runner body: the HMAC under the authenticated runner's key over `<x-sent-at>.<body>`, with the body bounded
 // and the clock within one minute. Every signed runner route verifies through this one check.

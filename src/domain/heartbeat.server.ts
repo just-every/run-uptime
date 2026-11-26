@@ -4,7 +4,8 @@ import {heartbeatJobSnapshot,failureOutput} from './heartbeat-jobs.server.ts'
 // @ts-ignore Shared immutable job snapshot evaluation.
 import {heartbeatDeadline} from './heartbeat-job.mjs'
 import {mutationGuard,auditStatement,automated,type AuditActor} from './audit.server.ts'
-import {get,save,sha,same,type Bindings} from './control.server.ts'
+import {get,save,type Bindings} from './control.server.ts'
+import {sha,same} from './runner-crypto.ts'
 export async function issueHeartbeatKey(env:Bindings,id:string,actor:AuditActor=automated){
  let monitor=await get(env,id);
  if(!monitor||monitor.definition.type!=='heartbeat')throw Error('Heartbeat monitor required');

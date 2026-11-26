@@ -51,7 +51,7 @@ async function installation(){
   assert.equal(bindings.UPTIME_HEARTBEAT_URL,undefined,'the optional independent heartbeat is unconfigured');
   const emitted=resolve('dist/server'),config=JSON.parse(await readFile(join(emitted,'wrangler.json'),'utf8'));
   const wrapper=join(directory,'digest-envelope.mjs');
-  await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
+  await writeFile(wrapper,`import app from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))}; export {ScheduledWork} from ${JSON.stringify(relative(dirname(wrapper),join(emitted,config.main)))};
    const wallNow=Date.now;let clock;Date.now=()=>clock??wallNow();
    export default {async fetch(request,env,ctx){const input=await request.json();clock=input.clock;
     if(input.scheduled){await app.scheduled({scheduledTime:clock},env,ctx);return new Response(null,{status:204})}

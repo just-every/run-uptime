@@ -1,3 +1,4 @@
+import {settingsQuery,settingsOf,snapshotSettings} from './snapshot-policy.server.ts'
 import {observationsAt} from './check-evidence-query.ts'
 import {withDiagnosticPeers} from './network-diagnostic-peers.server.ts'
 import {discardFlowArtifacts} from './flow-artifacts.mjs'
@@ -7,7 +8,7 @@ import {TABLES} from './archive-schema.ts'
 import {installationLocalTables} from './archive-inventory.ts'
 import {findIncident} from './incident-work/common.server.ts'
 import type {Bindings} from './control.server.ts'
-import {get} from './control.server.ts'
+import {get} from './monitor-row.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {normalizeFailureSnapshot,captureFailureSnapshot,normalizeSafeValues} from './failure-snapshot.mjs'
 function scrubSnapshot(value:any,masks:string[],safeValues?:any,policyVersion?:number,screenshotEnabled=true){
@@ -23,11 +24,6 @@ function snapshotRow(row:any,snapshot:any){const {evidence,...metadata}=row;cons
 
 const day=86400000
 const missing=()=>Object.assign(Error('Monitor not found'),{status:404})
-const settingsQuery='SELECT version,retention_days,masks,safe_values,screenshot FROM failure_snapshot_settings WHERE monitor_id=?';
-function settingsOf(row:any){
- return {version:row?.version??0,retentionDays:row?.retention_days??90,masks:row?JSON.parse(row.masks):[],safeValues:row?normalizeSafeValues(JSON.parse(row.safe_values)):normalizeSafeValues(undefined),screenshot:Boolean(row?.screenshot)}
-}
-export async function snapshotSettings(env:Bindings,id:string){return settingsOf(await env.DB.prepare(settingsQuery).bind(id).first<any>())}
 // Select matching evidence by slot and observation key before unpacking it.
 const snapshotEvidence=`SELECT f.*,s.revision,o.value AS evidence,
  json_extract(o.value,'$.probe') AS probe,json_extract(o.value,'$.attempt') AS attempt
@@ -67,8 +63,9 @@ export async function eraseSnapshots(env:Bindings,id:string,actor:AuditActor){
  return {erased:true,receipt}
 }
 export async function snapshotStatements(env:Bindings,id:string,slotId:string,fresh:any[],guard:string,values:any[]){
+ if(!fresh.some(o=>o.failureSnapshot))return [];
  const settings=await snapshotSettings(env,id),statements:D1PreparedStatement[]=[]
- if(fresh.some(o=>o.failureSnapshot))statements.push(mutationGuard(env,'COALESCE((SELECT version FROM failure_snapshot_settings WHERE monitor_id=?),0)=?',[id,settings.version]))
+ statements.push(mutationGuard(env,'COALESCE((SELECT version FROM failure_snapshot_settings WHERE monitor_id=?),0)=?',[id,settings.version]))
  for(const observation of fresh){if(!observation.failureSnapshot)continue
   const snapshot=scrubSnapshot(observation.failureSnapshot,settings.masks,settings.safeValues,settings.version,settings.screenshot)
   statements.push(env.DB.prepare(`INSERT INTO failure_snapshots(observation_id,monitor_id,slot_id,captured_at,expires_at,snapshot) SELECT ?,?,?,?,?,? WHERE ${guard}`).bind(observation.id,id,slotId,observation.completedAt,observation.completedAt+settings.retentionDays*day,await storeSnapshot(env,{observation_id:observation.id,monitor_id:id,captured_at:observation.completedAt},snapshot),...values))

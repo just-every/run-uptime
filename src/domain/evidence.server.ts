@@ -1,3 +1,5 @@
+import {evidenceTimes,timestamp} from './evidence-clock.ts'
+export {COMPLETION_CLOCK_ALLOWANCE_MS} from './evidence-clock.ts'
 // @ts-ignore Shared native mail evidence.
 import {validateMailFacts} from './mail-probe/facts.mjs'
 // @ts-ignore
@@ -16,7 +18,7 @@ import {httpAssertionNames} from './http-assertions/config.mjs'
 // @ts-ignore Portable status sets and ranges.
 import {statusMatches} from './http-assertions/status.mjs'
 // @ts-ignore Provider claims can be absent without proving target failure.
-import {validDependencyMissingCheck} from './dependency-status.mjs'
+import {validDependencyMissingCheck} from './dependency-status-policy.mjs'
 // @ts-ignore A followed service's claim is recomputed by the catalog's shared evidence rules.
 import {validateClaimEvidence} from './service-catalog/followed.mjs'
 // @ts-ignore Edition flow vocabulary is JavaScript shared with the runner.
@@ -39,10 +41,6 @@ const targetErrors = new Set(['encoding', 'redirect', 'body-limit', 'transport',
 // debt: API-004 refused new setup while three cleanup debts of the monitor are open.
 const runnerErrors = new Set(['custody', 'runner', 'network', 'dns', 'browser', 'credential', 'grant', 'budget', 'vantage', 'registry', 'capacity', 'debt'])
 const responseErrors = new Set(['encoding', 'redirect', 'body-limit'])
-/** Live completion accepts runner clocks up to this far ahead of control-plane time. */
-export const COMPLETION_CLOCK_ALLOWANCE_MS = 1000
-const timestamp = (value: unknown): value is number => Number.isSafeInteger(value) && (value as number) >= 0
-
 interface Check { assertion: string; pass: boolean; reason: string }
 type ValidationMode = 'live-completion' | 'historical-restore'
 
@@ -204,9 +202,7 @@ export function validateEvidence(o: any, definition: any, dueAt: number, now: nu
   if (!o || typeof o !== 'object' || Array.isArray(o) || Object.keys(o).some(key => !fields.has(key)) ||
       typeof o.id !== 'string' || !o.id || o.id.length > 100 || !definition.probes.includes(o.probe) ||
       !Number.isInteger(o.attempt) || o.attempt < 0 || o.attempt > definition.retries ||
-      !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !timestamp(o.startedAt) || !timestamp(o.completedAt) ||
-      o.startedAt < dueAt || o.completedAt < o.startedAt || o.completedAt > now + COMPLETION_CLOCK_ALLOWANCE_MS ||
-      !timestamp(o.durationMs) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
+      !['uptime-node/0.1.0','uptime-worker/0.1.0'].includes(o.runnerVersion) || !evidenceTimes(o,dueAt,now) || !['pass', 'target_failure', 'runner_error'].includes(o.outcome) ||
       JSON.stringify(o).length > ((definition.type === 'flow' ? 4000 + FLOW_LIMITS.traceBytes + (o.fixtures ? 12000 : 0) : definition.type === 'pagespeed' ? 4000 + PAGESPEED_LIMITS.evidenceBytes : isProtocol(definition.type)||['api','mail'].includes(definition.type) ? 16000 : 4000) + (o.tlsTrust ? TLS_EVIDENCE_MAX_BYTES : 0) + (binding ? BINDING_DIAGNOSTIC_BYTES : 0) + (o.failureSnapshot ? FAILURE_SNAPSHOT_LIMITS.totalBytes : 0))) throw Error('Invalid observation evidence')
   validateTrust(o,definition);
   if(o.heartbeatJob!==undefined&&definition.type!=='heartbeat')throw Error('Unexpected heartbeat job evidence');
