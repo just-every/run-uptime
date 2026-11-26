@@ -2060,7 +2060,7 @@
       "executable": true
     },
     "docs/getting-started.md": {
-      "sha256": "7af43f3e44fac4348566e92710e1a1c80f5dc127324086adcdab4b71b6e86562",
+      "sha256": "dc8af62d75737522a0f08a252e2a02d16e5be7a86035277635da7951f92726ab",
       "executable": false
     },
     "docs/grafana/uptime-dashboard.json": {
@@ -2088,7 +2088,7 @@
       "executable": false
     },
     "docs/mfa.md": {
-      "sha256": "4738cee9d2fbe964508c69a96ce8bc988fbe3d24bed3e77da20f7583d6e318d9",
+      "sha256": "409634f5546ac045e67aa5340c1167ee1498fa5ac4911c18d53958f00a9e9609",
       "executable": false
     },
     "docs/migrating-betterstack.md": {
