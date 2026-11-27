@@ -14,7 +14,7 @@ const utf8=new TextEncoder();
 // Only the in-process executor can supply the immutable claim it just received.
 export async function completeHostedAttempts(env:Bindings,task:HostedClaimResult,attempts:any[]){
  const slot={id:task.id,monitor_id:task.monitorId,revision:task.revision,due_at:task.dueAt,lease_until:task.acceptUntil,
-  manual:false,status:'running'};
+  missed_count:task.missedCount,manual:false,status:'running'};
  const identified=attempts.map(o=>({...o,id:hostedObservationId(o.id,task.dueAt)}));
  // The claimed check's row in the scheduled tail, as its slot will read once this result writes it.
  const claimed={id:task.id,due_at:task.dueAt,lease_until:task.acceptUntil,assignments:JSON.stringify(task.probes.map(probe=>(

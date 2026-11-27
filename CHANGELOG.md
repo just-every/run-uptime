@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Slow and Slow recovered notices fire again for monitors checked by the Worker. Since 0.5.37 a Worker check was judged for Slow before its history row was written, so no Slow notice opened or closed for such a monitor; monitors checked by a signed runner were not affected. After a rollback to 0.5.39, a Slow notice this release opened on a Worker-checked monitor stays open until the installation is upgraded again.
+
 ### Changed
 
 - A healthy check by the Worker writes 2 database rows instead of 6, so Workers Free's 100,000 rows written a day go about three times as far. A check that passes with nothing to report (one passing attempt at each location, no incident, notice or snapshot, and a monitor that was Healthy and stays Healthy) no longer writes a history row of its own. It is kept with the monitor's availability record, stored every thirty checks, and reads everywhere as before: in history, the overview, reports, the read API, exports and erasure receipts. Any other check keeps its own row. Local measurements for eight one-minute monitors: about 24,900 rows written a day while healthy (71,400 before) and 36,400 with one failing all day (77,100 before); the minute run reads about 380,000 rows a day (526,000 before).
