@@ -521,7 +521,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "d9edbbf963dee86cdebcc952f52fbaf121d01357d135397e10c2f17f7024f270",
+      "sha256": "a97ddecf169defbd282819476b930fafa5d8041759f0055ee537964e9d2fb762",
       "executable": false
     },
     "CLAUDE.md": {
@@ -7681,7 +7681,7 @@
       "executable": false
     },
     "src/domain/failure-snapshot-sets.ts": {
-      "sha256": "3dc65b37f6e01ccb0b6e5dc61ae0e524c0a0dae4d461fe934aae4e107849e841",
+      "sha256": "0625b87cb2bd204775684618ef7ed29cc152349f8db6924021e7eb6588b8120f",
       "executable": false
     },
     "src/domain/failure-snapshot-text.d.mts": {
@@ -7701,7 +7701,7 @@
       "executable": false
     },
     "src/domain/failure-snapshots.server.ts": {
-      "sha256": "c516664053b24b29e4cef3b18fc96cab6130dff1ae2eee81f139f819d740f00a",
+      "sha256": "1a1d4658252c490e3db35669c2fe2ea1eb083a92ee0fcb8a6d6dedd022446221",
       "executable": false
     },
     "src/domain/first-run.server.ts": {
@@ -10457,7 +10457,7 @@
       "executable": false
     },
     "tests/hosted-alerts.mjs": {
-      "sha256": "3642af51e9058168f4eadb34e60f04b3884a0c16e1c0f7d30a8d64159ab2d822",
+      "sha256": "d1bc0d77a45c6a175368415ee690750f06d08ace0752103f71a0bacdee22eebb",
       "executable": false
     },
     "tests/hosted-auth-browser.mjs": {

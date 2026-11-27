@@ -2,6 +2,7 @@
 // several attempts of one check, under the first attempt's identity. Every reader sees one
 // snapshot for each attempt, with that attempt's own identity and capture time. Uptime 0.5.37
 // was the first version to read sets; it is the oldest version this writer may roll back to.
+import {FAILURE_SNAPSHOT_LIMITS} from './failure-snapshot.mjs'
 export type SnapshotRow={observation_id:string;monitor_id:string;captured_at:number;expires_at:number;snapshot:string;[column:string]:any}
 type Member={observationId:string;probe:string;attempt:number;capturedAt:number;snapshot:unknown}
 const isSet=(snapshot:string)=>snapshot.startsWith('{"set":[')
@@ -23,23 +24,24 @@ export async function rewriteSnapshots<T extends SnapshotRow>(row:T,rewrite:(mem
  return JSON.stringify({set:await Promise.all(members.map(async(member,index)=>({...set[index],snapshot:JSON.parse(await rewrite(member))})))});
 }
 
-// D1 refuses a row over 2,000,000 bytes. A set stays at half that, counted in UTF-8 bytes.
-const setBytes=1_000_000
+// A set row is never larger than one snapshot may be, so a read of stored rows is bounded as before. Counted in UTF-8 bytes.
+const setBytes=FAILURE_SNAPSHOT_LIMITS.totalBytes
 const bytes=(text:string)=>new TextEncoder().encode(text).length
-export type StoredSnapshot={observationId:string;probe:string;attempt:number;capturedAt:number;flow:boolean;stored:string}
-/** Packs one check's stored snapshots, earliest capture first, into as few rows as fit. A row
- * of one snapshot is stored as that snapshot. A flow attempt keeps its own row: readers take a
- * row's flow evidence from its first attempt. */
+export type StoredSnapshot={observationId:string;probe:string;attempt:number;capturedAt:number;alone:boolean;stored:string}
+/** Packs one check's stored snapshots, earliest capture first, into as few rows as fit. A row of one snapshot is stored as
+ * that snapshot. A snapshot marked `alone` keeps its own row: a flow attempt, because readers take a row's flow evidence from
+ * its first attempt, and one carrying a screenshot or artifacts, which history strips in SQL only from a single snapshot. */
 export function packSnapshots(snapshots:StoredSnapshot[]){
  const rows:StoredSnapshot[][]=[];let open:StoredSnapshot[]=[],size=0
  for(const snapshot of [...snapshots].sort((a,b)=>a.capturedAt-b.capturedAt||(a.probe<b.probe?-1:a.probe>b.probe?1:a.attempt-b.attempt))){
+  if(snapshot.alone){rows.push([snapshot]);continue}
   const member=bytes(memberText(snapshot))+1
-  if(snapshot.flow){rows.push([snapshot]);continue}
   if(open.length&&size+member>setBytes){rows.push(open);open=[];size=0}
   open.push(snapshot);size+=member
  }
  if(open.length)rows.push(open)
- return rows.map(members=>({first:members[0],snapshot:members.length===1?members[0].stored:`{"set":[${members.map(memberText).join(',')}]}`}))
+ // Rows are written, and so listed, in order of their first capture.
+ return rows.sort((a,b)=>a[0].capturedAt-b[0].capturedAt).map(members=>({first:members[0],snapshot:members.length===1?members[0].stored:`{"set":[${members.map(memberText).join(',')}]}`}))
 }
 const memberText=({observationId,probe,attempt,capturedAt,stored}:StoredSnapshot)=>
  `{"observationId":${JSON.stringify(observationId)},"probe":${JSON.stringify(probe)},"attempt":${attempt},"capturedAt":${capturedAt},"snapshot":${stored}}`

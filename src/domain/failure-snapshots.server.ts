@@ -73,9 +73,11 @@ export async function snapshotStatements(env:Bindings,id:string,slotId:string,fr
  const settings=await snapshotSettings(env,id),statements:D1PreparedStatement[]=[]
  statements.push(mutationGuard(env,'COALESCE((SELECT version FROM failure_snapshot_settings WHERE monitor_id=?),0)=?',[id,settings.version]))
  // Each snapshot is sealed under its own attempt's identity; the check's snapshots then share as few rows as fit.
- const stored=await Promise.all(fresh.filter(o=>o.failureSnapshot).map(async observation=>({observationId:observation.id,probe:observation.probe,attempt:observation.attempt,
-  capturedAt:observation.completedAt,flow:Boolean(observation.flow),stored:await storeSnapshot(env,{observation_id:observation.id,monitor_id:id,captured_at:observation.completedAt},
-   scrubSnapshot(observation.failureSnapshot,settings.masks,settings.safeValues,settings.version,settings.screenshot))})))
+ const stored=await Promise.all(fresh.filter(o=>o.failureSnapshot).map(async observation=>{
+  const snapshot=scrubSnapshot(observation.failureSnapshot,settings.masks,settings.safeValues,settings.version,settings.screenshot)
+  return {observationId:observation.id,probe:observation.probe,attempt:observation.attempt,capturedAt:observation.completedAt,
+   alone:Boolean(observation.flow||'screenshot' in snapshot||'artifacts' in snapshot),stored:await storeSnapshot(env,{observation_id:observation.id,monitor_id:id,captured_at:observation.completedAt},snapshot)}
+ }))
  for(const {first,snapshot} of packSnapshots(stored))
   statements.push(env.DB.prepare(`INSERT INTO failure_snapshots(observation_id,monitor_id,slot_id,captured_at,expires_at,snapshot) SELECT ?,?,?,?,?,? WHERE ${guard}`).bind(first.observationId,id,slotId,first.capturedAt,first.capturedAt+settings.retentionDays*day,snapshot,...values))
  return statements
