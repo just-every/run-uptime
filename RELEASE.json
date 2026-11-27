@@ -1,7 +1,7 @@
 {
-  "version": "0.5.39",
-  "publicReleaseNotes": "Uptime can read quiet Worker checks stored with a monitor's availability record. These checks appear in history, the overview, reports, the read API, exports and erasure receipts. This release continues writing each check in its own history row, so daily database writes stay at the 0.5.38 level. Migration 0100_quiet_checks.sql adds availability_buckets.checks without rewriting any rows. Rollback to 0.5.38 is safe with the column in place. Once 0.5.40 writes quiet checks, roll back to 0.5.39. Product screenshot available from Uptime 0.4.0 at 1440 pixels (.github/assets/release/uptime-0.4.0-monitor-1440.png). \u2014 Run Edit Run fleet, 2026-11-27",
+  "version": "0.5.40",
+  "publicReleaseNotes": "A healthy check by the Worker writes 2 database rows instead of 6, so Workers Free's 100,000 rows written a day go about three times as far. A check that passes with nothing to report no longer writes a history row of its own; it is kept with the monitor's availability record and reads everywhere as before: in history, the overview, reports, the read API, exports and erasure receipts. Local measurements for eight one-minute monitors: about 24,500 rows written a day while healthy (70,600 before). Slow and Slow recovered notices fire again for monitors checked by the Worker. No database migrations. Rollback to 0.5.39 is safe: it already reads such checks. Do not roll back to 0.5.38 or earlier once this release has run. Product screenshot available from Uptime 0.4.0 at 1440 pixels (.github/assets/release/uptime-0.4.0-monitor-1440.png). \u2014 Run Edit Run fleet, 2026-11-27",
   "sourceRepository": "https://github.com/just-every/run-uptime",
-  "previousVersion": "0.5.38",
+  "previousVersion": "0.5.39",
   "rer": "0.2.140"
 }

@@ -1,9 +1,10 @@
-# Release Uptime 0.5.39
+# Release Uptime 0.5.40
 
-Migration `0100_quiet_checks.sql` adds `availability_buckets.checks` without
-rewriting any rows. This release can read quiet checks from the column and
-continues writing the same history rows as 0.5.38. Rollback to 0.5.38 is safe
-with the column in place. Once 0.5.40 writes quiet checks, roll back to 0.5.39.
+This release adds no database migrations. A healthy Worker check is stored with
+the monitor's availability record instead of its own history row, using the
+`availability_buckets.checks` column that 0.5.39 added and already reads.
+Rollback to 0.5.39 is safe. Do not roll back to 0.5.38 or earlier once this
+release has run: those versions do not show such checks.
 
 Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
 0.2.140), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the

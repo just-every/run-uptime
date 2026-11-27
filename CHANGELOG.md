@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.40 — 2026-11-27
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
 ### Fixed
 
 - Slow and Slow recovered notices fire again for monitors checked by the Worker. Since 0.5.37 a Worker check was judged for Slow before its history row was written, so no Slow notice opened or closed for such a monitor; monitors checked by a signed runner were not affected. After a rollback to 0.5.39, a Slow notice this release opened on a Worker-checked monitor stays open until the installation is upgraded again.
@@ -9,9 +13,14 @@
 ### Changed
 
 - A healthy check by the Worker writes 2 database rows instead of 6, so Workers Free's 100,000 rows written a day go about three times as far. A check that passes with nothing to report (one passing attempt at each location, no incident, notice or snapshot, and a monitor that was Healthy and stays Healthy) no longer writes a history row of its own. It is kept with the monitor's availability record, stored every thirty checks, and reads everywhere as before: in history, the overview, reports, the read API, exports and erasure receipts. Any other check keeps its own row. Local measurements for eight one-minute monitors: about 24,500 rows written a day while healthy (70,600 before) and 36,200 with one failing all day (76,500 before); the minute run reads about 345,000 rows a day (527,000 before).
-- 0.5.39 already reads such checks, so a rollback to it loses nothing. Do not roll back further once this release has run: 0.5.38 keeps checking, but it does not show such checks in history, reports or exports until the installation is upgraded again, and it discards the ones not yet stored with their availability record: usually up to 29 for each monitor, and about twice that just after a monitor's interval was lengthened.
 - A check is stored this way only while its attempts and its claim fit in 3,000 bytes, so a monitor's record stays far below D1's 2 MB row limit; a larger check keeps its own history row.
 - Reads of a monitor leave its pending checks in the database instead of carrying them to the Worker.
+
+### Upgrading from 0.5.39
+
+- No database migrations. 0.5.39 already reads such checks, so a rollback to it loses nothing. Do not roll back further once this release has run: 0.5.38 keeps checking, but it does not show such checks in history, reports or exports until the installation is upgraded again, and it discards the ones not yet stored with their availability record: usually up to 29 for each monitor, and about twice that just after a monitor's interval was lengthened.
+
+— Run Edit Run fleet, 2026-11-27
 
 ## 0.5.39 — 2026-11-27
 
