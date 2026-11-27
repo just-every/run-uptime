@@ -1,5 +1,5 @@
 import type {Bindings} from '../control.server.ts'
-import {recentQuietSlots} from '../quiet-checks.ts'
+import {bucketsBetween,quietKeys,recentQuietSlots} from '../quiet-checks.ts'
 import type {ReportPeriod} from '../reports/period.ts'
 import {periodAvailability} from '../reports/coverage.server.ts'
 import type {StoredHistoryRow} from './preview.server.ts'
@@ -19,9 +19,17 @@ function without(spans:Span[],excluded:Span[]):Span[]{
 const figure=(denominatorMs:number,downMs:number)=>({denominatorMs,upMs:denominatorMs-downMs,notPassingMs:downMs,uptimePercent:denominatorMs?100*(denominatorMs-downMs)/denominatorMs:null})
 export async function historyCutover(env:Pick<Bindings,'DB'>,id:string){
  const first=await env.DB.prepare('SELECT MIN(due_at) at,MAX(due_at+CAST(json_extract(definition,\'$.intervalMs\') AS INTEGER)) last,MAX(due_at) newest FROM slots WHERE monitor_id=? AND manual=0').bind(id).first<{at:number|null;last:number|null;newest:number|null}>()
- // A monitor's first scheduled check always has a slot row; its newest may be a quiet check (quiet-checks.ts).
- const [quiet]=await recentQuietSlots(env.DB,id,1,{after:first?.newest??-1})
- if(first&&quiet)first.last=Math.max(first.last??0,quiet.due_at+JSON.parse(quiet.definition).intervalMs)
+ // A monitor's first scheduled check always has a slot row; later ones may be quiet checks (quiet-checks.ts). A check
+ // can end after the newest one only if it is due within the monitor's longest interval of it.
+ const longest=(await env.DB.prepare("SELECT MAX(CAST(json_extract(definition,'$.intervalMs') AS INTEGER)) longest FROM revisions WHERE monitor_id=?").bind(id).first<{longest:number|null}>())?.longest??0
+ const [quiet]=await recentQuietSlots(env.DB,id,1,{after:(first?.newest??0)-longest-1})
+ if(first&&quiet){
+  const newest=Math.max(first.newest??0,quiet.due_at)
+  const ends=await env.DB.prepare(`SELECT MAX(k.due_at+CAST(json_extract(r.definition,'$.intervalMs') AS INTEGER)) last
+   FROM (${quietKeys('?1',bucketsBetween('?2','?3'))}) k JOIN revisions r ON r.monitor_id=?1 AND r.revision=k.revision WHERE k.due_at>=?2 AND k.due_at<=?3`)
+   .bind(id,newest-longest,newest).first<{last:number|null}>()
+  first.last=Math.max(first.last??0,ends?.last??0)
+ }
  const override=await env.DB.prepare('SELECT cutover_at FROM source_history_cutovers WHERE monitor_id=?').bind(id).first<{cutover_at:number}>()
  return {at:override?.cutover_at??first?.at??null,mode:override?'owner':'first-scheduled-slot',firstSlotAt:first?.at??null,lastSlotTo:first?.last??null}
 }

@@ -14,9 +14,12 @@ export async function slowNotice(env:Bindings,monitor:any,slot:any,fresh:any[],n
  if(previous){const original=await env.DB.prepare('SELECT definition FROM revisions WHERE monitor_id=? AND revision=?').bind(monitor.id,previous.monitorRevision).first<{definition:string}>();const saved=original?JSON.parse(original.definition):null;policy=saved?.slow?{...saved.slow,locations:saved.slow.locations==='all'?saved.probes:saved.slow.locations}:null;}
  if(!policy)return null;
  const storedRows=(await env.DB.prepare('SELECT id,due_at,manual,missed_count FROM slots WHERE monitor_id=? AND revision=? AND manual=0 ORDER BY due_at DESC LIMIT 100').bind(monitor.id,monitor.revision).all<any>()).results;
- // The window also counts the revision's quiet checks (quiet-checks.ts), whose evidence travels with them.
- const rows=await withQuietSlots<any>(env.DB,monitor.id,storedRows,100,{revision:monitor.revision});
- if(rows[0]?.id!==slot.id)return null; // late historical arrivals cannot regress current degradation
+ // A quiet check (quiet-checks.ts) is never the slot being accepted, so the newest slot row decides first.
+ if(storedRows[0]?.id!==slot.id)return null; // late historical arrivals cannot regress current degradation
+ // The window also counts the revision's quiet checks, whose evidence travels with them: none is older than the revision.
+ const started=await env.DB.prepare('SELECT created_at FROM revisions WHERE monitor_id=? AND revision=?').bind(monitor.id,monitor.revision).first<{created_at:number}>();
+ const rows=await withQuietSlots<any>(env.DB,monitor.id,storedRows,100,{revision:monitor.revision,after:(started?.created_at??0)-1});
+ if(rows[0]?.id!==slot.id)return null;
  const quiet=rows.filter(row=>typeof row.hosted==='string');
  const stored=[...(await env.DB.prepare(`SELECT selected.value AS slot_id,json_extract(o.value,'$.probe') AS probe,o.value AS evidence
   FROM json_each(?) selected CROSS JOIN json_each((

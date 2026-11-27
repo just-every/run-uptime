@@ -2600,6 +2600,10 @@
       "sha256": "b496bceff459ba0285da20047960050885175a5b68d3cd915c2776b8ecc0e80f",
       "executable": false
     },
+    "migrations/0100_quiet_checks.sql": {
+      "sha256": "7ceff0d07d4ecebf235b80184f29f4b71ceb0df13cc0197078791a7f76ec6860",
+      "executable": false
+    },
     "OPERATIONS.json": {
       "sha256": "1d0d8857c00d9b84210c7a1a284fcf0688fbf9a3bb05f29fc8c4f531c73e214b",
       "executable": false
@@ -7769,7 +7773,7 @@
       "executable": false
     },
     "src/domain/hosted-availability.server.ts": {
-      "sha256": "c7776c8fb565f9e32757ab5642870716e0f581c20820c167f42789c2e548b3fe",
+      "sha256": "4490a991837b58c237232056487ded66006c6c5843fc7001edce3f43b2decd07",
       "executable": false
     },
     "src/domain/hosted-lease.server.ts": {
@@ -7781,7 +7785,7 @@
       "executable": false
     },
     "src/domain/hosted-results.server.ts": {
-      "sha256": "5f1395e42974d80dea188e2898e1acc9be70c479c6396d0f5b6ffd2f4d05097a",
+      "sha256": "1e43c548411f3e8c42d970a195f23d8ea27b85037ab78d80b1bc24afc4e3a11f",
       "executable": false
     },
     "src/domain/hosted-runner.ts": {
@@ -8232,6 +8236,10 @@
       "sha256": "046829e8c85e5ceb490ef399cf17cb3b80edc9ec7920e9c01f3a20de435d563f",
       "executable": false
     },
+    "src/domain/quiet-checks.ts": {
+      "sha256": "5da7bef77f66540bbd5ac8e540d260b61143e3141c2fde17de6f8daad975f29d",
+      "executable": false
+    },
     "src/domain/read-api-openapi.ts": {
       "sha256": "3a76f1550c39b1fd64715a67b2073f761d74db8365a8539ebc1fd1d9b95d9818",
       "executable": false
@@ -8457,7 +8465,7 @@
       "executable": false
     },
     "src/domain/slow-notices.server.ts": {
-      "sha256": "e9e71ec6d5901a5bdaf790f0447e018d9962e3940a6303fc2698d3e85283fa6e",
+      "sha256": "352a0df8c8a5873eae41e3abb9990224c083a813561de3a2acaaada1c1c13816",
       "executable": false
     },
     "src/domain/slow-policy.mjs": {
@@ -8517,7 +8525,7 @@
       "executable": false
     },
     "src/domain/source-history/segments.server.ts": {
-      "sha256": "5cb7c6e1a08c1a23044c85ab81ccd5a53fb3299a0e4258b37d9c60458fa7f2ca",
+      "sha256": "799c129bf383da27a8c13551cb2ceeda52a98c9a826e8e2c33fc9e6341c163f5",
       "executable": false
     },
     "src/domain/startup-config.d.mts": {

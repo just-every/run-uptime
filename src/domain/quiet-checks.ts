@@ -8,6 +8,11 @@
 /** The widest availability bucket. A check due at T is in a bucket that starts in (T-BUCKET_REACH, T]. */
 export const BUCKET_REACH=21_600_000
 
+/** The width of the availability bucket of a check whose definition has interval `interval` (a SQL expression):
+ * the widths of availability_bucket_slots (migration 0096), for a check that has no slot row to be projected from. */
+export const bucketWidth=(interval:string)=>`(CASE WHEN ${interval}<10000 THEN 1800000 WHEN ${interval}<20000 THEN 3600000
+  WHEN ${interval}<30000 THEN 7200000 WHEN ${interval}<60000 THEN 10800000 ELSE ${BUCKET_REACH} END)`
+
 export type QuietSlot={id:string;monitor_id:string;revision:number;due_at:number;status:'complete';definition:string;
  lease_owner:'';lease_until:number;missed_count:number;manual:0;hosted:string}
 
@@ -38,11 +43,12 @@ export function quietKeys(monitor:Monitors,buckets:string){
  return `${stored(monitor,buckets,false)} UNION ALL ${waiting(monitor,false)}`
 }
 
-/** The attempts of the quiet check `id` of `monitor`, due at `due`: a JSON array, or NULL when it is not a quiet check. */
-export function quietAttempts(monitor:string,id:string,due:string){
+/** The attempts of the quiet check `id` of `monitor`, due at `due` under a definition with interval `interval`: a JSON
+ * array, or NULL when it is not a quiet check. Reads the monitor's own row and at most the one bucket of that time. */
+export function quietAttempts(monitor:string,id:string,due:string,interval:string){
  return `COALESCE((SELECT json_extract(m.hosted_availability_tail,'$.'||json_quote(${id})||'[8][2].attempts') FROM monitors m WHERE m.id=${monitor}),
   (SELECT json_extract(b.checks,'$.'||json_quote(${id})||'[2].attempts') FROM availability_buckets b WHERE b.monitor_id=${monitor}
-    AND b.starts_at>${due}-${BUCKET_REACH} AND b.starts_at<=${due} AND json_type(b.checks,'$.'||json_quote(${id})) IS NOT NULL LIMIT 1))`
+    AND b.starts_at=${due}/${bucketWidth(interval)}*${bucketWidth(interval)}))`
 }
 
 /** Buckets (alias b) that can hold a check due in [`from`,`through`]. */

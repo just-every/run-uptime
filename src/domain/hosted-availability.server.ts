@@ -1,4 +1,5 @@
 import type {SlotRollup} from './availability-buckets.server.ts'
+import {bucketWidth} from './quiet-checks.ts'
 
 const slotsPerFlush=15
 
@@ -53,12 +54,7 @@ export function hostedAvailabilityRecord(
    Number(valid),clock(heartbeatExpires),clock(canaryAt),samples],canaryLimit];
 }
 
-// The widths of availability_bucket_slots (migration 0096), for a check that has no slot row to be projected from.
-const bucketStart=(entry:string)=>`json_extract(${entry},'$[1]')/(CASE WHEN json_extract(${entry},'$[5]')<10000 THEN 1800000
-  WHEN json_extract(${entry},'$[5]')<20000 THEN 3600000 WHEN json_extract(${entry},'$[5]')<30000 THEN 7200000
-  WHEN json_extract(${entry},'$[5]')<60000 THEN 10800000 ELSE 21600000 END)*(CASE WHEN json_extract(${entry},'$[5]')<10000 THEN 1800000
-  WHEN json_extract(${entry},'$[5]')<20000 THEN 3600000 WHEN json_extract(${entry},'$[5]')<30000 THEN 7200000
-  WHEN json_extract(${entry},'$[5]')<60000 THEN 10800000 ELSE 21600000 END)`
+const bucketStart=(entry:string)=>`json_extract(${entry},'$[1]')/${bucketWidth(`json_extract(${entry},'$[5]')`)}*${bucketWidth(`json_extract(${entry},'$[5]')`)}`
 
 // Flush the pending records within the acceptance transaction. The monitor
 // update that follows either clears the flushed tail or appends this slot.
