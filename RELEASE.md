@@ -1,6 +1,9 @@
-# Release Uptime 0.5.37
+# Release Uptime 0.5.38
 
-Migration `0099_hosted_claims.sql` adds `monitors.hosted_claim` without rewriting any rows.
+This release adds no database migrations. After a failing check is recorded,
+0.5.37 is the earliest version that can read its grouped snapshots. After a
+rollback to 0.5.37, a monitor erasure receipt counts each stored snapshot set
+as one snapshot. The erasure still removes every snapshot in the set.
 
 Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
 0.2.140), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
