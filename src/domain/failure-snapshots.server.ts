@@ -11,7 +11,7 @@ import type {Bindings} from './control.server.ts'
 import {get} from './monitor-row.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {normalizeFailureSnapshot,captureFailureSnapshot,normalizeSafeValues} from './failure-snapshot.mjs'
-import {snapshotMembers,snapshotCount,rewriteSnapshots} from './failure-snapshot-sets.ts'
+import {snapshotMembers,snapshotCount,rewriteSnapshots,packSnapshots} from './failure-snapshot-sets.ts'
 function scrubSnapshot(value:any,masks:string[],safeValues?:any,policyVersion?:number,screenshotEnabled=true){
  const snapshot=normalizeFailureSnapshot(value);if('unavailable' in snapshot)return snapshot
  if(!screenshotEnabled||policyVersion!==undefined&&snapshot.policyVersion!==policyVersion){
@@ -72,10 +72,12 @@ export async function snapshotStatements(env:Bindings,id:string,slotId:string,fr
  if(!fresh.some(o=>o.failureSnapshot))return [];
  const settings=await snapshotSettings(env,id),statements:D1PreparedStatement[]=[]
  statements.push(mutationGuard(env,'COALESCE((SELECT version FROM failure_snapshot_settings WHERE monitor_id=?),0)=?',[id,settings.version]))
- for(const observation of fresh){if(!observation.failureSnapshot)continue
-  const snapshot=scrubSnapshot(observation.failureSnapshot,settings.masks,settings.safeValues,settings.version,settings.screenshot)
-  statements.push(env.DB.prepare(`INSERT INTO failure_snapshots(observation_id,monitor_id,slot_id,captured_at,expires_at,snapshot) SELECT ?,?,?,?,?,? WHERE ${guard}`).bind(observation.id,id,slotId,observation.completedAt,observation.completedAt+settings.retentionDays*day,await storeSnapshot(env,{observation_id:observation.id,monitor_id:id,captured_at:observation.completedAt},snapshot),...values))
- }
+ // Each snapshot is sealed under its own attempt's identity; the check's snapshots then share as few rows as fit.
+ const stored=await Promise.all(fresh.filter(o=>o.failureSnapshot).map(async observation=>({observationId:observation.id,probe:observation.probe,attempt:observation.attempt,
+  capturedAt:observation.completedAt,flow:Boolean(observation.flow),stored:await storeSnapshot(env,{observation_id:observation.id,monitor_id:id,captured_at:observation.completedAt},
+   scrubSnapshot(observation.failureSnapshot,settings.masks,settings.safeValues,settings.version,settings.screenshot))})))
+ for(const {first,snapshot} of packSnapshots(stored))
+  statements.push(env.DB.prepare(`INSERT INTO failure_snapshots(observation_id,monitor_id,slot_id,captured_at,expires_at,snapshot) SELECT ?,?,?,?,?,? WHERE ${guard}`).bind(first.observationId,id,slotId,first.capturedAt,first.capturedAt+settings.retentionDays*day,snapshot,...values))
  return statements
 }
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- A failing check now stores the failure snapshots of all its attempts in one row, which Uptime 0.5.37 already reads. A Worker check that fails with one retry writes 4 rows for its snapshots instead of 8. Local measurement for eight one-minute monitors with one failing all day: about 76,500 rows written a day (82,300 before). Each attempt still reads, exports and erases as its own snapshot, and erasure receipts count snapshots. Do not roll back past 0.5.37 once a check has failed: 0.5.36 cannot read these rows.
+
 ## 0.5.37 — 2026-11-27
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).

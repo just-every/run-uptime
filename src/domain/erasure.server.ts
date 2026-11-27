@@ -4,6 +4,7 @@ import {discoveryMonitorErasureTables,discoveryOperatorErasure} from './discover
 import {createPortability} from '@runeditrun/rer/modules/portability'
 import {erasureRelations,operatorMailRelated,dependencyAckErasure,dependencyTimelineErasure} from './erasure-relations.ts'
 import {TABLES} from './archive-schema.ts'
+import {snapshotMembers} from './failure-snapshot-sets.ts'
 import {installationLocalTables} from './archive-inventory.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import type {Bindings} from './control.server.ts'
@@ -107,7 +108,8 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
   const rows=(await env.DB.prepare(`SELECT rowid AS _rowid_,* FROM ${plan.table} WHERE ${plan.where}`).bind(...plan.args).all<any>()).results;
   const info=(await env.DB.prepare(`PRAGMA table_info(${plan.table})`).all<any>()).results.filter(r=>r.pk).sort((a,b)=>a.pk-b.pk);
   statements.push(mutationGuard(env,`(SELECT COUNT(*) FROM ${plan.table} WHERE ${plan.where})=?`,[...plan.args,rows.length]));
-  counts[plan.table]=(counts[plan.table]??0)+rows.length;
+  // A stored failure snapshot row can hold one snapshot for each attempt of a check; the receipt counts snapshots.
+  counts[plan.table]=(counts[plan.table]??0)+(plan.table==='failure_snapshots'?rows.reduce((sum,row)=>sum+snapshotMembers(row).length,0):rows.length);
   for(const row of rows){
    if(plan.table==='slots'&&row.hosted){
     const hosted=JSON.parse(row.hosted);
