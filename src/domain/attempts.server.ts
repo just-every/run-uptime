@@ -9,6 +9,8 @@ import {finalAttempts,terminalSlot,projectAttempts,foldAttempts} from './attempt
 import {attemptSnapshot,checkpointStatement,type AttemptClockRow,type ClaimedSlot} from './attempt-checkpoint.server.ts'
 import {classifyAttempts} from './attempt-classification.ts'
 import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
+import {QUIET_CONTENT_BYTES} from './quiet-checks.ts'
+const utf8=new TextEncoder();
 // Only the in-process executor can supply the immutable claim it just received.
 export async function completeHostedAttempts(env:Bindings,task:HostedClaimResult,attempts:any[]){
  const slot={id:task.id,monitor_id:task.monitorId,revision:task.revision,due_at:task.dueAt,lease_until:task.acceptUntil,
@@ -60,7 +62,7 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
   const slotEvidence=[...slotStored.map(row=>JSON.parse(row.evidence)),...evidence];
   for(const probe of definition.probes){const chain=slotEvidence.filter(o=>o.probe===probe).sort((a,b)=>a.attempt-b.attempt);if(chain.some((o,i)=>i<chain.length-1&&o.outcome!=='target_failure'))throw Error('Contradictory retry evidence')}
   const context=await monitorContext(env,slot.monitor_id);if(!context)throw Error('Monitor absent');
-  const {monitor:m,followed,last,slow}=context;
+  const {monitor:m,previous,claimBytes,followed,last,slow}=context;
   const classified=classifyAttempts(definition,snapshot.slots,combined,now);
   const state=projectAttempts(definition,classified,combined,now,snapshot.checkpoint),current=m.revision===slot.revision&&!slot.manual;
   // Followed catalog services raise dependency notices on the same confirmed transitions.
@@ -78,18 +80,9 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
   const terminal=terminalSlot(definition,slotEvidence);
   const availability=hosted?JSON.stringify(hostedAvailabilityRecord(
    {...slot,status:terminal?'complete':slot.status},definition,slotEvidence)):'';
+  // A Worker result's own statements are chosen below, once its other effects are known.
   const statements:D1PreparedStatement[]=[];
-  if(hosted){
-   // Compare both native and hosted evidence under the D1 transaction. The
-   // same monitor write publishes the new clock, state and settled checkpoint.
-   const guard=`json_extract(m.hosted_claim,'$.leaseUntil')>MAX(?,CAST((julianday('now')-2440587.5)*86400000 AS INTEGER))
-    AND m.hosted_generation=? AND EXISTS(SELECT 1 FROM evidence_generation g WHERE g.monitor_id=m.id AND g.generation=?)
-    AND EXISTS(SELECT 1 FROM runners WHERE runner_id=? AND revoked_at IS NULL)
-    AND NOT EXISTS(SELECT 1 FROM observations WHERE id IN(SELECT value FROM json_each(?)))`;
-   statements.push(hostedResultStatement(env,slot,freshRows,definition,hosted.encodedDefinition,terminal,availability,guard,
-    [Date.now(),hostedGeneration,generation,runnerId,JSON.stringify(fresh.map((o:any)=>o.id))]),
-    mutationGuard(env,'changes()=1'),hostedAvailabilityStatement(env.DB,slot.id,m.id));
-  }else{
+  if(!hosted){
    statements.push(env.DB.prepare(`UPDATE evidence_generation SET generation=generation+1,projection_id=?
     WHERE monitor_id=? AND generation=? AND EXISTS(SELECT 1 FROM monitors WHERE id=monitor_id AND hosted_generation=?)
     AND ${authority}`).bind(crypto.randomUUID(),slot.monitor_id,generation,hostedGeneration,slot.id,Date.now(),runnerId),
@@ -151,19 +144,45 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
   if(hosted){
    // Unlike a signed runner, the Worker has supplied all attempts at
    // once. Fold this result if no earlier mutable slot blocks the cursor.
-   const update=terminal&&classified[0]?.id===slot.id?{
+   const folded=terminal&&classified[0]?.id===slot.id;
+   const update=folded?{
     dueAt:slot.due_at,slotId:slot.id,checkpoint:foldAttempts(definition,[classified[0]],combined,snapshot.checkpoint),
    }:snapshot.checkpointUpdate;
    const checkpoint=update?JSON.stringify({...update,revision:slot.revision}):null;
+   // Compare both native and hosted evidence under the D1 transaction. The
+   // same monitor write publishes the new clock, state and settled checkpoint.
+   const guard=`json_extract(m.hosted_claim,'$.leaseUntil')>MAX(?,CAST((julianday('now')-2440587.5)*86400000 AS INTEGER))
+    AND m.hosted_generation=? AND EXISTS(SELECT 1 FROM evidence_generation g WHERE g.monitor_id=m.id AND g.generation=?)
+    AND EXISTS(SELECT 1 FROM runners WHERE runner_id=? AND revoked_at IS NULL)
+    AND NOT EXISTS(SELECT 1 FROM observations WHERE id IN(SELECT value FROM json_each(?)))`;
+   const guardValues=[Date.now(),hostedGeneration,generation,runnerId,JSON.stringify(fresh.map((o:any)=>o.id))];
+   // A quiet check (quiet-checks.ts) passed with nothing to report: one passing attempt at each location, no
+   // other statement to write, a monitor that was Healthy with no incident open and stays so, and a checkpoint
+   // that already covers it. It writes no slot row: its content joins its record on the monitor's tail.
+   const quiet=folded&&current&&!followed&&!open&&!statements.length&&previous.state==='Healthy'&&state.state==='Healthy'&&
+    !slotStored.length&&evidence.length===definition.probes.length&&
+    evidence.every((o:any)=>o.attempt===0&&o.outcome==='pass'&&(!o.canary||o.canary.outcome==='pass'))&&
+    utf8.encode(JSON.stringify(evidence)).length+claimBytes<=QUIET_CONTENT_BYTES?
+    {attempts:JSON.stringify(evidence),receipts:JSON.stringify(Object.fromEntries(evidence.map((o:any)=>[o.probe,{0:now}])))}:undefined;
+   statements.unshift(...(quiet?[
+    // An edit between the read above and this write makes the check another revision's: the guard refuses, and the
+    // retry below writes it as a slot row, since only the current revision's checkpoint covers a quiet check.
+    mutationGuard(env,`EXISTS(SELECT 1 FROM monitors m WHERE m.id=? AND m.revision=? AND m.hosted_slot=? AND json_extract(m.hosted_claim,'$.id')=m.hosted_slot
+     AND NOT EXISTS(SELECT 1 FROM slots WHERE id=m.hosted_slot) AND ${guard})`,[m.id,slot.revision,slot.id,...guardValues]),
+   ]:[
+    hostedResultStatement(env,slot,freshRows,definition,hosted.encodedDefinition,terminal,availability,guard,guardValues),
+    mutationGuard(env,'changes()=1'),
+   ]),hostedAvailabilityStatement(env.DB,slot.id,m.id,availability,quiet));
    statements.push(env.DB.prepare(`UPDATE monitors
     SET hosted_generation=hosted_generation+1,
         hosted_claim=CASE WHEN hosted_slot=?5 THEN NULL ELSE hosted_claim END,
         hosted_slot=CASE WHEN hosted_slot=?5 AND ?7 THEN NULL ELSE hosted_slot END,
-        hosted_availability_tail=${hostedAvailabilityTail('?5','?8')},
+        hosted_availability_tail=${hostedAvailabilityTail('?5','?8',quiet&&{attempts:'?9',receipts:'?10'})},
         state=CASE WHEN revision=?2 THEN ?3 ELSE state END,
         next_due=CASE WHEN revision=?2 AND ?4 IS NOT NULL THEN MAX(next_due,?4) ELSE next_due END,
         hosted_checkpoint=CASE WHEN revision=?2 THEN COALESCE(?6,hosted_checkpoint) ELSE hosted_checkpoint END
-    WHERE id=?1`).bind(m.id,slot.revision,JSON.stringify(state),next,slot.id,checkpoint,Number(terminal),availability));
+    WHERE id=?1`).bind(m.id,slot.revision,JSON.stringify(state),next,slot.id,checkpoint,Number(terminal),availability,
+     ...(quiet?[quiet.attempts,quiet.receipts]:[])));
   }else if(current){
    statements.push(env.DB.prepare(`UPDATE monitors SET state=?,next_due=CASE WHEN ? IS NULL OR
     (json_extract(definition,'$.type')='heartbeat' AND next_due<=?) THEN next_due ELSE MAX(next_due,?) END
@@ -178,9 +197,9 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
     env.DB.prepare("SELECT 1 FROM monitors m JOIN runners ON runners.runner_id=? WHERE m.id=? AND m.hosted_slot=? AND json_extract(m.hosted_claim,'$.id')=m.hosted_slot AND json_extract(m.hosted_claim,'$.leaseUntil')>? AND runners.revoked_at IS NULL").bind(runnerId,slot.monitor_id,slot.id,Date.now()):
     env.DB.prepare("SELECT 1 FROM slots JOIN runners ON runners.runner_id=? WHERE slots.id=? AND slots.status IN ('running','complete') AND slots.lease_until>? AND runners.revoked_at IS NULL").bind(runnerId,slot.id,Date.now());
    if(!await authorized.first())throw Error('Acceptance authority expired');
-   const latest=await env.DB.prepare(`SELECT generation,hosted_generation FROM evidence_generation g JOIN monitors m ON m.id=g.monitor_id
-    WHERE g.monitor_id=?`).bind(slot.monitor_id).first<{generation:number;hosted_generation:number}>();
-   if(latest?.generation===generation&&latest.hosted_generation===hostedGeneration)throw error;
+   const latest=await env.DB.prepare(`SELECT generation,hosted_generation,m.revision FROM evidence_generation g JOIN monitors m ON m.id=g.monitor_id
+    WHERE g.monitor_id=?`).bind(slot.monitor_id).first<{generation:number;hosted_generation:number;revision:number}>();
+   if(latest?.generation===generation&&latest.hosted_generation===hostedGeneration&&latest.revision===m.revision)throw error;
    continue;
   }
   if(current&&definition.type==='heartbeat')await (await import('./heartbeat-jobs.server.ts')).scheduleHeartbeatEvaluation(env,m.id,false,Math.max(...attempts.map((o:any)=>o.heartbeatJob?.failure?.at??o.heartbeatJob?.receivedAt??o.heartbeatJob?.baselineAt??0)));
@@ -196,7 +215,7 @@ type FollowedService={entry_id:string;catalog_version:number;scope:'component'|'
 async function monitorContext(env:Bindings,id:string){
  // Only the newest incident (or dependency notice) and latency transition can
  // affect this result. Keep both lookups on the monitor-and-kind index.
- const row=await env.DB.prepare(`SELECT m.id,m.revision,m.definition,
+ const row=await env.DB.prepare(`SELECT m.id,m.revision,m.definition,m.state,COALESCE(length(CAST(m.hosted_claim AS BLOB)),0) AS claim_bytes,
    f.entry_id,f.catalog_version,f.scope,
    (SELECT json_object('kind',kind,'event',event) FROM outbox
     WHERE monitor_id=m.id AND status<>'imported-inactive'
@@ -208,11 +227,15 @@ async function monitorContext(env:Bindings,id:string){
        WHERE monitor_id=m.id AND kind='slow_recovery' AND status<>'imported-inactive'),0)
      ORDER BY rowid DESC LIMIT 1) AS slow
   FROM monitors m LEFT JOIN followed_services f ON f.monitor_id=m.id WHERE m.id=?`)
-  .bind(id).first<{id:string;revision:number;definition:string;latest:string|null;slow:string|null}
+  .bind(id).first<{id:string;revision:number;definition:string;state:string;claim_bytes:number;latest:string|null;slow:string|null}
     & (FollowedService|{entry_id:null;catalog_version:null;scope:null})>();
  if(!row)return null;
  return {
   monitor:{id:row.id,revision:row.revision,definition:JSON.parse(row.definition)},
+  // The state the monitor's last accepted result left.
+  previous:JSON.parse(row.state) as {state?:string},
+  // The size of the claim the monitor holds: a quiet check stores the claim's delivery envelope with its attempts.
+  claimBytes:row.claim_bytes,
   followed:row.entry_id===null?null:{entry_id:row.entry_id,catalog_version:row.catalog_version,scope:row.scope},
   last:row.latest?JSON.parse(row.latest):null,
   slow:row.slow?JSON.parse(row.slow):null,

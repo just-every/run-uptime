@@ -11,8 +11,10 @@ export async function proveFinishedIncidentsStayOffCron(worker, db, tick) {
   return report.rows;
  };
  const {id:monitor} = await db.prepare('SELECT id FROM monitors LIMIT 1').first();
+ // About one run in thirty also stores its monitors' pending checks. The quietest of three runs never does.
+ const quietest = async first => Math.min(await cronReads(first), await cronReads(first + minute), await cronReads(first + 2 * minute));
  await cronReads(tick);
- const before = await cronReads(tick + minute);
+ const before = await quietest(tick + minute);
  const past = 300, statements = [];
  for (let i = 0; i < past; i++) {
   const at = tick - (past - i + 10) * 3_600_000, key = `past-${i}`;
@@ -27,8 +29,8 @@ export async function proveFinishedIncidentsStayOffCron(worker, db, tick) {
    VALUES(?,?,?,?,0,0,NULL,1,0)`).bind(`trigger-${key}:job`, monitor, key, at));
  }
  for (let i = 0; i < statements.length; i += 400) await db.batch(statements.slice(i, i + 400));
- await cronReads(tick + 2 * minute);
- const after = await cronReads(tick + 3 * minute);
+ await cronReads(tick + 4 * minute);
+ const after = await quietest(tick + 5 * minute);
  assert.ok(after <= before + 30, `Cron read ${after} rows with ${past} finished incidents, against ${before} with none`);
  console.log(`Cron with ${past} finished incidents: ${after} D1 rows read, ${before} before them`);
 }

@@ -1,4 +1,4 @@
-import {get,monitorRow} from './monitor-row.server.ts'
+import {get,monitorColumns,monitorRow} from './monitor-row.server.ts'
 export {get} from './monitor-row.server.ts'
 import {observationsAt,assignmentsAt} from './check-evidence-query.ts'
 import {recentQuietSlots} from './quiet-checks.ts'
@@ -49,7 +49,7 @@ async function currentMonitorState(env:Bindings,m:ReturnType<typeof monitorRow>,
 // The watch needs the same evidence and recovery rules as the overview.
 export async function currentTargetsHealthy(env:Bindings){
  const now=Date.now();
- const {results}=await env.DB.prepare('SELECT * FROM monitors').all<any>();
+ const {results}=await env.DB.prepare(`SELECT ${monitorColumns} FROM monitors`).all<any>();
  const enabled=results.map(monitorRow).filter(m=>m.definition.enabled);
  const states=await Promise.all(enabled.map(m=>currentMonitorState(env,m,now)));
  return states.every(state=>state.targetState==='Healthy');
@@ -79,7 +79,7 @@ export async function overview(env:Bindings,{monitorId,readOnly=false,list}:{mon
  // The first runner rows exist after the first overview; only an installation still missing one writes them, then reads again.
  const present=async()=>{const [runners,legacy]=await Promise.all([listRunners(env),runnerIdentity(env)]);return legacy&&(!hostedInstallation(env)||runners.some((r:any)=>r.hosted))?{runners,legacy}:null};
  const [found,rows,alerts,started,contact,external,notifications,preferences,name]=await Promise.all([present(),
-  (monitorId===undefined?env.DB.prepare('SELECT * FROM monitors ORDER BY rowid'):env.DB.prepare('SELECT * FROM monitors WHERE id=?').bind(monitorId)).all<any>(),
+  (monitorId===undefined?env.DB.prepare(`SELECT ${monitorColumns} FROM monitors ORDER BY rowid`):env.DB.prepare(`SELECT ${monitorColumns} FROM monitors WHERE id=?`).bind(monitorId)).all<any>(),
   (monitorId===undefined?env.DB.prepare('SELECT * FROM outbox ORDER BY rowid DESC LIMIT 200'):env.DB.prepare('SELECT * FROM outbox WHERE monitor_id=? ORDER BY rowid DESC LIMIT 200').bind(monitorId)).all<any>(),
   cronStarted(env),readContact(env.DB,now),externalCheck(env),monitorId===undefined&&!readOnly?notificationOverview(env):null,monitorId===undefined&&!readOnly?null:notificationPreferences(env),installationName(env)]);
  const {runners,legacy}=found??(readOnly?{runners:await listRunners(env),legacy:await runnerIdentity(env)}:(await ensureFirstRunner(env),(await present())!));
