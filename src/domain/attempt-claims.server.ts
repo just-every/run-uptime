@@ -1,4 +1,4 @@
-import {get} from './monitor-row.server.ts'
+import {get,monitorColumns} from './monitor-row.server.ts'
 import {expireCheckLeases} from './hosted-lease.server.ts'
 import {agentRunnerTask} from '../agent-door/work.server.ts'
 import {runnerIdentity} from './runner-registration.server.ts'
@@ -41,7 +41,7 @@ async function nativeClaimAttempt(env:Bindings,runnerId:string,monitorId:string|
   if(!slot){
    const target=monitorId===null?'':'AND id=?3';
    const bindings=monitorId===null?[dueThrough??now,runnerId]:[dueThrough??now,runnerId,monitorId];
-   const due=(await env.DB.prepare(`SELECT * FROM monitors WHERE next_due<=?1 AND json_extract(definition,'$.enabled')=1 ${target} AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(monitors.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?2)) ORDER BY next_due`).bind(...bindings).all<any>()).results;
+   const due=(await env.DB.prepare(`SELECT ${monitorColumns} FROM monitors WHERE next_due<=?1 AND json_extract(definition,'$.enabled')=1 ${target} AND (json_extract(definition,'$.assignments') IS NULL OR EXISTS(SELECT 1 FROM json_each(json_extract(monitors.definition,'$.assignments')) a WHERE json_extract(a.value,'$.runnerId')=?2)) ORDER BY next_due`).bind(...bindings).all<any>()).results;
    // Calendar filtering considers every due monitor: a paused first row must
    // never starve unrelated monitors, or move their configured schedule.
    const admittedDue=[];for(const row of due)if(await allowed(row))admittedDue.push(row);

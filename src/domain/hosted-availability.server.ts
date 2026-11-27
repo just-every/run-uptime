@@ -1,7 +1,12 @@
 import type {SlotRollup} from './availability-buckets.server.ts'
 import {bucketWidth} from './quiet-checks.ts'
 
-const slotsPerFlush=15
+const slotsPerFlush=30
+// The tail is flushed once its oldest record is a full flush of intervals behind the check being accepted.
+// Keys keep their insertion order, so the oldest is the first: one row read, however long the tail is.
+// `record` is a SQL expression for the accepted check's availability record.
+const tailDue=(tail:string,record:string)=>`(SELECT json_extract(value,'$[1]') FROM json_each(${tail}) LIMIT 1)
+  <=json_extract(${record},'$[1]')-${slotsPerFlush-1}*MAX(json_extract(${record},'$[5]'),60000)`
 
 type HostedDefinition={
  enabled:boolean; intervalMs:number; freshnessMs:number; type?:string; heartbeat?:{maxAgeMs:number};
@@ -54,16 +59,21 @@ export function hostedAvailabilityRecord(
    Number(valid),clock(heartbeatExpires),clock(canaryAt),samples],canaryLimit];
 }
 
+// What a quiet check (quiet-checks.ts) keeps beside its availability record: the content of the slot row it
+// replaces, taken from the claim its monitor still holds. `claim` is a SQL expression for that claim.
+const quietContent=(claim:string,attempts:string,receipts:string)=>`json_array(json_extract(${claim},'$.leaseUntil'),json_extract(${claim},'$.missedCount'),
+  json_set(json_extract(${claim},'$.hosted'),'$.attempts',json(${attempts}),'$.receivedTimes',json(${receipts})))`
 const bucketStart=(entry:string)=>`json_extract(${entry},'$[1]')/${bucketWidth(`json_extract(${entry},'$[5]')`)}*${bucketWidth(`json_extract(${entry},'$[5]')`)}`
 
 // Flush the pending records within the acceptance transaction. The monitor
 // update that follows either clears the flushed tail or appends this slot.
-// A check with a slot row is projected from it. A quiet check (quiet-checks.ts) has none: its record and its
-// content come from its tail entry, and the content is stored in the bucket's `checks`.
-export function hostedAvailabilityStatement(db:D1Database,slotId:string,monitorId:string){
+// A check with a slot row is projected from it. A quiet check has none: its record and its content come from
+// its tail entry, and the content is stored in the bucket's `checks`. `quiet` carries the attempts and receipt
+// times of the check being accepted when it is quiet; its record is `record`.
+export function hostedAvailabilityStatement(db:D1Database,slotId:string,monitorId:string,record:string,quiet?:{attempts:string;receipts:string}){
   return db.prepare(`WITH flush AS MATERIALIZED (
-    SELECT ?1 AS current_slot,hosted_availability_tail AS tail FROM monitors
-    WHERE id=?2 AND (SELECT COUNT(*) FROM json_each(hosted_availability_tail))>=${slotsPerFlush-1}
+    SELECT ?1 AS current_slot,hosted_availability_tail AS tail,hosted_claim AS claim FROM monitors
+    WHERE id=?2 AND ${tailDue('hosted_availability_tail','?3')}
       AND json_type(hosted_availability_tail,'$.'||json_quote(?1)) IS NULL
   ), keys AS (
     SELECT current_slot AS slot_key FROM flush
@@ -74,6 +84,8 @@ export function hostedAvailabilityStatement(db:D1Database,slotId:string,monitorI
     SELECT pending.key AS slot_key,json_remove(pending.value,'$[8]') AS record,json_extract(pending.value,'$[8]') AS content
     FROM flush CROSS JOIN json_each(flush.tail) pending
     WHERE instr(flush.tail,'"attempts"')>0 AND json_type(pending.value,'$[8]')='array'
+    UNION ALL
+    SELECT current_slot,?3,${quietContent('flush.claim','?4','?5')} FROM flush WHERE ?4 IS NOT NULL
   ), records AS (
     SELECT b.monitor_id,b.starts_at,b.slot_key,b.record,NULL AS content
     FROM keys CROSS JOIN availability_bucket_slots b ON b.slot_key=keys.slot_key
@@ -87,15 +99,17 @@ export function hostedAvailabilityStatement(db:D1Database,slotId:string,monitorI
   ON CONFLICT(monitor_id,starts_at) DO UPDATE SET slots=jsonb_patch(slots,excluded.slots),
     checks=CASE WHEN excluded.checks IS NULL THEN checks WHEN checks IS NULL THEN excluded.checks
       ELSE jsonb_patch(checks,excluded.checks) END,
-    version=excluded.version`).bind(slotId,monitorId)
+    version=excluded.version`).bind(slotId,monitorId,record,quiet?.attempts??null,quiet?.receipts??null)
 }
 
-// Use in the existing monitor UPDATE immediately after the flush statement.
-export function hostedAvailabilityTail(slotId:string,record:string){
+// Use in the existing monitor UPDATE immediately after the flush statement. With `quiet`, the entry also
+// holds the check's content, built from the claim the same UPDATE clears.
+export function hostedAvailabilityTail(slotId:string,record:string,quiet?:{attempts:string;receipts:string}){
   const path=`'$.'||json_quote(${slotId})`
+  const entry=quiet?`json_insert(json(${record}),'$[8]',${quietContent('hosted_claim',quiet.attempts,quiet.receipts)})`:`json(${record})`
   return `CASE
     WHEN json_type(hosted_availability_tail,${path}) IS NULL
-      AND (SELECT COUNT(*) FROM json_each(hosted_availability_tail))>=${slotsPerFlush-1} THEN '{}'
-    ELSE json_set(hosted_availability_tail,${path},json(${record}))
+      AND ${tailDue('hosted_availability_tail',record)} THEN '{}'
+    ELSE json_set(hosted_availability_tail,${path},${entry})
   END`
 }

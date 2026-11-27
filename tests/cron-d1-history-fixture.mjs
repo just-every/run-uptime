@@ -5,6 +5,7 @@ import {dirname, join, parse, relative, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Miniflare, convertV4MiniflareOptions} from 'miniflare';
 import {observationsAt} from '../src/domain/check-evidence-query.ts';
+import {bucketsBetween, quietSlots} from '../src/domain/quiet-checks.ts';
 import {HOSTED_RUNNER_ID} from '../src/domain/hosted-runner.ts';
 import {acceptanceMs} from '../src/domain/schedule.ts';
 import {evaluate, validateDefinition} from '../src/domain/policy.mjs';
@@ -173,17 +174,24 @@ export async function authorizeRequests(worker) {
  return {cookie, authorization:'Bearer ' + (await response.json()).token};
 }
 
+// A healthy check is a slot row or, once its monitor is Healthy, a quiet check with no slot row.
 export async function assertHealthyTick(db, time) {
  const {results} = await db.prepare(`SELECT s.monitor_id,s.status,
    (SELECT json_group_array(json_extract(evidence,'$.outcome')) FROM (${observationsAt('s.id')})) AS outcomes,
    json_extract(m.state,'$.targetState') AS health
    FROM monitors m CROSS JOIN slots s ON s.monitor_id=m.id
-   WHERE s.due_at=? AND s.manual=0`).bind(time).all();
+   WHERE s.due_at=?1 AND s.manual=0
+   UNION ALL
+   SELECT q.monitor_id,q.status,
+   (SELECT json_group_array(json_extract(o.value,'$.outcome')) FROM json_each(q.hosted,'$.attempts') o),
+   json_extract(m.state,'$.targetState')
+   FROM (${quietSlots(column => `${column} IN (SELECT id FROM monitors)`, bucketsBetween('?1', '?1'))}) q JOIN monitors m ON m.id=q.monitor_id
+   WHERE q.due_at=?1`).bind(time).all();
  assert.equal(new Set(results.map(row => row.monitor_id)).size, monitorCount, `every monitor ran at ${new Date(time).toISOString()}`);
- assert.equal(results.length, monitorCount, 'one slot per scheduled monitor');
+ assert.equal(results.length, monitorCount, 'one check per scheduled monitor');
  for (const row of results) {
   assert.equal(row.status, 'complete');
-  assert.deepEqual(JSON.parse(row.outcomes), ['pass'], 'one passing observation in the scheduled slot');
+  assert.deepEqual(JSON.parse(row.outcomes), ['pass'], 'one passing observation in the scheduled check');
   assert.equal(row.health, 'Healthy');
  }
 }
