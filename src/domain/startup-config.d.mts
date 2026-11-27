@@ -4,3 +4,6 @@ export function requiredConfiguration(env: object, scope?: string): Configuratio
 export function validateConfiguration(env: object, options?: {scope?: string; suppliedOnly?: boolean}): void;
 export function validateWorkerConfiguration(env: object): Promise<void>;
 export function configurationResponse(env: object): Promise<Response | null>;
+export const WORKER_ADMITTED: string;
+export const WORKER_NOT_ADMITTED: string;
+export function validateWorkerBindings(env: object): boolean;

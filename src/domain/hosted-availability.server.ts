@@ -1,6 +1,6 @@
 import type {SlotRollup} from './availability-buckets.server.ts'
 
-const slotsPerFlush=5
+const slotsPerFlush=15
 
 type HostedDefinition={
  enabled:boolean; intervalMs:number; freshnessMs:number; type?:string; heartbeat?:{maxAgeMs:number};

@@ -4,11 +4,15 @@ import {watchDue,readDueWatch,type DueWatchRow} from './due-watch.server.ts'
 import {dispatchDueNotifications,notificationWork,pendingMentions} from './due-notifications.server.ts'
 import {CRON_MINUTE} from './schedule.ts'
 import {SubrequestBudget} from './worker-budget.ts'
+import {recordHostedContact} from './worker-checks.server.ts'
 
-export async function runWorkerBackground(env:Bindings,scheduledAt:number,remaining:number){
+// `contactAt` is the latest result this run's checks had accepted: the Worker's own contact,
+// written ahead of the reads that judge whether a checker has gone quiet.
+export async function runWorkerBackground(env:Bindings,scheduledAt:number,remaining:number,contactAt=0){
  const now=Date.now();
  const custodySweep=Math.floor(scheduledAt/CRON_MINUTE)%15===7;
- const [auxiliary,tokens,drills,watchFlag,jobs,mentions]=await env.DB.batch([
+ const [auxiliary,tokens,drills,watchFlag,jobs,mentions]=(await env.DB.batch([
+  ...(contactAt?[recordHostedContact(env.DB,contactAt)]:[]),
   env.DB.prepare('SELECT 1 FROM auxiliary_attempts WHERE finished_at IS NULL AND lease_until<=? LIMIT 1').bind(now),
   env.DB.prepare(`SELECT 1 FROM alert_drills WHERE
    (expires_at<=?1 AND token_hash IS NOT NULL) OR
@@ -17,7 +21,7 @@ export async function runWorkerBackground(env:Bindings,scheduledAt:number,remain
   watchDue(env,now),
   notificationWork(env,now),
   pendingMentions(env),
- ]);
+ ])).slice(contactAt?1:0);
  if(auxiliary.results.length){
   await (await import('./auxiliary-execution.server.ts')).reconcileAuxiliary(env,now);
  }

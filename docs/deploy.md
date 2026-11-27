@@ -99,23 +99,25 @@ For a named environment, replace `production` with its name and use its own host
 
 `rer deploy` creates one Cron trigger, `* * * * *` (every minute), and Uptime has no setting for another schedule: a different one is set on the Worker's Cron trigger in Cloudflare after deployment, and read back there. The schedule is the company manager's choice. This is what a run costs, so the choice can be made on numbers.
 
-Each run takes at most one scheduled check per due monitor. For four healthy public HTTP monitors at one minute, the current Worker's populated local D1 fixture measured about 190 rows read and 34 written per minute, with all four checks running every minute. Individual runs in the ten-minute cadence test read 162–250 rows.
+Each run takes at most one scheduled check per due monitor. For four healthy public HTTP monitors at one minute, the current Worker's populated local D1 fixture measured about 198 rows read and 25 written per minute, with all four checks running every minute. Individual runs in the ten-minute cadence test read 162–250 rows.
 
 Cloudflare's 0.5.29 measurements for four healthy one-minute monitors were about 258 rows read per minute with Cron alone and 782 with one Monitors list tab open, including Cron. A window with an outage and recovery averaged 1,076 with the list tab open. The 586 figure in the 0.5.29 release notes was for one **monitor detail** tab including Cron. These hosted measurements predate the cadence fix.
 
-The remaining rows below are from the 0.5.27 local budget fixture. All figures assume one Cron invocation per minute, without retries or an external check.
+The rows below are from the current Worker on a new local D1 database. All figures assume one Cron invocation per minute, without retries or an external check.
 
 | Monitors and interval | Rows read per run | Rows written per run | Rows read per day | Rows written per day |
 | --- | --- | --- | --- | --- |
-| 4 every 1 minute (current fixture) | 189 | 34 | 272,500 | 48,700 |
-| 4 every 5 minutes | 77 | 6.5 | 111,000 | 9,400 |
-| 10 every 5 minutes | 137 | 16 | 197,000 | 23,600 |
-| 20 every 5 minutes | 235 | 33 | 338,000 | 46,900 |
-| 10 every 1 minute | 417 | 83 | 600,000 | 119,500 |
+| 4 every 1 minute | 194 | 25 | 279,000 | 36,400 |
+| 8 every 1 minute | 366 | 50 | 526,000 | 71,300 |
+| 10 every 1 minute | 452 | 62 | 650,000 | 88,800 |
+| 4 every 5 minutes | 76 | 5.1 | 110,000 | 7,400 |
+| 10 every 5 minutes | 157 | 12 | 226,000 | 17,900 |
+| 20 every 5 minutes | 291 | 25 | 420,000 | 35,800 |
+| 40 every 5 minutes | 565 | 49 | 813,000 | 71,200 |
 
-Failing checks, incidents and notifications add work. The tighter limit on Workers Free is its published allowance of 100,000 D1 rows written per day. Prometheus scraping every 15 seconds adds about 11,500 rows written per day. Ten one-minute monitors alone exceed the free daily write allowance.
+Failing checks, incidents and notifications add work: each failed attempt's failure snapshot is 4 rows written, so a monitor that fails every minute with one retry adds 8 a check, about 11,500 a day, and about 2,900 more once those snapshots start to expire. The tighter limit on Workers Free is its published allowance of 100,000 D1 rows written per day. Prometheus scraping every 15 seconds adds about 11,500 rows written per day. Ten one-minute monitors take about 89,000 of the free daily write allowance, which leaves little for failures, the console or scraping.
 
-Recommendation: keep the one-minute Cron and set the monitors' own **Check every (minutes)**. A day then takes about 8 rows written for each check taken, so aim for no more than about 6,000 checks a day (60,000 rows written) to leave headroom: four monitors every minute, or twenty every five minutes. A slower Cron saves nothing a longer interval does not: each run still takes one check per due monitor, so a five-minute Cron checks a one-minute monitor every five minutes, delays alerts and recovery by up to five minutes, and has only the 35 outbound requests of its run (about seven healthy checks at the defaults, see [Limits](/docs/limits)) for every monitor due at once.
+Recommendation: keep the one-minute Cron and set the monitors' own **Check every (minutes)**. A day then takes about 6 rows written for each check taken, so aim for no more than about 11,500 checks a day (72,000 rows written) to leave headroom: eight monitors every minute, or forty every five minutes. A slower Cron saves nothing a longer interval does not: each run still takes one check per due monitor, so a five-minute Cron checks a one-minute monitor every five minutes, delays alerts and recovery by up to five minutes, and has only the 35 outbound requests of its run (about seven healthy checks at the defaults, see [Limits](/docs/limits)) for every monitor due at once.
 
 ## Update an existing deployment
 

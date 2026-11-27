@@ -100,12 +100,20 @@ function validate(env, { scope = 'worker', suppliedOnly = false } = {}, retiredS
 // exists. First-run completion and the original owner's continued existence are
 // separate concerns; erasure deliberately preserves this singleton.
 export async function validateWorkerConfiguration(env) {
- if (env.SETUP_TOKEN !== undefined) return validateConfiguration(env);
- validate(env, {}, true);
+ if (!validateWorkerBindings(env)) return;
  let admitted;
- try { admitted = await env.DB.prepare('SELECT 1 FROM oa_bootstrap WHERE singleton = 1').first(); }
+ try { admitted = await env.DB.prepare(`SELECT 1 WHERE ${WORKER_ADMITTED}`).first(); }
  catch { throw new Error('Configuration unavailable: DB owner admission'); }
- if (!admitted) throw new Error('Invalid or missing configuration: SETUP_TOKEN');
+ if (!admitted) throw new Error(WORKER_NOT_ADMITTED);
+}
+// For a caller that carries the owner-admission condition in its own first D1 transaction: validates the
+// bindings now and reports whether that condition is still owed (SETUP_TOKEN no longer vouches).
+export const WORKER_ADMITTED = 'EXISTS(SELECT 1 FROM oa_bootstrap WHERE singleton = 1)';
+export const WORKER_NOT_ADMITTED = 'Invalid or missing configuration: SETUP_TOKEN';
+export function validateWorkerBindings(env) {
+ if (env.SETUP_TOKEN !== undefined) { validateConfiguration(env); return false; }
+ validate(env, {}, true);
+ return true;
 }
 export async function configurationResponse(env) {
  try { await validateWorkerConfiguration(env); return null; }

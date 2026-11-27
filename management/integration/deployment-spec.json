@@ -612,6 +612,12 @@
       "name": "0098_bound_contact_schedule_reads.sql",
       "sha256": "84d9a14659cf5dc9c04767033e42678ec0797149653906edf82d6550783af5c9",
       "sql": "-- Keep each Cron run proportional to live work, not to every incident ever opened.\nCREATE INDEX IF NOT EXISTS alert_contact_schedules_incident ON alert_contact_schedules(monitor_id,incident_key);\nCREATE INDEX IF NOT EXISTS outbox_monitor_kind ON outbox(monitor_id,kind);\nCREATE INDEX IF NOT EXISTS outbox_monitor_incident ON outbox(monitor_id,kind,json_extract(event,'$.incidentKey'));\nCREATE INDEX IF NOT EXISTS alert_contact_schedules_live ON alert_contact_schedules(next_at) WHERE next_at IS NOT NULL;\n"
+    },
+    {
+      "binding": "DB",
+      "name": "0099_hosted_claims.sql",
+      "sha256": "b496bceff459ba0285da20047960050885175a5b68d3cd915c2776b8ecc0e80f",
+      "sql": "-- A Worker-owned scheduled check is claimed on its monitor row and its slot\n-- is written once, with its attempts, when the check completes. The claim\n-- holds the slot's delivery envelope until then. Existing slots are untouched.\nALTER TABLE monitors ADD COLUMN hosted_claim TEXT;\n"
     }
   ],
   "compatibilityDate": "2026-09-08",

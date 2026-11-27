@@ -1,4 +1,5 @@
 import {openSnapshot} from './failure-page-custody.server.ts'
+import {snapshotMembers} from './failure-snapshot-sets.ts'
 import type {Bindings} from './control.server.ts'
 
 // Packed Worker slots already carry their own attempts and assignments. Only
@@ -14,8 +15,12 @@ export async function history(env:Bindings,id:string){
   CASE WHEN recent.hosted IS NULL THEN (SELECT json_group_object(probe,external_check_url)
    FROM runner_assignments WHERE slot_id=recent.id AND external_check_url IS NOT NULL) END AS external_checks
  FROM recent ORDER BY due_at DESC,history_order DESC`).bind(id),
- env.DB.prepare("SELECT observation_id,monitor_id,captured_at,json_remove(snapshot,'$.screenshot','$.artifacts') AS snapshot FROM failure_snapshots WHERE monitor_id=? AND expires_at>? AND slot_id IN(SELECT id FROM slots WHERE monitor_id=? ORDER BY due_at DESC,rowid DESC LIMIT 100)").bind(id,Date.now(),id)]);
- const snapshots=snapshotRows.results;
+ env.DB.prepare("SELECT observation_id,monitor_id,captured_at,expires_at,json_remove(snapshot,'$.screenshot','$.artifacts') AS snapshot FROM failure_snapshots WHERE monitor_id=? AND expires_at>? AND slot_id IN(SELECT id FROM slots WHERE monitor_id=? ORDER BY due_at DESC,rowid DESC LIMIT 100)").bind(id,Date.now(),id)]);
+ // History shows a snapshot's text, never its screenshot or flow artifacts, whichever row stores it.
+ const snapshots=snapshotRows.results.flatMap(row=>{
+  const members=snapshotMembers(row);
+  return members[0]===row?members:members.map(member=>{const {screenshot,artifacts,...text}=JSON.parse(member.snapshot);return {...member,snapshot:JSON.stringify(text)}});
+ });
  // externalChecks: the external check URL each delivered probe was handed, which for a monitor following Settings can differ
  // from the copy in the slot's definition. A slot whose parts were handed none (or delivered before URLs were recorded) has none.
  const selected=rows.results.map(({history_order,external_checks,hosted,observations,...row})=>{

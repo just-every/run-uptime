@@ -1,6 +1,7 @@
 import {TRANSFER_BYTES,TRANSFER_ROWS} from './archive-transfer-limits.ts'
 import {selectionFilter,requireSelectionMonitors,projectSelectionReplays} from './archive-selection.server.ts'
 import {openSnapshot,storeSnapshot} from './failure-page-custody.server.ts'
+import {snapshotMembers} from './failure-snapshot-sets.ts'
 import {archiveInserts} from './archive-inserts.server.ts'
 import {exportJournal,productFence} from './archive-fence.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
@@ -27,6 +28,9 @@ export async function archive(env:Bindings,selection?:ArchiveSelection,options:{
  });
  const results=await env.DB.batch(queries),t:Tables={};
  for(let i=0;i<TABLES.length;i++){const name=TABLES[i],rows=results[i].results;if(rows.length>rowLimit)throw Error(`Archive row bound exceeded: ${name} (at least ${rows.length} rows, limit ${rowLimit})`);t[name]=rows}
+ // The archive carries one failure snapshot for each attempt, whichever row stores it here.
+ t.failure_snapshots=t.failure_snapshots.flatMap(snapshotMembers).map(row=>Object.fromEntries(columns.failure_snapshots.map(column=>[column,row[column]])));
+ if(t.failure_snapshots.length>rowLimit)throw Error(`Archive row bound exceeded: failure_snapshots (at least ${t.failure_snapshots.length} rows, limit ${rowLimit})`);
  for(const row of t.failure_snapshots)row.snapshot=JSON.stringify(await openSnapshot(env,row,true));
  for(const row of t.notification_destinations){
   let address=null;

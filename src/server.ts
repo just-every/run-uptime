@@ -3,7 +3,7 @@ import {withDemo} from '@runeditrun/rer/modules/demo'
 import {runCron} from './domain/worker-cron.server.ts'
 import type {MinuteWork} from './domain/minute-work.server.ts'
 export {ScheduledWork,completeWorkerCheck} from './domain/minute-work.server.ts'
-export {probeWorkerTask} from './domain/worker-probe-task.server.ts'
+export {checkWorkerTask} from './domain/worker-probe-task.server.ts'
 export {runWorkerBackground} from './domain/worker-background.server.ts'
 import type {Bindings} from './domain/control.server.ts'
 

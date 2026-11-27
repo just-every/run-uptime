@@ -11,6 +11,7 @@ import type {Bindings} from './control.server.ts'
 import {get} from './monitor-row.server.ts'
 import {auditStatement,mutationGuard,type AuditActor} from './audit.server.ts'
 import {normalizeFailureSnapshot,captureFailureSnapshot,normalizeSafeValues} from './failure-snapshot.mjs'
+import {snapshotMembers,snapshotCount,rewriteSnapshots} from './failure-snapshot-sets.ts'
 function scrubSnapshot(value:any,masks:string[],safeValues?:any,policyVersion?:number,screenshotEnabled=true){
  const snapshot=normalizeFailureSnapshot(value);if('unavailable' in snapshot)return snapshot
  if(!screenshotEnabled||policyVersion!==undefined&&snapshot.policyVersion!==policyVersion){
@@ -36,7 +37,10 @@ export async function readSnapshots(env:Bindings,id:string,before?:string){
  env.DB.prepare(`${snapshotEvidence}
  WHERE f.monitor_id=? AND f.expires_at>? ${before?'AND f.rowid < (SELECT rowid FROM failure_snapshots WHERE observation_id=? AND monitor_id=?)':''} ORDER BY f.rowid DESC LIMIT 21`).bind(id,Date.now(),...(before?[before,id]:[])),env.DB.prepare(settingsQuery).bind(id)]);
  if(!monitor.results.length)throw missing();
- return {settings:settingsOf(settings.results[0]),items:await withDiagnosticPeers(env,await Promise.all(rows.results.slice(0,20).map(async row=>snapshotRow(row,await openSnapshot(env,row))))),next:rows.results.length>20?rows.results[19].observation_id:null}
+ // A page ends on a whole stored row: twenty snapshots, or a few more when the last check kept several attempts.
+ const page:any[]=[];let taken=0;
+ for(const row of rows.results){if(page.length>=20)break;page.push(...snapshotMembers(row).reverse());taken++}
+ return {settings:settingsOf(settings.results[0]),items:await withDiagnosticPeers(env,await Promise.all(page.map(async row=>snapshotRow(row,await openSnapshot(env,row))))),next:rows.results.length>taken?rows.results[taken-1].observation_id:null}
 }
 export async function saveSnapshotSettings(env:Bindings,id:string,input:any,actor:AuditActor){
  const monitor=await get(env,id);if(!monitor)throw missing()
@@ -49,17 +53,19 @@ export async function saveSnapshotSettings(env:Bindings,id:string,input:any,acto
  statements.push(mutationGuard(env,'(SELECT COUNT(*) FROM failure_snapshots WHERE monitor_id=?)=?',[id,(await env.DB.prepare('SELECT COUNT(*) n FROM failure_snapshots WHERE monitor_id=?').bind(id).first<{n:number}>())?.n??0]));
  // Newly added masks also scrub retained snapshots in the same guarded transaction.
  const rows=await env.DB.prepare('SELECT * FROM failure_snapshots WHERE monitor_id=?').bind(id).all<any>()
- for(const row of rows.results){const snapshot=await openSnapshot(env,row,true);if(!('unavailable' in snapshot)&&(JSON.stringify(input.masks)!==JSON.stringify(settings.masks)||JSON.stringify(safeValues)!==JSON.stringify(settings.safeValues)||!screenshot)){if(snapshot.screenshot)snapshot.screenshot={unavailable:'policy_changed'};if(snapshot.artifacts)snapshot.artifacts=discardFlowArtifacts(snapshot.artifacts)};statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM failure_snapshots WHERE monitor_id=? AND observation_id=?)',[id,row.observation_id]));statements.push(env.DB.prepare('UPDATE failure_snapshots SET snapshot=? WHERE observation_id=? AND monitor_id=?').bind(await storeSnapshot(env,row,scrubSnapshot(snapshot,input.masks,safeValues,undefined,screenshot)),row.observation_id,id))}
+ const rescrub=async(row:any)=>{const snapshot=await openSnapshot(env,row,true);if(!('unavailable' in snapshot)&&(JSON.stringify(input.masks)!==JSON.stringify(settings.masks)||JSON.stringify(safeValues)!==JSON.stringify(settings.safeValues)||!screenshot)){if(snapshot.screenshot)snapshot.screenshot={unavailable:'policy_changed'};if(snapshot.artifacts)snapshot.artifacts=discardFlowArtifacts(snapshot.artifacts)};return storeSnapshot(env,row,scrubSnapshot(snapshot,input.masks,safeValues,undefined,screenshot))}
+ for(const row of rows.results){statements.push(mutationGuard(env,'EXISTS(SELECT 1 FROM failure_snapshots WHERE monitor_id=? AND observation_id=?)',[id,row.observation_id]));statements.push(env.DB.prepare('UPDATE failure_snapshots SET snapshot=? WHERE observation_id=? AND monitor_id=?').bind(await rewriteSnapshots(row,rescrub),row.observation_id,id))}
  await env.DB.batch(statements)
  return snapshotSettings(env,id)
 }
 export async function eraseSnapshots(env:Bindings,id:string,actor:AuditActor){
  const monitor=await get(env,id);if(!monitor)throw missing()
- const rows=(await env.DB.prepare('SELECT observation_id FROM failure_snapshots WHERE monitor_id=?').bind(id).all<{observation_id:string}>()).results
+ const rows=(await env.DB.prepare(`SELECT observation_id,${snapshotCount('f')} AS held FROM failure_snapshots f WHERE monitor_id=?`).bind(id).all<{observation_id:string;held:number}>()).results
  const service=await createPortability({db:env.DB,policy:{product:'just-every/uptime-monitor',excludeTables:[...TABLES,...Object.keys(installationLocalTables)]}})
  const fences=(await Promise.all(rows.map(row=>service.erasureStatements('failure_snapshots',{observation_id:row.observation_id})))).flat()
- const receipt={id:crypto.randomUUID(),entityKind:'failure_snapshots',counts:{failure_snapshots:rows.length},completedAt:Date.now()}
- await env.DB.batch([mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?) AND (SELECT COUNT(*) FROM failure_snapshots WHERE monitor_id=?)=?',[id,monitor.revision,id,receipt.counts.failure_snapshots]),...rows.map(row=>mutationGuard(env,'EXISTS(SELECT 1 FROM failure_snapshots WHERE monitor_id=? AND observation_id=?)',[id,row.observation_id])),...fences,env.DB.prepare('DELETE FROM failure_snapshots WHERE monitor_id=?').bind(id),...await service.invalidateTransfersStatements(),auditStatement(env,actor,'snapshot_erase','monitor',receipt.id)])
+ // The receipt counts snapshots: a stored row can hold one for each attempt of a check.
+ const receipt={id:crypto.randomUUID(),entityKind:'failure_snapshots',counts:{failure_snapshots:rows.reduce((sum,row)=>sum+row.held,0)},completedAt:Date.now()}
+ await env.DB.batch([mutationGuard(env,'EXISTS(SELECT 1 FROM monitors WHERE id=? AND revision=?) AND (SELECT COUNT(*) FROM failure_snapshots WHERE monitor_id=?)=?',[id,monitor.revision,id,rows.length]),...rows.map(row=>mutationGuard(env,'EXISTS(SELECT 1 FROM failure_snapshots WHERE monitor_id=? AND observation_id=?)',[id,row.observation_id])),...fences,env.DB.prepare('DELETE FROM failure_snapshots WHERE monitor_id=?').bind(id),...await service.invalidateTransfersStatements(),auditStatement(env,actor,'snapshot_erase','monitor',receipt.id)])
  return {erased:true,receipt}
 }
 export async function snapshotStatements(env:Bindings,id:string,slotId:string,fresh:any[],guard:string,values:any[]){
@@ -76,6 +82,7 @@ export async function snapshotStatements(env:Bindings,id:string,slotId:string,fr
 export async function incidentSnapshots(env:Bindings,id:string,all=false){
  const incident=await findIncident(env,id),end=incident.recovery?.observedAt??Date.now();
  const rows=await env.DB.prepare(`${snapshotEvidence} WHERE f.monitor_id=? AND f.expires_at>? AND (f.slot_id=? OR f.captured_at BETWEEN ? AND ?) ORDER BY f.captured_at,f.observation_id LIMIT ?`).bind(incident.monitor_id,Date.now(),incident.trigger.slotId,incident.trigger.observedAt,end,all?10001:21).all<any>();
- if(all&&rows.results.length>10000)throw Error('Incident report exceeds 10,000 snapshots; export a bounded selection');
- return {items:await withDiagnosticPeers(env,await Promise.all((all?rows.results:rows.results.slice(0,20)).map(async row=>snapshotRow(row,await openSnapshot(env,row))))),more:!all&&rows.results.length>20};
+ const found=rows.results.flatMap(snapshotMembers).filter(row=>row.slot_id===incident.trigger.slotId||row.captured_at>=incident.trigger.observedAt&&row.captured_at<=end);
+ if(all&&(rows.results.length>10000||found.length>10000))throw Error('Incident report exceeds 10,000 snapshots; export a bounded selection');
+ return {items:await withDiagnosticPeers(env,await Promise.all((all?found:found.slice(0,20)).map(async row=>snapshotRow(row,await openSnapshot(env,row))))),more:!all&&(rows.results.length>20||found.length>20)};
 }

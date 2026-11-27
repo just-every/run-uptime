@@ -86,7 +86,7 @@ export async function assertArchiveInventory(db:D1Database){
  const rows=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB '_cf_*' ORDER BY name").all<{name:string}>();
  for(const {name} of rows.results)if(!name.startsWith('rer_portability_')&&!TABLES.includes(name)&&!Object.hasOwn(installationLocalTables,name)&&!Object.hasOwn(installationArchiveTables,name))throw Error(`Archive unclassified table: ${name}`);
  const sourceColumns:Record<string,string[]>={...columns,
-  monitors:[...columns.monitors,'hosted_slot','hosted_generation','hosted_checkpoint','hosted_availability_tail'],
+  monitors:[...columns.monitors,'hosted_slot','hosted_generation','hosted_checkpoint','hosted_availability_tail','hosted_claim'],
   slots:[...columns.slots,'hosted'],notification_destinations:['id','name','kind','enabled','credential_id','created_at','deleted_at','webhook_template'],notification_jobs:[...columns.notification_jobs,'credential_id','claim','claim_until'],integration_deliveries:[...columns.integration_deliveries,'fingerprint','destination_hash','claim','claim_until'],integration_replays:[...columns.integration_replays,'fingerprint']};
  const schemas=await db.batch(TABLES.map(name=>db.prepare(`PRAGMA table_info(${name})`)));
  for(let i=0;i<TABLES.length;i++){const name=TABLES[i],actual=schemas[i].results.map((r:any)=>r.name).sort().join(',');if(actual!==sourceColumns[name].slice().sort().join(','))throw Error(`Archive unsupported table columns: ${name}`)}

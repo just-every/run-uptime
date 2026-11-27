@@ -67,13 +67,15 @@ export type AttemptClockRow=EvidenceClock&{
 export function attemptClock(env:Bindings,monitorId:string,revision:number,claimed=false){
  return env.DB.prepare(`SELECT g.generation,m.hosted_generation AS hostedGeneration,
     native.due_at,native.slot_id,native.state,native.last_observations,
-    CASE WHEN json_extract(m.hosted_checkpoint,'$.revision')=?2 THEN m.hosted_checkpoint END AS hosted_checkpoint
+    CASE WHEN json_extract(m.hosted_checkpoint,'$.revision')=?2 THEN m.hosted_checkpoint END AS hosted_checkpoint${claimed?",json_extract(m.hosted_claim,'$.hosted.deliveredAt') AS delivered_at":''}
     FROM evidence_generation g JOIN monitors m ON m.id=g.monitor_id
     LEFT JOIN attempt_checkpoints native ON native.monitor_id=g.monitor_id AND native.revision=?2
     WHERE g.monitor_id=?1${claimed?' AND changes()=1':''}`).bind(monitorId,revision);
 }
 
-export async function attemptSnapshot(env:Bindings,monitorId:string,revision:number,definition:any,now:number,extraSlot?:string,readOnly=false,guardedHosted=false,claimedClock?:AttemptClockRow){
+/** A claimed Worker check whose slot is written with its result: the tail row its slot will have. */
+export type ClaimedSlot={id:string;due_at:number;lease_until:number;assignments:string};
+export async function attemptSnapshot(env:Bindings,monitorId:string,revision:number,definition:any,now:number,extraSlot?:string,readOnly=false,guardedHosted=false,claimedClock?:AttemptClockRow,claimed?:ClaimedSlot){
  restart:for(;;){
   const clock=claimedClock??await attemptClock(env,monitorId,revision).first<AttemptClockRow>();
   claimedClock=undefined;
@@ -90,12 +92,14 @@ export async function attemptSnapshot(env:Bindings,monitorId:string,revision:num
    const [pageResult,...checks]=await env.DB.batch([
     env.DB.prepare(tail).bind(monitorId,revision,dueAt,slotId),
     ...(!guardedHosted?[env.DB.prepare(evidenceClock).bind(monitorId)]:[]),
-    ...(extraSlot?[env.DB.prepare(received).bind(extraSlot)]:[]),
+    ...(extraSlot&&!claimed?[env.DB.prepare(received).bind(extraSlot)]:[]),
    ]);
    // The hosted commit rechecks both clocks inside its slot UPDATE. Reads
    // and signed submissions still verify the snapshot before returning it.
    if(!guardedHosted&&!sameClock(clock,checks[0].results[0] as EvidenceClock|undefined))continue restart;
-   const page=pageResult.results as any[];
+   const page=pageResult.results as any[],full=page.length===PAGE;
+   // The claimed check is the monitor's newest scheduled slot and has no stored attempts yet.
+   if(claimed&&!full)page.push({...claimed,manual:0,sealed:0,observations:'[]'});
    const observations=page.flatMap(slot=>{
     const receipts=new Map<string,Record<string,number>>(JSON.parse(slot.assignments).map((a:any)=>[a.probe,JSON.parse(a.received_times)]));
     return JSON.parse(slot.observations).map((o:any)=>({...o,received_at:receipts.get(o.probe)?.[o.attempt]??null}));
@@ -113,7 +117,7 @@ export async function attemptSnapshot(env:Bindings,monitorId:string,revision:num
     checkpointUpdate={dueAt,slotId,checkpoint};
     // Only an owner read can publish a checkpoint here. Submission includes
     // its checkpoint in the guarded acceptance transaction.
-    if(!extraSlot&&!readOnly&&(!hostedGeneration||page.length===PAGE)){
+    if(!extraSlot&&!readOnly&&(!hostedGeneration||full)){
      const token=crypto.randomUUID();
      await env.DB.batch([
       env.DB.prepare(`UPDATE evidence_generation SET generation=generation+1,projection_id=?
@@ -124,13 +128,13 @@ export async function attemptSnapshot(env:Bindings,monitorId:string,revision:num
      continue restart;
     }
    }
-   if(page.length===PAGE){
+   if(full){
     if(!expired.length)throw Error('Mutable scheduled window exceeds projection page');
     continue;
    }
    const remaining=slots.slice(expired.length),ids=new Set(remaining.map(s=>s.id));
    const retained=observations.filter(o=>ids.has(o.slot_id)&&o.slot_id!==extraSlot);
-   return {generation,hostedGeneration,checkpoint,checkpointUpdate,slots:remaining,observations:[...retained,...(extraSlot?checks.at(-1)!.results as any[]:[])]}
+   return {generation,hostedGeneration,checkpoint,checkpointUpdate,slots:remaining,observations:[...retained,...(extraSlot&&!claimed?checks.at(-1)!.results as any[]:[])]}
   }
  }
 }

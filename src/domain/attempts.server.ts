@@ -1,4 +1,4 @@
-import type {HostedScheduleClaim} from './hosted-scheduled-claim.server.ts'
+import type {HostedClaimResult} from './hosted-scheduled-claim.server.ts'
 import {hostedObservationId,hostedResultStatement,nativeObservationIdGuard} from './hosted-results.server.ts'
 import {hostedAvailabilityRecord,hostedAvailabilityStatement,hostedAvailabilityTail} from './hosted-availability.server.ts'
 import {mutationGuard} from './audit.server.ts'
@@ -6,18 +6,22 @@ import {classifyStorage} from './storage-error.ts'
 import type {Bindings} from './control.server.ts'
 import {validateHostedPass} from './hosted-pass-evidence.ts'
 import {finalAttempts,terminalSlot,projectAttempts,foldAttempts} from './attempt-projection.ts'
-import {attemptSnapshot,checkpointStatement,type AttemptClockRow} from './attempt-checkpoint.server.ts'
+import {attemptSnapshot,checkpointStatement,type AttemptClockRow,type ClaimedSlot} from './attempt-checkpoint.server.ts'
 import {classifyAttempts} from './attempt-classification.ts'
 import {HOSTED_RUNNER_ID} from './hosted-runner.ts'
 // Only the in-process executor can supply the immutable claim it just received.
-export async function completeHostedAttempts(env:Bindings,task:HostedScheduleClaim,attempts:any[]){
+export async function completeHostedAttempts(env:Bindings,task:HostedClaimResult,attempts:any[]){
  const slot={id:task.id,monitor_id:task.monitorId,revision:task.revision,due_at:task.dueAt,lease_until:task.acceptUntil,
   manual:false,status:'running'};
  const identified=attempts.map(o=>({...o,id:hostedObservationId(o.id,task.dueAt)}));
- return acceptAttempts(env,{slotId:task.id,attempts:identified},HOSTED_RUNNER_ID,{slot,definition:task.savedDefinition,clock:task.clock,probes:task.probes,cronNextDueAt:task.cronNextDueAt});
+ // The claimed check's row in the scheduled tail, as its slot will read once this result writes it.
+ const claimed={id:task.id,due_at:task.dueAt,lease_until:task.acceptUntil,assignments:JSON.stringify(task.probes.map(probe=>(
+  {probe,delivered_at:task.deliveredAt,received_times:'{}'})))};
+ return acceptAttempts(env,{slotId:task.id,attempts:identified},HOSTED_RUNNER_ID,{slot,definition:JSON.parse(task.encodedDefinition),
+  encodedDefinition:task.encodedDefinition,clock:task.clock,claimed,probes:task.probes,cronNextDueAt:task.cronNextDueAt});
 }
 export function completeAttempts(env:Bindings,input:any,runnerId:string){return acceptAttempts(env,input,runnerId)}
-async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{slot:any;definition:any;clock?:AttemptClockRow;probes:string[];cronNextDueAt:number|null}){
+async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{slot:any;definition:any;encodedDefinition:string;clock?:AttemptClockRow;claimed:ClaimedSlot;probes:string[];cronNextDueAt:number|null}){
  const now=Date.now(),slot=hosted?.slot??await env.DB.prepare('SELECT * FROM slots WHERE id=?').bind(input.slotId).first<any>();
  if(!slot||!['running','complete'].includes(slot.status)||slot.lease_until<=now)throw Error('Invalid or expired acceptance window');
  const definition=hosted?.definition??JSON.parse(slot.definition),attempts=input.attempts;
@@ -45,7 +49,7 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
  let claimedClock=hosted?.clock;
  for(;;){
   const commitAt=Date.now();if(commitAt>=slot.lease_until)throw Error('Acceptance authority expired');
-  const snapshot=await attemptSnapshot(env,slot.monitor_id,slot.revision,definition,now,slot.id,false,Boolean(hosted),claimedClock);
+  const snapshot=await attemptSnapshot(env,slot.monitor_id,slot.revision,definition,now,slot.id,false,Boolean(hosted),claimedClock,hosted?.claimed);
   claimedClock=undefined;
   const {generation,hostedGeneration,observations:stored}=snapshot;
   const fresh=attempts.filter((o:any)=>!stored.some(s=>s.slot_id===slot.id&&s.probe===o.probe&&s.attempt===o.attempt));
@@ -78,13 +82,12 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
   if(hosted){
    // Compare both native and hosted evidence under the D1 transaction. The
    // same monitor write publishes the new clock, state and settled checkpoint.
-   const guard=`status IN ('running','complete') AND lease_until>MAX(?,CAST((julianday('now')-2440587.5)*86400000 AS INTEGER))
-    AND EXISTS(SELECT 1 FROM evidence_generation g JOIN monitors m ON m.id=g.monitor_id
-     WHERE g.monitor_id=? AND g.generation=? AND m.hosted_generation=?)
+   const guard=`json_extract(m.hosted_claim,'$.leaseUntil')>MAX(?,CAST((julianday('now')-2440587.5)*86400000 AS INTEGER))
+    AND m.hosted_generation=? AND EXISTS(SELECT 1 FROM evidence_generation g WHERE g.monitor_id=m.id AND g.generation=?)
     AND EXISTS(SELECT 1 FROM runners WHERE runner_id=? AND revoked_at IS NULL)
     AND NOT EXISTS(SELECT 1 FROM observations WHERE id IN(SELECT value FROM json_each(?)))`;
-   statements.push(hostedResultStatement(env,slot,slotStored,freshRows,definition,terminal,availability,guard,
-    [Date.now(),slot.monitor_id,generation,hostedGeneration,runnerId,JSON.stringify(fresh.map((o:any)=>o.id))]),
+   statements.push(hostedResultStatement(env,slot,freshRows,definition,hosted.encodedDefinition,terminal,availability,guard,
+    [Date.now(),hostedGeneration,generation,runnerId,JSON.stringify(fresh.map((o:any)=>o.id))]),
     mutationGuard(env,'changes()=1'),hostedAvailabilityStatement(env.DB,slot.id,m.id));
   }else{
    statements.push(env.DB.prepare(`UPDATE evidence_generation SET generation=generation+1,projection_id=?
@@ -154,6 +157,7 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
    const checkpoint=update?JSON.stringify({...update,revision:slot.revision}):null;
    statements.push(env.DB.prepare(`UPDATE monitors
     SET hosted_generation=hosted_generation+1,
+        hosted_claim=CASE WHEN hosted_slot=?5 THEN NULL ELSE hosted_claim END,
         hosted_slot=CASE WHEN hosted_slot=?5 AND ?7 THEN NULL ELSE hosted_slot END,
         hosted_availability_tail=${hostedAvailabilityTail('?5','?8')},
         state=CASE WHEN revision=?2 THEN ?3 ELSE state END,
@@ -170,7 +174,10 @@ async function acceptAttempts(env:Bindings,input:any,runnerId:string,hosted?:{sl
   try{await env.DB.batch(statements)}
   catch(error){
    if(classifyStorage(error)?.class!=='guard_conflict')throw error;
-   if(!await env.DB.prepare("SELECT 1 FROM slots JOIN runners ON runners.runner_id=? WHERE slots.id=? AND slots.status IN ('running','complete') AND slots.lease_until>? AND runners.revoked_at IS NULL").bind(runnerId,slot.id,Date.now()).first())throw Error('Acceptance authority expired');
+   const authorized=hosted?
+    env.DB.prepare("SELECT 1 FROM monitors m JOIN runners ON runners.runner_id=? WHERE m.id=? AND m.hosted_slot=? AND json_extract(m.hosted_claim,'$.id')=m.hosted_slot AND json_extract(m.hosted_claim,'$.leaseUntil')>? AND runners.revoked_at IS NULL").bind(runnerId,slot.monitor_id,slot.id,Date.now()):
+    env.DB.prepare("SELECT 1 FROM slots JOIN runners ON runners.runner_id=? WHERE slots.id=? AND slots.status IN ('running','complete') AND slots.lease_until>? AND runners.revoked_at IS NULL").bind(runnerId,slot.id,Date.now());
+   if(!await authorized.first())throw Error('Acceptance authority expired');
    const latest=await env.DB.prepare(`SELECT generation,hosted_generation FROM evidence_generation g JOIN monitors m ON m.id=g.monitor_id
     WHERE g.monitor_id=?`).bind(slot.monitor_id).first<{generation:number;hosted_generation:number}>();
    if(latest?.generation===generation&&latest.hosted_generation===hostedGeneration)throw error;

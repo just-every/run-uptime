@@ -14,16 +14,21 @@ export function nativeObservationIdGuard(env:Bindings,id:string){
   WHERE json_extract(o.value,'$.id')=?)`,[Number.parseInt(suffix,16),id]):null;
 }
 
-export function hostedResultStatement(env:Bindings,slot:any,stored:any[],fresh:any[],definition:any,terminal:boolean,availability:string,guard:string,values:unknown[]){
- const attempts=stored.map(o=>JSON.parse(o.evidence));
+// The Worker returns every attempt of its claimed check at once. Write the slot
+// then, complete, from the claim the monitor holds: one row for the whole check.
+// `guard` is evaluated against that monitor row (alias m) in the same statement.
+export function hostedResultStatement(env:Bindings,slot:any,fresh:any[],definition:any,encodedDefinition:string,terminal:boolean,availability:string,guard:string,values:unknown[]){
+ const attempts:unknown[]=[];
  const receipts:Record<string,Record<number,number>>=Object.fromEntries(definition.probes.map((probe:string)=>[probe,{}]));
- for(const observation of stored)receipts[observation.probe][observation.attempt]=observation.received_at;
  for(const {evidence,probe,attempt,received_at} of fresh){
   attempts.push(JSON.parse(evidence));
   receipts[probe][attempt]=received_at;
  }
- return env.DB.prepare(`UPDATE slots SET status=CASE WHEN ? THEN 'complete' ELSE status END,
-  hosted=json_set(hosted,'$.attempts',json(?),'$.receivedTimes',json(?),'$.availability',json(?)) WHERE id=? AND ${guard}`)
-  .bind(Number(terminal),JSON.stringify(attempts),JSON.stringify(receipts),
-   availability,slot.id,...values);
+ return env.DB.prepare(`INSERT OR IGNORE INTO slots(id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,hosted)
+  SELECT ?1,m.id,json_extract(m.hosted_claim,'$.revision'),json_extract(m.hosted_claim,'$.dueAt'),?2,?3,'',
+   json_extract(m.hosted_claim,'$.leaseUntil'),json_extract(m.hosted_claim,'$.missedCount'),
+   json_set(json_extract(m.hosted_claim,'$.hosted'),'$.attempts',json(?4),'$.receivedTimes',json(?5),'$.availability',json(?6))
+  FROM monitors m WHERE m.id=?7 AND m.hosted_slot=?1 AND json_extract(m.hosted_claim,'$.id')=?1 AND ${guard}`)
+  .bind(slot.id,terminal?'complete':'running',encodedDefinition,JSON.stringify(attempts),JSON.stringify(receipts),
+   availability,slot.monitor_id,...values);
 }

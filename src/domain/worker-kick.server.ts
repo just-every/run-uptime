@@ -2,7 +2,7 @@ import type {Bindings} from './control.server.ts'
 import {hostedInstallation} from './hosted-runner.ts'
 import {scheduledPublicChecks} from './worker-checks.server.ts'
 import {dispatchDueNotifications} from './due-notifications.server.ts'
-import {probeWorkerTask} from './worker-probe-task.server.ts'
+import {checkWorkerTask} from './worker-probe-task.server.ts'
 import {completeWorkerCheck} from './minute-work.server.ts'
 import {SubrequestBudget} from './worker-budget.ts'
 
@@ -23,8 +23,8 @@ export async function kickHostedWork(env:Bindings,{bypassCooldown=false}={}){
   await dispatchDueNotifications(env,new SubrequestBudget(9));
   const checks=new SubrequestBudget(12);
   await scheduledPublicChecks(env,checks,{
-   probe:(...args)=>probeWorkerTask(env,...args),
-   complete:(...args)=>completeWorkerCheck(env,...args),
+   check:(due,capacity,validated,cronThrough)=>checkWorkerTask(env,due,capacity,validated,cronThrough,
+    (...result)=>completeWorkerCheck(env,...result)),
   });
   await dispatchDueNotifications(env,new SubrequestBudget(12+checks.remaining));
  }finally{
