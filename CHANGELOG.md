@@ -2,10 +2,20 @@
 
 ## Unreleased
 
+## 0.5.39 — 2026-11-27
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
 ### Changed
 
-- Uptime can read a Worker check that is stored without a history row of its own. Nothing writes one yet: 0.5.38 cannot read such a check, so the writer follows in a later release, where a healthy check will write 2 database rows instead of 6. Such a check is a pass with nothing to report: one passing attempt at each location, no incident, notice or snapshot, and a monitor that was Healthy and stays Healthy. It is kept with the monitor's availability record and reads everywhere as the history row it replaces: in history, the overview, reports, the read API, exports and erasure receipts.
-- Migration `0100_quiet_checks.sql` adds `availability_buckets.checks` without rewriting any rows. After a rollback to 0.5.38, everything works as it did in 0.5.38, including archive export and import.
+- Uptime can read quiet Worker checks stored with a monitor's availability record. A quiet check has one passing attempt at each location, the monitor stays Healthy, and the check produces no incident, notice or snapshot. These checks appear in history, the overview, reports, the read API, exports and erasure receipts.
+- This release continues to record each check in its own history row, so daily database writes stay at the 0.5.38 level. The writer that reduces healthy-check writes follows in 0.5.40.
+
+### Upgrading from 0.5.38
+
+- Migration `0100_quiet_checks.sql` adds `availability_buckets.checks` without rewriting any rows. Rollback from 0.5.39 to 0.5.38 is safe with the column in place, including archive export and import. Once a later release writes quiet checks, use 0.5.39 as the rollback target.
+
+— Run Edit Run fleet, 2026-11-27
 
 ## 0.5.38 — 2026-11-27
 

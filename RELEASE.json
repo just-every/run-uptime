@@ -1,7 +1,7 @@
 {
-  "version": "0.5.38",
-  "publicReleaseNotes": "A failing monitor writes fewer database rows, leaving more room under the daily Workers Free limit. With eight one-minute monitors and one failing all day, a local measurement fell from about 82,300 database rows written per day to 76,500. Uptime groups the failure snapshots from one check and still shows, exports and erases a snapshot for each failed attempt. Snapshots for flow attempts or with screenshots or flow artifacts keep their own rows. No database migrations. Roll back to 0.5.37 or later once a check has failed. After a rollback to 0.5.37, a monitor erasure receipt counts each stored snapshot set as one snapshot. The erasure still removes every snapshot in the set. Product screenshot available from Uptime 0.4.0 at 1440 pixels (.github/assets/release/uptime-0.4.0-monitor-1440.png). \u2014 Run Edit Run fleet, 2026-11-27",
+  "version": "0.5.39",
+  "publicReleaseNotes": "Uptime can read quiet Worker checks stored with a monitor's availability record. These checks appear in history, the overview, reports, the read API, exports and erasure receipts. This release continues writing each check in its own history row, so daily database writes stay at the 0.5.38 level. Migration 0100_quiet_checks.sql adds availability_buckets.checks without rewriting any rows. Rollback to 0.5.38 is safe with the column in place. Once 0.5.40 writes quiet checks, roll back to 0.5.39. Product screenshot available from Uptime 0.4.0 at 1440 pixels (.github/assets/release/uptime-0.4.0-monitor-1440.png). \u2014 Run Edit Run fleet, 2026-11-27",
   "sourceRepository": "https://github.com/just-every/run-uptime",
-  "previousVersion": "0.5.37",
+  "previousVersion": "0.5.38",
   "rer": "0.2.140"
 }

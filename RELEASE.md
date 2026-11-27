@@ -1,9 +1,9 @@
-# Release Uptime 0.5.38
+# Release Uptime 0.5.39
 
-This release adds no database migrations. After a failing check is recorded,
-0.5.37 is the earliest version that can read its grouped snapshots. After a
-rollback to 0.5.37, a monitor erasure receipt counts each stored snapshot set
-as one snapshot. The erasure still removes every snapshot in the set.
+Migration `0100_quiet_checks.sql` adds `availability_buckets.checks` without
+rewriting any rows. This release can read quiet checks from the column and
+continues writing the same history rows as 0.5.38. Rollback to 0.5.38 is safe
+with the column in place. Once 0.5.40 writes quiet checks, roll back to 0.5.39.
 
 Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
 0.2.140), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
