@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.37 — 2026-11-27
+
+Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).
+
 ### Changed
 
 - Eight one-minute monitors checked by the Worker now fit Workers Free's 100,000 D1 rows written a day. A check writes about 6 rows instead of 8: its slot is written once, with its result. While a check is in progress it is not yet in history; one that never returns still appears there as interrupted once its acceptance window has passed. Local measurements for eight one-minute monitors: about 71,300 rows written a day when healthy (97,100 before) and 85,700 with one monitor failing all day and its snapshots expiring (110,300 before).
@@ -9,6 +13,8 @@
 - Failure snapshot reads accept a stored row that holds the snapshots of every attempt of one check. Nothing writes such a row yet; a later release can, which will take a failing check from 8 rows written for its two snapshots to 4.
 - Migration `0099_hosted_claims.sql` adds one column to `monitors` and rewrites no rows. Existing history is read as before. After a rollback to 0.5.36, checks keep running, a check in progress at that moment is not recorded, and archive export and import refuse the added column until the installation is upgraded again.
 - The monitor documentation says that API keys scoped to monitors or tags work for the read API.
+
+— Run Edit Run fleet, 2026-11-27
 
 ## 0.5.36 — 2026-11-26
 
