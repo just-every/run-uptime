@@ -1,9 +1,11 @@
 import {openSnapshot} from './failure-page-custody.server.ts'
 import {snapshotMembers} from './failure-snapshot-sets.ts'
 import type {Bindings} from './control.server.ts'
+import {withQuietSlots} from './quiet-checks.ts'
 
 // Packed Worker slots already carry their own attempts and assignments. Only
 // signed, manual and pre-upgrade slots need lookups in the native tables.
+// A quiet check has no slot row and reads as one (quiet-checks.ts).
 export async function history(env:Bindings,id:string){
  const [rows,snapshotRows]=await env.DB.batch<any>([env.DB.prepare(`WITH recent AS (
   SELECT rowid AS history_order,* FROM slots WHERE monitor_id=?
@@ -23,7 +25,8 @@ export async function history(env:Bindings,id:string){
  });
  // externalChecks: the external check URL each delivered probe was handed, which for a monitor following Settings can differ
  // from the copy in the slot's definition. A slot whose parts were handed none (or delivered before URLs were recorded) has none.
- const selected=rows.results.map(({history_order,external_checks,hosted,observations,...row})=>{
+ const recent=await withQuietSlots<any>(env.DB,id,rows.results,100);
+ const selected=recent.map(({history_order,external_checks,hosted,observations,...row}:any)=>{
   const packed=hosted===null?null:JSON.parse(hosted);
   const handed=packed?Object.fromEntries(Object.entries(packed.assignments).flatMap(([probe,assignment]:[string,any])=>
    assignment.canaryUrl==null?[]:[[probe,assignment.canaryUrl]])):JSON.parse(external_checks);

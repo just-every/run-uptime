@@ -52,7 +52,7 @@ export const installationLocalTables:Record<string,string>={
  oa_step_up_challenges:'Installation session-bound step-up token authority; never portable.',
  runner_contact:'Installation runner contact, not product target evidence.',
  availability_bucket_history:'Installation-local record of backfilled evidence days.',
- availability_buckets:'Rebuildable availability and latency projection derived from portable scheduled evidence.',
+ availability_buckets:'Availability and latency projection of scheduled evidence, and the quiet Worker checks stored with it; an archive carries those checks as slots and observations, and a restore rebuilds the projection.',
  attempt_checkpoints:'Rebuildable installation-local scheduled evidence checkpoints.',
  runners:'Installation runner identities and encrypted per-runner keys.',runner_assignments:'Installation execution assignments; revisions retain their selected configuration.',evidence_generation:'Installation atomic evidence projection generations.',monitoring_watch:'Installation watch dispatch state; never portable authority.',
  cron_runs:'Installation record that Cron has started; a receiving installation records its own.',

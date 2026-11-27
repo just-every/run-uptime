@@ -1,4 +1,5 @@
 import type {Bindings} from '../domain/control.server.ts'
+import {recentQuietSlots} from '../domain/quiet-checks.ts'
 import type {Context} from './authority.server.ts'
 import {authority,evidenceAuthority,visibleIds,unavailable} from './authority.server.ts'
 import {monitoringMonitor} from '../domain/read-api/monitors.server.ts'
@@ -24,7 +25,8 @@ export async function monitorRead(env:Bindings,ctx:Context,id:string){
 export async function monitorList(env:Bindings,ctx:Context){const ids=await visibleIds(env,ctx);return {items:await Promise.all(ids.map(id=>monitorRead(env,ctx,id)))}}
 export async function historyRead(env:Bindings,ctx:Context,id:string){
  await authority(env,ctx,'read',[id])
- const rows=await env.DB.prepare(`WITH recent AS (
+ // Stored attempts of the newest slot rows, then the monitor's quiet checks (quiet-checks.ts) in the same order.
+ const stored=(await env.DB.prepare(`WITH recent AS (
   SELECT id,revision,due_at,manual,status,hosted FROM slots WHERE monitor_id=? ORDER BY due_at DESC,id LIMIT 200
  ), attempts AS (
   SELECT o.slot_id,o.probe,o.attempt,o.evidence FROM recent s CROSS JOIN observations o ON o.slot_id=s.id
@@ -33,7 +35,11 @@ export async function historyRead(env:Bindings,ctx:Context,id:string){
   FROM recent s CROSS JOIN json_each(s.hosted,'$.attempts') o
  )
  SELECT s.id,s.revision,s.due_at,s.manual,s.status,o.probe,o.attempt,o.evidence FROM recent s LEFT JOIN attempts o ON o.slot_id=s.id
- ORDER BY s.due_at DESC,s.id,o.probe,o.attempt LIMIT 200`).bind(id).all<any>()
+ ORDER BY s.due_at DESC,s.id,o.probe,o.attempt LIMIT 200`).bind(id).all<any>()).results
+ const quiet=(await recentQuietSlots(env.DB,id,200,{after:stored.length>=200?stored[199].due_at-1:-1})).flatMap(slot=>
+  JSON.parse(slot.hosted).attempts.map((o:any)=>({id:slot.id,revision:slot.revision,due_at:slot.due_at,manual:slot.manual,status:slot.status,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(o)})))
+ const order=(a:any,b:any)=>b.due_at-a.due_at||(a.id<b.id?-1:a.id>b.id?1:0)||(a.probe<b.probe?-1:a.probe>b.probe?1:0)||a.attempt-b.attempt
+ const rows={results:quiet.length?[...stored,...quiet].sort(order).slice(0,200):stored}
  return {id,items:rows.results.map(({evidence,...row})=>{const e=evidence?JSON.parse(evidence):null;return {...row,observation:e?Object.fromEntries(['id','probe','attempt','startedAt','completedAt','durationMs','outcome','finishedAt','classification','ok','status','elapsedMs','reason','verdict'].filter(k=>Object.hasOwn(e,k)).map(k=>[k,e[k]])):null}})}
 }
 export async function revisionRead(env:Bindings,ctx:Context,id:string){await authority(env,ctx,'read',[id]);return {id,items:(await revisions(env,id)).map((row:any)=>({revision:row.revision,start:row.start,definition:definitionView(row.definition)}))}}

@@ -1,5 +1,6 @@
 import {mutationGuard} from './audit.server.ts'
 import type {Bindings} from './control.server.ts'
+import {bucketsBetween,quietAttempts,quietKeys} from './quiet-checks.ts'
 
 // Keep UUIDs in their existing public format. The last 12 digits point to
 // the scheduled time, so native submissions can check both stores by key.
@@ -9,9 +10,13 @@ export function hostedObservationId(id:string,dueAt:number){
 }
 export function nativeObservationIdGuard(env:Bindings,id:string){
  const suffix=uuid.exec(id)?.[1];
+ // A quiet check (quiet-checks.ts) due then holds its attempts on its monitor's tail or in its bucket.
  return suffix?mutationGuard(env,`NOT EXISTS(SELECT 1 FROM monitors m CROSS JOIN slots s INDEXED BY slots_monitor
-  ON s.monitor_id=m.id AND s.due_at=? CROSS JOIN json_each(s.hosted,'$.attempts') o
-  WHERE json_extract(o.value,'$.id')=?)`,[Number.parseInt(suffix,16),id]):null;
+  ON s.monitor_id=m.id AND s.due_at=?1 CROSS JOIN json_each(s.hosted,'$.attempts') o
+  WHERE json_extract(o.value,'$.id')=?2)
+  AND NOT EXISTS(SELECT 1 FROM (${quietKeys(column=>`${column} IN (SELECT id FROM monitors)`,bucketsBetween('?1','?1'))}) k
+   CROSS JOIN json_each(${quietAttempts('k.monitor_id','k.id','?1')}) o
+   WHERE k.due_at=?1 AND json_extract(o.value,'$.id')=?2)`,[Number.parseInt(suffix,16),id]):null;
 }
 
 // The Worker returns every attempt of its claimed check at once. Write the slot

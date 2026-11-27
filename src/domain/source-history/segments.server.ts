@@ -1,4 +1,5 @@
 import type {Bindings} from '../control.server.ts'
+import {recentQuietSlots} from '../quiet-checks.ts'
 import type {ReportPeriod} from '../reports/period.ts'
 import {periodAvailability} from '../reports/coverage.server.ts'
 import type {StoredHistoryRow} from './preview.server.ts'
@@ -17,7 +18,10 @@ function without(spans:Span[],excluded:Span[]):Span[]{
 }
 const figure=(denominatorMs:number,downMs:number)=>({denominatorMs,upMs:denominatorMs-downMs,notPassingMs:downMs,uptimePercent:denominatorMs?100*(denominatorMs-downMs)/denominatorMs:null})
 export async function historyCutover(env:Pick<Bindings,'DB'>,id:string){
- const first=await env.DB.prepare('SELECT MIN(due_at) at,MAX(due_at+CAST(json_extract(definition,\'$.intervalMs\') AS INTEGER)) last FROM slots WHERE monitor_id=? AND manual=0').bind(id).first<{at:number|null;last:number|null}>()
+ const first=await env.DB.prepare('SELECT MIN(due_at) at,MAX(due_at+CAST(json_extract(definition,\'$.intervalMs\') AS INTEGER)) last,MAX(due_at) newest FROM slots WHERE monitor_id=? AND manual=0').bind(id).first<{at:number|null;last:number|null;newest:number|null}>()
+ // A monitor's first scheduled check always has a slot row; its newest may be a quiet check (quiet-checks.ts).
+ const [quiet]=await recentQuietSlots(env.DB,id,1,{after:first?.newest??-1})
+ if(first&&quiet)first.last=Math.max(first.last??0,quiet.due_at+JSON.parse(quiet.definition).intervalMs)
  const override=await env.DB.prepare('SELECT cutover_at FROM source_history_cutovers WHERE monitor_id=?').bind(id).first<{cutover_at:number}>()
  return {at:override?.cutover_at??first?.at??null,mode:override?'owner':'first-scheduled-slot',firstSlotAt:first?.at??null,lastSlotTo:first?.last??null}
 }

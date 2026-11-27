@@ -1,4 +1,5 @@
 import {observationsAt} from '../check-evidence-query.ts'
+import {newestQuiet} from '../quiet-checks.ts'
 import { availabilityBucketReports } from '../availability-buckets.server.ts'
 import { summarizeAvailability } from '../availability-rollup.ts'
 import { windowMetrics } from '../availability.server.ts'
@@ -24,17 +25,22 @@ export async function metricsReports(db:D1Database,rows:{id:string;definition:{p
 // Current metadata is independent of an explicitly historical metrics period.
 async function lastScheduledChecks(db:D1Database,ids:string[],now:number) {
   if (!ids.length) return []
-  const statements=ids.map(id=>db.prepare(`SELECT (
+  const statements=ids.map(id=>db.prepare(`SELECT s.due_at,(
     SELECT MAX(completed_at) FROM (
       SELECT json_extract(evidence,'$.completedAt') AS completed_at,
         ROW_NUMBER() OVER (PARTITION BY probe ORDER BY attempt DESC) AS rank
       FROM (${observationsAt('s.id')})
     ) WHERE rank=1
     ) AS at
-    FROM (SELECT id,revision FROM slots INDEXED BY slots_monitor
-      WHERE monitor_id=? AND manual=0 AND status='complete' AND due_at<=?
+    FROM (SELECT id,revision,due_at FROM slots INDEXED BY slots_monitor
+      WHERE monitor_id=?1 AND manual=0 AND status='complete' AND due_at<=?2
       ORDER BY due_at DESC,rowid DESC LIMIT 1) s
-    JOIN revisions r ON r.monitor_id=? AND r.revision=s.revision AND r.created_at<=?`).bind(id,now,id,now))
+    JOIN revisions r ON r.monitor_id=?1 AND r.revision=s.revision AND r.created_at<=?2
+    UNION ALL
+    SELECT q.due_at,q.completed_at FROM (${newestQuiet('?1','?2',`COALESCE((SELECT due_at FROM slots INDEXED BY slots_monitor
+      WHERE monitor_id=?1 AND manual=0 AND status='complete' AND due_at<=?2 ORDER BY due_at DESC,rowid DESC LIMIT 1),0)`)}) q
+    JOIN revisions r ON r.monitor_id=?1 AND r.revision=q.revision AND r.created_at<=?2
+    ORDER BY 1 DESC LIMIT 1`).bind(id,now))
   return (await db.batch(statements)).map(row=>{
     const at=(row.results[0] as {at?:unknown}|undefined)?.at
     return typeof at==='number'&&Number.isSafeInteger(at)&&at<=now?at:null

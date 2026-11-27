@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Uptime can read a Worker check that is stored without a history row of its own. Nothing writes one yet: 0.5.38 cannot read such a check, so the writer follows in a later release, where a healthy check will write 2 database rows instead of 6. Such a check is a pass with nothing to report: one passing attempt at each location, no incident, notice or snapshot, and a monitor that was Healthy and stays Healthy. It is kept with the monitor's availability record and reads everywhere as the history row it replaces: in history, the overview, reports, the read API, exports and erasure receipts.
+- Migration `0100_quiet_checks.sql` adds `availability_buckets.checks` without rewriting any rows. After a rollback to 0.5.38, everything works as it did in 0.5.38, including archive export and import.
+
 ## 0.5.38 — 2026-11-27
 
 Product screenshot available from [Uptime 0.4.0 at 1440 pixels](.github/assets/release/uptime-0.4.0-monitor-1440.png).

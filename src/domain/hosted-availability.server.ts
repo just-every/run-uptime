@@ -53,8 +53,17 @@ export function hostedAvailabilityRecord(
    Number(valid),clock(heartbeatExpires),clock(canaryAt),samples],canaryLimit];
 }
 
+// The widths of availability_bucket_slots (migration 0096), for a check that has no slot row to be projected from.
+const bucketStart=(entry:string)=>`json_extract(${entry},'$[1]')/(CASE WHEN json_extract(${entry},'$[5]')<10000 THEN 1800000
+  WHEN json_extract(${entry},'$[5]')<20000 THEN 3600000 WHEN json_extract(${entry},'$[5]')<30000 THEN 7200000
+  WHEN json_extract(${entry},'$[5]')<60000 THEN 10800000 ELSE 21600000 END)*(CASE WHEN json_extract(${entry},'$[5]')<10000 THEN 1800000
+  WHEN json_extract(${entry},'$[5]')<20000 THEN 3600000 WHEN json_extract(${entry},'$[5]')<30000 THEN 7200000
+  WHEN json_extract(${entry},'$[5]')<60000 THEN 10800000 ELSE 21600000 END)`
+
 // Flush the pending records within the acceptance transaction. The monitor
 // update that follows either clears the flushed tail or appends this slot.
+// A check with a slot row is projected from it. A quiet check (quiet-checks.ts) has none: its record and its
+// content come from its tail entry, and the content is stored in the bucket's `checks`.
 export function hostedAvailabilityStatement(db:D1Database,slotId:string,monitorId:string){
   return db.prepare(`WITH flush AS MATERIALIZED (
     SELECT ?1 AS current_slot,hosted_availability_tail AS tail FROM monitors
@@ -64,12 +73,25 @@ export function hostedAvailabilityStatement(db:D1Database,slotId:string,monitorI
     SELECT current_slot AS slot_key FROM flush
     UNION ALL
     SELECT pending.key FROM flush CROSS JOIN json_each(flush.tail) pending
+  ), quiet AS (
+    -- Only a quiet check's content names its attempts: a tail without one is not read a second time.
+    SELECT pending.key AS slot_key,json_remove(pending.value,'$[8]') AS record,json_extract(pending.value,'$[8]') AS content
+    FROM flush CROSS JOIN json_each(flush.tail) pending
+    WHERE instr(flush.tail,'"attempts"')>0 AND json_type(pending.value,'$[8]')='array'
+  ), records AS (
+    SELECT b.monitor_id,b.starts_at,b.slot_key,b.record,NULL AS content
+    FROM keys CROSS JOIN availability_bucket_slots b ON b.slot_key=keys.slot_key
+    UNION ALL
+    SELECT ?2,${bucketStart('q.record')},q.slot_key,jsonb(q.record),jsonb(q.content) FROM quiet q
   )
-  INSERT INTO availability_buckets(monitor_id,starts_at,slots)
-  SELECT b.monitor_id,b.starts_at,jsonb_group_object(b.slot_key,b.record)
-  FROM keys CROSS JOIN availability_bucket_slots b ON b.slot_key=keys.slot_key
-  GROUP BY b.monitor_id,b.starts_at
-  ON CONFLICT(monitor_id,starts_at) DO UPDATE SET slots=jsonb_patch(slots,excluded.slots),version=excluded.version`).bind(slotId,monitorId)
+  INSERT INTO availability_buckets(monitor_id,starts_at,slots,checks)
+  SELECT monitor_id,starts_at,jsonb_group_object(slot_key,record),
+    CASE WHEN COUNT(content)>0 THEN jsonb_group_object(slot_key,content) FILTER (WHERE content IS NOT NULL) END
+  FROM records GROUP BY monitor_id,starts_at
+  ON CONFLICT(monitor_id,starts_at) DO UPDATE SET slots=jsonb_patch(slots,excluded.slots),
+    checks=CASE WHEN excluded.checks IS NULL THEN checks WHEN checks IS NULL THEN excluded.checks
+      ELSE jsonb_patch(checks,excluded.checks) END,
+    version=excluded.version`).bind(slotId,monitorId)
 }
 
 // Use in the existing monitor UPDATE immediately after the flush statement.

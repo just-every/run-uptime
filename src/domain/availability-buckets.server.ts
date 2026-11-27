@@ -1,6 +1,7 @@
 import { maintenanceReportSnapshots } from './planned-maintenance/report.server.ts'
 
 import { dayMs, hydrateAvailabilityDays, utcDay } from './availability-backfill.server.ts'
+import { newestQuiet } from './quiet-checks.ts'
 type Span = { startsAt:number; endsAt:number }
 type Revision = Span & { revision:number; definition:{enabled:boolean; intervalMs:number; probes:string[]; retries:number; timeoutMs:number}; maintenance:Span[] }
 export type SlotRollup = [
@@ -54,10 +55,16 @@ async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,
   const reach=revisions.reduce((max,{definition:d})=>Math.max(max,d.intervalMs+
     Math.max(30000,d.probes.length*(d.retries+2)*d.timeoutMs+10000)+1000),0)
   const lower=from-reach
+  // Reading from the newest slot row before the window is enough even when a quiet check (quiet-checks.ts) is
+  // newer: a check due before the window's reach covers none of it, so the extra records add nothing.
+  // The newest complete check is a slot row or a quiet check, whichever is later.
+  const complete=`SELECT id,due_at FROM slots INDEXED BY slots_monitor
+      WHERE monitor_id=?1 AND manual=0 AND status='complete' AND due_at<=?2 ORDER BY due_at DESC,rowid DESC LIMIT 1`
   const [floorRow,latestRow]=await db.batch([
     db.prepare('SELECT due_at FROM slots INDEXED BY slots_monitor WHERE monitor_id=? AND manual=0 AND due_at<? ORDER BY due_at DESC LIMIT 1').bind(id,lower),
-    ...(includeLatest?[db.prepare(`SELECT id,due_at FROM slots INDEXED BY slots_monitor
-      WHERE monitor_id=? AND manual=0 AND status='complete' AND due_at<=? ORDER BY due_at DESC,rowid DESC LIMIT 1`).bind(id,to)]:[]),
+    ...(includeLatest?[db.prepare(`SELECT id,due_at FROM (SELECT id,due_at,0 AS quiet FROM (${complete})
+      UNION ALL SELECT id,due_at,1 FROM (${newestQuiet('?1','?2',`COALESCE((SELECT due_at FROM (${complete})),0)`)}))
+      ORDER BY due_at DESC,quiet LIMIT 1`).bind(id,to)]:[]),
   ])
   const floor=Number((floorRow.results[0] as {due_at:number}|undefined)?.due_at??lower)
   const latest=latestRow?.results[0] as LatestSlot|undefined
@@ -82,7 +89,7 @@ async function readMonitorBuckets(db:D1Database,id:string,from:number,to:number,
       CASE WHEN version IS NOT json_extract(?1,'$."'||starts_at||'"') THEN json(slots) END AS payload
       FROM availability_buckets WHERE monitor_id=?2 AND starts_at BETWEEN ?3 AND ?4
       UNION ALL
-      SELECT json_extract(tail.value,'$[1]'),NULL,tail.value
+      SELECT json_extract(tail.value,'$[1]'),NULL,json_remove(tail.value,'$[8]')
       FROM monitors m CROSS JOIN json_each(m.hosted_availability_tail) tail
       WHERE m.id=?2 AND json_extract(tail.value,'$[1]') BETWEEN ?3 AND ?4`)
       .bind(versions,id,start,end).all<StoredBucket>()

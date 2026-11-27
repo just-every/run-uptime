@@ -13,6 +13,7 @@ import {validateArchive} from './archive-validation.ts'
 import {projectRestore} from './archive-restore-projection.ts'
 import {doorBatchArchive} from './business-import/archive.server.ts'
 import {dayMs} from './availability-backfill.server.ts'
+import {quietSlots} from './quiet-checks.ts'
 /** Explicit projections prevent future credential columns silently becoming portable. */
 export async function archive(env:Bindings,selection?:ArchiveSelection,options:{transfer?:boolean}={}){
  const rowLimit=options.transfer?TRANSFER_ROWS:ARCHIVE_ROWS;
@@ -26,8 +27,16 @@ export async function archive(env:Bindings,selection?:ArchiveSelection,options:{
   if(name==='observations')return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM check_observations WHERE ${where} ORDER BY packed,storage_order,attempt LIMIT ${rowLimit+1}`).bind(...filter.params);
   return env.DB.prepare(`SELECT ${columns[name].join(',')} FROM ${name} WHERE ${where} ORDER BY rowid LIMIT ${rowLimit+1}`).bind(...filter.params);
  });
+ const selected=selection?JSON.stringify(selection.monitorIds):null;
+ queries.push(env.DB.prepare(`SELECT * FROM (${quietSlots(column=>selected===null?'?1 IS NULL':`${column} IN (SELECT value FROM json_each(?1))`,'1')}) ORDER BY monitor_id,due_at LIMIT ${rowLimit+1}`).bind(selected));
  const results=await env.DB.batch(queries),t:Tables={};
  for(let i=0;i<TABLES.length;i++){const name=TABLES[i],rows=results[i].results;if(rows.length>rowLimit)throw Error(`Archive row bound exceeded: ${name} (at least ${rows.length} rows, limit ${rowLimit})`);t[name]=rows}
+ // A quiet check has no slot row (quiet-checks.ts). The archive carries it as the slot and observations it stands for.
+ for(const slot of results[TABLES.length].results as any[]){
+  t.slots.push(Object.fromEntries(columns.slots.map(column=>[column,slot[column]])));
+  for(const o of JSON.parse(slot.hosted).attempts)t.observations.push({id:o.id,slot_id:slot.id,probe:o.probe,attempt:o.attempt,evidence:JSON.stringify(o)});
+ }
+ for(const name of ['slots','observations'])if(t[name].length>rowLimit)throw Error(`Archive row bound exceeded: ${name} (at least ${t[name].length} rows, limit ${rowLimit})`);
  // The archive carries one failure snapshot for each attempt, whichever row stores it here.
  t.failure_snapshots=t.failure_snapshots.flatMap(snapshotMembers).map(row=>Object.fromEntries(columns.failure_snapshots.map(column=>[column,row[column]])));
  if(t.failure_snapshots.length>rowLimit)throw Error(`Archive row bound exceeded: failure_snapshots (at least ${t.failure_snapshots.length} rows, limit ${rowLimit})`);

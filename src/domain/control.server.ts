@@ -1,6 +1,7 @@
 import {get,monitorRow} from './monitor-row.server.ts'
 export {get} from './monitor-row.server.ts'
 import {observationsAt,assignmentsAt} from './check-evidence-query.ts'
+import {recentQuietSlots} from './quiet-checks.ts'
 import {checkerStatus} from './checker-status.ts'
 import {MONITOR_LIMIT} from './monitor-cap.ts'
 import {definitionTimeline} from './incident-work/definition-timeline.server.ts'
@@ -120,9 +121,13 @@ export async function withinMonitorCap<T>(env:Bindings,adding:number,batch:Promi
 // one acceptance window from its claim), the latest delivery of its part to a vantage, or the latest reported start of a vantage's
 // first attempt, whichever is latest. Slots restored from an archive ran elsewhere and never set this installation's schedule.
 export async function lastScheduledStart(env:Bindings,id:string){
- const slot=await env.DB.prepare("SELECT id,lease_until,definition FROM slots WHERE monitor_id=? AND manual=0 AND lease_owner<>'restored-inactive' ORDER BY due_at DESC,rowid DESC LIMIT 1").bind(id).first<any>();if(!slot)return null;
- const started=await env.DB.prepare(`SELECT MAX(json_extract(evidence,'$.startedAt')) AS at FROM (${observationsAt('?1')}) WHERE attempt=0`).bind(slot.id).first<any>();
- const delivered=await env.DB.prepare(`SELECT MAX(delivered_at) AS at FROM (${assignmentsAt('?1')})`).bind(slot.id).first<any>();
+ const row=await env.DB.prepare("SELECT id,due_at,lease_until,definition FROM slots WHERE monitor_id=? AND manual=0 AND lease_owner<>'restored-inactive' ORDER BY due_at DESC,rowid DESC LIMIT 1").bind(id).first<any>();
+ // A quiet check (quiet-checks.ts) newer than the newest slot row is the previous scheduled check.
+ const [quiet]=await recentQuietSlots(env.DB,id,1,{after:row?.due_at??-1});
+ const slot=quiet??row;if(!slot)return null;
+ const hosted=quiet?JSON.parse(quiet.hosted):null;
+ const started=hosted?{at:Math.max(...hosted.attempts.filter((o:any)=>o.attempt===0).map((o:any)=>o.startedAt))}:await env.DB.prepare(`SELECT MAX(json_extract(evidence,'$.startedAt')) AS at FROM (${observationsAt('?1')}) WHERE attempt=0`).bind(slot.id).first<any>();
+ const delivered=hosted?{at:hosted.deliveredAt}:await env.DB.prepare(`SELECT MAX(delivered_at) AS at FROM (${assignmentsAt('?1')})`).bind(slot.id).first<any>();
  const claimed=slot.lease_until>0?slot.lease_until-acceptanceMs(JSON.parse(slot.definition)):null;
  const values=[claimed,delivered?.at,started?.at].filter(v=>Number.isSafeInteger(v));return values.length?Math.max(...values):null;
 }

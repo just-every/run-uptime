@@ -1,6 +1,7 @@
 import {incidentMonitorErasureTables,incidentOperatorErasureStatements} from './incident-work/portability.server.ts'
 import {dependencyMonitorErasureTables} from './dependency-archive.ts'
 import {discoveryMonitorErasureTables,discoveryOperatorErasure} from './discovery-sources-archive.ts'
+import {quietKeys,quietSlots} from './quiet-checks.ts'
 import {createPortability} from '@runeditrun/rer/modules/portability'
 import {erasureRelations,operatorMailRelated,dependencyAckErasure,dependencyTimelineErasure} from './erasure-relations.ts'
 import {TABLES} from './archive-schema.ts'
@@ -123,6 +124,25 @@ export async function erase(env:Bindings,kind:'monitor'|'destination'|'operator'
     }
    }
    const key=info.length?Object.fromEntries(info.map(c=>[c.name,row[c.name]])):{rowid:row._rowid_};statements.push(mutationGuard(env,`EXISTS(SELECT 1 FROM ${plan.table} WHERE ${Object.keys(key).map(column=>`"${column}"=?`).join(" AND ")})`,Object.values(key)),...await service.erasureStatements(plan.table,key));}
+ }
+ if(kind==='monitor'){
+  // A quiet check has no slot row (quiet-checks.ts): it leaves with the monitor's tail and buckets, and is counted
+  // and fenced as the slot, observations and assignments it stands for.
+  const quiet=(await env.DB.prepare(`SELECT id,hosted FROM (${quietSlots('?1','1')})`).bind(id).all<{id:string;hosted:string}>()).results;
+  statements.push(mutationGuard(env,`(SELECT COUNT(*) FROM (${quietKeys('?1','1')}))=?2`,[id,quiet.length]));
+  if(quiet.length)counts.slots=(counts.slots??0)+quiet.length;
+  for(const slot of quiet){
+   const hosted=JSON.parse(slot.hosted);
+   for(const o of hosted.attempts){
+    counts.observations=(counts.observations??0)+1;
+    statements.push(...await service.erasureStatements('observations',{id:o.id}));
+   }
+   for(const probe of Object.keys(hosted.assignments)){
+    counts.runner_assignments=(counts.runner_assignments??0)+1;
+    statements.push(...await service.erasureStatements('runner_assignments',{slot_id:slot.id,probe}));
+   }
+   statements.push(...await service.erasureStatements('slots',{id:slot.id}));
+  }
  }
  // Keep the permanent claimed marker, but remove its original owner's identity.
  // Fence the source row without deleting or transferring bootstrap authority.

@@ -1,4 +1,5 @@
 import {observationsAt} from './check-evidence-query.ts'
+import {withQuietSlots} from './quiet-checks.ts'
 import type {Bindings} from './control.server.ts'
 import type {NotificationEvent} from './notification-content.ts'
 import {eventWebhookContext} from './notification-webhook-context.ts'
@@ -12,12 +13,16 @@ export async function slowNotice(env:Bindings,monitor:any,slot:any,fresh:any[],n
  let policy=monitor.definition.slow;
  if(previous){const original=await env.DB.prepare('SELECT definition FROM revisions WHERE monitor_id=? AND revision=?').bind(monitor.id,previous.monitorRevision).first<{definition:string}>();const saved=original?JSON.parse(original.definition):null;policy=saved?.slow?{...saved.slow,locations:saved.slow.locations==='all'?saved.probes:saved.slow.locations}:null;}
  if(!policy)return null;
- const rows=(await env.DB.prepare('SELECT id,due_at,manual,missed_count FROM slots WHERE monitor_id=? AND revision=? AND manual=0 ORDER BY due_at DESC LIMIT 100').bind(monitor.id,monitor.revision).all<any>()).results;
+ const storedRows=(await env.DB.prepare('SELECT id,due_at,manual,missed_count FROM slots WHERE monitor_id=? AND revision=? AND manual=0 ORDER BY due_at DESC LIMIT 100').bind(monitor.id,monitor.revision).all<any>()).results;
+ // The window also counts the revision's quiet checks (quiet-checks.ts), whose evidence travels with them.
+ const rows=await withQuietSlots<any>(env.DB,monitor.id,storedRows,100,{revision:monitor.revision});
  if(rows[0]?.id!==slot.id)return null; // late historical arrivals cannot regress current degradation
- const stored=(await env.DB.prepare(`SELECT selected.value AS slot_id,json_extract(o.value,'$.probe') AS probe,o.value AS evidence
+ const quiet=rows.filter(row=>typeof row.hosted==='string');
+ const stored=[...(await env.DB.prepare(`SELECT selected.value AS slot_id,json_extract(o.value,'$.probe') AS probe,o.value AS evidence
   FROM json_each(?) selected CROSS JOIN json_each((
    SELECT json_group_array(json(evidence)) FROM (${observationsAt('selected.value')})
-  )) o`).bind(JSON.stringify(rows.map(s=>s.id))).all<any>()).results;
+  )) o`).bind(JSON.stringify(rows.filter(row=>typeof row.hosted!=='string').map(s=>s.id))).all<any>()).results,
+  ...quiet.flatMap(row=>JSON.parse(row.hosted).attempts.map((o:any)=>({slot_id:row.id,probe:o.probe,evidence:JSON.stringify(o)})))];
  const observations=[...stored,...fresh.map(o=>({slot_id:slot.id,probe:o.probe,evidence:o}))];
  const result=slowEvaluation({...monitor.definition,slow:policy},rows,observations,now);if(!result)return null;
  if(result.slow===open)return null;

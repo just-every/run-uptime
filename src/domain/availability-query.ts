@@ -1,3 +1,5 @@
+import {quietFloor,quietSlots} from './quiet-checks.ts'
+
 // Historical coverage uses each immutable revision and ends at its next save.
 export const availabilityEvidenceCtes = `
 WITH params AS (
@@ -18,17 +20,30 @@ WITH params AS (
     MAX(30000,json_array_length(definition,'$.probes') *
       ((json_extract(definition,'$.retries')+2)*json_extract(definition,'$.timeoutMs'))+10000)+1000),0) AS reach_ms
   FROM revision_windows
+), window_bound AS (
+  SELECT p.window_start-b.reach_ms AS at FROM params p CROSS JOIN coverage_bound b
+), quiet_slots AS MATERIALIZED (
+  -- Quiet checks have no slot row (quiet-checks.ts): those the window can reach, and the newest before it.
+  ${quietSlots('(SELECT monitor_id FROM params)',`b.starts_at<=(SELECT now_at FROM params)
+    AND b.starts_at>${quietFloor('(SELECT monitor_id FROM params)','(SELECT at FROM window_bound)')}`)}
 ), window_floor AS (
-  SELECT COALESCE((SELECT MAX(s.due_at) FROM slots s
-    WHERE s.monitor_id=p.monitor_id AND s.manual=0 AND s.due_at<p.window_start-b.reach_ms),
-    p.window_start-b.reach_ms) AS due_floor FROM params p CROSS JOIN coverage_bound b
+  SELECT COALESCE(NULLIF(MAX(
+    COALESCE((SELECT MAX(s.due_at) FROM slots s WHERE s.monitor_id=p.monitor_id AND s.manual=0 AND s.due_at<w.at),-1),
+    COALESCE((SELECT MAX(q.due_at) FROM quiet_slots q WHERE q.due_at<w.at),-1)),-1),
+    w.at) AS due_floor FROM params p CROSS JOIN window_bound w
 ), latest_slot AS (
-  SELECT s.* FROM slots s, params p
-  WHERE s.monitor_id=p.monitor_id AND s.manual=0 AND s.status='complete' AND s.due_at<=p.now_at
-  ORDER BY s.due_at DESC, s.rowid DESC LIMIT 1
+  SELECT id,monitor_id,revision,due_at,status,definition,lease_owner,lease_until,missed_count,manual,hosted FROM (
+    SELECT * FROM (SELECT s.*,0 AS quiet FROM slots s, params p
+      WHERE s.monitor_id=p.monitor_id AND s.manual=0 AND s.status='complete' AND s.due_at<=p.now_at
+      ORDER BY s.due_at DESC, s.rowid DESC LIMIT 1)
+    UNION ALL
+    SELECT q.*,1 FROM quiet_slots q, params p WHERE q.due_at<=p.now_at
+  ) ORDER BY due_at DESC, quiet LIMIT 1
 ), bounded_slots AS (
   SELECT s.* FROM slots s, params p, window_floor f
   WHERE s.monitor_id=p.monitor_id AND s.manual=0 AND s.due_at>=f.due_floor AND s.due_at<=p.now_at
+  UNION ALL
+  SELECT q.* FROM quiet_slots q, params p, window_floor f WHERE q.due_at>=f.due_floor AND q.due_at<=p.now_at
 ), scheduled_slots AS (
   SELECT * FROM bounded_slots UNION SELECT * FROM latest_slot
 ), slot_params AS (
