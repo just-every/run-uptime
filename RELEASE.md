@@ -1,5 +1,7 @@
 # Release Uptime 0.5.37
 
+Migration `0099_hosted_claims.sql` adds `monitors.hosted_claim` without rewriting any rows.
+
 Use the exact `@runeditrun/rer` version pinned in `package.json` (currently
 0.2.140), Node 22.20.0, pnpm 10.12.4, Git, Python 3, Gitleaks 8.30.1 and the
 Playwright Chromium browser required by the lockfile.

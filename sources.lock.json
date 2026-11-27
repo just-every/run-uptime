@@ -521,7 +521,7 @@
       "executable": false
     },
     "CHANGELOG.md": {
-      "sha256": "3cf516084c02e1ef802f28831b605b6d9de3f3652212a4730f920351df7759b8",
+      "sha256": "5b862a080b80a459c0977fbaad4701c75388f055cc2d8eadbbcf3d2d7d7e7c54",
       "executable": false
     },
     "CLAUDE.md": {
@@ -3149,11 +3149,11 @@
       "executable": false
     },
     "RELEASE.json": {
-      "sha256": "48c27148b30dd1be40c87f65bb64b2dfbfbc1c71b1788027e22c0acb5690025f",
+      "sha256": "2b54e58e3d77b815af9a981b6537f639cc232ec143df4f5bcff35f99e116a03a",
       "executable": false
     },
     "RELEASE.md": {
-      "sha256": "bd0a818e25da8148a91c1ccd302e2646580a33c9a65d62d75f503a5c897b3ee6",
+      "sha256": "4242469480ca98ec0a9333ea86b9a21f4d2376cda6e0a879c1dd49078dd7b6b3",
       "executable": false
     },
     "rer-local-setup.json": {
