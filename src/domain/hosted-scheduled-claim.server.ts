@@ -13,7 +13,7 @@ export type HostedCandidate={id:string;revision:number;next_due:number;definitio
 type ClaimedClock=AttemptClockRow&{delivered_at:number}
 /** What the result of a claimed check needs: the immutable claim, without the probe's own copy of the definition. */
 export type HostedClaimResult={id:string;monitorId:string;revision:number;dueAt:number;probes:string[];acceptUntil:number;
- cronNextDueAt:number|null;encodedDefinition:string;deliveredAt:number;clock:AttemptClockRow}
+ missedCount:number;cronNextDueAt:number|null;encodedDefinition:string;deliveredAt:number;clock:AttemptClockRow}
 export type HostedScheduleClaim=HostedClaimResult&{definition:any;snapshotPolicy:ReturnType<typeof settingsOf>}
 
 // An ordinary newly due check is claimed on its monitor row and its probes handed to the
@@ -33,6 +33,7 @@ async function planHostedSchedule(env:Bindings,row:HostedCandidate,now:number,ex
  const cronNextDueAt=definition.intervalMs%CRON_MINUTE===0?
   Math.ceil(gridNext/CRON_MINUTE)*CRON_MINUTE:cronThrough===undefined?null:gridNext;
  const until=now+acceptanceMs(definition),id=`${row.id}:${row.revision}:${row.next_due}`;
+ const missedCount=missedSlots(row.next_due,dueThrough,definition.intervalMs);
  const pause=intervals({...definition,maintenanceUntil:0,maintenanceWindows:(definition.maintenanceWindows??[]).filter((w:any)=>w.mode==='pause')},now,until);
  const task=definition.probes.some((p:string)=>definition.assignments[p].canaryUrl)?liveExternalCheck(definition,await external()):definition;
  const deliveryAssignments=Object.fromEntries(definition.probes.map((p:string)=>[p,task.assignments[p]]));
@@ -57,12 +58,12 @@ async function planHostedSchedule(env:Bindings,row:HostedCandidate,now:number,ex
      WHERE ${delivered}>=json_extract(w.value,'$.startsAt') AND ${delivered}<json_extract(w.value,'$.endsAt'))
    AND NOT EXISTS(SELECT 1 FROM slots n WHERE n.monitor_id=?2 AND n.manual=0 AND n.due_at>?7
     AND (json_extract(n.hosted,'$.runnerId')=?8 OR EXISTS(SELECT 1 FROM runner_assignments a WHERE a.slot_id=n.id AND a.runner_id=?8)))`)
-   .bind(id,row.id,now,until,missedSlots(row.next_due,dueThrough,definition.intervalMs),row.revision,row.next_due,
+   .bind(id,row.id,now,until,missedCount,row.revision,row.next_due,
     HOSTED_RUNNER_ID,JSON.stringify(deliveryAssignments),JSON.stringify(pause),cronNextDueAt,gridNext,definition.intervalMs),
   attemptClock(env,row.id,row.revision,true),
  ];
  return {statements,task:{id,monitorId:row.id,revision:row.revision,dueAt:row.next_due,definition:task,
-  probes:definition.probes,acceptUntil:until,cronNextDueAt,encodedDefinition:row.encoded,snapshotPolicy:row.snapshotPolicy}};
+  probes:definition.probes,acceptUntil:until,missedCount,cronNextDueAt,encodedDefinition:row.encoded,snapshotPolicy:row.snapshotPolicy}};
 }
 
 export async function claimHostedSchedules(env:Bindings,rows:HostedCandidate[],cronThrough?:number):Promise<(HostedScheduleClaim|null)[]>{
