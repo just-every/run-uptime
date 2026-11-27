@@ -68,7 +68,9 @@ async function nextPoll(page){
  await page.waitForFunction(()=>document.querySelector('#content-area')?.getAttribute('aria-busy')!=='true');
 }
 async function unavailableJourney(page,width){
- await page.route(overviewRead,route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Synthetic read unavailable'})}));
+ let unavailable=true;
+ const respond=route=>unavailable?route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Synthetic read unavailable'})}):route.continue();
+ await page.route(overviewRead,respond);
  try{
   assert.equal((await nextOverviewPoll(page)).status(),503);
   await page.locator('#read-notice[data-state=unavailable]').waitFor({timeout:12000});
@@ -77,10 +79,13 @@ async function unavailableJourney(page,width){
   // The status line says the last result is shown, and the recorded checks stay listed with their times.
   assert.match(await page.locator('#monitor-status').textContent(),/Showing the last result/);assert.ok(await page.locator('#recent-rows time').count(),'the last recorded checks stay listed');
   await audit(page,`unavailable-${width}`,{state:'Unknown',reason:/couldn.t refresh/i});
- }finally{await page.unroute(overviewRead)}
- await nextPoll(page);
- await page.locator('#read-notice[data-state=recovered]').waitFor({timeout:12000});
- await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor();
+  // The recovery notice belongs to the first successful read. Watch for it before
+  // letting any read through, including a poll already due during the outage.
+  const recovered=page.locator('#read-notice[data-state=recovered]').waitFor({timeout:12000});
+  unavailable=false;
+  await Promise.all([nextPoll(page),recovered]);
+  await page.locator('#monitor-state').filter({hasText:'Healthy'}).waitFor();
+ }finally{await page.unroute(overviewRead,respond)}
 }
 // A cold document must explain a refused read, then resume only after the
 // server's Retry-After. The route fake is at the browser/network edge; assets,

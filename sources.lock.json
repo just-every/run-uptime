@@ -10677,7 +10677,7 @@
       "executable": false
     },
     "tests/operator-browser.mjs": {
-      "sha256": "5db743f615bfd1ef5df2a587d58fd215507cf2a8da4644c7e6d9e08a3397c1fe",
+      "sha256": "4e8f35d067db92776b8814ea216d2d2c4d40a91d49a3cfe30c5e25d635fc6a7d",
       "executable": false
     },
     "tests/operator-security.mjs": {
