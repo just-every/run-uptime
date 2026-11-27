@@ -21,10 +21,10 @@ assert.ok(Number.isSafeInteger(historyMinutes) && historyMinutes >= minutesPerDa
 
 const day = minutesPerDay * minute;
 const dailyBudget = 1_000_000;
-const dailyWriteBudget = 55_000;
+const dailyWriteBudget = 30_000;
 const migrationWriteBudget = 20_000;
 const freeDailyWriteLimit = 100_000;
-const cronWriteBudget = 40;
+const cronWriteBudget = 30;
 const cronBudget = 300_000;
 const coldCronBudget = 500_000 / minutesPerDay;
 const coldReadBudget = 1_000;

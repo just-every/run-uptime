@@ -13,6 +13,11 @@ export const BUCKET_REACH=21_600_000
 export const bucketWidth=(interval:string)=>`(CASE WHEN ${interval}<10000 THEN 1800000 WHEN ${interval}<20000 THEN 3600000
   WHEN ${interval}<30000 THEN 7200000 WHEN ${interval}<60000 THEN 10800000 ELSE ${BUCKET_REACH} END)`
 
+/** The most a quiet check's attempts and the claim it was taken under may take, in UTF-8 bytes. A bucket holds at
+ * most 360 checks and a tail a few dozen, so both rows stay well under D1's 2 MB row limit; a larger check keeps
+ * its own slot row. */
+export const QUIET_CONTENT_BYTES=3_000
+
 export type QuietSlot={id:string;monitor_id:string;revision:number;due_at:number;status:'complete';definition:string;
  lease_owner:'';lease_until:number;missed_count:number;manual:0;hosted:string}
 

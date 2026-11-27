@@ -1,4 +1,5 @@
 import {MONITOR_LIMIT,type Bindings} from '../control.server.ts'
+import {monitorColumns} from '../monitor-row.server.ts'
 import {assignRunners,type Runner} from '../runner-registration.server.ts'
 import {externalCheck} from '../external-check.server.ts'
 import {dnsCache,ProbeError} from '../worker-dns.server.ts'
@@ -12,7 +13,7 @@ import {canonical,sha256} from '../definitions/format.ts'
 export type Monitor={id:string;revision:number;definition:any;nextDue:number;storedState:any}
 export async function catalogContext(env:Bindings){
  const [rows,runners,external]=await Promise.all([
-  env.DB.prepare('SELECT * FROM monitors ORDER BY id').all<any>(),
+  env.DB.prepare(`SELECT ${monitorColumns} FROM monitors ORDER BY id`).all<any>(),
   env.DB.prepare('SELECT * FROM runners ORDER BY registered_at,runner_id').all<Runner>(),externalCheck(env)])
  const monitors:Monitor[]=rows.results.map(row=>({id:row.id,revision:row.revision,definition:JSON.parse(row.definition),nextDue:row.next_due,storedState:JSON.parse(row.state)}))
  return {monitors,runners:runners.results,external}
